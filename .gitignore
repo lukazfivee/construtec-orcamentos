@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+
+# builds and packaging
+dist/
+out/
+.vite/
+
+# local databases and runtime data
+*.db
+*.db-shm
+*.db-wal
+data/
+backups/
+
+# secrets and local configuration
+.env
+.env.*
+!.env.example
+.impeccable/config.local.json
+
+# editor and operating system
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# logs and coverage
+*.log
+coverage/
+
+# projectless workspace folders
+outputs/
+work/

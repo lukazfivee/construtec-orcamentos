@@ -1,0 +1,6 @@
+{
+  "approved": true,
+  "approvedAt": "2026-08-24",
+  "promptSource": ".impeccable/mocks/canon-operational.prompt.txt",
+  "provenance": "The exact generation prompt is embedded in the PNG metadata."
+}

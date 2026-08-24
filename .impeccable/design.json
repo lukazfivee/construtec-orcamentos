@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-24T18:07:24.679Z",
+  "title": "Design System: Construtec Orçamentos",
+  "extensions": {
+    "colorMeta": {
+      "nav": { "role": "neutral", "displayName": "Marinho Estrutural", "canonical": "#122036", "tonalRamp": ["oklch(15% 0.04 255)", "oklch(26% 0.04 255)", "oklch(38% 0.04 255)", "oklch(50% 0.04 255)", "oklch(62% 0.04 255)", "oklch(74% 0.04 255)", "oklch(86% 0.04 255)", "oklch(95% 0.04 255)"] },
+      "nav-muted": { "role": "neutral", "displayName": "Névoa de Navegação", "canonical": "#b8c3d3", "tonalRamp": ["oklch(15% 0.02 250)", "oklch(26% 0.02 250)", "oklch(38% 0.02 250)", "oklch(50% 0.02 250)", "oklch(62% 0.02 250)", "oklch(74% 0.02 250)", "oklch(86% 0.02 250)", "oklch(95% 0.02 250)"] },
+      "ink": { "role": "neutral", "displayName": "Tinta Operacional", "canonical": "#172033", "tonalRamp": ["oklch(15% 0.035 260)", "oklch(26% 0.035 260)", "oklch(38% 0.035 260)", "oklch(50% 0.035 260)", "oklch(62% 0.035 260)", "oklch(74% 0.035 260)", "oklch(86% 0.035 260)", "oklch(95% 0.035 260)"] },
+      "muted": { "role": "neutral", "displayName": "Cinza de Apoio", "canonical": "#697386", "tonalRamp": ["oklch(15% 0.025 250)", "oklch(26% 0.025 250)", "oklch(38% 0.025 250)", "oklch(50% 0.025 250)", "oklch(62% 0.025 250)", "oklch(74% 0.025 250)", "oklch(86% 0.025 250)", "oklch(95% 0.025 250)"] },
+      "line": { "role": "neutral", "displayName": "Linha Fria", "canonical": "#e4e6ea", "tonalRamp": ["oklch(15% 0.012 255)", "oklch(26% 0.012 255)", "oklch(38% 0.012 255)", "oklch(50% 0.012 255)", "oklch(62% 0.012 255)", "oklch(74% 0.012 255)", "oklch(86% 0.012 255)", "oklch(95% 0.012 255)"] },
+      "line-strong": { "role": "neutral", "displayName": "Linha Fria Forte", "canonical": "#cfd5de", "tonalRamp": ["oklch(15% 0.015 255)", "oklch(26% 0.015 255)", "oklch(38% 0.015 255)", "oklch(50% 0.015 255)", "oklch(62% 0.015 255)", "oklch(74% 0.015 255)", "oklch(86% 0.015 255)", "oklch(95% 0.015 255)"] },
+      "primary": { "role": "primary", "displayName": "Azul de Decisão", "canonical": "#085ce5", "tonalRamp": ["oklch(15% 0.18 255)", "oklch(26% 0.18 255)", "oklch(38% 0.18 255)", "oklch(50% 0.18 255)", "oklch(62% 0.18 255)", "oklch(74% 0.18 255)", "oklch(86% 0.18 255)", "oklch(95% 0.18 255)"] },
+      "primary-soft": { "role": "primary", "displayName": "Azul de Seleção", "canonical": "#eff5ff", "tonalRamp": ["oklch(15% 0.03 255)", "oklch(26% 0.03 255)", "oklch(38% 0.03 255)", "oklch(50% 0.03 255)", "oklch(62% 0.03 255)", "oklch(74% 0.03 255)", "oklch(86% 0.03 255)", "oklch(95% 0.03 255)"] },
+      "success": { "role": "secondary", "displayName": "Verde de Integridade", "canonical": "#178442", "tonalRamp": ["oklch(15% 0.14 145)", "oklch(26% 0.14 145)", "oklch(38% 0.14 145)", "oklch(50% 0.14 145)", "oklch(62% 0.14 145)", "oklch(74% 0.14 145)", "oklch(86% 0.14 145)", "oklch(95% 0.14 145)"] },
+      "success-soft": { "role": "secondary", "displayName": "Verde de Confirmação", "canonical": "#f0f9f2", "tonalRamp": ["oklch(15% 0.025 145)", "oklch(26% 0.025 145)", "oklch(38% 0.025 145)", "oklch(50% 0.025 145)", "oklch(62% 0.025 145)", "oklch(74% 0.025 145)", "oklch(86% 0.025 145)", "oklch(95% 0.025 145)"] },
+      "warning": { "role": "tertiary", "displayName": "Âmbar de Edição", "canonical": "#9a5b00", "tonalRamp": ["oklch(15% 0.12 75)", "oklch(26% 0.12 75)", "oklch(38% 0.12 75)", "oklch(50% 0.12 75)", "oklch(62% 0.12 75)", "oklch(74% 0.12 75)", "oklch(86% 0.12 75)", "oklch(95% 0.12 75)"] },
+      "warning-soft": { "role": "tertiary", "displayName": "Âmbar de Atenção", "canonical": "#fff5d9", "tonalRamp": ["oklch(15% 0.045 75)", "oklch(26% 0.045 75)", "oklch(38% 0.045 75)", "oklch(50% 0.045 75)", "oklch(62% 0.045 75)", "oklch(74% 0.045 75)", "oklch(86% 0.045 75)", "oklch(95% 0.045 75)"] },
+      "surface": { "role": "neutral", "displayName": "Papel Frio", "canonical": "#fefefe", "tonalRamp": ["oklch(15% 0.003 255)", "oklch(26% 0.003 255)", "oklch(38% 0.003 255)", "oklch(50% 0.003 255)", "oklch(62% 0.003 255)", "oklch(74% 0.003 255)", "oklch(86% 0.003 255)", "oklch(95% 0.003 255)"] },
+      "surface-subtle": { "role": "neutral", "displayName": "Papel Frio Sutil", "canonical": "#f7f8fa", "tonalRamp": ["oklch(15% 0.007 255)", "oklch(26% 0.007 255)", "oklch(38% 0.007 255)", "oklch(50% 0.007 255)", "oklch(62% 0.007 255)", "oklch(74% 0.007 255)", "oklch(86% 0.007 255)", "oklch(95% 0.007 255)"] },
+      "focus": { "role": "primary", "displayName": "Azul de Foco", "canonical": "#2f7cf4", "tonalRamp": ["oklch(15% 0.16 255)", "oklch(26% 0.16 255)", "oklch(38% 0.16 255)", "oklch(50% 0.16 255)", "oklch(62% 0.16 255)", "oklch(74% 0.16 255)", "oklch(86% 0.16 255)", "oklch(95% 0.16 255)"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline Comercial", "purpose": "Totais e percentuais de máxima prioridade no inspetor comercial." },
+      "title": { "displayName": "Título Operacional", "purpose": "Marca e títulos compactos que ancoram regiões." },
+      "body": { "displayName": "Corpo de Interface", "purpose": "Navegação, controles e texto operacional recorrente." },
+      "label": { "displayName": "Rótulo Denso", "purpose": "Cabeçalhos de tabela, metadados e notas auxiliares." }
+    },
+    "shadows": [
+      { "name": "popover-ambient", "value": "0 10px 25px rgba(28, 40, 59, .14), 0 2px 5px rgba(28, 40, 59, .08)", "purpose": "Separa a busca de catálogo da tabela enquanto ela está aberta." },
+      { "name": "toast-elevated", "value": "0 10px 26px rgba(18, 32, 54, .22)", "purpose": "Mantém feedback temporário legível sobre qualquer região." },
+      { "name": "key-tactile", "value": "0 1px 0 rgba(18, 32, 54, .08)", "purpose": "Distingue a representação de atalhos do texto comum." }
+    ],
+    "motion": [
+      { "name": "float-in", "value": "180ms cubic-bezier(.2, .8, .2, 1)", "purpose": "Entrada curta de popover e toast por deslocamento e opacidade." },
+      { "name": "reduced-motion", "value": ".01ms", "purpose": "Neutraliza animações quando o sistema solicita movimento reduzido." }
+    ],
+    "breakpoints": [
+      { "name": "desktop-minimum", "value": "1180px" },
+      { "name": "desktop-compact-width", "value": "1350px" },
+      { "name": "desktop-compact-height", "value": "800px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão Primário",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação decisiva dentro do fluxo, como inserir item ou gerar proposta.",
+      "html": "<button class=\"ds-btn-primary\"><svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg>Inserir</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:34px; padding:0 13px; color:#fff; background:var(--blue, #085ce5); border:1px solid var(--blue, #085ce5); border-radius:6px; font:650 12px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; cursor:pointer; transition:background 140ms ease,border-color 140ms ease; } .ds-btn-primary:hover { background:#064ebf; border-color:#064ebf; } .ds-btn-primary:focus-visible { outline:2px solid var(--focus, #2f7cf4); outline-offset:2px; } .ds-btn-primary:active { transform:translateY(1px); }"
+    },
+    {
+      "name": "Botão Secundário",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ação de ferramenta que permanece disponível sem competir com a decisão principal.",
+      "html": "<button class=\"ds-btn-secondary\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" aria-hidden=\"true\"><path d=\"M8 8h11v11H8zM5 16H4V4h12v1\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/></svg>Duplicar</button>",
+      "css": ".ds-btn-secondary { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:34px; padding:0 13px; color:var(--ink, #172033); background:var(--surface, #fefefe); border:1px solid var(--line-strong, #cfd5de); border-radius:6px; font:400 12px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; cursor:pointer; transition:background 140ms ease,border-color 140ms ease; } .ds-btn-secondary:hover { background:#f7f9fb; border-color:#aeb8c6; } .ds-btn-secondary:focus-visible { outline:2px solid var(--focus, #2f7cf4); outline-offset:2px; } .ds-btn-secondary:active { background:#eef1f5; }"
+    },
+    {
+      "name": "Botão de Ícone",
+      "kind": "button",
+      "description": "Ferramenta compacta para ações reconhecíveis da tabela e da barra superior.",
+      "html": "<button class=\"ds-icon-button\" aria-label=\"Filtrar itens\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" aria-hidden=\"true\"><path d=\"M4 5h16l-6.5 7.2V19l-3 1v-7.8z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/></svg></button>",
+      "css": ".ds-icon-button { display:inline-grid; place-items:center; width:34px; min-width:34px; height:32px; padding:0; color:var(--ink, #172033); background:transparent; border:1px solid transparent; border-radius:5px; cursor:pointer; transition:background 140ms ease,border-color 140ms ease; } .ds-icon-button:hover { background:#f7f9fb; border-color:var(--line-strong, #cfd5de); } .ds-icon-button:focus-visible { outline:2px solid var(--focus, #2f7cf4); outline-offset:2px; } .ds-icon-button:active { background:#eef1f5; }"
+    },
+    {
+      "name": "Busca de Catálogo",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Campo em foco dentro do seletor local de produtos.",
+      "html": "<label class=\"ds-search\"><svg viewBox=\"0 0 24 24\" width=\"15\" height=\"15\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><path d=\"m20 20-4-4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg><input value=\"leit\" aria-label=\"Pesquisar no catálogo\"><kbd>Esc</kbd></label>",
+      "css": ".ds-search { display:flex; align-items:center; gap:7px; width:320px; height:35px; padding:0 9px; color:var(--ink, #172033); background:var(--surface, #fefefe); border:1px solid var(--blue, #085ce5); border-radius:5px; box-shadow:0 0 0 2px rgba(8,92,229,.12); font:400 12px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; } .ds-search input { flex:1; min-width:0; color:inherit; background:transparent; border:0; outline:0; font:inherit; } .ds-search kbd { padding:1px 5px; color:#5b6472; background:#f4f5f7; border:1px solid #d7dbe1; border-radius:4px; font:10px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; box-shadow:0 1px 0 rgba(18,32,54,.08); } .ds-search:focus-within { box-shadow:0 0 0 2px rgba(8,92,229,.18); }"
+    },
+    {
+      "name": "Item de Navegação Ativo",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Destino atual na navegação persistente do aplicativo.",
+      "html": "<button class=\"ds-nav-active\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" aria-hidden=\"true\"><path d=\"M7 3h7l4 4v14H7zM14 3v5h5M10 13h5M10 17h5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/></svg><span>Propostas</span></button>",
+      "css": ".ds-nav-active { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; width:118px; height:82px; padding:8px; color:#fff; background:#1b2c45; border:0; font:400 12px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; cursor:pointer; } .ds-nav-active::before { content:''; position:absolute; inset:0 auto 0 0; width:4px; background:var(--blue, #085ce5); } .ds-nav-active:hover { background:#182941; } .ds-nav-active:focus-visible { outline:2px solid var(--focus, #2f7cf4); outline-offset:-3px; } .ds-nav-active:active { background:#223653; }"
+    },
+    {
+      "name": "Aba de Proposta Ativa",
+      "kind": "nav",
+      "description": "Representa a revisão aberta na área de trabalho.",
+      "html": "<button class=\"ds-proposal-tab\">PA-1054 • REV.00</button>",
+      "css": ".ds-proposal-tab { position:relative; display:flex; align-items:center; min-width:170px; height:45px; padding:0 22px; color:#132038; background:#fff; border:0; border-right:1px solid var(--line, #e4e6ea); font:700 12px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; cursor:pointer; } .ds-proposal-tab::after { content:''; position:absolute; inset:auto 10px 0; height:2px; background:var(--blue, #085ce5); } .ds-proposal-tab:hover { background:#f1f4f8; } .ds-proposal-tab:focus-visible { outline:2px solid var(--focus, #2f7cf4); outline-offset:-3px; } .ds-proposal-tab:active { background:#eaf0f8; }"
+    },
+    {
+      "name": "Estado de Preço Congelado",
+      "kind": "chip",
+      "refersTo": "status-frozen",
+      "description": "Confirma a imutabilidade do snapshot comercial da revisão.",
+      "html": "<div class=\"ds-frozen\"><svg viewBox=\"0 0 24 24\" width=\"17\" height=\"17\" aria-hidden=\"true\"><rect x=\"5\" y=\"10\" width=\"14\" height=\"10\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/></svg><span>Preço congelado nesta revisão</span></div>",
+      "css": ".ds-frozen { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:42px; padding:8px 10px; color:var(--green, #178442); background:var(--green-soft, #f0f9f2); border:1px solid #5eaf79; border-radius:6px; font:700 11px/1.4 'IBM Plex Sans','Segoe UI',sans-serif; } .ds-frozen:hover { background:#e7f6eb; } .ds-frozen:focus-visible { outline:2px solid var(--focus, #2f7cf4); outline-offset:2px; }"
+    },
+    {
+      "name": "Resumo Comercial",
+      "kind": "card",
+      "description": "Recorte do inspetor permanente que prioriza totais por tamanho e cor, sem sombra ou canto de cartão.",
+      "html": "<section class=\"ds-summary\"><div><span>Custo (materiais + serviços)</span><strong>R$ 18.430,00</strong></div><div class=\"ds-summary-sale\"><span>Venda total</span><strong>R$ 26.723,50</strong></div><div class=\"ds-summary-result\"><span>Resultado bruto</span><strong>R$ 8.293,50</strong></div></section>",
+      "css": ".ds-summary { width:284px; padding:17px 18px; color:var(--ink, #172033); background:#fbfcfd; border:1px solid var(--line, #e4e6ea); font-family:'IBM Plex Sans','Segoe UI',sans-serif; } .ds-summary div { display:flex; flex-direction:column; gap:7px; padding:10px 0; font-variant-numeric:tabular-nums; } .ds-summary span { color:#3e4857; font-size:11px; } .ds-summary strong { color:#101820; font-size:25px; line-height:1; letter-spacing:-.025em; } .ds-summary-sale strong { color:var(--blue, #085ce5); } .ds-summary-result strong { color:var(--green, #178442); } .ds-summary:hover { border-color:var(--line-strong, #cfd5de); } .ds-summary:focus-within { outline:2px solid var(--focus, #2f7cf4); outline-offset:2px; }"
+    },
+    {
+      "name": "Popover de Catálogo",
+      "kind": "custom",
+      "description": "Superfície temporária que flutua sobre a tabela para inserção rápida de itens locais.",
+      "html": "<section class=\"ds-popover\"><header><strong>Buscar no catálogo</strong><a href=\"#\">Ver catálogo completo</a></header><div class=\"ds-result\"><code>LEI-AC-002</code><span>Leitor facial IP Wiegand</span></div><footer>↑↓ Navegar &nbsp; Enter Inserir &nbsp; Esc Fechar</footer></section>",
+      "css": ".ds-popover { width:440px; color:var(--ink, #172033); background:#fff; border:1px solid #cbd2dc; border-radius:7px; box-shadow:0 10px 25px rgba(28,40,59,.14),0 2px 5px rgba(28,40,59,.08); overflow:hidden; font:400 11px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; transition:transform 180ms cubic-bezier(.2,.8,.2,1),box-shadow 180ms cubic-bezier(.2,.8,.2,1); } .ds-popover header { display:flex; align-items:center; justify-content:space-between; padding:12px 13px 8px; } .ds-popover a { color:var(--blue, #085ce5); text-decoration:none; } .ds-result { display:grid; grid-template-columns:82px 1fr; gap:8px; padding:10px; background:var(--blue-soft, #eff5ff); border:1px solid #b8d1fb; } .ds-result code { font:10px/1.5 'IBM Plex Sans','Segoe UI',sans-serif; } .ds-popover footer { padding:9px 12px; color:#647083; background:#f8f9fb; font-size:10px; } .ds-popover:hover { transform:translateY(-1px); box-shadow:0 12px 28px rgba(28,40,59,.16),0 2px 5px rgba(28,40,59,.08); } .ds-popover:focus-within { outline:2px solid var(--focus, #2f7cf4); outline-offset:2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Mesa Operacional",
+    "overview": "A interface se comporta como uma bancada corporativa de trabalho: estável, precisa e pronta para uso prolongado. Sua familiaridade vem de padrões reconhecíveis de software de gestão; seu refinamento vem da disciplina de alinhamento, densidade e estado — não de ornamento. A direção combina a solidez operacional de sistemas de engenharia e gestão com a nitidez de produtos contemporâneos.\n\nO conteúdo é o protagonista. Tabelas, valores e ações convivem em um único campo de trabalho contínuo, com navegação naval persistente, superfícies quase brancas e azul elétrico reservado para decisões. Clareza, velocidade e segurança precedem qualquer gesto expressivo.",
+    "keyCharacteristics": [
+      "Corporativa contemporânea, familiar e altamente refinada.",
+      "Densa sem parecer congestionada; cada linha sustenta uma decisão operacional.",
+      "Navegação escura e estável emoldurando uma área de trabalho clara.",
+      "Azul elétrico raro, usado para seleção, foco e ação primária.",
+      "Hierarquia construída por alinhamento, tipografia, divisores e estados explícitos."
+    ],
+    "rules": [
+      { "name": "The One Decision Rule", "body": "O azul primário aparece apenas onde existe seleção, foco ou próxima ação clara; ele nunca funciona como preenchimento decorativo.", "section": "colors" },
+      { "name": "The Semantic Reserve Rule", "body": "Verde comunica integridade ou resultado positivo; âmbar comunica edição ou atenção. Nenhum deles substitui o azul em ações.", "section": "colors" },
+      { "name": "The Numeric Scan Rule", "body": "Moeda, porcentagem, quantidade e códigos usam numerais tabulares e alinhamento consistente para permitir comparação vertical imediata.", "section": "typography" },
+      { "name": "The Compact Hierarchy Rule", "body": "A interface não cria impacto com títulos grandes; cria prioridade por peso, cor e posição dentro da grade.", "section": "typography" },
+      { "name": "The Workbench Rule", "body": "A tabela ocupa o centro e o inspetor comercial permanece no contexto; resumos gerenciais não deslocam a tarefa principal para baixo da primeira dobra.", "section": "layout" },
+      { "name": "The Flat Workbench Rule", "body": "Superfícies permanentes não recebem sombra; use linha, tom e alinhamento. Sombra comprova flutuação temporária.", "section": "elevation" },
+      { "name": "The Structure Before Softness Rule", "body": "Não arredonde a casca, a tabela ou os grandes painéis; reserve cantos suaves para controles, estados e superfícies flutuantes.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do manter a tarefa e os dados centrais visíveis no primeiro viewport.",
+      "Do alinhar moeda e quantidade à direita e usar numerais tabulares.",
+      "Do usar linhas de 1px e mudanças tonais mínimas para estruturar superfícies permanentes.",
+      "Do reservar o azul para foco, seleção e ação primária.",
+      "Do escrever ações com verbos diretos em português do Brasil e mostrar atalhos quando existirem.",
+      "Do preservar foco visível, contraste adequado e suporte a movimento reduzido."
+    ],
+    "donts": [
+      "Don't transformar a bancada de edição em uma grade de cartões gerenciais.",
+      "Don't usar sombras em barras, tabela, painéis ou outros elementos permanentes.",
+      "Don't introduzir gradientes, vidro, ilustração ornamental ou cor de destaque sem função operacional.",
+      "Don't usar verde ou âmbar como substitutos da ação azul primária.",
+      "Don't esconder custo, margem, BDI ou fornecedor em saídas destinadas ao cliente; a distinção entre visão interna e documento exportado é obrigatória.",
+      "Don't inventar comportamento mobile para a primeira versão desktop."
+    ]
+  }
+}
