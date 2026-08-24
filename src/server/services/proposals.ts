@@ -175,3 +175,69 @@ export const removeProposalItems = async (database: LocalDatabase, proposalId: s
     `, [randomUUID(), proposalId, JSON.stringify({ itemIds })]);
   });
 };
+
+export const updateProposalItemQuantity = async (
+  database: LocalDatabase,
+  proposalId: string,
+  itemId: string,
+  quantity: number,
+) => {
+  await database.transaction(async (transaction) => {
+    const proposalResult = await transaction.query<{ status: string }>(
+      'SELECT status FROM proposals WHERE id = $1 FOR UPDATE',
+      [proposalId],
+    );
+    const proposal = proposalResult.rows[0];
+    if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
+    if (proposal.status !== 'draft' && proposal.status !== 'review') throw new Error('PROPOSAL_LOCKED');
+
+    const itemResult = await transaction.query<{ quantity: string }>(
+      'SELECT quantity::text FROM proposal_items WHERE proposal_id = $1 AND id = $2 FOR UPDATE',
+      [proposalId, itemId],
+    );
+    const item = itemResult.rows[0];
+    if (!item) throw new Error('ITEM_NOT_FOUND');
+
+    await transaction.query(
+      'UPDATE proposal_items SET quantity = $3 WHERE proposal_id = $1 AND id = $2',
+      [proposalId, itemId, quantity],
+    );
+
+    await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal_item', $2, 'quantity_updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), itemId, JSON.stringify({ quantity: Number(item.quantity) }), JSON.stringify({ quantity })]);
+  });
+};
+
+export const updateProposalBdi = async (
+  database: LocalDatabase,
+  proposalId: string,
+  bdiMultiplier: number,
+) => {
+  await database.transaction(async (transaction) => {
+    const proposalResult = await transaction.query<{ status: string; bdi_multiplier: string }>(
+      'SELECT status, bdi_multiplier::text FROM proposals WHERE id = $1 FOR UPDATE',
+      [proposalId],
+    );
+    const proposal = proposalResult.rows[0];
+    if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
+    if (proposal.status !== 'draft' && proposal.status !== 'review') throw new Error('PROPOSAL_LOCKED');
+
+    await transaction.query(
+      'UPDATE proposals SET bdi_multiplier = $2, updated_at = now() WHERE id = $1',
+      [proposalId, bdiMultiplier],
+    );
+    await transaction.query(
+      `UPDATE proposal_items
+       SET sale_unit_price = round(snapshot_unit_cost * $2, 2)
+       WHERE proposal_id = $1`,
+      [proposalId, bdiMultiplier],
+    );
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal', $2, 'bdi_updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), proposalId, JSON.stringify({ bdiMultiplier: Number(proposal.bdi_multiplier) }), JSON.stringify({ bdiMultiplier })]);
+  });
+};

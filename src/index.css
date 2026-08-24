@@ -159,6 +159,10 @@ td:nth-child(2), th:nth-child(2) { width: 38px; text-align: center; }
 td:nth-child(3), th:nth-child(3) { width: 112px; }
 td:nth-child(4), th:nth-child(4) { min-width: 250px; max-width: 330px; overflow: hidden; text-overflow: ellipsis; }
 td.number, th:nth-child(n+5) { text-align: right; }
+.editable-cell { padding: 3px 5px; }
+.quantity-input { width: 74px; height: 27px; padding: 0 7px; color: var(--ink); text-align: right; background: #fff; border: 1px solid var(--line-strong); border-radius: 5px; font-variant-numeric: tabular-nums; }
+.quantity-input:hover { border-color: #aeb8c6; }
+.quantity-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
 .code { font-variant-numeric: tabular-nums; }
 input[type="checkbox"] { width: 13px; height: 13px; accent-color: var(--blue); }
 tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; background: #fbfcfd; border-top: 1px solid var(--line-strong); border-bottom: 0; }
@@ -195,6 +199,9 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .panel-section label { display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-size: 11px; }
 .locked-input { display: flex; align-items: center; justify-content: space-between; width: 136px; height: 32px; padding: 0 10px; background: #fff; border: 1px solid var(--line-strong); border-radius: 5px; }
 .locked-input svg { color: #687486; }
+.editable-parameter { display: flex; align-items: center; width: 136px; height: 32px; padding: 0 10px; color: var(--muted); background: #fff; border: 1px solid var(--line-strong); border-radius: 5px; }
+.editable-parameter:focus-within { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
+.editable-parameter input { min-width: 0; width: 100%; color: var(--ink); text-align: right; background: transparent; border: 0; outline: 0; font-variant-numeric: tabular-nums; }
 .frozen-state { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; margin-top: 20px; padding: 8px 10px; color: #176d39; background: var(--green-soft); border: 1px solid #5eaf79; border-radius: 6px; font-size: 11px; font-weight: 700; }
 .actions { margin-top: 20px; }
 .actions button { justify-content: flex-start; width: 100%; height: 44px; margin-top: 10px; padding: 0 14px; }

@@ -41,4 +41,12 @@ export const proposalApi = {
     `/api/proposals/${proposalId}/items/remove`,
     { method: 'POST', body: JSON.stringify({ itemIds }) },
   ),
+  updateQuantity: (proposalId: string, itemId: string, quantity: number) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/items/${itemId}`,
+    { method: 'PATCH', body: JSON.stringify({ quantity }) },
+  ),
+  updateBdi: (proposalId: string, bdiMultiplier: number) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/bdi`,
+    { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
+  ),
 };

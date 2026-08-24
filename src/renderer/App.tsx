@@ -39,7 +39,6 @@ const navItems = [
 const openProposals = ['PA-1052 • REV.01', 'PA-1048 • REV.00'];
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const quantity = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const date = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
@@ -62,6 +61,8 @@ export function App() {
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [mutationPending, setMutationPending] = useState(false);
   const [error, setError] = useState('');
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
+  const [bdiDraft, setBdiDraft] = useState<string | null>(null);
   const catalogInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string) => {
@@ -141,6 +142,55 @@ export function App() {
       setMutationPending(false);
     }
   }, [mutationPending, proposal, selectedItemIds]);
+
+  const parseDecimal = (value: string) => Number(value.trim().replace(',', '.'));
+
+  const updateQuantity = useCallback(async (itemId: string, value: string) => {
+    if (!proposal || mutationPending) return;
+    const nextQuantity = parseDecimal(value);
+    const currentItem = proposal.items.find((item) => item.id === itemId);
+    if (!Number.isFinite(nextQuantity) || nextQuantity <= 0 || nextQuantity > 1_000_000) {
+      setQuantityDrafts((current) => ({ ...current, [itemId]: String(currentItem?.quantity ?? 1).replace('.', ',') }));
+      showNotice('Informe uma quantidade maior que zero.');
+      return;
+    }
+    if (currentItem?.quantity === nextQuantity) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateQuantity(proposal.id, itemId, nextQuantity);
+      setProposal(result.proposal);
+      setQuantityDrafts((current) => ({ ...current, [itemId]: String(nextQuantity).replace('.', ',') }));
+      showNotice('Quantidade atualizada e totais recalculados.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível alterar a quantidade.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
+  const updateBdi = useCallback(async () => {
+    if (!proposal || mutationPending) return;
+    const nextBdi = parseDecimal(bdiDraft ?? String(proposal.bdiMultiplier));
+    if (!Number.isFinite(nextBdi) || nextBdi <= 0 || nextBdi > 100) {
+      setBdiDraft(null);
+      showNotice('Informe um multiplicador BDI maior que zero.');
+      return;
+    }
+    if (proposal.bdiMultiplier === nextBdi) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateBdi(proposal.id, nextBdi);
+      setProposal(result.proposal);
+      setBdiDraft(null);
+      showNotice('BDI atualizado e preços de venda recalculados.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível alterar o BDI.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [bdiDraft, mutationPending, proposal]);
 
   useEffect(() => {
     setSelectedCatalogIndex(0);
@@ -277,7 +327,9 @@ export function App() {
                 {proposal?.items.map((item, index) => (
                   <tr key={item.id}>
                     <td><input type="checkbox" aria-label={`Selecionar ${item.description}`} checked={selectedItemIds.includes(item.id)} onChange={() => setSelectedItemIds((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} /></td>
-                    <td>{index + 1}</td><td className="code">{item.code}</td><td title={item.description}>{item.description}</td><td className="number">{quantity.format(item.quantity)}</td><td>{item.unit}</td><td className="number">{money.format(item.unitCost)}</td><td className="number">{money.format(item.totalCost)}</td><td className="number">{money.format(item.unitSale)}</td><td className="number">{money.format(item.totalSale)}</td>
+                    <td>{index + 1}</td><td className="code">{item.code}</td><td title={item.description}>{item.description}</td>
+                    <td className="number editable-cell"><input className="quantity-input" type="text" inputMode="decimal" aria-label={`Quantidade de ${item.description}`} value={quantityDrafts[item.id] ?? String(item.quantity).replace('.', ',')} disabled={mutationPending} onChange={(event) => setQuantityDrafts((current) => ({ ...current, [item.id]: event.target.value }))} onBlur={(event) => void updateQuantity(item.id, event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setQuantityDrafts((current) => ({ ...current, [item.id]: String(item.quantity).replace('.', ',') })); event.currentTarget.blur(); } }} /></td>
+                    <td>{item.unit}</td><td className="number">{money.format(item.unitCost)}</td><td className="number">{money.format(item.totalCost)}</td><td className="number">{money.format(item.unitSale)}</td><td className="number">{money.format(item.totalSale)}</td>
                   </tr>
                 ))}
                 {!loading && proposal?.items.length === 0 && <tr className="empty-row"><td colSpan={10}>Nenhum item nesta proposta. Use “Inserir” para pesquisar no catálogo local.</td></tr>}
@@ -318,11 +370,11 @@ export function App() {
 
           <div className="panel-section">
             <h2>Parâmetros internos</h2>
-            <label>BDI aplicado <span className="locked-input">{money.format(proposal?.bdiMultiplier ?? 0)} <LockKeyhole size={15} /></span></label>
+            <label>Multiplicador BDI <span className="editable-parameter"><input type="text" inputMode="decimal" aria-label="Multiplicador BDI" value={bdiDraft ?? String(proposal?.bdiMultiplier ?? 0).replace('.', ',')} disabled={!proposal || mutationPending} onFocus={() => { if (bdiDraft === null && proposal) setBdiDraft(String(proposal.bdiMultiplier).replace('.', ',')); }} onChange={(event) => setBdiDraft(event.target.value)} onBlur={() => void updateBdi()} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setBdiDraft(null); event.currentTarget.blur(); } }} /><span aria-hidden="true">×</span></span></label>
             <label>Encargos <span className="locked-input">87,25% <ChevronDown size={14} /></span></label>
           </div>
 
-          <div className="frozen-state"><LockKeyhole size={17} /><span>Preço congelado nesta revisão</span></div>
+          <div className="frozen-state"><LockKeyhole size={17} /><span>Custos-base preservados nesta revisão</span></div>
 
           <div className="panel-section actions">
             <h2>Ações</h2>

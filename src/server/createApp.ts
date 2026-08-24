@@ -20,7 +20,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.setHeader('Vary', 'Origin');
     }
     response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
     if (request.method === 'OPTIONS') {
       response.sendStatus(204);
       return;
