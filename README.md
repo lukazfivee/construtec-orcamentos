@@ -8,7 +8,9 @@ A fundação **comp-first** está implementada: Electron Forge, Vite, React e Ty
 
 O fluxo **code-first** já permite pesquisar o catálogo local, inserir itens com snapshot comercial, editar quantidades e BDI, recalcular totais e excluir itens com auditoria. O controle de revisões também está ativo: cada nova revisão copia os snapshots, preserva a versão anterior em modo somente leitura e pode ser consultada pela aba Histórico.
 
-Autenticação completa, cadastro de clientes e obras, geração de documentos e integrações externas entram nas próximas fases.
+Clientes e obras também possuem uma área própria de cadastro, busca e edição. A revisão atual pode trocar cliente e obra em conjunto; os nomes ficam congelados na proposta para que alterações futuras no cadastro não modifiquem documentos históricos.
+
+Autenticação completa, geração de documentos e integrações externas entram nas próximas fases.
 
 ## Executar localmente
 
@@ -32,7 +34,7 @@ O pacote não instalável gerado pelo Electron Forge fica em `out/`. Use `npm ru
 
 - `src/renderer/`: interface React da mesa operacional;
 - `src/server/`: API Express local e serviços;
-- `src/server/routes/`: rotas validadas para catálogo e propostas;
+- `src/server/routes/`: rotas validadas para catálogo, clientes, obras e propostas;
 - `src/server/migrations/`: esquema versionado do PGlite;
 - `src/shared/`: contratos tipados compartilhados entre API e interface;
 - `src/main.ts`: ciclo de vida e janela segura do Electron;
@@ -44,6 +46,7 @@ O pacote não instalável gerado pelo Electron Forge fica em `out/`. Use `npm ru
 - funcionamento offline como padrão;
 - zero dependência de IA nas rotinas do produto;
 - snapshot de preço e dados comerciais por item da proposta;
+- snapshot de cliente e obra por revisão da proposta;
 - separação rigorosa entre visão interna e documento do cliente;
 - revisões imutáveis, histórico e auditoria;
 - arquitetura preparada para futura integração ao Centro de Custos Construtec V3.

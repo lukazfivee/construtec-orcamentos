@@ -17,6 +17,7 @@ import {
   History as HistoryIcon,
   Layers3,
   LockKeyhole,
+  MapPin,
   Plus,
   Save,
   Search,
@@ -25,12 +26,13 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import type { CatalogProduct, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
-import { proposalApi } from './api';
+import type { CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import { clientsApi, proposalApi } from './api';
+import { ClientsWorkspace } from './ClientsWorkspace';
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
-  { label: 'Propostas', icon: FileText, active: true },
+  { label: 'Propostas', icon: FileText },
   { label: 'Catálogo', icon: Box },
   { label: 'Clientes', icon: Users },
   { label: 'Kits', icon: Layers3 },
@@ -59,7 +61,8 @@ const statusLabels: Record<ProposalDetail['status'], string> = {
 };
 
 export function App() {
-  const [catalogOpen, setCatalogOpen] = useState(true);
+  const [activeNav, setActiveNav] = useState<'Propostas' | 'Clientes'>('Propostas');
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const [query, setQuery] = useState('leit');
   const [notice, setNotice] = useState('');
   const [selectedCatalogIndex, setSelectedCatalogIndex] = useState(0);
@@ -75,6 +78,10 @@ export function App() {
   const [activeSection, setActiveSection] = useState<'Itens' | 'Histórico'>('Itens');
   const [revisions, setRevisions] = useState<ProposalRevisionSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
+  const [contextQuery, setContextQuery] = useState('');
+  const [contextClients, setContextClients] = useState<ClientRecord[]>([]);
+  const [contextLoading, setContextLoading] = useState(false);
   const catalogInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string) => {
@@ -122,6 +129,26 @@ export function App() {
       controller.abort();
     };
   }, [catalogOpen, query]);
+
+  useEffect(() => {
+    if (!contextOpen) return undefined;
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      setContextLoading(true);
+      try {
+        const result = await clientsApi.list(contextQuery);
+        if (active) setContextClients(result.clients);
+      } catch (contextError) {
+        if (active) setError(contextError instanceof Error ? contextError.message : 'Não foi possível carregar clientes e obras.');
+      } finally {
+        if (active) setContextLoading(false);
+      }
+    }, 180);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [contextOpen, contextQuery]);
 
   const addCatalogItem = useCallback(async (product: CatalogProduct) => {
     if (!proposal?.isLatest || mutationPending) return;
@@ -261,6 +288,22 @@ export function App() {
     }
   }, [mutationPending, proposal]);
 
+  const updateProposalContext = useCallback(async (clientId: string, workId: string) => {
+    if (!proposal || !proposal.isLatest || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateContext(proposal.id, clientId, workId);
+      setProposal(result.proposal);
+      setContextOpen(false);
+      showNotice('Cliente e obra atualizados nesta revisão.');
+    } catch (contextError) {
+      setError(contextError instanceof Error ? contextError.message : 'Não foi possível alterar o cliente e a obra.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
   useEffect(() => {
     setSelectedCatalogIndex(0);
   }, [query]);
@@ -278,7 +321,7 @@ export function App() {
       if (event.ctrlKey || event.metaKey) {
         const action = event.key.toLowerCase();
         if (['k', 'i', 's', 'p', 'g'].includes(action)) event.preventDefault();
-        if (action === 'k') {
+        if (action === 'k' && activeNav === 'Propostas') {
           setCatalogOpen(true);
           announce('Busca local aberta.');
         } else if (action === 'i') {
@@ -287,13 +330,18 @@ export function App() {
         } else if (action === 's') {
           void createRevision();
         } else if (action === 'p') {
-          announce('Abrindo a pré-visualização do cliente.');
+          announce('Pré-visualização entra na próxima etapa de documentos.');
         } else if (action === 'g') {
-          announce('Proposta preparada para geração.');
+          announce('Geração de proposta entra na próxima etapa de documentos.');
         }
         return;
       }
 
+      if (event.key === 'Escape' && contextOpen) {
+        event.preventDefault();
+        setContextOpen(false);
+        return;
+      }
       if (!catalogOpen) return;
       if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && catalogResults.length > 0) {
         event.preventDefault();
@@ -310,7 +358,7 @@ export function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [addCatalogItem, catalogOpen, catalogResults, createRevision, proposal?.isLatest, selectedCatalogIndex]);
+  }, [activeNav, addCatalogItem, catalogOpen, catalogResults, contextOpen, createRevision, proposal?.isLatest, selectedCatalogIndex]);
 
   const proposalLabel = proposal ? `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}` : 'Carregando proposta';
   const allSelected = Boolean(proposal?.items.length) && selectedItemIds.length === proposal?.items.length;
@@ -324,48 +372,68 @@ export function App() {
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">Construtec Orçamentos</div>
-        <div className="local-state"><span aria-hidden="true" /> Offline <button type="button">Dados locais <ChevronDown size={14} /></button></div>
-        <button className="global-search" type="button" onClick={() => setCatalogOpen(true)}>
-          <Search size={17} /><span>Buscar</span><kbd>Ctrl+K</kbd>
+        <div className="local-state"><span aria-hidden="true" /> Offline <button type="button" onClick={() => showNotice('Os dados desta versão ficam armazenados localmente neste computador.')}>Dados locais <ChevronDown size={14} /></button></div>
+        <button className="global-search" type="button" disabled={activeNav !== 'Propostas'} onClick={() => setCatalogOpen(true)}>
+          <Search size={17} /><span>{activeNav === 'Propostas' ? 'Buscar no catálogo' : 'Busca disponível em Propostas'}</span>{activeNav === 'Propostas' && <kbd>Ctrl+K</kbd>}
         </button>
         <div className="top-actions">
-          <button className="icon-button" aria-label="Notificações" type="button"><Bell size={18} /></button>
-          <button className="icon-button" aria-label="Ajuda" type="button"><HelpCircle size={18} /></button>
+          <button className="icon-button" aria-label="Notificações" type="button" disabled title="Notificações serão implementadas em uma próxima etapa."><Bell size={18} /></button>
+          <button className="icon-button" aria-label="Ajuda" type="button" disabled title="A central de ajuda será implementada em uma próxima etapa."><HelpCircle size={18} /></button>
           <span className="divider" />
-          <button className="profile" type="button"><span>MR</span><b>Marcos Ribeiro</b><ChevronDown size={14} /></button>
+          <button className="profile" type="button" disabled title="Gestão de perfil será implementada em uma próxima etapa."><span>MR</span><b>Marcos Ribeiro</b><ChevronDown size={14} /></button>
         </div>
       </header>
 
       <aside className="sidebar" aria-label="Navegação principal">
         <nav>
-          {navItems.map(({ label, icon: Icon, active }) => (
-            <button key={label} type="button" className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
+          {navItems.map(({ label, icon: Icon }) => {
+            const enabled = label === 'Propostas' || label === 'Clientes';
+            const active = label === activeNav;
+            return (
+            <button key={label} type="button" className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} disabled={!enabled} title={enabled ? undefined : `${label} será implementado em uma próxima etapa.`} onClick={() => { if (enabled) { setActiveNav(label as 'Propostas' | 'Clientes'); setCatalogOpen(false); setContextOpen(false); setError(''); } }}>
               <Icon size={22} /><span>{label}</span>
             </button>
-          ))}
+          ); })}
         </nav>
         <button className="collapse" type="button"><ChevronLeft size={17} /><span>Recolher</span></button>
       </aside>
 
-      <main className="workspace">
+      {activeNav === 'Clientes' && error && <div className="global-error" role="alert"><span>{error}</span><button type="button" onClick={() => setError('')}>Fechar</button></div>}
+      {activeNav === 'Propostas' ? <main className="workspace">
         <div className="proposal-tabs" role="tablist" aria-label="Propostas abertas">
           {[proposalLabel, ...openProposals].map((tabLabel, index) => (
-            <button key={tabLabel} className={index === 0 ? 'selected' : ''} type="button" role="tab" aria-selected={index === 0}>
+            <button key={tabLabel} className={index === 0 ? 'selected' : ''} type="button" role="tab" aria-selected={index === 0} disabled={index > 0} title={index > 0 ? 'Abertura de múltiplas propostas será implementada em uma próxima etapa.' : undefined}>
               {tabLabel}{index > 0 && <span aria-hidden="true">×</span>}
             </button>
           ))}
-          <button type="button" className="new-tab"><Plus size={17} /> Nova proposta</button>
+          <button type="button" className="new-tab" disabled title="Criação de novas propostas será implementada em uma próxima etapa."><Plus size={17} /> Nova proposta</button>
         </div>
 
         <section className="proposal-editor" aria-label={`Editor da proposta ${proposalLabel}`} aria-busy={loading || mutationPending}>
           {error && <div className="error-banner" role="alert"><span>{error}</span><button type="button" onClick={() => void loadProposal()}>Tentar novamente</button></div>}
           <div className="proposal-meta">
-            <MetaField label="Cliente" value={proposal?.clientName ?? '—'} icon={<Building2 size={19} />} />
-            <MetaField label="Escopo" value={proposal?.scope ?? '—'} />
-            <MetaField label="Status" value={proposal ? statusLabels[proposal.status] : 'Carregando'} accent />
-            <MetaField label="Validade" value={proposal?.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : '—'} />
-            <MetaField label="Responsável" value={proposal?.responsibleName ?? '—'} />
+            <MetaField label="Cliente" value={proposal?.clientName ?? '—'} icon={<Building2 size={19} />} disabled={!isEditable || mutationPending} onClick={() => { setCatalogOpen(false); setContextOpen((value) => !value); }} />
+            <MetaField label="Obra" value={proposal?.workName ?? '—'} disabled={!isEditable || mutationPending} onClick={() => { setCatalogOpen(false); setContextOpen((value) => !value); }} />
+            <MetaField label="Status" value={proposal ? statusLabels[proposal.status] : 'Carregando'} accent disabled />
+            <MetaField label="Validade" value={proposal?.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : '—'} disabled />
+            <MetaField label="Responsável" value={proposal?.responsibleName ?? '—'} disabled />
           </div>
+
+          {contextOpen && (
+            <div className="context-popover" role="dialog" aria-label="Selecionar cliente e obra">
+              <div className="popover-heading"><span><b>Selecionar cliente e obra</b><small>A alteração vale somente para esta revisão.</small></span><button type="button" onClick={() => { setActiveNav('Clientes'); setContextOpen(false); }}>Gerenciar clientes <ExternalLink size={12} /></button></div>
+              <label className="catalog-search"><Search size={15} /><input autoFocus value={contextQuery} onChange={(event) => setContextQuery(event.target.value)} placeholder="Buscar cliente, documento ou obra" aria-label="Buscar cliente ou obra" /><kbd>Esc</kbd></label>
+              <div className="context-results" aria-busy={contextLoading}>
+                {contextLoading && <p className="catalog-message">Carregando cadastros locais…</p>}
+                {!contextLoading && contextClients.map((client) => {
+                  const activeWorks = client.works.filter((work) => work.active);
+                  return <section key={client.id}><h3>{client.tradeName || client.legalName}<small>{client.document || client.legalName}</small></h3>{activeWorks.map((work) => <button type="button" key={work.id} disabled={mutationPending} onClick={() => void updateProposalContext(client.id, work.id)}><MapPin size={16} /><span>{work.name}<small>{work.address || 'Endereço não informado'}</small></span>{proposal?.workId === work.id && <em>Selecionada</em>}</button>)}{activeWorks.length === 0 && <p>Nenhuma obra ativa</p>}</section>;
+                })}
+                {!contextLoading && contextClients.length === 0 && <p className="catalog-message">Nenhum cliente ou obra encontrado.</p>}
+              </div>
+              <div className="popover-footer"><span>Escolha uma obra para atualizar os dois campos</span><span><kbd>Esc</kbd> Fechar</span></div>
+            </div>
+          )}
 
           <div className="section-tabs" role="tablist" aria-label="Seções da proposta">
             {sectionTabs.map((tab) => (
@@ -417,7 +485,7 @@ export function App() {
 
           {catalogOpen && (
             <div className="catalog-popover" role="dialog" aria-label="Buscar no catálogo">
-              <div className="popover-heading"><b>Buscar no catálogo</b><button type="button" onClick={() => showNotice('Catálogo completo aberto em uma nova área de trabalho.')}>Ver catálogo completo <ExternalLink size={12} /></button></div>
+              <div className="popover-heading"><b>Buscar no catálogo</b><button type="button" disabled title="A área completa do catálogo será implementada em uma próxima etapa.">Ver catálogo completo <ExternalLink size={12} /></button></div>
               <label className="catalog-search"><Search size={15} /><input ref={catalogInputRef} value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Pesquisar no catálogo" aria-activedescendant={catalogResults[selectedCatalogIndex] ? `catalog-${catalogResults[selectedCatalogIndex].code}` : undefined} /><kbd>Esc</kbd></label>
               <div className="catalog-results" aria-busy={catalogLoading}>
                 {catalogResults.map((item, index) => (
@@ -473,23 +541,23 @@ export function App() {
           <div className="panel-section actions">
             <h2>Ações</h2>
             <button type="button" disabled={!proposal?.isLatest || mutationPending} onClick={() => void createRevision()}><Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd></button>
-            <button type="button" onClick={() => showNotice('Abrindo a pré-visualização do cliente.')}><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
-            <button className="primary generate" type="button" onClick={() => showNotice('Proposta preparada para geração.')}><FilePlus2 size={18} /> Gerar proposta <kbd>Ctrl+G</kbd></button>
+            <button type="button" disabled title="Pré-visualização será implementada na etapa de documentos."><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
+            <button className="primary generate" type="button" disabled title="Geração de documentos será implementada na próxima etapa."><FilePlus2 size={18} /> Gerar proposta <kbd>Ctrl+G</kbd></button>
           </div>
           <div className="panel-footnote">
             <p className="demo-data-note">Base inicial demonstrativa · salva localmente</p>
             <p className="last-change">Última alteração: {formattedUpdatedAt}<br />por {proposal?.responsibleName ?? '—'}</p>
           </div>
         </aside>
-      </main>
+      </main> : <ClientsWorkspace onNotice={showNotice} onError={setError} />}
 
       {notice && <div className="toast" role="status">{notice}</div>}
     </div>
   );
 }
 
-function MetaField({ label, value, icon, accent = false }: { label: string; value: string; icon?: ReactNode; accent?: boolean }) {
-  return <div className="meta-field"><span>{label}</span><button type="button" className={accent ? 'accent' : ''}>{icon}{value}<ChevronDown size={14} /></button></div>;
+function MetaField({ label, value, icon, accent = false, disabled = false, onClick }: { label: string; value: string; icon?: ReactNode; accent?: boolean; disabled?: boolean; onClick?: () => void }) {
+  return <div className="meta-field"><span>{label}</span><button type="button" className={accent ? 'accent' : ''} disabled={disabled} onClick={onClick}>{icon}{value}{!disabled && <ChevronDown size={14} />}</button></div>;
 }
 
 function Amount({ label, value, tone, compact = false }: { label: string; value: string; tone?: 'blue' | 'green'; compact?: boolean }) {

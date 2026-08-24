@@ -9,6 +9,7 @@ import {
   listProposalHistory,
   removeProposalItems,
   updateProposalBdi,
+  updateProposalContext,
   updateProposalItemQuantity,
 } from '../services/proposals';
 
@@ -20,6 +21,7 @@ const addItemSchema = z.object({
 const removeItemsSchema = z.object({ itemIds: z.array(z.string().uuid()).min(1).max(500) });
 const updateQuantitySchema = z.object({ quantity: z.number().positive().max(1_000_000) });
 const updateBdiSchema = z.object({ bdiMultiplier: z.number().positive().max(100) });
+const updateContextSchema = z.object({ clientId: z.string().uuid(), workId: z.string().uuid() });
 
 export const createProposalsRouter = (database: LocalDatabase) => {
   const router = Router();
@@ -110,6 +112,17 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = updateBdiSchema.parse(request.body);
       await updateProposalBdi(database, proposalId, input.bdiMultiplier);
       response.json({ proposal: await getCurrentProposal(database) });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch('/:proposalId/context', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const input = updateContextSchema.parse(request.body);
+      await updateProposalContext(database, proposalId, input.clientId, input.workId);
+      response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) {
       next(error);
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import { ZodError } from 'zod';
 import { createCatalogRouter } from './routes/catalog';
+import { createClientsRouter } from './routes/clients';
 import { createProposalsRouter } from './routes/proposals';
 import type { LocalDatabase } from './services/database';
 
@@ -42,6 +43,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   });
 
   api.use('/api/catalog', createCatalogRouter(database));
+  api.use('/api/clients', createClientsRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
@@ -56,6 +58,10 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     }
     if (error instanceof Error && error.message === 'PROPOSAL_LOCKED') {
       response.status(409).json({ error: 'Esta revisão está bloqueada para alterações.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'WORK_DUPLICATE') {
+      response.status(409).json({ error: 'Já existe uma obra com esse nome para o cliente.' });
       return;
     }
     console.error(error);

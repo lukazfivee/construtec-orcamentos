@@ -5,6 +5,7 @@ import type { LocalDatabase } from './database';
 const demoUserId = '00000000-0000-4000-8000-000000000001';
 const demoClientId = '00000000-0000-4000-8000-000000000002';
 const demoProposalId = '00000000-0000-4000-8000-000000000003';
+const demoWorkId = '00000000-0000-4000-8000-000000000004';
 
 const demoProducts = [
   ['MAT-AC-001', 'Controladora de acesso 2 portas TCP/IP', 'Controle de acesso', 'un', 1250],
@@ -28,7 +29,35 @@ const quantities = [1, 2, 4, 2, 2, 2, 1, 100, 20, 50, 10, 1, 1, 1];
 
 export const ensureFirstRunData = async (database: LocalDatabase) => {
   const existing = await database.query<{ count: string }>('SELECT count(*)::text AS count FROM proposals');
-  if (Number(existing.rows[0]?.count ?? 0) > 0) return;
+  if (Number(existing.rows[0]?.count ?? 0) > 0) {
+    const proposalsWithoutWork = await database.query<{
+      id: string; client_id: string; work_name: string; snapshot_client_name: string | null;
+    }>(`
+      SELECT p.id, p.client_id, p.work_name, p.snapshot_client_name
+      FROM proposals p
+      WHERE p.work_id IS NULL
+      ORDER BY p.created_at
+    `);
+    for (const proposal of proposalsWithoutWork.rows) {
+      const existingWork = await database.query<{ id: string }>(
+        'SELECT id FROM works WHERE client_id = $1 AND name = $2 LIMIT 1',
+        [proposal.client_id, proposal.work_name],
+      );
+      const workId = existingWork.rows[0]?.id ?? randomUUID();
+      if (!existingWork.rows[0]) {
+        await database.query('INSERT INTO works (id, client_id, name) VALUES ($1, $2, $3)', [workId, proposal.client_id, proposal.work_name]);
+      }
+      await database.query(`
+        UPDATE proposals p
+        SET work_id = $2,
+            snapshot_client_name = COALESCE(p.snapshot_client_name, COALESCE(c.trade_name, c.legal_name)),
+            snapshot_work_name = COALESCE(p.snapshot_work_name, p.work_name)
+        FROM clients c
+        WHERE p.id = $1 AND c.id = p.client_id
+      `, [proposal.id, workId]);
+    }
+    return;
+  }
 
   const passwordHash = await hash(randomUUID(), 12);
 
@@ -43,6 +72,11 @@ export const ensureFirstRunData = async (database: LocalDatabase) => {
        VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
       [demoClientId, 'Edifício Horizonte SPE Ltda.', 'Edifício Horizonte'],
     );
+    await transaction.query(
+      `INSERT INTO works (id, client_id, name, address)
+       VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
+      [demoWorkId, demoClientId, 'Edifício Horizonte', 'Endereço demonstrativo'],
+    );
 
     for (const [index, product] of demoProducts.entries()) {
       const [code, description, category, unit, currentCost] = product;
@@ -56,9 +90,11 @@ export const ensureFirstRunData = async (database: LocalDatabase) => {
 
     await transaction.query(
       `INSERT INTO proposals
-        (id, proposal_number, revision, client_id, work_name, scope, status, bdi_multiplier, valid_until, created_by)
-       VALUES ($1, 'PA-1054', 0, $2, 'Edifício Horizonte', 'Controle de acesso', 'draft', 1.45, '2025-06-15', $3)`,
-      [demoProposalId, demoClientId, demoUserId],
+        (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+         snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by)
+       VALUES ($1, 'PA-1054', 0, $2, $3, 'Edifício Horizonte', 'Edifício Horizonte',
+         'Edifício Horizonte', 'Controle de acesso', 'draft', 1.45, '2025-06-15', $4)`,
+      [demoProposalId, demoClientId, demoWorkId, demoUserId],
     );
 
     for (const [index, quantity] of quantities.entries()) {

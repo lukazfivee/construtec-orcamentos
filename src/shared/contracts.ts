@@ -24,6 +24,8 @@ export type ProposalLine = {
 
 export type ProposalDetail = {
   id: string;
+  clientId: string;
+  workId: string | null;
   number: string;
   revision: number;
   clientName: string;
@@ -42,6 +44,24 @@ export type ProposalDetail = {
     grossResult: number;
     marginPercent: number;
   };
+};
+
+export type WorkRecord = {
+  id: string;
+  clientId: string;
+  name: string;
+  address: string | null;
+  active: boolean;
+  updatedAt: string;
+};
+
+export type ClientRecord = {
+  id: string;
+  legalName: string;
+  tradeName: string | null;
+  document: string | null;
+  updatedAt: string;
+  works: WorkRecord[];
 };
 
 export type ProposalRevisionSummary = {

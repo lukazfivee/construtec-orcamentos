@@ -4,6 +4,8 @@ import type { LocalDatabase } from './database';
 
 type ProposalRow = {
   id: string;
+  client_id: string;
+  work_id: string | null;
   proposal_number: string;
   revision: number;
   client_name: string;
@@ -31,9 +33,9 @@ const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100)
 
 export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
   const proposalResult = await database.query<ProposalRow>(`
-    SELECT p.id, p.proposal_number, p.revision,
-      COALESCE(c.trade_name, c.legal_name) AS client_name,
-      p.work_name, p.scope, p.status, p.bdi_multiplier::text,
+    SELECT p.id, p.client_id, p.work_id, p.proposal_number, p.revision,
+      COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
+      COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.status, p.bdi_multiplier::text,
       p.valid_until::text, u.name AS responsible_name, p.updated_at::text,
       NOT EXISTS (
         SELECT 1 FROM proposals newer
@@ -78,6 +80,8 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
 
   return {
     id: proposal.id,
+    clientId: proposal.client_id,
+    workId: proposal.work_id,
     number: proposal.proposal_number,
     revision: proposal.revision,
     clientName: proposal.client_name,
@@ -278,8 +282,10 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
     const newProposalId = randomUUID();
     const created = await transaction.query<{ revision: number }>(`
       INSERT INTO proposals
-        (id, proposal_number, revision, client_id, work_name, scope, status, bdi_multiplier, valid_until, created_by)
-      SELECT $2, proposal_number, revision + 1, client_id, work_name, scope, 'draft', bdi_multiplier, valid_until, created_by
+        (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+         snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by)
+      SELECT $2, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
+        snapshot_work_name, scope, 'draft', bdi_multiplier, valid_until, created_by
       FROM proposals
       WHERE id = $1
       RETURNING revision
@@ -314,6 +320,41 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
       VALUES ($1, 'proposal', $2, 'revision_created', $3::jsonb)
     `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision })]);
     return newProposalId;
+  });
+};
+
+export const updateProposalContext = async (
+  database: LocalDatabase,
+  proposalId: string,
+  clientId: string,
+  workId: string,
+) => {
+  await database.transaction(async (transaction) => {
+    await getEditableProposal(transaction, proposalId);
+    const current = await transaction.query<{
+      client_id: string; work_id: string | null; snapshot_client_name: string | null; snapshot_work_name: string | null;
+    }>('SELECT client_id, work_id, snapshot_client_name, snapshot_work_name FROM proposals WHERE id = $1', [proposalId]);
+    const workResult = await transaction.query<{
+      work_name: string; client_name: string;
+    }>(`
+      SELECT w.name AS work_name, COALESCE(c.trade_name, c.legal_name) AS client_name
+      FROM works w
+      JOIN clients c ON c.id = w.client_id
+      WHERE w.id = $1 AND w.client_id = $2 AND w.active = true
+    `, [workId, clientId]);
+    const context = workResult.rows[0];
+    if (!context) throw new Error('WORK_NOT_FOUND');
+
+    await transaction.query(`
+      UPDATE proposals
+      SET client_id = $2, work_id = $3, work_name = $4,
+          snapshot_client_name = $5, snapshot_work_name = $4, updated_at = now()
+      WHERE id = $1
+    `, [proposalId, clientId, workId, context.work_name, context.client_name]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal', $2, 'context_updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), proposalId, JSON.stringify(current.rows[0] ?? null), JSON.stringify({ clientId, workId, clientName: context.client_name, workName: context.work_name })]);
   });
 };
 

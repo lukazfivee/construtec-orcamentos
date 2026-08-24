@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, CatalogProduct, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import type { ApiErrorPayload, CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -54,5 +54,25 @@ export const proposalApi = {
   updateBdi: (proposalId: string, bdiMultiplier: number) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/bdi`,
     { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
+  ),
+  updateContext: (proposalId: string, clientId: string, workId: string) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/context`,
+    { method: 'PATCH', body: JSON.stringify({ clientId, workId }) },
+  ),
+};
+
+export const clientsApi = {
+  list: (query = '') => request<{ clients: ClientRecord[] }>(`/api/clients?q=${encodeURIComponent(query)}`),
+  create: (input: { legalName: string; tradeName: string | null; document: string | null }) => request<{ clientId: string; clients: ClientRecord[] }>(
+    '/api/clients', { method: 'POST', body: JSON.stringify(input) },
+  ),
+  update: (clientId: string, input: { legalName: string; tradeName: string | null; document: string | null }) => request<{ clients: ClientRecord[] }>(
+    `/api/clients/${clientId}`, { method: 'PATCH', body: JSON.stringify(input) },
+  ),
+  createWork: (clientId: string, input: { name: string; address: string | null }) => request<{ workId: string; clients: ClientRecord[] }>(
+    `/api/clients/${clientId}/works`, { method: 'POST', body: JSON.stringify(input) },
+  ),
+  updateWork: (clientId: string, workId: string, input: { name: string; address: string | null; active: boolean }) => request<{ clients: ClientRecord[] }>(
+    `/api/clients/${clientId}/works/${workId}`, { method: 'PATCH', body: JSON.stringify(input) },
   ),
 };
