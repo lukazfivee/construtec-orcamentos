@@ -14,6 +14,7 @@ import {
   Filter,
   Grid2X2,
   HelpCircle,
+  History as HistoryIcon,
   Layers3,
   LockKeyhole,
   Plus,
@@ -24,7 +25,7 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import type { CatalogProduct, ProposalDetail } from '../shared/contracts';
+import type { CatalogProduct, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
 import { proposalApi } from './api';
 
 const navItems = [
@@ -40,6 +41,14 @@ const openProposals = ['PA-1052 • REV.01', 'PA-1048 • REV.00'];
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const date = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
+const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+const sectionTabs = [
+  { label: 'Itens', enabled: true },
+  { label: 'Serviços', enabled: false },
+  { label: 'Kits', enabled: false },
+  { label: 'Condições', enabled: false },
+  { label: 'Histórico', enabled: true },
+] as const;
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
   draft: 'Em edição',
@@ -63,6 +72,9 @@ export function App() {
   const [error, setError] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [bdiDraft, setBdiDraft] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<'Itens' | 'Histórico'>('Itens');
+  const [revisions, setRevisions] = useState<ProposalRevisionSummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const catalogInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string) => {
@@ -112,7 +124,7 @@ export function App() {
   }, [catalogOpen, query]);
 
   const addCatalogItem = useCallback(async (product: CatalogProduct) => {
-    if (!proposal || mutationPending) return;
+    if (!proposal?.isLatest || mutationPending) return;
     setMutationPending(true);
     setError('');
     try {
@@ -192,6 +204,63 @@ export function App() {
     }
   }, [bdiDraft, mutationPending, proposal]);
 
+  const loadHistory = useCallback(async (proposalId: string) => {
+    setHistoryLoading(true);
+    setError('');
+    try {
+      const result = await proposalApi.history(proposalId);
+      setRevisions(result.revisions);
+    } catch (historyError) {
+      setError(historyError instanceof Error ? historyError.message : 'Não foi possível carregar o histórico desta proposta.');
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  const selectSection = (section: 'Itens' | 'Histórico') => {
+    setActiveSection(section);
+    setCatalogOpen(false);
+    if (section === 'Histórico' && proposal) void loadHistory(proposal.id);
+  };
+
+  const openRevision = useCallback(async (proposalId: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await proposalApi.byId(proposalId);
+      setProposal(result.proposal);
+      setSelectedItemIds([]);
+      setQuantityDrafts({});
+      setBdiDraft(null);
+      setActiveSection('Itens');
+      showNotice(result.proposal.isLatest ? 'Revisão atual aberta.' : 'Revisão histórica aberta em modo somente leitura.');
+    } catch (revisionError) {
+      setError(revisionError instanceof Error ? revisionError.message : 'Não foi possível abrir esta revisão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createRevision = useCallback(async () => {
+    if (!proposal?.isLatest || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    setCatalogOpen(false);
+    try {
+      const result = await proposalApi.createRevision(proposal.id);
+      setProposal(result.proposal);
+      setSelectedItemIds([]);
+      setQuantityDrafts({});
+      setBdiDraft(null);
+      setActiveSection('Itens');
+      showNotice(`REV.${String(result.proposal.revision).padStart(2, '0')} criada. A versão anterior foi preservada.`);
+    } catch (revisionError) {
+      setError(revisionError instanceof Error ? revisionError.message : 'Não foi possível criar a revisão.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
   useEffect(() => {
     setSelectedCatalogIndex(0);
   }, [query]);
@@ -213,9 +282,10 @@ export function App() {
           setCatalogOpen(true);
           announce('Busca local aberta.');
         } else if (action === 'i') {
-          setCatalogOpen(true);
+          if (proposal?.isLatest) setCatalogOpen(true);
+          else announce('Esta revisão é somente para consulta. Abra a revisão atual para editar.');
         } else if (action === 's') {
-          announce('Revisão salva localmente.');
+          void createRevision();
         } else if (action === 'p') {
           announce('Abrindo a pré-visualização do cliente.');
         } else if (action === 'g') {
@@ -240,10 +310,11 @@ export function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [addCatalogItem, catalogOpen, catalogResults, selectedCatalogIndex]);
+  }, [addCatalogItem, catalogOpen, catalogResults, createRevision, proposal?.isLatest, selectedCatalogIndex]);
 
   const proposalLabel = proposal ? `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}` : 'Carregando proposta';
   const allSelected = Boolean(proposal?.items.length) && selectedItemIds.length === proposal?.items.length;
+  const isEditable = Boolean(proposal?.isLatest && (proposal.status === 'draft' || proposal.status === 'review'));
   const formattedUpdatedAt = useMemo(() => {
     if (!proposal?.updatedAt) return '—';
     return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(proposal.updatedAt));
@@ -297,38 +368,39 @@ export function App() {
           </div>
 
           <div className="section-tabs" role="tablist" aria-label="Seções da proposta">
-            {['Itens', 'Serviços', 'Kits', 'Condições', 'Histórico'].map((tab, index) => (
-              <button key={tab} type="button" className={index === 0 ? 'selected' : ''} role="tab" aria-selected={index === 0}>{tab}</button>
+            {sectionTabs.map((tab) => (
+              <button key={tab.label} type="button" className={activeSection === tab.label ? 'selected' : ''} role="tab" aria-selected={activeSection === tab.label} disabled={!tab.enabled} title={tab.enabled ? undefined : `${tab.label} será implementado na próxima etapa.`} onClick={() => { if (tab.enabled) selectSection(tab.label); }}>{tab.label}</button>
             ))}
           </div>
 
+          {activeSection === 'Itens' ? <>
           <div className="toolbar" aria-label="Ações dos itens">
-            <button className="primary compact" type="button" disabled={!proposal || mutationPending} onClick={() => setCatalogOpen((value) => !value)}><Plus size={17} /> Inserir <ChevronDown size={14} /></button>
-            <button type="button" disabled={selectedItemIds.length === 0 || mutationPending} onClick={() => void removeSelectedItems()}><Trash2 size={16} /> Excluir</button>
-            <button type="button"><Copy size={16} /> Duplicar</button>
-            <button type="button">Mover <ChevronDown size={14} /></button>
-            <button type="button">Mais <ChevronDown size={14} /></button>
+            <button className="primary compact" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen((value) => !value)}><Plus size={17} /> Inserir <ChevronDown size={14} /></button>
+            <button type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void removeSelectedItems()}><Trash2 size={16} /> Excluir</button>
+            <button type="button" disabled title="Duplicação será implementada em uma próxima etapa."><Copy size={16} /> Duplicar</button>
+            <button type="button" disabled title="Movimentação será implementada em uma próxima etapa.">Mover <ChevronDown size={14} /></button>
+            <button type="button" disabled title="Mais ações serão implementadas em uma próxima etapa.">Mais <ChevronDown size={14} /></button>
             <span className="toolbar-space" />
-            <button type="button">Importar <ChevronDown size={14} /></button>
-            <button className="icon-button" aria-label="Configurar colunas" type="button"><SlidersHorizontal size={18} /></button>
-            <button className="icon-button" aria-label="Filtrar itens" type="button"><Filter size={18} /></button>
-            <button className="icon-button" aria-label="Configurações da tabela" type="button"><Settings size={18} /></button>
+            <button type="button" disabled title="Importação será implementada em uma próxima etapa.">Importar <ChevronDown size={14} /></button>
+            <button className="icon-button" aria-label="Configurar colunas" type="button" disabled><SlidersHorizontal size={18} /></button>
+            <button className="icon-button" aria-label="Filtrar itens" type="button" disabled><Filter size={18} /></button>
+            <button className="icon-button" aria-label="Configurações da tabela" type="button" disabled><Settings size={18} /></button>
           </div>
 
           <div className="table-region">
             <table>
               <thead>
                 <tr>
-                  <th aria-label="Selecionar"><input type="checkbox" aria-label="Selecionar todos os itens" checked={allSelected} onChange={() => setSelectedItemIds(allSelected ? [] : proposal?.items.map((item) => item.id) ?? [])} /></th>
+                  <th aria-label="Selecionar"><input type="checkbox" aria-label="Selecionar todos os itens" checked={allSelected} disabled={!isEditable} onChange={() => setSelectedItemIds(allSelected ? [] : proposal?.items.map((item) => item.id) ?? [])} /></th>
                   <th>#</th><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Unid.</th><th>Custo unit. (R$)</th><th>Custo total (R$)</th><th>Venda unit. (R$)</th><th>Venda total (R$)</th>
                 </tr>
               </thead>
               <tbody>
                 {proposal?.items.map((item, index) => (
                   <tr key={item.id}>
-                    <td><input type="checkbox" aria-label={`Selecionar ${item.description}`} checked={selectedItemIds.includes(item.id)} onChange={() => setSelectedItemIds((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} /></td>
+                    <td><input type="checkbox" aria-label={`Selecionar ${item.description}`} checked={selectedItemIds.includes(item.id)} disabled={!isEditable} onChange={() => setSelectedItemIds((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} /></td>
                     <td>{index + 1}</td><td className="code">{item.code}</td><td title={item.description}>{item.description}</td>
-                    <td className="number editable-cell"><input className="quantity-input" type="text" inputMode="decimal" aria-label={`Quantidade de ${item.description}`} value={quantityDrafts[item.id] ?? String(item.quantity).replace('.', ',')} disabled={mutationPending} onChange={(event) => setQuantityDrafts((current) => ({ ...current, [item.id]: event.target.value }))} onBlur={(event) => void updateQuantity(item.id, event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setQuantityDrafts((current) => ({ ...current, [item.id]: String(item.quantity).replace('.', ',') })); event.currentTarget.blur(); } }} /></td>
+                    <td className="number editable-cell"><input className="quantity-input" type="text" inputMode="decimal" aria-label={`Quantidade de ${item.description}`} value={quantityDrafts[item.id] ?? String(item.quantity).replace('.', ',')} disabled={!isEditable || mutationPending} onChange={(event) => setQuantityDrafts((current) => ({ ...current, [item.id]: event.target.value }))} onBlur={(event) => void updateQuantity(item.id, event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setQuantityDrafts((current) => ({ ...current, [item.id]: String(item.quantity).replace('.', ',') })); event.currentTarget.blur(); } }} /></td>
                     <td>{item.unit}</td><td className="number">{money.format(item.unitCost)}</td><td className="number">{money.format(item.totalCost)}</td><td className="number">{money.format(item.unitSale)}</td><td className="number">{money.format(item.totalSale)}</td>
                   </tr>
                 ))}
@@ -341,7 +413,7 @@ export function App() {
             </table>
           </div>
 
-          <button className="add-line" type="button" disabled={!proposal || mutationPending} onClick={() => setCatalogOpen(true)}><Plus size={16} /> Adicionar linha <kbd>Ctrl+I</kbd></button>
+          <button className="add-line" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen(true)}><Plus size={16} /> Adicionar linha <kbd>Ctrl+I</kbd></button>
 
           {catalogOpen && (
             <div className="catalog-popover" role="dialog" aria-label="Buscar no catálogo">
@@ -349,7 +421,7 @@ export function App() {
               <label className="catalog-search"><Search size={15} /><input ref={catalogInputRef} value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Pesquisar no catálogo" aria-activedescendant={catalogResults[selectedCatalogIndex] ? `catalog-${catalogResults[selectedCatalogIndex].code}` : undefined} /><kbd>Esc</kbd></label>
               <div className="catalog-results" aria-busy={catalogLoading}>
                 {catalogResults.map((item, index) => (
-                  <button id={`catalog-${item.code}`} key={item.id} className={index === selectedCatalogIndex ? 'highlighted' : ''} type="button" disabled={mutationPending} onMouseEnter={() => setSelectedCatalogIndex(index)} onClick={() => void addCatalogItem(item)}>
+                  <button id={`catalog-${item.code}`} key={item.id} className={index === selectedCatalogIndex ? 'highlighted' : ''} type="button" disabled={!isEditable || mutationPending} onMouseEnter={() => setSelectedCatalogIndex(index)} onClick={() => void addCatalogItem(item)}>
                     <span className="code">{item.code}</span><span title={item.description}>{item.description}</span><small>Unid.: {item.unit}</small><small>Custo: R$ {money.format(item.currentCost)}</small>
                   </button>
                 ))}
@@ -357,6 +429,28 @@ export function App() {
                 {!catalogLoading && catalogResults.length === 0 && <p className="catalog-message">Nenhum produto encontrado. Tente outro código ou descrição.</p>}
               </div>
               <div className="popover-footer"><span>↑↓ Navegar</span><span><kbd>Enter</kbd> Inserir</span><span><kbd>Esc</kbd> Fechar</span></div>
+            </div>
+          )}
+          </> : (
+            <div className="history-region" aria-busy={historyLoading}>
+              <div className="history-heading">
+                <div><HistoryIcon size={18} /><span><b>Histórico da proposta</b><small>Versões anteriores permanecem preservadas e somente para consulta.</small></span></div>
+                <button type="button" disabled={!proposal || historyLoading} onClick={() => { if (proposal) void loadHistory(proposal.id); }}>Atualizar</button>
+              </div>
+              {historyLoading && <p className="history-message">Carregando histórico local…</p>}
+              {!historyLoading && revisions.length === 0 && <p className="history-message">Nenhuma revisão registrada para esta proposta.</p>}
+              {!historyLoading && revisions.length > 0 && (
+                <table className="history-table">
+                  <thead><tr><th>Revisão</th><th>Status</th><th>Itens</th><th>Venda total</th><th>Responsável</th><th>Última alteração</th><th aria-label="Ação" /></tr></thead>
+                  <tbody>{revisions.map((revision) => (
+                    <tr key={revision.id} className={revision.id === proposal?.id ? 'current-revision' : ''}>
+                      <td><b>{revision.number} · REV.{String(revision.revision).padStart(2, '0')}</b>{revision.isLatest && <small>Atual</small>}</td>
+                      <td>{statusLabels[revision.status]}</td><td>{revision.itemCount}</td><td className="number">R$ {money.format(revision.totalSale)}</td><td>{revision.responsibleName}</td><td>{dateTime.format(new Date(revision.updatedAt))}</td>
+                      <td><button type="button" disabled={revision.id === proposal?.id || loading} onClick={() => void openRevision(revision.id)}>{revision.id === proposal?.id ? 'Aberta' : 'Consultar'}</button></td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              )}
             </div>
           )}
         </section>
@@ -370,15 +464,15 @@ export function App() {
 
           <div className="panel-section">
             <h2>Parâmetros internos</h2>
-            <label>Multiplicador BDI <span className="editable-parameter"><input type="text" inputMode="decimal" aria-label="Multiplicador BDI" value={bdiDraft ?? String(proposal?.bdiMultiplier ?? 0).replace('.', ',')} disabled={!proposal || mutationPending} onFocus={() => { if (bdiDraft === null && proposal) setBdiDraft(String(proposal.bdiMultiplier).replace('.', ',')); }} onChange={(event) => setBdiDraft(event.target.value)} onBlur={() => void updateBdi()} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setBdiDraft(null); event.currentTarget.blur(); } }} /><span aria-hidden="true">×</span></span></label>
+            <label>Multiplicador BDI <span className="editable-parameter"><input type="text" inputMode="decimal" aria-label="Multiplicador BDI" value={bdiDraft ?? String(proposal?.bdiMultiplier ?? 0).replace('.', ',')} disabled={!isEditable || mutationPending} onFocus={() => { if (bdiDraft === null && proposal) setBdiDraft(String(proposal.bdiMultiplier).replace('.', ',')); }} onChange={(event) => setBdiDraft(event.target.value)} onBlur={() => void updateBdi()} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setBdiDraft(null); event.currentTarget.blur(); } }} /><span aria-hidden="true">×</span></span></label>
             <label>Encargos <span className="locked-input">87,25% <ChevronDown size={14} /></span></label>
           </div>
 
-          <div className="frozen-state"><LockKeyhole size={17} /><span>Custos-base preservados nesta revisão</span></div>
+          <div className="frozen-state"><LockKeyhole size={17} /><span>{proposal?.isLatest ? 'Custos-base preservados nesta revisão' : 'Revisão histórica · somente leitura'}</span></div>
 
           <div className="panel-section actions">
             <h2>Ações</h2>
-            <button type="button" onClick={() => showNotice('Revisão salva localmente.')}><Save size={18} /> Salvar revisão <kbd>Ctrl+S</kbd></button>
+            <button type="button" disabled={!proposal?.isLatest || mutationPending} onClick={() => void createRevision()}><Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd></button>
             <button type="button" onClick={() => showNotice('Abrindo a pré-visualização do cliente.')}><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
             <button className="primary generate" type="button" onClick={() => showNotice('Proposta preparada para geração.')}><FilePlus2 size={18} /> Gerar proposta <kbd>Ctrl+G</kbd></button>
           </div>

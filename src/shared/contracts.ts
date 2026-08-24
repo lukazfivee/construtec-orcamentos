@@ -34,6 +34,7 @@ export type ProposalDetail = {
   validUntil: string | null;
   responsibleName: string;
   updatedAt: string;
+  isLatest: boolean;
   items: ProposalLine[];
   totals: {
     cost: number;
@@ -41,6 +42,18 @@ export type ProposalDetail = {
     grossResult: number;
     marginPercent: number;
   };
+};
+
+export type ProposalRevisionSummary = {
+  id: string;
+  number: string;
+  revision: number;
+  status: ProposalDetail['status'];
+  itemCount: number;
+  totalSale: number;
+  responsibleName: string;
+  updatedAt: string;
+  isLatest: boolean;
 };
 
 export type ApiErrorPayload = {

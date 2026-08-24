@@ -6,9 +6,9 @@ Aplicação desktop local-first para transformar catálogo, custos e mão de obr
 
 A fundação **comp-first** está implementada: Electron Forge, Vite, React e TypeScript no aplicativo desktop, Express na API local e PGlite/PostgreSQL para persistência. A primeira superfície é a mesa operacional de propostas, aprovada antes da implementação e reproduzida em código.
 
-O primeiro fluxo **code-first** já está ativo: a proposta é carregada do PGlite, o catálogo é pesquisado pela API local e a inclusão copia os dados do produto para um snapshot imutável do item. Custo, venda, resultado e margem são recalculados a partir dos registros persistidos; seleção e exclusão também operam sobre o banco e geram auditoria.
+O fluxo **code-first** já permite pesquisar o catálogo local, inserir itens com snapshot comercial, editar quantidades e BDI, recalcular totais e excluir itens com auditoria. O controle de revisões também está ativo: cada nova revisão copia os snapshots, preserva a versão anterior em modo somente leitura e pode ser consultada pela aba Histórico.
 
-Autenticação completa, edição de quantidades e BDI, geração de documentos e integrações externas entram nas próximas fases.
+Autenticação completa, cadastro de clientes e obras, geração de documentos e integrações externas entram nas próximas fases.
 
 ## Executar localmente
 

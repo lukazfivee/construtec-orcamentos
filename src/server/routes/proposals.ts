@@ -3,7 +3,10 @@ import { z } from 'zod';
 import type { LocalDatabase } from '../services/database';
 import {
   addProductToProposal,
+  createProposalRevision,
   getCurrentProposal,
+  getProposalById,
+  listProposalHistory,
   removeProposalItems,
   updateProposalBdi,
   updateProposalItemQuantity,
@@ -29,6 +32,39 @@ export const createProposalsRouter = (database: LocalDatabase) => {
         return;
       }
       response.json({ proposal });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/:proposalId/history', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      response.json({ revisions: await listProposalHistory(database, proposalId) });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/:proposalId', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const proposal = await getProposalById(database, proposalId);
+      if (!proposal) {
+        response.status(404).json({ error: 'Proposta não encontrada.' });
+        return;
+      }
+      response.json({ proposal });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post('/:proposalId/revisions', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const newProposalId = await createProposalRevision(database, proposalId);
+      response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) {
       next(error);
     }

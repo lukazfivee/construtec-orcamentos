@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, CatalogProduct, ProposalDetail } from '../shared/contracts';
+import type { ApiErrorPayload, CatalogProduct, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -29,6 +29,12 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 
 export const proposalApi = {
   current: () => request<{ proposal: ProposalDetail }>('/api/proposals/current'),
+  byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
+  history: (proposalId: string) => request<{ revisions: ProposalRevisionSummary[] }>(`/api/proposals/${proposalId}/history`),
+  createRevision: (proposalId: string) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/revisions`,
+    { method: 'POST' },
+  ),
   catalog: (query: string, signal?: AbortSignal) => request<{ products: CatalogProduct[] }>(
     `/api/catalog?q=${encodeURIComponent(query)}&limit=10`,
     { signal },

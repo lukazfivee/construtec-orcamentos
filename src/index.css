@@ -30,6 +30,7 @@ body { min-width: 1180px; background: var(--surface); }
 button, input { font: inherit; }
 button { color: inherit; }
 button:disabled { cursor: not-allowed !important; opacity: .52; }
+input:disabled { cursor: default; color: var(--muted); background: var(--surface-subtle); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 ::selection { color: #fff; background: #145fd0; }
 * { scrollbar-color: #aab3c0 #f5f6f8; scrollbar-width: thin; }
@@ -139,6 +140,7 @@ kbd {
 .section-tabs button { position: relative; height: 100%; padding: 0 0 10px; color: #465268; background: transparent; border: 0; cursor: pointer; font-size: 12px; }
 .section-tabs button.selected { color: var(--blue); font-weight: 700; }
 .section-tabs button.selected::after { content: ""; position: absolute; inset: auto 0 0; height: 2px; background: var(--blue); }
+.section-tabs button:disabled { color: #7b8595; }
 
 .toolbar { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 9px 16px; border-bottom: 1px solid var(--line); }
 .toolbar button, .actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 34px; padding: 0 13px; font-size: 12px; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
@@ -184,6 +186,23 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .catalog-results small { color: #677286; white-space: nowrap; }
 .catalog-message { min-height: 58px; margin: 0; padding: 20px 14px; color: #657184; font-size: 11px; text-align: center; }
 .popover-footer { display: flex; align-items: center; gap: 18px; height: 34px; padding: 0 12px; color: #647083; font-size: 10px; background: #f8f9fb; border-radius: 0 0 7px 7px; }
+
+.history-region { grid-row: 3 / -1; min-width: 0; min-height: 0; background: #fff; overflow: auto; }
+.history-heading { display: flex; align-items: center; justify-content: space-between; min-height: 62px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.history-heading > div { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.history-heading > div > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.history-heading small { color: var(--muted); font-size: 10px; font-weight: 400; }
+.history-heading button, .history-table button { height: 30px; padding: 0 11px; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
+.history-message { margin: 0; padding: 30px 16px; color: var(--muted); text-align: center; }
+.history-table { min-width: 850px; }
+.history-table th, .history-table td { width: auto; height: 48px; padding: 0 14px; text-align: left; }
+.history-table th { height: 38px; }
+.history-table th:nth-child(n), .history-table td:nth-child(n) { width: auto; text-align: left; }
+.history-table th:nth-child(3), .history-table td:nth-child(3), .history-table th:nth-child(4), .history-table td:nth-child(4) { text-align: right; }
+.history-table th:last-child, .history-table td:last-child { width: 100px; text-align: right; }
+.history-table td:first-child b { display: block; }
+.history-table td:first-child small { display: inline-block; margin-top: 2px; padding: 1px 5px; color: var(--green); background: var(--green-soft); border-radius: 3px; font-size: 9px; font-weight: 700; }
+.history-table tr.current-revision td { background: var(--blue-soft); }
 
 .commercial-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 0 18px 15px; background: #fbfcfd; overflow-y: auto; }
 .panel-title { display: flex; align-items: center; justify-content: space-between; height: 55px; font-size: 12px; border-bottom: 1px solid var(--line); }

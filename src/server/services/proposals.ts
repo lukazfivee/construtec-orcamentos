@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { CatalogProduct, ProposalDetail, ProposalLine } from '../../shared/contracts';
+import type { CatalogProduct, ProposalDetail, ProposalLine, ProposalRevisionSummary } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 
 type ProposalRow = {
@@ -14,6 +14,7 @@ type ProposalRow = {
   valid_until: string | null;
   responsible_name: string;
   updated_at: string;
+  is_latest: boolean;
 };
 
 type ItemRow = {
@@ -28,18 +29,21 @@ type ItemRow = {
 
 const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-export const getCurrentProposal = async (database: LocalDatabase): Promise<ProposalDetail | null> => {
+export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
   const proposalResult = await database.query<ProposalRow>(`
     SELECT p.id, p.proposal_number, p.revision,
       COALESCE(c.trade_name, c.legal_name) AS client_name,
       p.work_name, p.scope, p.status, p.bdi_multiplier::text,
-      p.valid_until::text, u.name AS responsible_name, p.updated_at::text
+      p.valid_until::text, u.name AS responsible_name, p.updated_at::text,
+      NOT EXISTS (
+        SELECT 1 FROM proposals newer
+        WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
+      ) AS is_latest
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
-    ORDER BY p.updated_at DESC
-    LIMIT 1
-  `);
+    WHERE p.id = $1
+  `, [proposalId]);
   const proposal = proposalResult.rows[0];
   if (!proposal) return null;
 
@@ -84,6 +88,7 @@ export const getCurrentProposal = async (database: LocalDatabase): Promise<Propo
     validUntil: proposal.valid_until,
     responsibleName: proposal.responsible_name,
     updatedAt: proposal.updated_at,
+    isLatest: proposal.is_latest,
     items,
     totals: {
       cost,
@@ -92,6 +97,48 @@ export const getCurrentProposal = async (database: LocalDatabase): Promise<Propo
       marginPercent: sale > 0 ? roundMoney((grossResult / sale) * 100) : 0,
     },
   };
+};
+
+export const getCurrentProposal = async (database: LocalDatabase): Promise<ProposalDetail | null> => {
+  const result = await database.query<{ id: string }>(`
+    SELECT p.id
+    FROM proposals p
+    WHERE NOT EXISTS (
+      SELECT 1 FROM proposals newer
+      WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
+    )
+    ORDER BY p.updated_at DESC
+    LIMIT 1
+  `);
+  const proposalId = result.rows[0]?.id;
+  return proposalId ? getProposalById(database, proposalId) : null;
+};
+
+type Queryable = Pick<LocalDatabase, 'query'>;
+
+const getLatestProposal = async (database: Queryable, proposalId: string) => {
+  const result = await database.query<{
+    status: ProposalDetail['status']; bdi_multiplier: string; proposal_number: string; revision: number; superseded: boolean;
+  }>(`
+    SELECT p.status, p.bdi_multiplier::text, p.proposal_number, p.revision,
+      EXISTS (
+        SELECT 1 FROM proposals newer
+        WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
+      ) AS superseded
+    FROM proposals p
+    WHERE p.id = $1
+    FOR UPDATE
+  `, [proposalId]);
+  const proposal = result.rows[0];
+  if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
+  if (proposal.superseded) throw new Error('PROPOSAL_LOCKED');
+  return proposal;
+};
+
+const getEditableProposal = async (database: Queryable, proposalId: string) => {
+  const proposal = await getLatestProposal(database, proposalId);
+  if (proposal.status !== 'draft' && proposal.status !== 'review') throw new Error('PROPOSAL_LOCKED');
+  return proposal;
 };
 
 export const searchCatalog = async (database: LocalDatabase, query: string, limit: number): Promise<CatalogProduct[]> => {
@@ -122,13 +169,7 @@ export const searchCatalog = async (database: LocalDatabase, query: string, limi
 
 export const addProductToProposal = async (database: LocalDatabase, proposalId: string, productId: string, quantity: number) => {
   await database.transaction(async (transaction) => {
-    const proposalResult = await transaction.query<{ bdi_multiplier: string; status: string }>(
-      'SELECT bdi_multiplier::text, status FROM proposals WHERE id = $1 FOR UPDATE',
-      [proposalId],
-    );
-    const proposal = proposalResult.rows[0];
-    if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
-    if (proposal.status !== 'draft' && proposal.status !== 'review') throw new Error('PROPOSAL_LOCKED');
+    const proposal = await getEditableProposal(transaction, proposalId);
 
     const productResult = await transaction.query<{
       id: string; code: string; manufacturer: string | null; model: string | null;
@@ -163,6 +204,7 @@ export const addProductToProposal = async (database: LocalDatabase, proposalId: 
 
 export const removeProposalItems = async (database: LocalDatabase, proposalId: string, itemIds: string[]) => {
   await database.transaction(async (transaction) => {
+    await getEditableProposal(transaction, proposalId);
     const result = await transaction.query<{ id: string }>(
       'DELETE FROM proposal_items WHERE proposal_id = $1 AND id = ANY($2::uuid[]) RETURNING id',
       [proposalId, itemIds],
@@ -183,13 +225,7 @@ export const updateProposalItemQuantity = async (
   quantity: number,
 ) => {
   await database.transaction(async (transaction) => {
-    const proposalResult = await transaction.query<{ status: string }>(
-      'SELECT status FROM proposals WHERE id = $1 FOR UPDATE',
-      [proposalId],
-    );
-    const proposal = proposalResult.rows[0];
-    if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
-    if (proposal.status !== 'draft' && proposal.status !== 'review') throw new Error('PROPOSAL_LOCKED');
+    await getEditableProposal(transaction, proposalId);
 
     const itemResult = await transaction.query<{ quantity: string }>(
       'SELECT quantity::text FROM proposal_items WHERE proposal_id = $1 AND id = $2 FOR UPDATE',
@@ -217,13 +253,7 @@ export const updateProposalBdi = async (
   bdiMultiplier: number,
 ) => {
   await database.transaction(async (transaction) => {
-    const proposalResult = await transaction.query<{ status: string; bdi_multiplier: string }>(
-      'SELECT status, bdi_multiplier::text FROM proposals WHERE id = $1 FOR UPDATE',
-      [proposalId],
-    );
-    const proposal = proposalResult.rows[0];
-    if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
-    if (proposal.status !== 'draft' && proposal.status !== 'review') throw new Error('PROPOSAL_LOCKED');
+    const proposal = await getEditableProposal(transaction, proposalId);
 
     await transaction.query(
       'UPDATE proposals SET bdi_multiplier = $2, updated_at = now() WHERE id = $1',
@@ -240,4 +270,79 @@ export const updateProposalBdi = async (
       VALUES ($1, 'proposal', $2, 'bdi_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify({ bdiMultiplier: Number(proposal.bdi_multiplier) }), JSON.stringify({ bdiMultiplier })]);
   });
+};
+
+export const createProposalRevision = async (database: LocalDatabase, sourceProposalId: string) => {
+  return database.transaction(async (transaction) => {
+    const source = await getLatestProposal(transaction, sourceProposalId);
+    const newProposalId = randomUUID();
+    const created = await transaction.query<{ revision: number }>(`
+      INSERT INTO proposals
+        (id, proposal_number, revision, client_id, work_name, scope, status, bdi_multiplier, valid_until, created_by)
+      SELECT $2, proposal_number, revision + 1, client_id, work_name, scope, 'draft', bdi_multiplier, valid_until, created_by
+      FROM proposals
+      WHERE id = $1
+      RETURNING revision
+    `, [sourceProposalId, newProposalId]);
+
+    const items = await transaction.query<{
+      catalog_product_id: string | null; position: number; snapshot_code: string;
+      snapshot_manufacturer: string | null; snapshot_model: string | null; snapshot_description: string;
+      snapshot_unit: string; snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
+    }>(`
+      SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
+        snapshot_description, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+      FROM proposal_items
+      WHERE proposal_id = $1
+      ORDER BY position
+    `, [sourceProposalId]);
+
+    for (const item of items.rows) {
+      await transaction.query(`
+        INSERT INTO proposal_items
+          (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
+           snapshot_model, snapshot_description, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `, [randomUUID(), newProposalId, item.catalog_product_id, item.position, item.snapshot_code,
+        item.snapshot_manufacturer, item.snapshot_model, item.snapshot_description, item.snapshot_unit,
+        Number(item.snapshot_unit_cost), Number(item.quantity), Number(item.sale_unit_price)]);
+    }
+
+    const revision = created.rows[0]?.revision ?? source.revision + 1;
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
+      VALUES ($1, 'proposal', $2, 'revision_created', $3::jsonb)
+    `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision })]);
+    return newProposalId;
+  });
+};
+
+export const listProposalHistory = async (database: LocalDatabase, proposalId: string): Promise<ProposalRevisionSummary[]> => {
+  const result = await database.query<{
+    id: string; proposal_number: string; revision: number; status: ProposalDetail['status'];
+    item_count: string; total_sale: string; responsible_name: string; updated_at: string; is_latest: boolean;
+  }>(`
+    SELECT p.id, p.proposal_number, p.revision, p.status,
+      count(i.id)::text AS item_count,
+      COALESCE(sum(i.quantity * i.sale_unit_price), 0)::text AS total_sale,
+      u.name AS responsible_name, p.updated_at::text,
+      p.revision = max(p.revision) OVER (PARTITION BY p.proposal_number) AS is_latest
+    FROM proposals p
+    JOIN proposals selected ON selected.id = $1 AND selected.proposal_number = p.proposal_number
+    JOIN users u ON u.id = p.created_by
+    LEFT JOIN proposal_items i ON i.proposal_id = p.id
+    GROUP BY p.id, u.name
+    ORDER BY p.revision DESC
+  `, [proposalId]);
+  return result.rows.map((revision) => ({
+    id: revision.id,
+    number: revision.proposal_number,
+    revision: revision.revision,
+    status: revision.status,
+    itemCount: Number(revision.item_count),
+    totalSale: roundMoney(Number(revision.total_sale)),
+    responsibleName: revision.responsible_name,
+    updatedAt: revision.updated_at,
+    isLatest: revision.is_latest,
+  }));
 };
