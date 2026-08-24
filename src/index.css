@@ -29,6 +29,7 @@ body { min-width: 1180px; background: var(--surface); }
 
 button, input { font: inherit; }
 button { color: inherit; }
+button:disabled { cursor: not-allowed !important; opacity: .52; }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 ::selection { color: #fff; background: #145fd0; }
 * { scrollbar-color: #aab3c0 #f5f6f8; scrollbar-width: thin; }
@@ -124,6 +125,8 @@ kbd {
 .proposal-tabs .new-tab { min-width: 145px; color: #536074; }
 
 .proposal-editor { position: relative; display: grid; grid-template-rows: 100px 39px 52px minmax(0, 1fr) 48px; min-width: 0; min-height: 0; background: #fff; border-right: 1px solid var(--line); }
+.error-banner { position: absolute; z-index: 8; inset: 8px 12px auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 38px; padding: 7px 9px 7px 12px; color: var(--amber); background: var(--amber-soft); border: 1px solid #f1d693; border-radius: 6px; box-shadow: 0 10px 25px rgba(28, 40, 59, .14); font-size: 11px; }
+.error-banner button { flex: none; height: 25px; padding: 0 9px; color: var(--amber); background: #fff; border: 1px solid #f1d693; border-radius: 5px; cursor: pointer; }
 .proposal-meta { display: grid; grid-template-columns: 1.15fr 1.1fr .75fr .72fr .86fr; align-items: stretch; border-bottom: 1px solid var(--line); }
 .meta-field { display: flex; flex-direction: column; justify-content: center; gap: 9px; min-width: 0; padding: 16px 26px; }
 .meta-field + .meta-field { border-left: 1px solid var(--line); }
@@ -154,7 +157,7 @@ tbody tr:hover td { background: #f6f9fe; }
 td:nth-child(1), th:nth-child(1) { width: 36px; text-align: center; }
 td:nth-child(2), th:nth-child(2) { width: 38px; text-align: center; }
 td:nth-child(3), th:nth-child(3) { width: 112px; }
-td:nth-child(4), th:nth-child(4) { min-width: 250px; }
+td:nth-child(4), th:nth-child(4) { min-width: 250px; max-width: 330px; overflow: hidden; text-overflow: ellipsis; }
 td.number, th:nth-child(n+5) { text-align: right; }
 .code { font-variant-numeric: tabular-nums; }
 input[type="checkbox"] { width: 13px; height: 13px; accent-color: var(--blue); }
@@ -173,7 +176,9 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .catalog-results button { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; width: 100%; height: 37px; padding: 0 10px; font-size: 10px; text-align: left; background: #fff; border: 0; cursor: pointer; }
 .catalog-results button + button { border-top: 1px solid #edf0f3; }
 .catalog-results button.highlighted { background: var(--blue-soft); outline: 1px solid #b8d1fb; outline-offset: -1px; }
+.catalog-results button > span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .catalog-results small { color: #677286; white-space: nowrap; }
+.catalog-message { min-height: 58px; margin: 0; padding: 20px 14px; color: #657184; font-size: 11px; text-align: center; }
 .popover-footer { display: flex; align-items: center; gap: 18px; height: 34px; padding: 0 12px; color: #647083; font-size: 10px; background: #f8f9fb; border-radius: 0 0 7px 7px; }
 
 .commercial-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 0 18px 15px; background: #fbfcfd; overflow-y: auto; }
@@ -199,6 +204,7 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .panel-footnote { margin-top: auto; padding-top: 24px; }
 .demo-data-note { width: fit-content; margin: 0 0 8px; padding: 3px 6px; color: #596578; background: #eef1f5; border-radius: 3px; font-size: 9px; font-weight: 600; letter-spacing: .01em; }
 .last-change { margin: 0; color: #707b8a; font-size: 10px; line-height: 1.5; }
+.empty-row td { height: 88px; color: #657184; text-align: center; background: #fbfcfd; }
 
 .toast { position: fixed; z-index: 20; right: 24px; bottom: 24px; max-width: 360px; padding: 12px 16px; color: #fff; background: #172033; border-radius: 7px; box-shadow: 0 10px 26px rgba(18, 32, 54, .22); font-size: 12px; animation: toast-in 180ms cubic-bezier(.2, .8, .2, 1); }
 @keyframes toast-in { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

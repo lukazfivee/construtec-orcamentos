@@ -1,11 +1,32 @@
+import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { PGlite } from '@electric-sql/pglite';
+import { pathToFileURL } from 'node:url';
+import type * as PGliteModule from '@electric-sql/pglite';
+import type * as NodeFsModule from '@electric-sql/pglite/nodefs';
 import { initialMigration } from '../migrations/001-initial';
+import { ensureFirstRunData } from './bootstrap';
 
-export type LocalDatabase = PGlite;
+export type LocalDatabase = PGliteModule.PGlite;
 
-export const createDatabase = async (userDataPath: string) => {
-  const database = await PGlite.create(path.join(userDataPath, 'data', 'postgres'));
+const loadPGlite = async (packagedModulePath?: string) => {
+  const pgliteSpecifier = packagedModulePath
+    ? pathToFileURL(path.join(packagedModulePath, 'dist', 'index.js')).href
+    : '@electric-sql/pglite';
+  const nodeFsSpecifier = packagedModulePath
+    ? pathToFileURL(path.join(packagedModulePath, 'dist', 'fs', 'nodefs.js')).href
+    : '@electric-sql/pglite/nodefs';
+  const [pgliteModule, nodeFsModule] = await Promise.all([
+    import(/* @vite-ignore */ pgliteSpecifier) as Promise<typeof PGliteModule>,
+    import(/* @vite-ignore */ nodeFsSpecifier) as Promise<typeof NodeFsModule>,
+  ]);
+  return { PGlite: pgliteModule.PGlite, NodeFS: nodeFsModule.NodeFS };
+};
+
+export const createDatabase = async (userDataPath: string, packagedModulePath?: string) => {
+  const databasePath = path.join(userDataPath, 'data', 'postgres');
+  await mkdir(databasePath, { recursive: true });
+  const { PGlite, NodeFS } = await loadPGlite(packagedModulePath);
+  const database = await PGlite.create({ fs: new NodeFS(databasePath) });
 
   await database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -25,6 +46,8 @@ export const createDatabase = async (userDataPath: string) => {
       await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [1]);
     });
   }
+
+  await ensureFirstRunData(database);
 
   return database;
 };

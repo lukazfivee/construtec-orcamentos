@@ -6,7 +6,9 @@ Aplicação desktop local-first para transformar catálogo, custos e mão de obr
 
 A fundação **comp-first** está implementada: Electron Forge, Vite, React e TypeScript no aplicativo desktop, Express na API local e PGlite/PostgreSQL para persistência. A primeira superfície é a mesa operacional de propostas, aprovada antes da implementação e reproduzida em código.
 
-Esta entrega estabelece a arquitetura, o banco inicial e a interface navegável. Autenticação completa, regras de cálculo, geração de documentos e integrações externas entram nas próximas fases code-first.
+O primeiro fluxo **code-first** já está ativo: a proposta é carregada do PGlite, o catálogo é pesquisado pela API local e a inclusão copia os dados do produto para um snapshot imutável do item. Custo, venda, resultado e margem são recalculados a partir dos registros persistidos; seleção e exclusão também operam sobre o banco e geram auditoria.
+
+Autenticação completa, edição de quantidades e BDI, geração de documentos e integrações externas entram nas próximas fases.
 
 ## Executar localmente
 
@@ -30,7 +32,9 @@ O pacote não instalável gerado pelo Electron Forge fica em `out/`. Use `npm ru
 
 - `src/renderer/`: interface React da mesa operacional;
 - `src/server/`: API Express local e serviços;
+- `src/server/routes/`: rotas validadas para catálogo e propostas;
 - `src/server/migrations/`: esquema versionado do PGlite;
+- `src/shared/`: contratos tipados compartilhados entre API e interface;
 - `src/main.ts`: ciclo de vida e janela segura do Electron;
 - `src/preload.ts`: ponte mínima e tipada entre renderer e processo principal;
 - `.impeccable/`: decisões, composições aprovadas e evidências de revisão visual.

@@ -20,6 +20,7 @@
   },
   "rules": {
     "@typescript-eslint/consistent-type-imports": "error",
+    "import/no-unresolved": ["error", { "ignore": ["^@electric-sql/pglite/nodefs$"] }],
     "import/order": ["error", { "newlines-between": "never" }]
   }
 }
