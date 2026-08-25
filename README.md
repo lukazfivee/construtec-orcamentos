@@ -12,6 +12,8 @@ Clientes e obras também possuem uma área própria de cadastro, busca e ediçã
 
 O app também gera a revisão aberta em PDF e Word, com pré-visualização, identidade visual corporativa e escolha da pasta de destino. Os arquivos do cliente exibem somente quantidades e valores de venda; custos, margem e BDI permanecem restritos à interface interna.
 
+Novas propostas podem ser criadas diretamente pela mesa operacional: o usuário seleciona cliente e obra, informa escopo e validade, e o sistema gera automaticamente a próxima numeração `PA-####` na revisão 00. As abas superiores agora representam propostas reais salvas no banco e permitem alternar entre elas.
+
 Autenticação completa e integrações externas entram nas próximas fases.
 
 ## Executar localmente

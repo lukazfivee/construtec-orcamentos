@@ -76,6 +76,18 @@ export type ProposalRevisionSummary = {
   isLatest: boolean;
 };
 
+export type ProposalSummary = {
+  id: string;
+  number: string;
+  revision: number;
+  clientName: string;
+  workName: string;
+  status: ProposalDetail['status'];
+  itemCount: number;
+  totalSale: number;
+  updatedAt: string;
+};
+
 export type ApiErrorPayload = {
   error: string;
   details?: unknown;

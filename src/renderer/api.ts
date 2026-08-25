@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import type { ApiErrorPayload, CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -28,7 +28,11 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 };
 
 export const proposalApi = {
+  list: () => request<{ proposals: ProposalSummary[] }>('/api/proposals'),
   current: () => request<{ proposal: ProposalDetail }>('/api/proposals/current'),
+  create: (input: { clientId: string; workId: string; scope: string; validUntil: string | null }) => request<{ proposal: ProposalDetail }>(
+    '/api/proposals', { method: 'POST', body: JSON.stringify(input) },
+  ),
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
   history: (proposalId: string) => request<{ revisions: ProposalRevisionSummary[] }>(`/api/proposals/${proposalId}/history`),
   createRevision: (proposalId: string) => request<{ proposal: ProposalDetail }>(

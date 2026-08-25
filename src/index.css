@@ -125,6 +125,27 @@ kbd {
 .proposal-tabs button.selected::after { content: ""; position: absolute; inset: auto 10px 0; height: 2px; background: var(--blue); }
 .proposal-tabs .new-tab { min-width: 145px; color: #536074; }
 
+.dialog-backdrop { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(12, 23, 40, .56); backdrop-filter: blur(2px); }
+.new-proposal-dialog { width: min(640px, 100%); color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 24px 60px rgba(8, 18, 35, .28); animation: popover-in 180ms cubic-bezier(.2, .8, .2, 1); }
+.new-proposal-dialog > header { display: flex; align-items: center; justify-content: space-between; min-height: 78px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+.new-proposal-dialog > header > div { display: flex; align-items: center; gap: 12px; }
+.new-proposal-dialog > header > div > svg { color: var(--blue); }
+.new-proposal-dialog h2, .new-proposal-dialog p { margin: 0; }
+.new-proposal-dialog h2 { font-size: 16px; }
+.new-proposal-dialog header p { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.dialog-close { display: grid; place-items: center; width: 32px; height: 32px; color: var(--muted); background: #fff; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.new-proposal-dialog form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 16px; padding: 20px; }
+.new-proposal-dialog label { display: flex; flex-direction: column; gap: 6px; color: #445064; font-size: 10px; font-weight: 600; }
+.new-proposal-dialog label.wide, .new-proposal-dialog form > footer, .dialog-warning { grid-column: 1 / -1; }
+.new-proposal-dialog label > span { display: flex; align-items: center; gap: 6px; }
+.new-proposal-dialog label b { color: #bd2f2f; }
+.new-proposal-dialog input, .new-proposal-dialog select { width: 100%; height: 38px; padding: 0 10px; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 5px; outline: none; }
+.new-proposal-dialog input:focus, .new-proposal-dialog select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
+.dialog-warning { padding: 10px 12px; color: var(--amber); background: var(--amber-soft); border: 1px solid #f1d693; border-radius: 5px; font-size: 10px; }
+.new-proposal-dialog form > footer { display: flex; justify-content: flex-end; gap: 9px; margin: 5px -20px -20px; padding: 14px 20px; background: var(--surface-subtle); border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
+.new-proposal-dialog form > footer button { height: 36px; padding: 0 15px; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
+.new-proposal-dialog form > footer button.primary { color: #fff; background: var(--blue); border-color: var(--blue); }
+
 .proposal-editor { position: relative; display: grid; grid-template-rows: 100px 39px 52px minmax(0, 1fr) 48px; min-width: 0; min-height: 0; background: #fff; border-right: 1px solid var(--line); }
 .error-banner { position: absolute; z-index: 8; inset: 8px 12px auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 38px; padding: 7px 9px 7px 12px; color: var(--amber); background: var(--amber-soft); border: 1px solid #f1d693; border-radius: 6px; box-shadow: 0 10px 25px rgba(28, 40, 59, .14); font-size: 11px; }
 .error-banner button { flex: none; height: 25px; padding: 0 9px; color: var(--amber); background: #fff; border: 1px solid #f1d693; border-radius: 5px; cursor: pointer; }
