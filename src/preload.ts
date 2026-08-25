@@ -11,4 +11,6 @@ contextBridge.exposeInMainWorld('construtec', {
   previewExsat: (url: string) => ipcRenderer.invoke('exsat:preview', url),
   previewExsatBatch: (urls: string[]) => ipcRenderer.invoke('exsat:preview-batch', urls),
   previewExsatAuto: () => ipcRenderer.invoke('exsat:preview-auto'),
+  exsatSyncInfo: () => ipcRenderer.invoke('exsat:sync-info'),
+  recordExsatSync: (result: { created: number; updated: number }) => ipcRenderer.invoke('exsat:record-sync', result),
 });
