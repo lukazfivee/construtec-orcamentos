@@ -56,6 +56,9 @@ function Await($operation, $resultType) {
   $task.Wait()
   return $task.Result
 }
+function Join-Words($items) {
+  return ((@($items | Sort-Object X | ForEach-Object { [string]$_.Text }) -join ' ') -replace '\s+', ' ').Trim()
+}
 $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:CONSTRUTEC_OCR_PATH)) ([Windows.Storage.StorageFile])
 $stream = Await ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
 $decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
@@ -65,7 +68,6 @@ if ($null -eq $engine) { throw 'Instale o pacote de idioma Português nas config
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $result = Await ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
 
-# Reconstrói as linhas pela posição visual X/Y. Isso evita a leitura da tabela por coluna.
 $words = New-Object System.Collections.Generic.List[object]
 foreach ($line in $result.Lines) {
   foreach ($word in $line.Words) {
@@ -76,6 +78,7 @@ foreach ($line in $result.Lines) {
       Y = [double]$rect.Y
       W = [double]$rect.Width
       H = [double]$rect.Height
+      CX = [double]($rect.X + ($rect.Width / 2.0))
       CY = [double]($rect.Y + ($rect.Height / 2.0))
     })
   }
@@ -111,33 +114,88 @@ foreach ($word in ($words | Sort-Object CY, X)) {
   }
 }
 
-# Detecta o início da coluna Vl. Total. Nos orçamentos Exsat ela fica à direita de Vl. Líq.
-# Ao omitir essa coluna, o último valor monetário da linha passa a ser exatamente o Vl. Líq.
-$totalColumnX = $null
+# Localiza o cabeçalho da tabela Exsat e usa as posições X como limites das colunas.
+$header = $null
 foreach ($row in ($visualRows | Sort-Object CY)) {
-  $orderedHeader = @($row.Words | Sort-Object X)
-  $headerText = (($orderedHeader | ForEach-Object { $_.Text }) -join ' ')
-  if ($headerText -match '(?i)Fab\.?\s+Cod\.?\s+Descri[cç][aã]o' -and $headerText -match '(?i)Vl\.?\s*Total') {
-    for ($i = 0; $i -lt $orderedHeader.Count; $i += 1) {
-      if ([string]$orderedHeader[$i].Text -match '^(?i:Total)$') {
-        $previous = if ($i -gt 0) { [string]$orderedHeader[$i - 1].Text } else { '' }
-        if ($previous -match '^(?i:Vl\.?|VL\.?)$') {
-          $totalColumnX = [double]$orderedHeader[$i - 1].X
-          break
-        }
-      }
-    }
+  $text = Join-Words $row.Words
+  if ($text -match '(?i)\bFab\.?\b' -and $text -match '(?i)\bCod\.?\b' -and $text -match '(?i)Descri[cç][aã]o' -and $text -match '(?i)Total') {
+    $header = $row
+    break
   }
-  if ($null -ne $totalColumnX) { break }
 }
 
+if ($null -ne $header) {
+  $hw = @($header.Words | Sort-Object X)
+  $fabWord = @($hw | Where-Object { $_.Text -match '^(?i:Fab\.?)$' })[0]
+  $codWord = @($hw | Where-Object { $_.Text -match '^(?i:Cod\.?)$' })[0]
+  $descriptionWord = @($hw | Where-Object { $_.Text -match '^(?i:Descri[cç][aã]o:?|Descricao:?)$' })[0]
+  $qtWord = @($hw | Where-Object { $_.Text -match '^(?i:Qt\.?\(?Un\.?\)?|Qt\.?)$' })[0]
+  $unitWord = @($hw | Where-Object { $_.Text -match '^(?i:Unit\.?)$' })[0]
+  $descValueWord = @($hw | Where-Object { $_.Text -match '^(?i:Desc\.?)$' })[0]
+  $liqWord = @($hw | Where-Object { $_.Text -match '^(?i:L[ií]q\.?)$' })[0]
+  $totalWord = @($hw | Where-Object { $_.Text -match '^(?i:Total)$' })[0]
+
+  if ($fabWord -and $codWord -and $descriptionWord -and $qtWord -and $unitWord -and $descValueWord -and $liqWord -and $totalWord) {
+    $fabX = [double]$fabWord.CX
+    $codX = [double]$codWord.CX
+    $descriptionX = [double]$descriptionWord.CX
+    $qtX = [double]$qtWord.CX
+    $unitX = [double]$unitWord.CX
+    $descValueX = [double]$descValueWord.CX
+    $liqX = [double]$liqWord.CX
+    $totalX = [double]$totalWord.CX
+
+    $bFabCod = ($fabX + $codX) / 2.0
+    $bCodDescription = ($codX + $descriptionX) / 2.0
+    $bDescriptionQt = ($descriptionX + $qtX) / 2.0
+    $bQtUnit = ($qtX + $unitX) / 2.0
+    $bUnitDesc = ($unitX + $descValueX) / 2.0
+    $bDescLiq = ($descValueX + $liqX) / 2.0
+    $bLiqTotal = ($liqX + $totalX) / 2.0
+
+    $anchors = @($words | Where-Object {
+      $_.CY -gt ($header.CY + $avgHeight) -and
+      $_.CX -lt $bFabCod -and
+      $_.Text -match '^\d{6,14}$'
+    } | Sort-Object CY)
+
+    $emitted = 0
+    for ($i = 0; $i -lt $anchors.Count; $i += 1) {
+      $anchor = $anchors[$i]
+      $top = if ($i -eq 0) { $header.CY + ($avgHeight * 0.6) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
+      $bottom = if ($i -eq $anchors.Count - 1) { [double]$anchor.CY + ($avgHeight * 2.2) } else { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 }
+      $band = @($words | Where-Object { $_.CY -gt $top -and $_.CY -lt $bottom })
+
+      $fab = [string]$anchor.Text
+      $supplier = Join-Words @($band | Where-Object { $_.CX -ge $bFabCod -and $_.CX -lt $bCodDescription })
+      $description = Join-Words @($band | Where-Object { $_.CX -ge $bCodDescription -and $_.CX -lt $bDescriptionQt })
+      $quantity = Join-Words @($band | Where-Object { $_.CX -ge $bDescriptionQt -and $_.CX -lt $bQtUnit })
+      $unitValue = Join-Words @($band | Where-Object { $_.CX -ge $bQtUnit -and $_.CX -lt $bUnitDesc })
+      $discountValue = Join-Words @($band | Where-Object { $_.CX -ge $bUnitDesc -and $_.CX -lt $bDescLiq })
+      $netValue = Join-Words @($band | Where-Object { $_.CX -ge $bDescLiq -and $_.CX -lt $bLiqTotal })
+
+      $supplier = ($supplier -replace '[^0-9]', '')
+      $description = ($description -replace '\s+', ' ').Trim()
+      $quantity = ($quantity -replace '\s+', '').Trim()
+      $unitValue = ($unitValue -replace '\s+', '').Trim()
+      $discountValue = ($discountValue -replace '\s+', '').Trim()
+      $netValue = ($netValue -replace '\s+', '').Trim()
+
+      if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
+        # A saída é deliberadamente normalizada sem Vl. Total. O último preço é sempre o Vl. Líq.
+        [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
+        $emitted += 1
+      }
+    }
+
+    if ($emitted -gt 0) { exit 0 }
+  }
+}
+
+# Fallback genérico para imagens que não seguem o layout padrão da Exsat.
 foreach ($row in ($visualRows | Sort-Object CY)) {
   $ordered = @($row.Words | Sort-Object X)
-  if ($null -ne $totalColumnX) {
-    $ordered = @($ordered | Where-Object { [double]$_.X -lt ([double]$totalColumnX - 4) })
-  }
   if ($ordered.Count -eq 0) { continue }
-
   $parts = New-Object System.Collections.Generic.List[string]
   $previous = $null
   foreach ($word in $ordered) {
