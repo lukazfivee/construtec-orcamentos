@@ -26,9 +26,10 @@ import {
   Trash2,
   Users,
 } from 'lucide-react';
-import type { CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import type { CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
 import { clientsApi, proposalApi } from './api';
 import { ClientsWorkspace } from './ClientsWorkspace';
+import { NewProposalDialog } from './NewProposalDialog';
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
@@ -38,8 +39,6 @@ const navItems = [
   { label: 'Kits', icon: Layers3 },
   { label: 'Configurações', icon: Settings },
 ];
-
-const openProposals = ['PA-1052 • REV.01', 'PA-1048 • REV.00'];
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const date = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
@@ -83,6 +82,8 @@ export function App() {
   const [contextClients, setContextClients] = useState<ClientRecord[]>([]);
   const [contextLoading, setContextLoading] = useState(false);
   const [documentPending, setDocumentPending] = useState(false);
+  const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
+  const [newProposalOpen, setNewProposalOpen] = useState(false);
   const catalogInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string) => {
@@ -94,8 +95,9 @@ export function App() {
     setLoading(true);
     setError('');
     try {
-      const result = await proposalApi.current();
+      const [result, tabsResult] = await Promise.all([proposalApi.current(), proposalApi.list()]);
       setProposal(result.proposal);
+      setProposalTabs(tabsResult.proposals);
       setSelectedItemIds([]);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar a proposta local.');
@@ -269,6 +271,23 @@ export function App() {
     }
   }, []);
 
+  const openProposal = useCallback(async (proposalId: string) => {
+    if (proposal?.id === proposalId || loading) return;
+    await openRevision(proposalId);
+  }, [loading, openRevision, proposal?.id]);
+
+  const proposalCreated = useCallback(async (created: ProposalDetail) => {
+    setProposal(created);
+    setSelectedItemIds([]);
+    setQuantityDrafts({});
+    setBdiDraft(null);
+    setActiveSection('Itens');
+    setNewProposalOpen(false);
+    const tabs = await proposalApi.list();
+    setProposalTabs(tabs.proposals);
+    showNotice(`${created.number} criada na revisão 00.`);
+  }, []);
+
   const createRevision = useCallback(async () => {
     if (!proposal?.isLatest || mutationPending) return;
     setMutationPending(true);
@@ -430,12 +449,11 @@ export function App() {
       {activeNav === 'Clientes' && error && <div className="global-error" role="alert"><span>{error}</span><button type="button" onClick={() => setError('')}>Fechar</button></div>}
       {activeNav === 'Propostas' ? <main className="workspace">
         <div className="proposal-tabs" role="tablist" aria-label="Propostas abertas">
-          {[proposalLabel, ...openProposals].map((tabLabel, index) => (
-            <button key={tabLabel} className={index === 0 ? 'selected' : ''} type="button" role="tab" aria-selected={index === 0} disabled={index > 0} title={index > 0 ? 'Abertura de múltiplas propostas será implementada em uma próxima etapa.' : undefined}>
-              {tabLabel}{index > 0 && <span aria-hidden="true">×</span>}
-            </button>
-          ))}
-          <button type="button" className="new-tab" disabled title="Criação de novas propostas será implementada em uma próxima etapa."><Plus size={17} /> Nova proposta</button>
+          {proposalTabs.map((tab) => {
+            const selected = tab.id === proposal?.id;
+            return <button key={tab.id} className={selected ? 'selected' : ''} type="button" role="tab" aria-selected={selected} disabled={loading} title={`${tab.clientName} · ${tab.workName}`} onClick={() => void openProposal(tab.id)}>{tab.number} • REV.{String(tab.revision).padStart(2, '0')}</button>;
+          })}
+          <button type="button" className="new-tab" onClick={() => { setError(''); setNewProposalOpen(true); }}><Plus size={17} /> Nova proposta</button>
         </div>
 
         <section className="proposal-editor" aria-label={`Editor da proposta ${proposalLabel}`} aria-busy={loading || mutationPending}>
@@ -581,6 +599,7 @@ export function App() {
       </main> : <ClientsWorkspace onNotice={showNotice} onError={setError} />}
 
       {notice && <div className="toast" role="status">{notice}</div>}
+      <NewProposalDialog open={newProposalOpen} onClose={() => setNewProposalOpen(false)} onCreated={(created) => void proposalCreated(created)} onError={setError} />
     </div>
   );
 }
