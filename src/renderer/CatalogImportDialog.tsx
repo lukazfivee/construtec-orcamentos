@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { FileImage, FileSpreadsheet, Globe2, Import, Plus, Trash2, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { FileImage, FileSpreadsheet, Globe2, Import, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
 import type { CatalogImportItem, CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
 
@@ -99,7 +99,11 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   const [rows, setRows] = useState<Row[]>([]);
   const [sourceName, setSourceName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [exsatConnected, setExsatConnected] = useState(false);
   const validRows = useMemo(() => rows.filter((row) => row.code.trim().length >= 2 && row.description.trim().length >= 3 && row.category.trim().length >= 2 && row.unit.trim()), [rows]);
+  useEffect(() => {
+    if (open && mode === 'exsat') void window.construtec?.exsatStatus().then((status) => setExsatConnected(status.connected));
+  }, [open, mode]);
   if (!open) return null;
 
   const chooseFile = async (expected: 'file' | 'image') => {
@@ -118,9 +122,27 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   const loadExsat = async () => {
     setLoading(true);
     try {
-      const result = await catalogApi.previewExsat(exsatUrl);
+      const result = window.construtec
+        ? await window.construtec.previewExsat(exsatUrl)
+        : await catalogApi.previewExsat(exsatUrl).then((fallback) => ({ ...fallback, connected: false }));
+      setExsatConnected(result.connected);
       setRows(result.items.map((item) => newRow(item))); setSourceName('Exsat Distribuidora');
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível consultar a Exsat.'); }
+    finally { setLoading(false); }
+  };
+  const loginExsat = async () => {
+    setLoading(true);
+    try {
+      const status = await window.construtec?.exsatLogin();
+      setExsatConnected(status?.connected ?? false);
+      if (!status?.connected) onError('O login da Exsat não foi confirmado. Entre no site e feche a janela somente depois de acessar sua conta.');
+    } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível abrir o login da Exsat.'); }
+    finally { setLoading(false); }
+  };
+  const logoutExsat = async () => {
+    setLoading(true);
+    try { await window.construtec?.exsatLogout(); setExsatConnected(false); }
+    catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível desconectar da Exsat.'); }
     finally { setLoading(false); }
   };
   const importRows = async () => {
@@ -150,7 +172,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button></>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
       {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Foto, captura de tela ou tabela digitalizada</b><small>O Windows fará a leitura do texto; depois você poderá corrigir cada campo.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem</button></div>}
-      {mode === 'exsat' && <div className="exsat-source"><label><span>Endereço de uma categoria ou busca da Exsat</span><input value={exsatUrl} onChange={(event) => setExsatUrl(event.target.value)} /></label><button type="button" className="primary" disabled={loading} onClick={() => void loadExsat()}>Consultar produtos</button><small>Preços não exibidos publicamente virão como R$ 0,00 para conferência.</small></div>}
+      {mode === 'exsat' && <div className="exsat-source"><label><span>Endereço de uma categoria ou busca da Exsat</span><input value={exsatUrl} onChange={(event) => setExsatUrl(event.target.value)} /></label><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><button type="button" className="primary" disabled={loading} onClick={() => void loadExsat()}>Consultar produtos e preços</button></div>}
     </div>
     <div className="import-summary"><span><b>{rows.length}</b> linhas encontradas · <b>{validRows.length}</b> prontas</span><span>{sourceName || 'Nenhuma fonte carregada'}</span><button type="button" onClick={() => setRows((current) => [...current, newRow({ source: mode === 'exsat' ? 'EXSAT' : 'MANUAL' })])}><Plus size={14} /> Linha</button></div>
     <div className="import-table"><table><thead><tr>{fields.map((field) => <th key={field.key} style={{ width: field.width }}>{field.label}</th>)}<th aria-label="Excluir" /></tr></thead><tbody>{rows.map((row) => <tr key={row.key} className={!row.code || !row.description ? 'invalid' : ''}>{fields.map((field) => <td key={field.key}><input value={field.key === 'currentCost' ? String(row.currentCost).replace('.', ',') : String(row[field.key] ?? '')} onChange={(event) => updateRow(row.key, field.key, event.target.value)} aria-label={`${field.label} da linha`} /></td>)}<td><button type="button" aria-label="Excluir linha" onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}><Trash2 size={14} /></button></td></tr>)}</tbody></table>{rows.length === 0 && <p>Carregue uma fonte ou adicione uma linha manualmente.</p>}</div>
