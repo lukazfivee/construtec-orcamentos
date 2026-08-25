@@ -5,6 +5,7 @@ import started from 'electron-squirrel-startup';
 import { startApiServer, type ApiRuntime } from './server/startApiServer';
 import type { ProposalDetail } from './shared/contracts';
 import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
+import { selectCatalogImport } from './main/catalogImport';
 
 if (started) app.quit();
 
@@ -100,6 +101,8 @@ app.whenReady().then(async () => {
     }
     return { canceled: false, files: [pdfPath, docxPath] };
   });
+
+  ipcMain.handle('catalog:select-import', (_event, kind: 'table' | 'image') => selectCatalogImport(kind));
 
   await createWindow();
 
