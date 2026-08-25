@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Box, CircleDollarSign, PackagePlus, Save, Search } from 'lucide-react';
+import { Box, CircleDollarSign, Import, PackagePlus, Save, Search } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
+import { CatalogImportDialog } from './CatalogImportDialog';
 
 type Props = { onNotice: (message: string) => void; onError: (message: string) => void };
 type Draft = { code: string; manufacturer: string; model: string; description: string; category: string; unit: string; currentCost: string; source: string; active: boolean };
@@ -20,6 +21,7 @@ export function CatalogWorkspace({ onNotice, onError }: Props) {
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const selected = useMemo(() => products.find((product) => product.id === selectedId) ?? null, [products, selectedId]);
 
   const applyProducts = (next: CatalogProduct[], preferredId?: string | null) => {
@@ -64,7 +66,7 @@ export function CatalogWorkspace({ onNotice, onError }: Props) {
   };
 
   return <main className="management-workspace catalog-workspace">
-    <header className="management-header"><div><Box size={25} /><span><h1>Catálogo</h1><p>Materiais, serviços, preços e fontes salvos localmente.</p></span></div><button type="button" className="primary" onClick={beginCreate}><PackagePlus size={17} /> Novo item</button></header>
+    <header className="management-header"><div><Box size={25} /><span><h1>Catálogo</h1><p>Materiais, serviços, preços e fontes salvos localmente.</p></span></div><span className="management-header-actions"><button type="button" onClick={() => setImportOpen(true)}><Import size={17} /> Importar lote</button><button type="button" className="primary" onClick={beginCreate}><PackagePlus size={17} /> Novo item</button></span></header>
     <div className="management-body">
       <aside className="client-list-pane"><label className="management-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Código, descrição, fabricante…" /></label><div className="client-list product-list" aria-busy={loading}>{products.map((product) => <button key={product.id} type="button" className={product.id === selectedId ? 'selected' : ''} onClick={() => { setCreating(false); setSelectedId(product.id); }}><Box size={17} /><span><b>{product.code}</b><small>{product.description}</small></span><em className={product.active ? '' : 'inactive-label'}>{product.active ? `R$ ${product.currentCost.toFixed(2).replace('.', ',')}` : 'Inativo'}</em></button>)}{!loading && products.length === 0 && <p className="management-empty">Nenhum item encontrado.</p>}</div></aside>
       <section className="client-editor">{creating || selected ? <form className="client-form product-form" onSubmit={(event) => void save(event)}><div className="editor-heading"><span><h2>{creating ? 'Novo item' : selected?.description}</h2><p>Alterações no catálogo não modificam propostas já existentes.</p></span><button type="submit" className="primary" disabled={saving}><Save size={16} /> {saving ? 'Salvando…' : 'Salvar item'}</button></div><div className="form-grid">
@@ -79,5 +81,6 @@ export function CatalogWorkspace({ onNotice, onError }: Props) {
         <label className="work-active"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Item ativo e disponível para novas propostas</span></label>
       </div></form> : <div className="editor-empty"><Box size={34} /><h2>Selecione um item</h2><p>Consulte ou altere os dados comerciais do catálogo.</p></div>}</section>
     </div>
+    <CatalogImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} onImported={(next, message) => { applyProducts(next); onNotice(message); }} />
   </main>;
 }
