@@ -64,7 +64,68 @@ $engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromUserProfileLanguages()
 if ($null -eq $engine) { throw 'Instale o pacote de idioma Português nas configurações do Windows.' }
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $result = Await ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
-$result.Lines | ForEach-Object { $_.Text }
+
+# O Windows OCR pode devolver uma tabela por coluna. Para preservar cada produto,
+# reconstruímos as linhas usando a posição visual (X/Y) de cada palavra.
+$words = New-Object System.Collections.Generic.List[object]
+foreach ($line in $result.Lines) {
+  foreach ($word in $line.Words) {
+    $rect = $word.BoundingRect
+    $words.Add([PSCustomObject]@{
+      Text = [string]$word.Text
+      X = [double]$rect.X
+      Y = [double]$rect.Y
+      W = [double]$rect.Width
+      H = [double]$rect.Height
+      CY = [double]($rect.Y + ($rect.Height / 2.0))
+    })
+  }
+}
+
+if ($words.Count -eq 0) {
+  $result.Lines | ForEach-Object { $_.Text }
+  exit 0
+}
+
+$avgHeight = ($words | Measure-Object -Property H -Average).Average
+if (-not $avgHeight -or $avgHeight -lt 4) { $avgHeight = 14 }
+$tolerance = [Math]::Max(5, $avgHeight * 0.72)
+$visualRows = New-Object System.Collections.Generic.List[object]
+
+foreach ($word in ($words | Sort-Object CY, X)) {
+  $best = $null
+  $bestDistance = [double]::MaxValue
+  foreach ($row in $visualRows) {
+    $distance = [Math]::Abs([double]$row.CY - [double]$word.CY)
+    if ($distance -le $tolerance -and $distance -lt $bestDistance) {
+      $best = $row
+      $bestDistance = $distance
+    }
+  }
+  if ($null -eq $best) {
+    $list = New-Object System.Collections.Generic.List[object]
+    $list.Add($word)
+    $visualRows.Add([PSCustomObject]@{ CY = [double]$word.CY; Words = $list })
+  } else {
+    $best.Words.Add($word)
+    $best.CY = (($best.CY * ($best.Words.Count - 1)) + $word.CY) / $best.Words.Count
+  }
+}
+
+foreach ($row in ($visualRows | Sort-Object CY)) {
+  $ordered = @($row.Words | Sort-Object X)
+  $parts = New-Object System.Collections.Generic.List[string]
+  $previous = $null
+  foreach ($word in $ordered) {
+    if ($null -ne $previous) {
+      $gap = [double]$word.X - ([double]$previous.X + [double]$previous.W)
+      if ($gap -gt [Math]::Max(22, $avgHeight * 1.8)) { $parts.Add('   ') }
+    }
+    $parts.Add([string]$word.Text)
+    $previous = $word
+  }
+  (($parts -join ' ') -replace '\s{4,}', '   ').Trim()
+}
 `;
   const encoded = Buffer.from(script, 'utf16le').toString('base64');
   const result = await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
