@@ -65,7 +65,67 @@ const formatSyncDate = (value?: string) => value
   ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
   : 'Nunca';
 
+const pricePattern = /(?:R\$\s*)?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:[,.]\d{2})/g;
+const exsatTerminatorPattern = /\b(?:total|condi[cç][oõ]es|tipo de frete|cobran[cç]a|plano de pag|observa[cç][oõ]es)\b/i;
+
+const exsatRowFromText = (line: string): Row | null => {
+  const prices = line.match(pricePattern) ?? [];
+  if (prices.length === 0) return null;
+  const firstPrice = prices[0];
+  const firstPriceIndex = line.indexOf(firstPrice);
+  if (firstPriceIndex < 0) return null;
+
+  const beforePrice = line.slice(0, firstPriceIndex).trim();
+  const codeMatches = [...beforePrice.matchAll(/\b\d{5,14}\b/g)];
+  if (codeMatches.length < 2 || codeMatches.length > 2) return null;
+  const manufacturerCode = codeMatches[0][0];
+  const supplierCode = codeMatches[1][0];
+  const supplierEnd = (codeMatches[1].index ?? 0) + supplierCode.length;
+  const description = beforePrice.slice(supplierEnd)
+    .replace(/^\s*[-–—|:;]+\s*/, '')
+    .replace(/\b(?:un|und|pc|p[cç])\b\s*$/i, '')
+    .trim();
+  if (description.length < 3 || isAdministrativeExsatText(description) || exsatTerminatorPattern.test(description)) return null;
+
+  return newRow({
+    code: manufacturerCode,
+    description,
+    category: categoryFromDescription(description),
+    manufacturer: /intelbras|\b(?:VHL|VIP|MHDX|IMHDX|SS|IVP|AMT|XAS|EFM)\b/i.test(description) ? 'Intelbras' : null,
+    model: null,
+    unit: 'un',
+    currentCost: moneyValue(prices.at(-1) ?? '0'),
+    source: `EXSAT COD. ${supplierCode}`,
+    active: true,
+  });
+};
+
+const parseExsatQuoteLines = (text: string): Row[] => {
+  const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const directRows = lines.map(exsatRowFromText).filter((row): row is Row => Boolean(row));
+  if (directRows.length > 0) return directRows;
+
+  const blocks: string[] = [];
+  let current = '';
+  for (const line of lines) {
+    if (exsatTerminatorPattern.test(line)) {
+      if (current) blocks.push(current.trim());
+      current = '';
+      continue;
+    }
+    const startsProduct = /^\s*\d{5,14}\s+\d{2,10}\b/.test(line);
+    if (startsProduct && current) blocks.push(current.trim());
+    if (startsProduct) current = line;
+    else if (current && !isAdministrativeExsatText(line)) current += ` ${line}`;
+  }
+  if (current) blocks.push(current.trim());
+  return blocks.map(exsatRowFromText).filter((row): row is Row => Boolean(row));
+};
+
 export const parseExsatQuoteText = (text: string): Row[] => {
+  const lineRows = parseExsatQuoteLines(text);
+  if (lineRows.length > 0) return lineRows;
+
   const normalized = text.replace(/\s+/g, ' ').trim();
   const productPattern = /(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{3,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
   const rows = [...normalized.matchAll(productPattern)].map((match) => {
@@ -86,7 +146,6 @@ export const parseExsatQuoteText = (text: string): Row[] => {
   if (rows.length > 0) return rows;
 
   const looseProductPattern = /(\d{5,14})\s+(\d{2,10})\s+(.+?)(?=\s+\d{5,14}\s+\d{2,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag|Observa[cç][oõ]es)|$)/gi;
-  const pricePattern = /(?:R\$\s*)?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:[,.]\d{2})/g;
   return [...normalized.matchAll(looseProductPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, productText] = match;
     const prices = productText.match(pricePattern) ?? [];
@@ -96,7 +155,8 @@ export const parseExsatQuoteText = (text: string): Row[] => {
       .replace(/\b\d+(?:[,.]\d{1,4})?\b\s*$/g, '')
       .replace(/\b(?:un|und|pc|p[cç])\b\s*$/i, '')
       .trim();
-    if (!description || prices.length === 0 || isAdministrativeExsatText(description)) return null;
+    const embeddedCodes = description.match(/\b\d{5,14}\b/g) ?? [];
+    if (!description || prices.length === 0 || embeddedCodes.length > 0 || isAdministrativeExsatText(description)) return null;
     return newRow({
       code: manufacturerCode,
       description,
