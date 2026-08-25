@@ -34,6 +34,18 @@ npm run package
 
 O pacote não instalável gerado pelo Electron Forge fica em `out/`. Use `npm run make` quando a configuração do instalador estiver pronta para distribuição.
 
+## Instalador do Windows
+
+O instalador x64 é gerado automaticamente pelo GitHub Actions em uma máquina Windows. Abra a execução **Gerar instalador do Windows**, baixe o artefato `Construtec-Orcamentos-Windows-x64` e extraia o arquivo `Construtec-Orcamentos-1.0.0-Setup.exe`.
+
+Para gerar em um computador Windows de desenvolvimento:
+
+```powershell
+npm ci
+npm run verify
+npm run make:windows
+```
+
 ## Estrutura
 
 - `src/renderer/`: interface React da mesa operacional;
