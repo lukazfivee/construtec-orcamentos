@@ -1,4 +1,6 @@
-import { BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { CatalogImportItem, ExsatBatchPreview } from '../shared/contracts';
 import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
@@ -6,10 +8,45 @@ const LOGIN_URL = 'https://exsat.com.br/central-cliente/login/';
 const START_URL = 'https://exsat.com.br/';
 const PARTITION = 'persist:construtec-exsat';
 const MAX_AUTO_PAGES = 60;
+const MAX_INCREMENTAL_PAGES = 24;
 const MAX_AUTO_ITEMS = 500;
+const FULL_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 let loginWindow: BrowserWindow | undefined;
 
+type ExsatSyncPage = {
+  url: string;
+  productCount: number;
+  lastSeenAt: string;
+};
+
+type ExsatSyncState = {
+  lastSyncAt?: string;
+  lastFullSyncAt?: string;
+  pages: ExsatSyncPage[];
+};
+
 const exsatSession = () => session.fromPartition(PARTITION);
+const syncStatePath = () => path.join(app.getPath('userData'), 'exsat-sync-state.json');
+
+const loadSyncState = async (): Promise<ExsatSyncState> => {
+  try {
+    const state = JSON.parse(await readFile(syncStatePath(), 'utf8')) as Partial<ExsatSyncState>;
+    return {
+      lastSyncAt: state.lastSyncAt,
+      lastFullSyncAt: state.lastFullSyncAt,
+      pages: Array.isArray(state.pages) ? state.pages.filter((page): page is ExsatSyncPage => (
+        Boolean(page) && typeof page.url === 'string' && typeof page.productCount === 'number' && typeof page.lastSeenAt === 'string'
+      )).slice(0, MAX_AUTO_PAGES) : [],
+    };
+  } catch {
+    return { pages: [] };
+  }
+};
+
+const saveSyncState = async (state: ExsatSyncState) => {
+  await mkdir(path.dirname(syncStatePath()), { recursive: true });
+  await writeFile(syncStatePath(), JSON.stringify(state, null, 2), 'utf8');
+};
 
 const responseHtml = async (url: string) => {
   const response = await exsatSession().fetch(url, {
@@ -23,13 +60,13 @@ const responseHtml = async (url: string) => {
 };
 
 const isCatalogCandidate = (url: URL) => {
-  const path = url.pathname.toLowerCase();
+  const pathName = url.pathname.toLowerCase();
   const query = url.search.toLowerCase();
-  if (/login|logout|minha-conta|carrinho|checkout|pedido|contato|politica|termos/.test(path)) return false;
+  if (/login|logout|minha-conta|carrinho|checkout|pedido|contato|politica|termos/.test(pathName)) return false;
   if (url.hash) url.hash = '';
-  return /produto|categoria|departamento|marca|busca|pesquisa|shop|loja|catalog/.test(path)
+  return /produto|categoria|departamento|marca|busca|pesquisa|shop|loja|catalog/.test(pathName)
     || /page|paged|pagina|s=|search|orderby|product_cat/.test(query)
-    || path === '/';
+    || pathName === '/';
 };
 
 const discoverCatalogLinks = (html: string, baseUrl: string) => {
@@ -138,22 +175,34 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
   const status = await exsatConnectionStatus();
   if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
 
-  const queue = [START_URL];
+  const previous = await loadSyncState();
+  const lastFullSync = previous.lastFullSyncAt ? Date.parse(previous.lastFullSyncAt) : 0;
+  const fullSync = !lastFullSync || Date.now() - lastFullSync >= FULL_SYNC_INTERVAL_MS || previous.pages.length === 0;
+  const pageLimit = fullSync ? MAX_AUTO_PAGES : MAX_INCREMENTAL_PAGES;
+  const priorityPages = previous.pages
+    .slice()
+    .sort((left, right) => right.productCount - left.productCount || Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt))
+    .map((page) => page.url);
+  const seeds = fullSync ? [START_URL, ...priorityPages] : [...priorityPages, START_URL];
+  const queue = [...new Set(seeds)].slice(0, pageLimit);
   const queued = new Set(queue);
   const visited = new Set<string>();
   const items = new Map<string, CatalogImportItem>();
   const failedUrls: string[] = [];
+  const pageStats = new Map<string, ExsatSyncPage>();
   let ignored = 0;
 
-  while (queue.length > 0 && visited.size < MAX_AUTO_PAGES && items.size < MAX_AUTO_ITEMS) {
+  while (queue.length > 0 && visited.size < pageLimit && items.size < MAX_AUTO_ITEMS) {
     const url = queue.shift();
     if (!url || visited.has(url)) continue;
     visited.add(url);
     try {
       const { html, finalUrl } = await responseHtml(url);
       const final = validateExsatUrl(finalUrl).toString();
+      let productCount = 0;
       try {
         const parsed = parseExsatProductsHtml(html, true);
+        productCount = parsed.length;
         for (const item of parsed) {
           if (items.has(item.code.toLowerCase())) ignored += 1;
           items.set(item.code.toLowerCase(), item);
@@ -162,8 +211,9 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
       } catch (error) {
         if (!(error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS')) throw error;
       }
+      pageStats.set(final, { url: final, productCount, lastSeenAt: new Date().toISOString() });
       for (const link of discoverCatalogLinks(html, final)) {
-        if (!visited.has(link) && !queued.has(link) && queued.size < MAX_AUTO_PAGES * 4) {
+        if (!visited.has(link) && !queued.has(link) && queued.size < pageLimit * 4) {
           queue.push(link);
           queued.add(link);
         }
@@ -174,6 +224,18 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
   }
 
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
+
+  const now = new Date().toISOString();
+  const retainedPages = previous.pages.filter((page) => !pageStats.has(page.url));
+  const nextPages = [...pageStats.values(), ...retainedPages]
+    .sort((left, right) => right.productCount - left.productCount || Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt))
+    .slice(0, MAX_AUTO_PAGES);
+  await saveSyncState({
+    lastSyncAt: now,
+    lastFullSyncAt: fullSync ? now : previous.lastFullSyncAt,
+    pages: nextPages,
+  });
+
   return {
     items: [...items.values()].slice(0, MAX_AUTO_ITEMS),
     connected: true,
