@@ -59,6 +59,27 @@ function Await($operation, $resultType) {
 function Join-Words($items) {
   return ((@($items | Sort-Object X | ForEach-Object { [string]$_.Text }) -join ' ') -replace '\s+', ' ').Trim()
 }
+function Resolve-NetValue($netValue, $unitValue, $discountValue) {
+  $net = (($netValue -replace '\s+', '')).Trim()
+  if ($net -match '\d+[,.]\d{2}') { return $net }
+  $unitText = (($unitValue -replace '\s+', '')).Trim()
+  if ($unitText -notmatch '\d+[,.]\d{2}') { return '' }
+  try {
+    $culture = [System.Globalization.CultureInfo]::GetCultureInfo('pt-BR')
+    $styles = [System.Globalization.NumberStyles]::Number
+    $unit = [decimal]::Parse($unitText, $styles, $culture)
+    $discount = [decimal]0
+    $discountText = (($discountValue -replace '\s+', '')).Trim()
+    if ($discountText -match '\d+[,.]\d{2}') {
+      $discount = [decimal]::Parse($discountText, $styles, $culture)
+    }
+    $resolved = $unit - $discount
+    if ($resolved -lt 0) { return '' }
+    return $resolved.ToString('N2', $culture)
+  } catch {
+    return $unitText
+  }
+}
 $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:CONSTRUTEC_OCR_PATH)) ([Windows.Storage.StorageFile])
 $stream = Await ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
 $decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
@@ -154,25 +175,28 @@ if ($null -ne $header) {
     $bDescLiq = ($descValueX + $liqX) / 2.0
     $bLiqTotal = ($liqX + $totalX) / 2.0
 
-    # O fim da tabela impede que o total geral contamine o último produto.
+    # O fim da tabela é identificado dinamicamente; não existe limite fixo de itens.
     $tableEndRow = @($visualRows | Sort-Object CY | Where-Object {
-      $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^Total\s*:'
+      $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^\s*Total\b'
     })[0]
+    $tableBottom = if ($tableEndRow) { [double]$tableEndRow.CY - ($avgHeight * 0.08) } else { [double]::MaxValue }
 
     # Fab. pode ser numérico ou alfanumérico (ex.: A35-E150/10), mas precisa conter ao menos um dígito.
     $anchors = @($words | Where-Object {
       $_.CY -gt ($header.CY + $avgHeight) -and
+      $_.CY -lt $tableBottom -and
       $_.CX -lt $bFabCod -and
       $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
       $_.Text -match '\d'
     } | Sort-Object CY)
 
     $emitted = 0
+    $emittedCodes = @{}
     for ($i = 0; $i -lt $anchors.Count; $i += 1) {
       $anchor = $anchors[$i]
       $top = if ($i -eq 0) { $header.CY + ($avgHeight * 0.6) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
       if ($i -eq $anchors.Count - 1) {
-        $bottom = if ($tableEndRow) { [double]$tableEndRow.CY - ($avgHeight * 0.45) } else { [double]$anchor.CY + ($avgHeight * 3.0) }
+        $bottom = if ($tableEndRow) { $tableBottom } else { [double]$anchor.CY + ($avgHeight * 3.0) }
       } else {
         $bottom = ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0
       }
@@ -191,11 +215,50 @@ if ($null -ne $header) {
       $quantity = ($quantity -replace '\s+', '').Trim()
       $unitValue = ($unitValue -replace '\s+', '').Trim()
       $discountValue = ($discountValue -replace '\s+', '').Trim()
-      $netValue = ($netValue -replace '\s+', '').Trim()
+      $netValue = Resolve-NetValue $netValue $unitValue $discountValue
 
       if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
-        # A saída é deliberadamente normalizada sem Vl. Total. O último preço é sempre o Vl. Líq.
         [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
+        $emittedCodes[$fab.ToUpperInvariant()] = $true
+        $emitted += 1
+      }
+    }
+
+    # Segunda passagem pelas linhas visuais: recupera qualquer produto perdido pela primeira segmentação,
+    # inclusive a última linha imediatamente acima do Total. Funciona para qualquer quantidade de itens.
+    foreach ($row in @($visualRows | Sort-Object CY | Where-Object {
+      $_.CY -gt ($header.CY + $avgHeight) -and $_.CY -lt $tableBottom
+    })) {
+      $rowWords = @($row.Words | Sort-Object X)
+      $fabCandidate = @($rowWords | Where-Object {
+        $_.CX -lt $bFabCod -and
+        $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
+        $_.Text -match '\d'
+      })[0]
+      if (-not $fabCandidate) { continue }
+      $fab = [string]$fabCandidate.Text
+      if ($emittedCodes.ContainsKey($fab.ToUpperInvariant())) { continue }
+
+      $rescueTop = [double]$row.CY - ($avgHeight * 0.75)
+      $rescueBottom = [Math]::Min($tableBottom, [double]$row.CY + ($avgHeight * 1.35))
+      $band = @($words | Where-Object { $_.CY -gt $rescueTop -and $_.CY -lt $rescueBottom })
+      $supplier = Join-Words @($band | Where-Object { $_.CX -ge $bFabCod -and $_.CX -lt $bCodDescription })
+      $description = Join-Words @($band | Where-Object { $_.CX -ge $bCodDescription -and $_.CX -lt $bDescriptionQt })
+      $quantity = Join-Words @($band | Where-Object { $_.CX -ge $bDescriptionQt -and $_.CX -lt $bQtUnit })
+      $unitValue = Join-Words @($band | Where-Object { $_.CX -ge $bQtUnit -and $_.CX -lt $bUnitDesc })
+      $discountValue = Join-Words @($band | Where-Object { $_.CX -ge $bUnitDesc -and $_.CX -lt $bDescLiq })
+      $netValue = Join-Words @($band | Where-Object { $_.CX -ge $bDescLiq -and $_.CX -lt $bLiqTotal })
+
+      $supplier = ($supplier -replace '[^0-9]', '')
+      $description = ($description -replace '\s+', ' ').Trim()
+      $quantity = ($quantity -replace '\s+', '').Trim()
+      $unitValue = ($unitValue -replace '\s+', '').Trim()
+      $discountValue = ($discountValue -replace '\s+', '').Trim()
+      $netValue = Resolve-NetValue $netValue $unitValue $discountValue
+
+      if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
+        [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
+        $emittedCodes[$fab.ToUpperInvariant()] = $true
         $emitted += 1
       }
     }
