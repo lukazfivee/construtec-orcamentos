@@ -5,6 +5,7 @@ import type * as PGliteModule from '@electric-sql/pglite';
 import type * as NodeFsModule from '@electric-sql/pglite/nodefs';
 import { initialMigration } from '../migrations/001-initial';
 import { clientsAndWorksMigration } from '../migrations/002-clients-works';
+import { catalogManagementMigration } from '../migrations/003-catalog-management';
 import { ensureFirstRunData } from './bootstrap';
 
 export type LocalDatabase = PGliteModule.PGlite;
@@ -56,6 +57,17 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     await database.transaction(async (transaction) => {
       await transaction.exec(clientsAndWorksMigration);
       await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [2]);
+    });
+  }
+
+  const thirdMigration = await database.query<{ version: number }>(
+    'SELECT version FROM schema_migrations WHERE version = $1',
+    [3],
+  );
+  if (thirdMigration.rows.length === 0) {
+    await database.transaction(async (transaction) => {
+      await transaction.exec(catalogManagementMigration);
+      await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [3]);
     });
   }
 
