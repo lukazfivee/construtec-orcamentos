@@ -57,11 +57,16 @@ const categoryFromDescription = (description: string) => {
   return 'Exsat';
 };
 
+const isAdministrativeExsatText = (description: string) => (
+  /\b(?:cliente|construtora|construtec|engenharia|ltda|cnpj|cpf|endere[cç]o|or[cç]amento|vendedor|comprador|representante|telefone|email)\b/i.test(description)
+);
+
 export const parseExsatQuoteText = (text: string): Row[] => {
   const normalized = text.replace(/\s+/g, ' ').trim();
   const productPattern = /(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{3,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
   const rows = [...normalized.matchAll(productPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, description, , , , netPrice] = match;
+    if (isAdministrativeExsatText(description)) return null;
     return newRow({
       code: manufacturerCode,
       description,
@@ -73,7 +78,7 @@ export const parseExsatQuoteText = (text: string): Row[] => {
       source: `EXSAT COD. ${supplierCode}`,
       active: true,
     });
-  });
+  }).filter((row): row is Row => Boolean(row));
   if (rows.length > 0) return rows;
 
   const looseProductPattern = /(\d{5,14})\s+(\d{2,10})\s+(.+?)(?=\s+\d{5,14}\s+\d{2,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag|Observa[cç][oõ]es)|$)/gi;
@@ -87,7 +92,7 @@ export const parseExsatQuoteText = (text: string): Row[] => {
       .replace(/\b\d+(?:[,.]\d{1,4})?\b\s*$/g, '')
       .replace(/\b(?:un|und|pc|p[cç])\b\s*$/i, '')
       .trim();
-    if (!description || prices.length === 0) return null;
+    if (!description || prices.length === 0 || isAdministrativeExsatText(description)) return null;
     return newRow({
       code: manufacturerCode,
       description,
