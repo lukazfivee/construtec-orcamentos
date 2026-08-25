@@ -229,11 +229,11 @@ export const searchCatalog = async (database: LocalDatabase, query: string, limi
   const pattern = `%${query.trim()}%`;
   const result = await database.query<{
     id: string; code: string; manufacturer: string | null; model: string | null;
-    description: string; category: string; unit: string; current_cost: string; source: string;
+    description: string; category: string; unit: string; current_cost: string; source: string; active: boolean; updated_at: string;
   }>(`
-    SELECT id, code, manufacturer, model, description, category, unit, current_cost::text, source
+    SELECT id, code, manufacturer, model, description, category, unit, current_cost::text, source, active, updated_at::text
     FROM products
-    WHERE $1 = '%%' OR code ILIKE $1 OR description ILIKE $1 OR manufacturer ILIKE $1 OR model ILIKE $1
+    WHERE active = true AND ($1 = '%%' OR code ILIKE $1 OR description ILIKE $1 OR manufacturer ILIKE $1 OR model ILIKE $1)
     ORDER BY CASE WHEN code ILIKE $1 THEN 0 ELSE 1 END, description
     LIMIT $2
   `, [pattern, limit]);
@@ -248,6 +248,8 @@ export const searchCatalog = async (database: LocalDatabase, query: string, limi
     unit: product.unit,
     currentCost: Number(product.current_cost),
     source: product.source,
+    active: product.active,
+    updatedAt: product.updated_at,
   }));
 };
 
