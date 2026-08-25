@@ -183,7 +183,7 @@ if ($null -ne $header) {
 
       if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
         # A saída é deliberadamente normalizada sem Vl. Total. O último preço é sempre o Vl. Líq.
-        "$fab`t$supplier`t$description`t$quantity`t$unitValue`t$discountValue`t$netValue"
+        [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
         $emitted += 1
       }
     }
