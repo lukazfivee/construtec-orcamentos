@@ -24,7 +24,9 @@ const normalizeHeader = (value: string) => value.trim().toLowerCase().normalize(
 const moneyValue = (value: string | number) => {
   if (typeof value === 'number') return value;
   const clean = value.trim().replace(/R\$/gi, '').replace(/\s/g, '');
-  const normalized = clean.includes(',') ? clean.replace(/\./g, '').replace(',', '.') : clean;
+  const normalized = clean.includes(',')
+    ? clean.replace(/\./g, '').replace(',', '.')
+    : clean.replace(/\.(?=.*\.)/g, '');
   const result = Number(normalized.replace(/[^\d.-]/g, ''));
   return Number.isFinite(result) && result >= 0 ? result : 0;
 };
@@ -58,7 +60,7 @@ const categoryFromDescription = (description: string) => {
 export const parseExsatQuoteText = (text: string): Row[] => {
   const normalized = text.replace(/\s+/g, ' ').trim();
   const productPattern = /(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{3,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
-  return [...normalized.matchAll(productPattern)].map((match) => {
+  const rows = [...normalized.matchAll(productPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, description, , , , netPrice] = match;
     return newRow({
       code: manufacturerCode,
@@ -72,6 +74,32 @@ export const parseExsatQuoteText = (text: string): Row[] => {
       active: true,
     });
   });
+  if (rows.length > 0) return rows;
+
+  const looseProductPattern = /(\d{5,14})\s+(\d{2,10})\s+(.+?)(?=\s+\d{5,14}\s+\d{2,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag|Observa[cç][oõ]es)|$)/gi;
+  const pricePattern = /(?:R\$\s*)?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:[,.]\d{2})/g;
+  return [...normalized.matchAll(looseProductPattern)].map((match) => {
+    const [, manufacturerCode, supplierCode, productText] = match;
+    const prices = productText.match(pricePattern) ?? [];
+    const firstPrice = prices[0] ? productText.indexOf(prices[0]) : -1;
+    const descriptionSource = firstPrice >= 0 ? productText.slice(0, firstPrice) : productText;
+    const description = descriptionSource
+      .replace(/\b\d+(?:[,.]\d{1,4})?\b\s*$/g, '')
+      .replace(/\b(?:un|und|pc|p[cç])\b\s*$/i, '')
+      .trim();
+    if (!description || prices.length === 0) return null;
+    return newRow({
+      code: manufacturerCode,
+      description,
+      category: categoryFromDescription(description),
+      manufacturer: /intelbras|\b(?:VHL|VIP|MHDX|IMHDX|SS|IVP|AMT|XAS|EFM)\b/i.test(description) ? 'Intelbras' : null,
+      model: null,
+      unit: 'un',
+      currentCost: moneyValue(prices.at(-1) ?? '0'),
+      source: `EXSAT COD. ${supplierCode}`,
+      active: true,
+    });
+  }).filter((row): row is Row => Boolean(row));
 };
 
 export const parseCatalogText = (text: string, source: string): Row[] => {
