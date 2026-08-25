@@ -10,7 +10,9 @@ O fluxo **code-first** já permite pesquisar o catálogo local, inserir itens co
 
 Clientes e obras também possuem uma área própria de cadastro, busca e edição. A revisão atual pode trocar cliente e obra em conjunto; os nomes ficam congelados na proposta para que alterações futuras no cadastro não modifiquem documentos históricos.
 
-Autenticação completa, geração de documentos e integrações externas entram nas próximas fases.
+O app também gera a revisão aberta em PDF e Word, com pré-visualização, identidade visual corporativa e escolha da pasta de destino. Os arquivos do cliente exibem somente quantidades e valores de venda; custos, margem e BDI permanecem restritos à interface interna.
+
+Autenticação completa e integrações externas entram nas próximas fases.
 
 ## Executar localmente
 
