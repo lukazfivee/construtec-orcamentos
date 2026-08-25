@@ -47,7 +47,37 @@ const newRow = (partial: Partial<CatalogImportItem> = {}): Row => ({
   model: null, unit: 'un', currentCost: 0, source: 'IMPORTAÇÃO', active: true, ...partial,
 });
 
+const categoryFromDescription = (description: string) => {
+  if (/c[aâ]mera|dvr|nvr|gravador|cftv/i.test(description)) return 'CFTV';
+  if (/fechadura|controle de acesso|controlador de acesso|porteiro|videoporteiro|catraca/i.test(description)) return 'Controle de acesso';
+  if (/cabo|conector|switch|roteador|rack|patch/i.test(description)) return 'Redes e cabeamento';
+  if (/detector|sirene|inc[eê]ndio|alarme/i.test(description)) return 'Segurança eletrônica';
+  return 'Exsat';
+};
+
+export const parseExsatQuoteText = (text: string): Row[] => text
+  .split(/\r?\n/)
+  .map((line) => line.replace(/\s+/g, ' ').trim())
+  .map((line) => line.match(/^(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})$/))
+  .filter((match): match is RegExpMatchArray => Boolean(match))
+  .map((match) => {
+    const [, manufacturerCode, supplierCode, description, , , , netPrice] = match;
+    return newRow({
+      code: manufacturerCode,
+      description,
+      category: categoryFromDescription(description),
+      manufacturer: /intelbras|\b(?:VHL|VIP|MHDX|IMHDX|SS|IVP|AMT|XAS|EFM)\b/i.test(description) ? 'Intelbras' : null,
+      model: null,
+      unit: 'un',
+      currentCost: moneyValue(netPrice),
+      source: `EXSAT COD. ${supplierCode}`,
+      active: true,
+    });
+  });
+
 export const parseCatalogText = (text: string, source: string): Row[] => {
+  const exsatQuoteRows = parseExsatQuoteText(text);
+  if (exsatQuoteRows.length > 0) return exsatQuoteRows;
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   if (lines.length === 0) return [];
   const delimiter = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : ',';
@@ -171,7 +201,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
     <div className="import-source">
       {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button></>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
-      {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Foto, captura de tela ou tabela digitalizada</b><small>O Windows fará a leitura do texto; depois você poderá corrigir cada campo.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem</button></div>}
+      {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Foto, captura de tela ou orçamento da Exsat</b><small>Nos orçamentos Exsat, o app usa Fab. como código e Vl. Líq. como custo unitário. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem</button></div>}
       {mode === 'exsat' && <div className="exsat-source"><label><span>Endereço de uma categoria ou busca da Exsat</span><input value={exsatUrl} onChange={(event) => setExsatUrl(event.target.value)} /></label><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><button type="button" className="primary" disabled={loading} onClick={() => void loadExsat()}>Consultar produtos e preços</button></div>}
     </div>
     <div className="import-summary"><span><b>{rows.length}</b> linhas encontradas · <b>{validRows.length}</b> prontas</span><span>{sourceName || 'Nenhuma fonte carregada'}</span><button type="button" onClick={() => setRows((current) => [...current, newRow({ source: mode === 'exsat' ? 'EXSAT' : 'MANUAL' })])}><Plus size={14} /> Linha</button></div>
