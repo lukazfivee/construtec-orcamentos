@@ -7,6 +7,39 @@ import type { CatalogImportFile } from '../shared/contracts';
 import { xlsxToTsv } from './xlsx';
 
 const execFileAsync = promisify(execFile);
+const OCR_URL = process.env.CONSTRUTEC_OCR_URL?.trim();
+const OCR_TOKEN = process.env.CONSTRUTEC_OCR_TOKEN?.trim();
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+const mimeFromExtension = (extension: string) => {
+  if (extension === '.png') return 'image/png';
+  if (extension === '.bmp') return 'image/bmp';
+  return 'image/jpeg';
+};
+
+const recognizeWithCloudflare = async (filePath: string) => {
+  if (!OCR_URL) throw new Error('OCR_CLOUDFLARE_NOT_CONFIGURED');
+  const buffer = await readFile(filePath);
+  if (buffer.byteLength > MAX_IMAGE_BYTES) throw new Error('OCR_IMAGE_TOO_LARGE');
+  const extension = path.extname(filePath).toLowerCase();
+  const form = new FormData();
+  const bytes = new Uint8Array(buffer);
+  form.append('file', new Blob([bytes], { type: mimeFromExtension(extension) }), path.basename(filePath));
+  const headers: Record<string, string> = {};
+  if (OCR_TOKEN) headers.Authorization = `Bearer ${OCR_TOKEN}`;
+  const response = await fetch(OCR_URL, {
+    method: 'POST',
+    headers,
+    body: form,
+    signal: AbortSignal.timeout(90_000),
+  });
+  if (!response.ok) throw new Error(`OCR_CLOUDFLARE_${response.status}`);
+  const payload = await response.json() as { text?: unknown };
+  const text = typeof payload.text === 'string' ? payload.text.trim() : '';
+  if (text.length < 3) throw new Error('OCR_CLOUDFLARE_EMPTY');
+  return text;
+};
+
 const recognizeWithWindows = async (filePath: string) => {
   if (process.platform !== 'win32') throw new Error('A leitura de imagem está disponível no instalador para Windows 10 ou superior.');
   const script = String.raw`
@@ -43,6 +76,17 @@ $result.Lines | ForEach-Object { $_.Text }
   return result.stdout.trim();
 };
 
+const recognizeImage = async (filePath: string): Promise<{ text: string; engine: 'cloudflare' | 'windows' }> => {
+  if (OCR_URL) {
+    try {
+      return { text: await recognizeWithCloudflare(filePath), engine: 'cloudflare' };
+    } catch (error) {
+      console.warn('OCR Cloudflare indisponível; usando OCR local.', error);
+    }
+  }
+  return { text: await recognizeWithWindows(filePath), engine: 'windows' };
+};
+
 export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<CatalogImportFile> => {
   const selection = await dialog.showOpenDialog({
     title: 'Importar itens para o catálogo',
@@ -59,7 +103,8 @@ export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<Cata
   const extension = path.extname(filePath).toLowerCase();
   const name = path.basename(filePath);
   if (['.png', '.jpg', '.jpeg', '.bmp'].includes(extension)) {
-    return { canceled: false, kind: 'image', name, text: await recognizeWithWindows(filePath) };
+    const result = await recognizeImage(filePath);
+    return { canceled: false, kind: 'image', name, text: result.text, ocrEngine: result.engine };
   }
   const buffer = await readFile(filePath);
   const text = extension === '.xlsx' ? await xlsxToTsv(buffer) : buffer.toString('utf8').replace(/^\uFEFF/, '');

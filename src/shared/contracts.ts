@@ -62,6 +62,7 @@ export type CatalogImportFile = {
   kind?: 'table' | 'image';
   name?: string;
   text?: string;
+  ocrEngine?: 'cloudflare' | 'windows';
 };
 
 export type ProposalLine = {
