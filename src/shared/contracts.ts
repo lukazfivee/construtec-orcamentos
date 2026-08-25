@@ -8,6 +8,8 @@ export type CatalogProduct = {
   unit: string;
   currentCost: number;
   source: string;
+  active: boolean;
+  updatedAt: string;
 };
 
 export type ProposalLine = {
