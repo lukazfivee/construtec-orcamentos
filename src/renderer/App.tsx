@@ -30,6 +30,7 @@ import type { CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSumm
 import { clientsApi, proposalApi } from './api';
 import { ClientsWorkspace } from './ClientsWorkspace';
 import { NewProposalDialog } from './NewProposalDialog';
+import { CatalogWorkspace } from './CatalogWorkspace';
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
@@ -60,7 +61,7 @@ const statusLabels: Record<ProposalDetail['status'], string> = {
 };
 
 export function App() {
-  const [activeNav, setActiveNav] = useState<'Propostas' | 'Clientes'>('Propostas');
+  const [activeNav, setActiveNav] = useState<'Propostas' | 'Catálogo' | 'Clientes'>('Propostas');
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [query, setQuery] = useState('leit');
   const [notice, setNotice] = useState('');
@@ -435,10 +436,10 @@ export function App() {
       <aside className="sidebar" aria-label="Navegação principal">
         <nav>
           {navItems.map(({ label, icon: Icon }) => {
-            const enabled = label === 'Propostas' || label === 'Clientes';
+            const enabled = label === 'Propostas' || label === 'Catálogo' || label === 'Clientes';
             const active = label === activeNav;
             return (
-            <button key={label} type="button" className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} disabled={!enabled} title={enabled ? undefined : `${label} será implementado em uma próxima etapa.`} onClick={() => { if (enabled) { setActiveNav(label as 'Propostas' | 'Clientes'); setCatalogOpen(false); setContextOpen(false); setError(''); } }}>
+            <button key={label} type="button" className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} disabled={!enabled} title={enabled ? undefined : `${label} será implementado em uma próxima etapa.`} onClick={() => { if (enabled) { setActiveNav(label as 'Propostas' | 'Catálogo' | 'Clientes'); setCatalogOpen(false); setContextOpen(false); setError(''); } }}>
               <Icon size={22} /><span>{label}</span>
             </button>
           ); })}
@@ -446,7 +447,7 @@ export function App() {
         <button className="collapse" type="button"><ChevronLeft size={17} /><span>Recolher</span></button>
       </aside>
 
-      {activeNav === 'Clientes' && error && <div className="global-error" role="alert"><span>{error}</span><button type="button" onClick={() => setError('')}>Fechar</button></div>}
+      {activeNav !== 'Propostas' && error && <div className="global-error" role="alert"><span>{error}</span><button type="button" onClick={() => setError('')}>Fechar</button></div>}
       {activeNav === 'Propostas' ? <main className="workspace">
         <div className="proposal-tabs" role="tablist" aria-label="Propostas abertas">
           {proposalTabs.map((tab) => {
@@ -596,7 +597,7 @@ export function App() {
             <p className="last-change">Última alteração: {formattedUpdatedAt}<br />por {proposal?.responsibleName ?? '—'}</p>
           </div>
         </aside>
-      </main> : <ClientsWorkspace onNotice={showNotice} onError={setError} />}
+      </main> : activeNav === 'Catálogo' ? <CatalogWorkspace onNotice={showNotice} onError={setError} /> : <ClientsWorkspace onNotice={showNotice} onError={setError} />}
 
       {notice && <div className="toast" role="status">{notice}</div>}
       <NewProposalDialog open={newProposalOpen} onClose={() => setNewProposalOpen(false)} onCreated={(created) => void proposalCreated(created)} onError={setError} />

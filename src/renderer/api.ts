@@ -80,3 +80,13 @@ export const clientsApi = {
     `/api/clients/${clientId}/works/${workId}`, { method: 'PATCH', body: JSON.stringify(input) },
   ),
 };
+
+export const catalogApi = {
+  list: (query = '') => request<{ products: CatalogProduct[] }>(`/api/catalog/manage?q=${encodeURIComponent(query)}`),
+  create: (input: Omit<CatalogProduct, 'id' | 'updatedAt'>) => request<{ productId: string; products: CatalogProduct[] }>(
+    '/api/catalog', { method: 'POST', body: JSON.stringify(input) },
+  ),
+  update: (productId: string, input: Omit<CatalogProduct, 'id' | 'updatedAt'>) => request<{ products: CatalogProduct[] }>(
+    `/api/catalog/${productId}`, { method: 'PATCH', body: JSON.stringify(input) },
+  ),
+};

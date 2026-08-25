@@ -64,6 +64,10 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.status(409).json({ error: 'Já existe uma obra com esse nome para o cliente.' });
       return;
     }
+    if (error instanceof Error && error.message === 'PRODUCT_DUPLICATE') {
+      response.status(409).json({ error: 'Já existe um item com esse código no catálogo.' });
+      return;
+    }
     console.error(error);
     response.status(500).json({ error: 'Não foi possível concluir a operação local.' });
   });
