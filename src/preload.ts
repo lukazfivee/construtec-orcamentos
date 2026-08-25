@@ -2,4 +2,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('construtec', {
   runtime: () => ipcRenderer.invoke('app:runtime'),
+  previewProposal: (proposal: unknown) => ipcRenderer.invoke('documents:preview', proposal),
+  exportProposal: (proposal: unknown) => ipcRenderer.invoke('documents:export', proposal),
 });
