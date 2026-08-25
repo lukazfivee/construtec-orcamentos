@@ -142,6 +142,10 @@ const parsePrice = (value?: string) => {
   return Number.isFinite(price) ? price : 0;
 };
 
+const isAdministrativeExsatText = (description: string) => (
+  /\b(?:cliente|construtora|construtec|engenharia|ltda|cnpj|cpf|endere[cç]o|or[cç]amento|vendedor|comprador|representante|telefone|email|carrinho|categoria)\b/i.test(description)
+);
+
 export const parseExsatProductsHtml = (html: string): CatalogImportItem[] => {
   if (html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
   const category = decodeHtml(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? '') || 'Exsat';
@@ -155,8 +159,10 @@ export const parseExsatProductsHtml = (html: string): CatalogImportItem[] => {
     const headingBefore = [...before.matchAll(/<h[2-5]\b[^>]*>([\s\S]*?)<\/h[2-5]>/gi)].at(-1)?.[1];
     const productLink = after.match(/<a\b[^>]*(?:product|produto)[^>]*>([\s\S]*?)<\/a>/i)?.[1];
     const description = decodeHtml(headingAfter ?? productLink ?? headingBefore ?? '');
-    if (!description || /carrinho|categoria|produto não encontrado/i.test(description)) continue;
+    if (!description || /produto não encontrado/i.test(description) || isAdministrativeExsatText(description)) continue;
     const priceText = after.match(/R\$\s*[\d.]+,\d{2}/i)?.[0];
+    const currentCost = parsePrice(priceText);
+    if (currentCost <= 0) continue;
     items.set(code, {
       code,
       manufacturer: /intelbras/i.test(description) ? 'Intelbras' : null,
@@ -164,7 +170,7 @@ export const parseExsatProductsHtml = (html: string): CatalogImportItem[] => {
       description,
       category,
       unit: 'un',
-      currentCost: parsePrice(priceText),
+      currentCost,
       source: 'EXSAT',
       active: true,
     });
