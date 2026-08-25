@@ -23,7 +23,8 @@ const recognizeWithCloudflare = async (filePath: string) => {
   if (buffer.byteLength > MAX_IMAGE_BYTES) throw new Error('OCR_IMAGE_TOO_LARGE');
   const extension = path.extname(filePath).toLowerCase();
   const form = new FormData();
-  form.append('file', new Blob([buffer], { type: mimeFromExtension(extension) }), path.basename(filePath));
+  const bytes = new Uint8Array(buffer);
+  form.append('file', new Blob([bytes], { type: mimeFromExtension(extension) }), path.basename(filePath));
   const headers: Record<string, string> = {};
   if (OCR_TOKEN) headers.Authorization = `Bearer ${OCR_TOKEN}`;
   const response = await fetch(OCR_URL, {
