@@ -16,7 +16,7 @@ Novas propostas podem ser criadas diretamente pela mesa operacional: o usuário 
 
 O catálogo possui cadastro e edição de materiais e serviços, incluindo código, descrição, categoria, fabricante, modelo, unidade, custo, fonte e estado ativo. Atualizações afetam somente novas inclusões; os snapshots comerciais das propostas existentes permanecem inalterados.
 
-Lotes de itens podem ser revisados e importados por colagem manual, planilhas XLSX/CSV/TSV, imagens lidas pelo OCR nativo do Windows ou páginas da Exsat. O login da Exsat acontece diretamente no site, em uma sessão isolada e persistente, permitindo consultar também os preços da conta sem armazenar a senha no aplicativo. Códigos repetidos atualizam o catálogo, sem alterar propostas já emitidas.
+Lotes de itens podem ser revisados e importados por colagem manual, planilhas XLSX/CSV/TSV, imagens lidas pelo OCR nativo do Windows ou páginas da Exsat. O leitor de imagens reconhece também o modelo de orçamento da Exsat, usando `Fab.` como código do produto e `Vl. Líq.` como custo unitário. O login da Exsat acontece diretamente no site, em uma sessão isolada e persistente, permitindo consultar também os preços da conta sem armazenar a senha no aplicativo. Códigos repetidos atualizam o catálogo, sem alterar propostas já emitidas.
 
 Autenticação completa e integrações externas entram nas próximas fases.
 
