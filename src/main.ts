@@ -1,11 +1,32 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { startApiServer, type ApiRuntime } from './server/startApiServer';
+import type { ProposalDetail } from './shared/contracts';
+import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
 
 if (started) app.quit();
 
 let apiRuntime: ApiRuntime | undefined;
+const previewWindows = new Set<BrowserWindow>();
+
+const loadDocumentWindow = async (proposal: ProposalDetail, show: boolean) => {
+  const documentWindow = new BrowserWindow({
+    width: 1100,
+    height: 850,
+    show: false,
+    title: `Pré-visualização - ${proposal.number}`,
+    autoHideMenuBar: true,
+    backgroundColor: '#e9edf3',
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  previewWindows.add(documentWindow);
+  documentWindow.on('closed', () => previewWindows.delete(documentWindow));
+  await documentWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(buildProposalHtml(proposal))}`);
+  if (show) documentWindow.show();
+  return documentWindow;
+};
 
 const createWindow = async () => {
   const mainWindow = new BrowserWindow({
@@ -50,6 +71,35 @@ app.whenReady().then(async () => {
     platform: process.platform,
     storage: 'local',
   }));
+
+  ipcMain.handle('documents:preview', async (_event, proposal: ProposalDetail) => {
+    await loadDocumentWindow(proposal, true);
+    return { opened: true };
+  });
+
+  ipcMain.handle('documents:export', async (_event, proposal: ProposalDetail) => {
+    const selection = await dialog.showOpenDialog({
+      title: 'Escolha onde salvar a proposta',
+      defaultPath: app.getPath('documents'),
+      properties: ['openDirectory', 'createDirectory'],
+      buttonLabel: 'Salvar PDF e Word',
+    });
+    if (selection.canceled || !selection.filePaths[0]) return { canceled: true, files: [] };
+    const outputDirectory = selection.filePaths[0];
+    await mkdir(outputDirectory, { recursive: true });
+    const baseName = proposalFileBaseName(proposal);
+    const docxPath = path.join(outputDirectory, `${baseName}.docx`);
+    const pdfPath = path.join(outputDirectory, `${baseName}.pdf`);
+    await writeFile(docxPath, await buildProposalDocx(proposal));
+    const pdfWindow = await loadDocumentWindow(proposal, false);
+    try {
+      const pdf = await pdfWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
+      await writeFile(pdfPath, pdf);
+    } finally {
+      pdfWindow.destroy();
+    }
+    return { canceled: false, files: [pdfPath, docxPath] };
+  });
 
   await createWindow();
 
