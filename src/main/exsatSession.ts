@@ -3,7 +3,10 @@ import type { CatalogImportItem, ExsatBatchPreview } from '../shared/contracts';
 import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
 const LOGIN_URL = 'https://exsat.com.br/central-cliente/login/';
+const START_URL = 'https://exsat.com.br/';
 const PARTITION = 'persist:construtec-exsat';
+const MAX_AUTO_PAGES = 60;
+const MAX_AUTO_ITEMS = 500;
 let loginWindow: BrowserWindow | undefined;
 
 const exsatSession = () => session.fromPartition(PARTITION);
@@ -17,6 +20,30 @@ const responseHtml = async (url: string) => {
   const html = await response.text();
   if (html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
   return { html, finalUrl: response.url };
+};
+
+const isCatalogCandidate = (url: URL) => {
+  const path = url.pathname.toLowerCase();
+  const query = url.search.toLowerCase();
+  if (/login|logout|minha-conta|carrinho|checkout|pedido|contato|politica|termos/.test(path)) return false;
+  if (url.hash) url.hash = '';
+  return /produto|categoria|departamento|marca|busca|pesquisa|shop|loja|catalog/.test(path)
+    || /page|paged|pagina|s=|search|orderby|product_cat/.test(query)
+    || path === '/';
+};
+
+const discoverCatalogLinks = (html: string, baseUrl: string) => {
+  const links = new Set<string>();
+  for (const match of html.matchAll(/href\s*=\s*["']([^"'#]+)["']/gi)) {
+    try {
+      const candidate = validateExsatUrl(new URL(match[1], baseUrl).toString());
+      candidate.hash = '';
+      if (isCatalogCandidate(candidate)) links.add(candidate.toString());
+    } catch {
+      // Ignora links externos ou inválidos.
+    }
+  }
+  return [...links];
 };
 
 export const exsatConnectionStatus = async () => {
@@ -102,6 +129,55 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
     items: [...items.values()].slice(0, 500),
     connected: true,
     sourceCount: urls.length - failedUrls.length,
+    ignored,
+    failedUrls,
+  };
+};
+
+export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview> => {
+  const status = await exsatConnectionStatus();
+  if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
+
+  const queue = [START_URL];
+  const queued = new Set(queue);
+  const visited = new Set<string>();
+  const items = new Map<string, CatalogImportItem>();
+  const failedUrls: string[] = [];
+  let ignored = 0;
+
+  while (queue.length > 0 && visited.size < MAX_AUTO_PAGES && items.size < MAX_AUTO_ITEMS) {
+    const url = queue.shift();
+    if (!url || visited.has(url)) continue;
+    visited.add(url);
+    try {
+      const { html, finalUrl } = await responseHtml(url);
+      const final = validateExsatUrl(finalUrl).toString();
+      try {
+        const parsed = parseExsatProductsHtml(html, true);
+        for (const item of parsed) {
+          if (items.has(item.code.toLowerCase())) ignored += 1;
+          items.set(item.code.toLowerCase(), item);
+          if (items.size >= MAX_AUTO_ITEMS) break;
+        }
+      } catch (error) {
+        if (!(error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS')) throw error;
+      }
+      for (const link of discoverCatalogLinks(html, final)) {
+        if (!visited.has(link) && !queued.has(link) && queued.size < MAX_AUTO_PAGES * 4) {
+          queue.push(link);
+          queued.add(link);
+        }
+      }
+    } catch {
+      failedUrls.push(url);
+    }
+  }
+
+  if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
+  return {
+    items: [...items.values()].slice(0, MAX_AUTO_ITEMS),
+    connected: true,
+    sourceCount: visited.size - failedUrls.length,
     ignored,
     failedUrls,
   };
