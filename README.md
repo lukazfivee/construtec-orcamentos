@@ -14,6 +14,8 @@ O app também gera a revisão aberta em PDF e Word, com pré-visualização, ide
 
 Novas propostas podem ser criadas diretamente pela mesa operacional: o usuário seleciona cliente e obra, informa escopo e validade, e o sistema gera automaticamente a próxima numeração `PA-####` na revisão 00. As abas superiores agora representam propostas reais salvas no banco e permitem alternar entre elas.
 
+O catálogo possui cadastro e edição de materiais e serviços, incluindo código, descrição, categoria, fabricante, modelo, unidade, custo, fonte e estado ativo. Atualizações afetam somente novas inclusões; os snapshots comerciais das propostas existentes permanecem inalterados.
+
 Autenticação completa e integrações externas entram nas próximas fases.
 
 ## Executar localmente
