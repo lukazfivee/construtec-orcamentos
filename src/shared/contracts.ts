@@ -12,6 +12,15 @@ export type CatalogProduct = {
   updatedAt: string;
 };
 
+export type CatalogImportItem = Omit<CatalogProduct, 'id' | 'updatedAt'>;
+
+export type CatalogImportFile = {
+  canceled: boolean;
+  kind?: 'table' | 'image';
+  name?: string;
+  text?: string;
+};
+
 export type ProposalLine = {
   id: string;
   code: string;

@@ -1,4 +1,4 @@
-import type { ProposalDetail } from '../shared/contracts';
+import type { CatalogImportFile, ProposalDetail } from '../shared/contracts';
 
 export {};
 
@@ -13,6 +13,7 @@ declare global {
       }>;
       previewProposal: (proposal: ProposalDetail) => Promise<{ opened: boolean }>;
       exportProposal: (proposal: ProposalDetail) => Promise<{ canceled: boolean; files: string[] }>;
+      selectCatalogImport: (kind: 'table' | 'image') => Promise<CatalogImportFile>;
     };
   }
 }
