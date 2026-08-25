@@ -70,8 +70,8 @@ const exsatTerminatorPattern = /\b(?:total|condi[cç][oõ]es|tipo de frete|cobra
 
 const exsatRowFromText = (line: string): Row | null => {
   const prices = line.match(pricePattern) ?? [];
-  if (prices.length === 0) return null;
   const firstPrice = prices[0];
+  if (!firstPrice) return null;
   const firstPriceIndex = line.indexOf(firstPrice);
   if (firstPriceIndex < 0) return null;
 
