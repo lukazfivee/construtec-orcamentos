@@ -142,17 +142,7 @@ const parsePrice = (value?: string) => {
   return Number.isFinite(price) ? price : 0;
 };
 
-export const previewExsatProducts = async (rawUrl: string): Promise<CatalogImportItem[]> => {
-  const url = new URL(rawUrl);
-  if (url.protocol !== 'https:' || !['exsat.com.br', 'www.exsat.com.br'].includes(url.hostname.toLowerCase())) {
-    throw new Error('EXSAT_URL_INVALID');
-  }
-  const response = await fetch(url, {
-    signal: AbortSignal.timeout(20_000),
-    headers: { 'User-Agent': 'Construtec-Orcamentos/1.0 (+catalog-import)' },
-  });
-  if (!response.ok) throw new Error('EXSAT_UNAVAILABLE');
-  const html = await response.text();
+export const parseExsatProductsHtml = (html: string): CatalogImportItem[] => {
   if (html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
   const category = decodeHtml(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? '') || 'Exsat';
   const items = new Map<string, CatalogImportItem>();
@@ -181,4 +171,23 @@ export const previewExsatProducts = async (rawUrl: string): Promise<CatalogImpor
   }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
   return [...items.values()].slice(0, 500);
+};
+
+export const validateExsatUrl = (rawUrl: string) => {
+  const url = new URL(rawUrl);
+  if (url.protocol !== 'https:' || !['exsat.com.br', 'www.exsat.com.br'].includes(url.hostname.toLowerCase())) {
+    throw new Error('EXSAT_URL_INVALID');
+  }
+  return url;
+};
+
+export const previewExsatProducts = async (rawUrl: string): Promise<CatalogImportItem[]> => {
+  const url = validateExsatUrl(rawUrl);
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(20_000),
+    headers: { 'User-Agent': 'Construtec-Orcamentos/1.0 (+catalog-import)' },
+  });
+  if (!response.ok) throw new Error('EXSAT_UNAVAILABLE');
+  const html = await response.text();
+  return parseExsatProductsHtml(html);
 };

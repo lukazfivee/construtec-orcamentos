@@ -6,6 +6,7 @@ import { startApiServer, type ApiRuntime } from './server/startApiServer';
 import type { ProposalDetail } from './shared/contracts';
 import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
 import { selectCatalogImport } from './main/catalogImport';
+import { disconnectExsat, exsatConnectionStatus, openExsatLogin, previewAuthenticatedExsat } from './main/exsatSession';
 
 if (started) app.quit();
 
@@ -103,6 +104,10 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.handle('catalog:select-import', (_event, kind: 'table' | 'image') => selectCatalogImport(kind));
+  ipcMain.handle('exsat:status', () => exsatConnectionStatus());
+  ipcMain.handle('exsat:login', () => openExsatLogin());
+  ipcMain.handle('exsat:logout', () => disconnectExsat());
+  ipcMain.handle('exsat:preview', (_event, url: string) => previewAuthenticatedExsat(url));
 
   await createWindow();
 
