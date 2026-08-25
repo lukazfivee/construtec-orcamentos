@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { dialog } from 'electron';
@@ -59,6 +60,27 @@ function Await($operation, $resultType) {
 function Join-Words($items) {
   return ((@($items | Sort-Object X | ForEach-Object { [string]$_.Text }) -join ' ') -replace '\s+', ' ').Trim()
 }
+function Resolve-NetValue($netValue, $unitValue, $discountValue) {
+  $net = (($netValue -replace '\s+', '')).Trim()
+  if ($net -match '\d+[,.]\d{2}') { return $net }
+  $unitText = (($unitValue -replace '\s+', '')).Trim()
+  if ($unitText -notmatch '\d+[,.]\d{2}') { return '' }
+  try {
+    $culture = [System.Globalization.CultureInfo]::GetCultureInfo('pt-BR')
+    $styles = [System.Globalization.NumberStyles]::Number
+    $unit = [decimal]::Parse($unitText, $styles, $culture)
+    $discount = [decimal]0
+    $discountText = (($discountValue -replace '\s+', '')).Trim()
+    if ($discountText -match '\d+[,.]\d{2}') {
+      $discount = [decimal]::Parse($discountText, $styles, $culture)
+    }
+    $resolved = $unit - $discount
+    if ($resolved -lt 0) { return '' }
+    return $resolved.ToString('N2', $culture)
+  } catch {
+    return $unitText
+  }
+}
 $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:CONSTRUTEC_OCR_PATH)) ([Windows.Storage.StorageFile])
 $stream = Await ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
 $decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
@@ -114,7 +136,6 @@ foreach ($word in ($words | Sort-Object CY, X)) {
   }
 }
 
-# Localiza o cabeçalho da tabela Exsat e usa as posições X como limites das colunas.
 $header = $null
 foreach ($row in ($visualRows | Sort-Object CY)) {
   $text = Join-Words $row.Words
@@ -147,32 +168,32 @@ if ($null -ne $header) {
 
     $bFabCod = ($fabX + $codX) / 2.0
     $bCodDescription = ($codX + $descriptionX) / 2.0
-    # A descrição termina no início real da coluna Qt., evitando cortar modelos como 1332/1257.
     $bDescriptionQt = [double]$qtWord.X - [Math]::Max(4, $avgHeight * 0.35)
     $bQtUnit = ($qtX + $unitX) / 2.0
     $bUnitDesc = ($unitX + $descValueX) / 2.0
     $bDescLiq = ($descValueX + $liqX) / 2.0
     $bLiqTotal = ($liqX + $totalX) / 2.0
 
-    # O fim da tabela impede que o total geral contamine o último produto.
     $tableEndRow = @($visualRows | Sort-Object CY | Where-Object {
-      $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^Total\s*:'
+      $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^\s*Total\b'
     })[0]
+    $tableBottom = if ($tableEndRow) { [double]$tableEndRow.CY - ($avgHeight * 0.08) } else { [double]::MaxValue }
 
-    # Fab. pode ser numérico ou alfanumérico (ex.: A35-E150/10), mas precisa conter ao menos um dígito.
     $anchors = @($words | Where-Object {
       $_.CY -gt ($header.CY + $avgHeight) -and
+      $_.CY -lt $tableBottom -and
       $_.CX -lt $bFabCod -and
       $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
       $_.Text -match '\d'
     } | Sort-Object CY)
 
     $emitted = 0
+    $emittedCodes = @{}
     for ($i = 0; $i -lt $anchors.Count; $i += 1) {
       $anchor = $anchors[$i]
       $top = if ($i -eq 0) { $header.CY + ($avgHeight * 0.6) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
       if ($i -eq $anchors.Count - 1) {
-        $bottom = if ($tableEndRow) { [double]$tableEndRow.CY - ($avgHeight * 0.45) } else { [double]$anchor.CY + ($avgHeight * 3.0) }
+        $bottom = if ($tableEndRow) { $tableBottom } else { [double]$anchor.CY + ($avgHeight * 3.0) }
       } else {
         $bottom = ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0
       }
@@ -191,11 +212,48 @@ if ($null -ne $header) {
       $quantity = ($quantity -replace '\s+', '').Trim()
       $unitValue = ($unitValue -replace '\s+', '').Trim()
       $discountValue = ($discountValue -replace '\s+', '').Trim()
-      $netValue = ($netValue -replace '\s+', '').Trim()
+      $netValue = Resolve-NetValue $netValue $unitValue $discountValue
 
       if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
-        # A saída é deliberadamente normalizada sem Vl. Total. O último preço é sempre o Vl. Líq.
         [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
+        $emittedCodes[$fab.ToUpperInvariant()] = $true
+        $emitted += 1
+      }
+    }
+
+    foreach ($row in @($visualRows | Sort-Object CY | Where-Object {
+      $_.CY -gt ($header.CY + $avgHeight) -and $_.CY -lt $tableBottom
+    })) {
+      $rowWords = @($row.Words | Sort-Object X)
+      $fabCandidate = @($rowWords | Where-Object {
+        $_.CX -lt $bFabCod -and
+        $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
+        $_.Text -match '\d'
+      })[0]
+      if (-not $fabCandidate) { continue }
+      $fab = [string]$fabCandidate.Text
+      if ($emittedCodes.ContainsKey($fab.ToUpperInvariant())) { continue }
+
+      $rescueTop = [double]$row.CY - ($avgHeight * 0.75)
+      $rescueBottom = [Math]::Min($tableBottom, [double]$row.CY + ($avgHeight * 1.35))
+      $band = @($words | Where-Object { $_.CY -gt $rescueTop -and $_.CY -lt $rescueBottom })
+      $supplier = Join-Words @($band | Where-Object { $_.CX -ge $bFabCod -and $_.CX -lt $bCodDescription })
+      $description = Join-Words @($band | Where-Object { $_.CX -ge $bCodDescription -and $_.CX -lt $bDescriptionQt })
+      $quantity = Join-Words @($band | Where-Object { $_.CX -ge $bDescriptionQt -and $_.CX -lt $bQtUnit })
+      $unitValue = Join-Words @($band | Where-Object { $_.CX -ge $bQtUnit -and $_.CX -lt $bUnitDesc })
+      $discountValue = Join-Words @($band | Where-Object { $_.CX -ge $bUnitDesc -and $_.CX -lt $bDescLiq })
+      $netValue = Join-Words @($band | Where-Object { $_.CX -ge $bDescLiq -and $_.CX -lt $bLiqTotal })
+
+      $supplier = ($supplier -replace '[^0-9]', '')
+      $description = ($description -replace '\s+', ' ').Trim()
+      $quantity = ($quantity -replace '\s+', '').Trim()
+      $unitValue = ($unitValue -replace '\s+', '').Trim()
+      $discountValue = ($discountValue -replace '\s+', '').Trim()
+      $netValue = Resolve-NetValue $netValue $unitValue $discountValue
+
+      if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
+        [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
+        $emittedCodes[$fab.ToUpperInvariant()] = $true
         $emitted += 1
       }
     }
@@ -204,7 +262,6 @@ if ($null -ne $header) {
   }
 }
 
-# Fallback genérico para imagens que não seguem o layout padrão da Exsat.
 foreach ($row in ($visualRows | Sort-Object CY)) {
   $ordered = @($row.Words | Sort-Object X)
   if ($ordered.Count -eq 0) { continue }
@@ -231,6 +288,61 @@ foreach ($row in ($visualRows | Sort-Object CY)) {
   return result.stdout.trim();
 };
 
+const renderPdfPagesWithWindows = async (filePath: string) => {
+  if (process.platform !== 'win32') throw new Error('A leitura de PDF está disponível no instalador para Windows 10 ou superior.');
+  const outputDir = await mkdtemp(path.join(tmpdir(), 'construtec-pdf-'));
+  const script = String.raw`
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Runtime.WindowsRuntime
+$null = [Windows.Storage.StorageFile,Windows.Storage,ContentType=WindowsRuntime]
+$null = [Windows.Storage.StorageFolder,Windows.Storage,ContentType=WindowsRuntime]
+$null = [Windows.Storage.FileAccessMode,Windows.Storage,ContentType=WindowsRuntime]
+$null = [Windows.Storage.CreationCollisionOption,Windows.Storage,ContentType=WindowsRuntime]
+$null = [Windows.Data.Pdf.PdfDocument,Windows.Data.Pdf,ContentType=WindowsRuntime]
+$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.IsGenericMethod })[0]
+$asTaskAction = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and -not $_.IsGenericMethod })[0]
+function Await($operation, $resultType) {
+  $task = $asTaskGeneric.MakeGenericMethod($resultType).Invoke($null, @($operation))
+  $task.Wait()
+  return $task.Result
+}
+function Await-Action($operation) {
+  $task = $asTaskAction.Invoke($null, @($operation))
+  $task.Wait()
+}
+$file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:CONSTRUTEC_PDF_PATH)) ([Windows.Storage.StorageFile])
+$pdf = Await ([Windows.Data.Pdf.PdfDocument]::LoadFromFileAsync($file)) ([Windows.Data.Pdf.PdfDocument])
+$folder = Await ([Windows.Storage.StorageFolder]::GetFolderFromPathAsync($env:CONSTRUTEC_PDF_OUT)) ([Windows.Storage.StorageFolder])
+for ($i = 0; $i -lt $pdf.PageCount; $i += 1) {
+  $page = $pdf.GetPage($i)
+  try {
+    $name = ('page-{0:D4}.png' -f ($i + 1))
+    $out = Await ($folder.CreateFileAsync($name, [Windows.Storage.CreationCollisionOption]::ReplaceExisting)) ([Windows.Storage.StorageFile])
+    $stream = Await ($out.OpenAsync([Windows.Storage.FileAccessMode]::ReadWrite)) ([Windows.Storage.Streams.IRandomAccessStream])
+    try { Await-Action ($page.RenderToStreamAsync($stream)) } finally { $stream.Dispose() }
+  } finally { $page.Dispose() }
+}
+`;
+  const encoded = Buffer.from(script, 'utf16le').toString('base64');
+  try {
+    await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
+      env: { ...process.env, CONSTRUTEC_PDF_PATH: filePath, CONSTRUTEC_PDF_OUT: outputDir },
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024,
+      timeout: 180_000,
+    });
+    const pages = (await readdir(outputDir))
+      .filter((name) => /^page-\d+\.png$/i.test(name))
+      .sort()
+      .map((name) => path.join(outputDir, name));
+    if (pages.length === 0) throw new Error('PDF_SEM_PAGINAS');
+    return { outputDir, pages };
+  } catch (error) {
+    await rm(outputDir, { recursive: true, force: true });
+    throw error;
+  }
+};
+
 const recognizeImage = async (filePath: string): Promise<{ text: string; engine: 'cloudflare' | 'windows' }> => {
   if (OCR_URL) {
     try {
@@ -242,13 +354,31 @@ const recognizeImage = async (filePath: string): Promise<{ text: string; engine:
   return { text: await recognizeWithWindows(filePath), engine: 'windows' };
 };
 
+const recognizePdf = async (filePath: string): Promise<{ text: string; engine: 'cloudflare' | 'windows' }> => {
+  const rendered = await renderPdfPagesWithWindows(filePath);
+  const texts: string[] = [];
+  let engine: 'cloudflare' | 'windows' = OCR_URL ? 'cloudflare' : 'windows';
+  try {
+    for (const pagePath of rendered.pages) {
+      const result = await recognizeImage(pagePath);
+      texts.push(result.text);
+      engine = result.engine;
+    }
+  } finally {
+    await rm(rendered.outputDir, { recursive: true, force: true });
+  }
+  const text = texts.filter(Boolean).join('\n');
+  if (text.trim().length < 3) throw new Error('Nenhum texto foi reconhecido no PDF.');
+  return { text, engine };
+};
+
 export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<CatalogImportFile> => {
   const selection = await dialog.showOpenDialog({
     title: 'Importar itens para o catálogo',
     properties: ['openFile'],
     filters: [
       kind === 'image'
-        ? { name: 'Imagens', extensions: ['png', 'jpg', 'jpeg', 'bmp'] }
+        ? { name: 'Imagens e PDF', extensions: ['png', 'jpg', 'jpeg', 'bmp', 'pdf'] }
         : { name: 'Planilhas', extensions: ['xlsx', 'csv', 'tsv', 'txt'] },
       { name: 'Todos os arquivos', extensions: ['*'] },
     ],
@@ -257,6 +387,10 @@ export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<Cata
   if (selection.canceled || !filePath) return { canceled: true };
   const extension = path.extname(filePath).toLowerCase();
   const name = path.basename(filePath);
+  if (extension === '.pdf') {
+    const result = await recognizePdf(filePath);
+    return { canceled: false, kind: 'image', name, text: result.text, ocrEngine: result.engine };
+  }
   if (['.png', '.jpg', '.jpeg', '.bmp'].includes(extension)) {
     const result = await recognizeImage(filePath);
     return { canceled: false, kind: 'image', name, text: result.text, ocrEngine: result.engine };
