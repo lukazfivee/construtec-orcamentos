@@ -147,23 +147,35 @@ if ($null -ne $header) {
 
     $bFabCod = ($fabX + $codX) / 2.0
     $bCodDescription = ($codX + $descriptionX) / 2.0
-    $bDescriptionQt = ($descriptionX + $qtX) / 2.0
+    # A descrição termina no início real da coluna Qt., evitando cortar modelos como 1332/1257.
+    $bDescriptionQt = [double]$qtWord.X - [Math]::Max(4, $avgHeight * 0.35)
     $bQtUnit = ($qtX + $unitX) / 2.0
     $bUnitDesc = ($unitX + $descValueX) / 2.0
     $bDescLiq = ($descValueX + $liqX) / 2.0
     $bLiqTotal = ($liqX + $totalX) / 2.0
 
+    # O fim da tabela impede que o total geral contamine o último produto.
+    $tableEndRow = @($visualRows | Sort-Object CY | Where-Object {
+      $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^Total\s*:'
+    })[0]
+
+    # Fab. pode ser numérico ou alfanumérico (ex.: A35-E150/10), mas precisa conter ao menos um dígito.
     $anchors = @($words | Where-Object {
       $_.CY -gt ($header.CY + $avgHeight) -and
       $_.CX -lt $bFabCod -and
-      $_.Text -match '^\d{6,14}$'
+      $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
+      $_.Text -match '\d'
     } | Sort-Object CY)
 
     $emitted = 0
     for ($i = 0; $i -lt $anchors.Count; $i += 1) {
       $anchor = $anchors[$i]
       $top = if ($i -eq 0) { $header.CY + ($avgHeight * 0.6) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
-      $bottom = if ($i -eq $anchors.Count - 1) { [double]$anchor.CY + ($avgHeight * 2.2) } else { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 }
+      if ($i -eq $anchors.Count - 1) {
+        $bottom = if ($tableEndRow) { [double]$tableEndRow.CY - ($avgHeight * 0.45) } else { [double]$anchor.CY + ($avgHeight * 3.0) }
+      } else {
+        $bottom = ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0
+      }
       $band = @($words | Where-Object { $_.CY -gt $top -and $_.CY -lt $bottom })
 
       $fab = [string]$anchor.Text
