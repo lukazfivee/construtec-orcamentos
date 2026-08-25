@@ -19,6 +19,7 @@ declare global {
       exsatLogout: () => Promise<{ connected: boolean }>;
       previewExsat: (url: string) => Promise<{ items: CatalogImportItem[]; connected: boolean }>;
       previewExsatBatch: (urls: string[]) => Promise<ExsatBatchPreview>;
+      previewExsatAuto: () => Promise<ExsatBatchPreview>;
     };
   }
 }
