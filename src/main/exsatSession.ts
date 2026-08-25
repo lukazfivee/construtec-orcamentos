@@ -1,5 +1,5 @@
 import { BrowserWindow, session } from 'electron';
-import type { CatalogImportItem } from '../shared/contracts';
+import type { CatalogImportItem, ExsatBatchPreview } from '../shared/contracts';
 import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
 const LOGIN_URL = 'https://exsat.com.br/central-cliente/login/';
@@ -75,4 +75,34 @@ export const previewAuthenticatedExsat = async (rawUrl: string): Promise<{ items
   const status = await exsatConnectionStatus();
   const { html } = await responseHtml(url.toString());
   return { items: parseExsatProductsHtml(html), connected: status.connected };
+};
+
+export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise<ExsatBatchPreview> => {
+  const status = await exsatConnectionStatus();
+  if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
+  const urls = [...new Set(rawUrls.map((value) => value.trim()).filter(Boolean).map((value) => validateExsatUrl(value).toString()))].slice(0, 30);
+  if (urls.length === 0) throw new Error('EXSAT_URL_INVALID');
+  const items = new Map<string, CatalogImportItem>();
+  const failedUrls: string[] = [];
+  let ignored = 0;
+  for (const url of urls) {
+    try {
+      const { html } = await responseHtml(url);
+      const parsed = parseExsatProductsHtml(html, true);
+      for (const item of parsed) {
+        if (items.has(item.code.toLowerCase())) ignored += 1;
+        items.set(item.code.toLowerCase(), item);
+      }
+    } catch {
+      failedUrls.push(url);
+    }
+  }
+  if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
+  return {
+    items: [...items.values()].slice(0, 500),
+    connected: true,
+    sourceCount: urls.length - failedUrls.length,
+    ignored,
+    failedUrls,
+  };
 };
