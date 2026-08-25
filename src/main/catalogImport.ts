@@ -61,6 +61,9 @@ function Await($operation, $resultType) {
 function Join-Words($items) {
   return ((@($items | Sort-Object X | ForEach-Object { [string]$_.Text }) -join ' ') -replace '\s+', ' ').Trim()
 }
+function Join-VisualWords($items) {
+  return ((@($items | Sort-Object CY, X | ForEach-Object { [string]$_.Text }) -join ' ') -replace '\s+', ' ').Trim()
+}
 function Last-Money($value) {
   $matches = [regex]::Matches([string]$value, '(?:\d{1,3}(?:\.\d{3})+|\d+)[,.]\d{2}')
   if ($matches.Count -eq 0) { return '' }
@@ -134,38 +137,47 @@ foreach ($word in ($words | Sort-Object CY, X)) {
   }
 }
 
-# Layout Telcabos: Item, Codigo, Cod.Fab, Qtde, Un, Descricao Detalhada, CST, Class.Fiscal, Marca, Previsao Entrega, Vl. Unitario, Vl.ST, Total, Icms.
+# Layout Telcabos: detecta o cabeçalho mesmo quando o OCR divide as palavras em linhas diferentes.
 $telHeader = $null
 foreach ($row in ($visualRows | Sort-Object CY)) {
   $text = Join-Words $row.Words
-  if ($text -match '(?i)\b(?:I|Í)tem\b' -and $text -match '(?i)C[oó]digo' -and $text -match '(?i)Qtde' -and $text -match '(?i)Descri[cç][aã]o' -and $text -match '(?i)Marca' -and $text -match '(?i)Unit[aá]rio') {
+  if (($text -match '(?i)C[oó]digo' -and $text -match '(?i)Qtde' -and $text -match '(?i)Descri[cç][aã]o') -or
+      ($text -match '(?i)C[oó]d\.?\s*Fab' -and $text -match '(?i)Qtde')) {
     $telHeader = $row
     break
   }
 }
 
-if ($null -ne $telHeader) {
-  $hw = @($telHeader.Words | Sort-Object X)
-  $itemWord = @($hw | Where-Object { $_.Text -match '^(?i:(?:I|Í)tem)$' })[0]
+if ($null -ne $telHeader -or ([string]$result.Text -match '(?i)TELCABOS')) {
+  $headerY = if ($telHeader) { [double]$telHeader.CY } else {
+    $candidate = @($words | Where-Object { $_.Text -match '^(?i:C[oó]digo)$' } | Sort-Object CY)[0]
+    if ($candidate) { [double]$candidate.CY } else { 0 }
+  }
+  $headerWindow = [Math]::Max(10, $avgHeight * 2.2)
+  $hw = @($words | Where-Object { [Math]::Abs([double]$_.CY - $headerY) -le $headerWindow } | Sort-Object X)
+
+  $itemWord = @($hw | Where-Object { $_.Text -match '^(?i:(?:I|Í)tem|Item)$' })[0]
   $codeWord = @($hw | Where-Object { $_.Text -match '^(?i:C[oó]digo)$' })[0]
-  $fabWord = @($hw | Where-Object { $_.Text -match '^(?i:C[oó]d\.?Fab)$' })[0]
+  $fabWord = @($hw | Where-Object { $_.Text -match '^(?i:C[oó]d\.?Fab|Cod\.Fab)$' })[0]
   $qtyWord = @($hw | Where-Object { $_.Text -match '^(?i:Qtde)$' })[0]
   $unWord = @($hw | Where-Object { $_.Text -match '^(?i:Un)$' })[0]
-  $descriptionWord = @($hw | Where-Object { $_.Text -match '^(?i:Descri[cç][aã]o)$' })[0]
+  $descriptionWord = @($hw | Where-Object { $_.Text -match '^(?i:Descri[cç][aã]o|Descricao)$' })[0]
   $cstWord = @($hw | Where-Object { $_.Text -match '^(?i:CST)$' })[0]
+  $classWord = @($hw | Where-Object { $_.Text -match '^(?i:Class\.?Fiscal|Class\.?)$' })[0]
   $brandWord = @($hw | Where-Object { $_.Text -match '^(?i:Marca)$' })[0]
-  $deliveryWord = @($hw | Where-Object { $_.Text -match '^(?i:Previs[aã]o)$' })[0]
-  $unitPriceWord = @($hw | Where-Object { $_.Text -match '^(?i:Unit[aá]rio)$' })[0]
+  $deliveryWord = @($hw | Where-Object { $_.Text -match '^(?i:Previs[aã]o|Previsao)$' })[0]
+  $unitPriceWord = @($hw | Where-Object { $_.Text -match '^(?i:Unit[aá]rio|Unitario)$' })[0]
   $stWord = @($hw | Where-Object { $_.Text -match '^(?i:(?:Vl\.?ST|V\.?ST|ST))$' })[0]
 
-  if ($itemWord -and $codeWord -and $qtyWord -and $unWord -and $descriptionWord -and $cstWord -and $brandWord -and $deliveryWord -and $unitPriceWord) {
-    $itemX = [double]$itemWord.CX
+  if ($codeWord -and $qtyWord -and $unWord -and $descriptionWord -and $cstWord -and $brandWord -and $deliveryWord -and $unitPriceWord) {
+    $itemX = if ($itemWord) { [double]$itemWord.CX } else { [double]$codeWord.X - [Math]::Max(20, $avgHeight * 2) }
     $codeX = [double]$codeWord.CX
     $fabX = if ($fabWord) { [double]$fabWord.CX } else { ($codeX + [double]$qtyWord.CX) / 2.0 }
     $qtyX = [double]$qtyWord.CX
     $unX = [double]$unWord.CX
     $descriptionX = [double]$descriptionWord.CX
     $cstX = [double]$cstWord.CX
+    $classX = if ($classWord) { [double]$classWord.CX } else { ($cstX + [double]$brandWord.CX) / 2.0 }
     $brandX = [double]$brandWord.CX
     $deliveryX = [double]$deliveryWord.CX
     $priceX = [double]$unitPriceWord.CX
@@ -177,29 +189,39 @@ if ($null -ne $telHeader) {
     $bQtyUn = ($qtyX + $unX) / 2.0
     $bUnDescription = ($unX + $descriptionX) / 2.0
     $bDescriptionCst = ($descriptionX + $cstX) / 2.0
+    $bClassBrand = ($classX + $brandX) / 2.0
     $bBrandDelivery = ($brandX + $deliveryX) / 2.0
     $bDeliveryPrice = ($deliveryX + $priceX) / 2.0
     $bPriceSt = ($priceX + $stX) / 2.0
 
+    $telEndRow = @($visualRows | Sort-Object CY | Where-Object {
+      $_.CY -gt $headerY -and (Join-Words $_.Words) -match '(?i)(?:Desc\.?\s*Impostos|Total\s+Mercadorias|Validade\s+da\s+Proposta|Pag\s*:)' 
+    })[0]
+    $telTableBottom = if ($telEndRow) { [double]$telEndRow.CY - ($avgHeight * 0.15) } else { [double]::MaxValue }
+
     $anchors = @($words | Where-Object {
-      $_.CY -gt ($telHeader.CY + $avgHeight * 0.65) -and
+      $_.CY -gt ($headerY + $avgHeight * 0.55) -and
+      $_.CY -lt $telTableBottom -and
       $_.CX -lt $bItemCode -and
       $_.Text -match '^\d{1,3}$'
     } | Sort-Object CY)
 
     $emitted = 0
+    $emittedItems = @{}
     for ($i = 0; $i -lt $anchors.Count; $i += 1) {
       $anchor = $anchors[$i]
-      $top = if ($i -eq 0) { $telHeader.CY + ($avgHeight * 0.55) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
-      $bottom = if ($i -lt ($anchors.Count - 1)) { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 } else { [double]$anchor.CY + ($avgHeight * 3.2) }
+      $itemNo = [string]$anchor.Text
+      if ($emittedItems.ContainsKey($itemNo)) { continue }
+      $top = if ($i -eq 0) { $headerY + ($avgHeight * 0.45) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
+      $bottom = if ($i -lt ($anchors.Count - 1)) { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 } else { [Math]::Min($telTableBottom, [double]$anchor.CY + ($avgHeight * 3.5)) }
       $band = @($words | Where-Object { $_.CY -gt $top -and $_.CY -lt $bottom })
 
-      $code = Join-Words @($band | Where-Object { $_.CX -ge $bItemCode -and $_.CX -lt $bCodeFab })
-      $fabCode = Join-Words @($band | Where-Object { $_.CX -ge $bCodeFab -and $_.CX -lt $bFabQty })
-      $unit = Join-Words @($band | Where-Object { $_.CX -ge $bQtyUn -and $_.CX -lt $bUnDescription })
-      $description = Join-Words @($band | Where-Object { $_.CX -ge $bUnDescription -and $_.CX -lt $bDescriptionCst })
-      $brand = Join-Words @($band | Where-Object { $_.CX -ge $bBrandDelivery -and $_.CX -lt $bDeliveryPrice })
-      $unitPriceText = Join-Words @($band | Where-Object { $_.CX -ge $bDeliveryPrice -and $_.CX -lt $bPriceSt })
+      $code = Join-VisualWords @($band | Where-Object { $_.CX -ge $bItemCode -and $_.CX -lt $bCodeFab })
+      $fabCode = Join-VisualWords @($band | Where-Object { $_.CX -ge $bCodeFab -and $_.CX -lt $bFabQty })
+      $unit = Join-VisualWords @($band | Where-Object { $_.CX -ge $bQtyUn -and $_.CX -lt $bUnDescription })
+      $description = Join-VisualWords @($band | Where-Object { $_.CX -ge $bUnDescription -and $_.CX -lt $bDescriptionCst })
+      $brand = Join-VisualWords @($band | Where-Object { $_.CX -ge $bClassBrand -and $_.CX -lt $bBrandDelivery })
+      $unitPriceText = Join-VisualWords @($band | Where-Object { $_.CX -ge $bDeliveryPrice -and $_.CX -lt $bPriceSt })
 
       $code = ($code -replace '[^A-Za-z0-9./_-]', '').Trim()
       $fabCode = ($fabCode -replace '\s+', ' ').Trim()
@@ -211,6 +233,7 @@ if ($null -ne $telHeader) {
       if ($code -match '^\d{4,10}$' -and $description.Length -ge 3 -and $unitPrice -match '\d+[,.]\d{2}') {
         $source = if ($fabCode) { 'TELCABOS COD.FAB ' + $fabCode } else { 'TELCABOS' }
         [Console]::WriteLine(('@CATALOG@' + [char]9 + $code + [char]9 + $description + [char]9 + 'Importado' + [char]9 + $brand + [char]9 + '' + [char]9 + $unit + [char]9 + $unitPrice + [char]9 + $source))
+        $emittedItems[$itemNo] = $true
         $emitted += 1
       }
     }
