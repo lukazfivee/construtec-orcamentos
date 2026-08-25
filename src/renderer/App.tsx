@@ -82,6 +82,7 @@ export function App() {
   const [contextQuery, setContextQuery] = useState('');
   const [contextClients, setContextClients] = useState<ClientRecord[]>([]);
   const [contextLoading, setContextLoading] = useState(false);
+  const [documentPending, setDocumentPending] = useState(false);
   const catalogInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string) => {
@@ -288,6 +289,34 @@ export function App() {
     }
   }, [mutationPending, proposal]);
 
+  const previewProposal = useCallback(async () => {
+    if (!proposal || documentPending) return;
+    setDocumentPending(true);
+    setError('');
+    try {
+      await window.construtec?.previewProposal(proposal);
+      showNotice('Pré-visualização da proposta aberta.');
+    } catch (documentError) {
+      setError(documentError instanceof Error ? documentError.message : 'Não foi possível abrir a pré-visualização.');
+    } finally {
+      setDocumentPending(false);
+    }
+  }, [documentPending, proposal]);
+
+  const exportProposal = useCallback(async () => {
+    if (!proposal || proposal.items.length === 0 || documentPending) return;
+    setDocumentPending(true);
+    setError('');
+    try {
+      const result = await window.construtec?.exportProposal(proposal);
+      if (result && !result.canceled) showNotice('Proposta gerada em PDF e Word com sucesso.');
+    } catch (documentError) {
+      setError(documentError instanceof Error ? documentError.message : 'Não foi possível gerar os documentos.');
+    } finally {
+      setDocumentPending(false);
+    }
+  }, [documentPending, proposal]);
+
   const updateProposalContext = useCallback(async (clientId: string, workId: string) => {
     if (!proposal || !proposal.isLatest || mutationPending) return;
     setMutationPending(true);
@@ -330,9 +359,9 @@ export function App() {
         } else if (action === 's') {
           void createRevision();
         } else if (action === 'p') {
-          announce('Pré-visualização entra na próxima etapa de documentos.');
+          void previewProposal();
         } else if (action === 'g') {
-          announce('Geração de proposta entra na próxima etapa de documentos.');
+          void exportProposal();
         }
         return;
       }
@@ -358,7 +387,7 @@ export function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activeNav, addCatalogItem, catalogOpen, catalogResults, contextOpen, createRevision, proposal?.isLatest, selectedCatalogIndex]);
+  }, [activeNav, addCatalogItem, catalogOpen, catalogResults, contextOpen, createRevision, exportProposal, previewProposal, proposal?.isLatest, selectedCatalogIndex]);
 
   const proposalLabel = proposal ? `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}` : 'Carregando proposta';
   const allSelected = Boolean(proposal?.items.length) && selectedItemIds.length === proposal?.items.length;
@@ -541,8 +570,8 @@ export function App() {
           <div className="panel-section actions">
             <h2>Ações</h2>
             <button type="button" disabled={!proposal?.isLatest || mutationPending} onClick={() => void createRevision()}><Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd></button>
-            <button type="button" disabled title="Pré-visualização será implementada na etapa de documentos."><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
-            <button className="primary generate" type="button" disabled title="Geração de documentos será implementada na próxima etapa."><FilePlus2 size={18} /> Gerar proposta <kbd>Ctrl+G</kbd></button>
+            <button type="button" disabled={!proposal || documentPending} onClick={() => void previewProposal()}><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
+            <button className="primary generate" type="button" disabled={!proposal?.items.length || documentPending} onClick={() => void exportProposal()}><FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd></button>
           </div>
           <div className="panel-footnote">
             <p className="demo-data-note">Base inicial demonstrativa · salva localmente</p>
