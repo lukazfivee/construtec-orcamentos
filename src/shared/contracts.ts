@@ -38,6 +38,25 @@ export type ExsatBatchPreview = {
   failedUrls: string[];
 };
 
+export type ExsatSyncHistoryEntry = {
+  id: string;
+  startedAt: string;
+  completedAt: string;
+  mode: 'full' | 'incremental' | 'manual';
+  pagesRead: number;
+  itemsFound: number;
+  created: number;
+  updated: number;
+  ignored: number;
+  failedPages: number;
+};
+
+export type ExsatSyncInfo = {
+  lastSyncAt?: string;
+  lastFullSyncAt?: string;
+  history: ExsatSyncHistoryEntry[];
+};
+
 export type CatalogImportFile = {
   canceled: boolean;
   kind?: 'table' | 'image';

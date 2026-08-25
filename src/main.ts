@@ -6,7 +6,7 @@ import { startApiServer, type ApiRuntime } from './server/startApiServer';
 import type { ProposalDetail } from './shared/contracts';
 import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
 import { selectCatalogImport } from './main/catalogImport';
-import { disconnectExsat, exsatConnectionStatus, openExsatLogin, previewAuthenticatedExsat, previewAuthenticatedExsatAuto, previewAuthenticatedExsatBatch } from './main/exsatSession';
+import { disconnectExsat, exsatConnectionStatus, getExsatSyncInfo, openExsatLogin, previewAuthenticatedExsat, previewAuthenticatedExsatAuto, previewAuthenticatedExsatBatch, recordExsatSyncResult } from './main/exsatSession';
 
 if (started) app.quit();
 
@@ -110,6 +110,8 @@ app.whenReady().then(async () => {
   ipcMain.handle('exsat:preview', (_event, url: string) => previewAuthenticatedExsat(url));
   ipcMain.handle('exsat:preview-batch', (_event, urls: string[]) => previewAuthenticatedExsatBatch(urls));
   ipcMain.handle('exsat:preview-auto', () => previewAuthenticatedExsatAuto());
+  ipcMain.handle('exsat:sync-info', () => getExsatSyncInfo());
+  ipcMain.handle('exsat:record-sync', (_event, result: { created: number; updated: number }) => recordExsatSyncResult(result));
 
   await createWindow();
 
