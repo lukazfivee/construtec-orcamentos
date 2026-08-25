@@ -1,3 +1,5 @@
+import type { ProposalDetail } from '../shared/contracts';
+
 export {};
 
 declare global {
@@ -9,6 +11,8 @@ declare global {
         platform: string;
         storage: 'local';
       }>;
+      previewProposal: (proposal: ProposalDetail) => Promise<{ opened: boolean }>;
+      exportProposal: (proposal: ProposalDetail) => Promise<{ canceled: boolean; files: string[] }>;
     };
   }
 }
