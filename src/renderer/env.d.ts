@@ -1,4 +1,4 @@
-import type { CatalogImportFile, ProposalDetail } from '../shared/contracts';
+import type { CatalogImportFile, CatalogImportItem, ProposalDetail } from '../shared/contracts';
 
 export {};
 
@@ -14,6 +14,10 @@ declare global {
       previewProposal: (proposal: ProposalDetail) => Promise<{ opened: boolean }>;
       exportProposal: (proposal: ProposalDetail) => Promise<{ canceled: boolean; files: string[] }>;
       selectCatalogImport: (kind: 'table' | 'image') => Promise<CatalogImportFile>;
+      exsatStatus: () => Promise<{ connected: boolean }>;
+      exsatLogin: () => Promise<{ connected: boolean }>;
+      exsatLogout: () => Promise<{ connected: boolean }>;
+      previewExsat: (url: string) => Promise<{ items: CatalogImportItem[]; connected: boolean }>;
     };
   }
 }
