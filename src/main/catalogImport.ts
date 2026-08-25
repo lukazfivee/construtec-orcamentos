@@ -65,8 +65,7 @@ if ($null -eq $engine) { throw 'Instale o pacote de idioma Português nas config
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $result = Await ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
 
-# O Windows OCR pode devolver uma tabela por coluna. Para preservar cada produto,
-# reconstruímos as linhas usando a posição visual (X/Y) de cada palavra.
+# Reconstrói as linhas pela posição visual X/Y. Isso evita a leitura da tabela por coluna.
 $words = New-Object System.Collections.Generic.List[object]
 foreach ($line in $result.Lines) {
   foreach ($word in $line.Words) {
@@ -89,7 +88,7 @@ if ($words.Count -eq 0) {
 
 $avgHeight = ($words | Measure-Object -Property H -Average).Average
 if (-not $avgHeight -or $avgHeight -lt 4) { $avgHeight = 14 }
-$tolerance = [Math]::Max(5, $avgHeight * 0.72)
+$tolerance = [Math]::Max(7, $avgHeight * 0.9)
 $visualRows = New-Object System.Collections.Generic.List[object]
 
 foreach ($word in ($words | Sort-Object CY, X)) {
@@ -112,8 +111,33 @@ foreach ($word in ($words | Sort-Object CY, X)) {
   }
 }
 
+# Detecta o início da coluna Vl. Total. Nos orçamentos Exsat ela fica à direita de Vl. Líq.
+# Ao omitir essa coluna, o último valor monetário da linha passa a ser exatamente o Vl. Líq.
+$totalColumnX = $null
+foreach ($row in ($visualRows | Sort-Object CY)) {
+  $orderedHeader = @($row.Words | Sort-Object X)
+  $headerText = (($orderedHeader | ForEach-Object { $_.Text }) -join ' ')
+  if ($headerText -match '(?i)Fab\.?\s+Cod\.?\s+Descri[cç][aã]o' -and $headerText -match '(?i)Vl\.?\s*Total') {
+    for ($i = 0; $i -lt $orderedHeader.Count; $i += 1) {
+      if ([string]$orderedHeader[$i].Text -match '^(?i:Total)$') {
+        $previous = if ($i -gt 0) { [string]$orderedHeader[$i - 1].Text } else { '' }
+        if ($previous -match '^(?i:Vl\.?|VL\.?)$') {
+          $totalColumnX = [double]$orderedHeader[$i - 1].X
+          break
+        }
+      }
+    }
+  }
+  if ($null -ne $totalColumnX) { break }
+}
+
 foreach ($row in ($visualRows | Sort-Object CY)) {
   $ordered = @($row.Words | Sort-Object X)
+  if ($null -ne $totalColumnX) {
+    $ordered = @($ordered | Where-Object { [double]$_.X -lt ([double]$totalColumnX - 4) })
+  }
+  if ($ordered.Count -eq 0) { continue }
+
   $parts = New-Object System.Collections.Generic.List[string]
   $previous = $null
   foreach ($word in $ordered) {
