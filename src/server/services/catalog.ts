@@ -101,6 +101,8 @@ const normalizedItem = (item: CatalogImportItem) => ({
   active: item.active,
 });
 
+const isExsatItem = (item: CatalogImportItem) => item.source.trim().toUpperCase().startsWith('EXSAT');
+
 export const previewCatalogImport = async (database: LocalDatabase, items: CatalogImportItem[]): Promise<CatalogImportPreview> => {
   const codes = items.map((item) => item.code.trim()).filter(Boolean);
   const existing = codes.length === 0 ? [] : (await database.query<ProductRow>(`
@@ -112,7 +114,7 @@ export const previewCatalogImport = async (database: LocalDatabase, items: Catal
   const byCode = new Map(existing.map((row) => [row.code.toLowerCase(), row]));
   const previewItems = items.map((item) => {
     const normalized = normalizedItem(item);
-    if (!Number.isFinite(normalized.currentCost) || normalized.currentCost <= 0) return { ...item, status: 'no_price' as const };
+    if (isExsatItem(item) && (!Number.isFinite(normalized.currentCost) || normalized.currentCost <= 0)) return { ...item, status: 'no_price' as const };
     const current = byCode.get(normalized.code.toLowerCase());
     if (!current) return { ...item, status: 'new' as const };
     const unchanged = (current.manufacturer ?? null) === normalized.manufacturer
@@ -137,7 +139,7 @@ export const previewCatalogImport = async (database: LocalDatabase, items: Catal
 };
 
 export const importCatalogProducts = async (database: LocalDatabase, items: CatalogImportItem[]) => {
-  const safeItems = items.filter((item) => Number.isFinite(item.currentCost) && item.currentCost > 0);
+  const safeItems = items.filter((item) => !isExsatItem(item) || (Number.isFinite(item.currentCost) && item.currentCost > 0));
   return database.transaction(async (transaction) => {
     let created = 0;
     let updated = 0;
