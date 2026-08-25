@@ -6,6 +6,7 @@ import { startApiServer, type ApiRuntime } from './server/startApiServer';
 import type { ProposalDetail } from './shared/contracts';
 import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
 import { selectCatalogImport } from './main/catalogImport';
+import { normalizeCatalogImportFile } from './main/catalogImportNormalize';
 import { disconnectExsat, exsatConnectionStatus, getExsatSyncInfo, openExsatLogin, previewAuthenticatedExsat, previewAuthenticatedExsatAuto, previewAuthenticatedExsatBatch, recordExsatSyncResult } from './main/exsatSession';
 
 if (started) app.quit();
@@ -103,7 +104,10 @@ app.whenReady().then(async () => {
     return { canceled: false, files: [pdfPath, docxPath] };
   });
 
-  ipcMain.handle('catalog:select-import', (_event, kind: 'table' | 'image') => selectCatalogImport(kind));
+  ipcMain.handle('catalog:select-import', async (_event, kind: 'table' | 'image') => {
+    const result = await selectCatalogImport(kind);
+    return normalizeCatalogImportFile(result);
+  });
   ipcMain.handle('exsat:status', () => exsatConnectionStatus());
   ipcMain.handle('exsat:login', () => openExsatLogin());
   ipcMain.handle('exsat:logout', () => disconnectExsat());
