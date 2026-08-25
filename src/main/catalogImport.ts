@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -12,6 +12,22 @@ const OCR_URL = process.env.CONSTRUTEC_OCR_URL?.trim();
 const OCR_TOKEN = process.env.CONSTRUTEC_OCR_TOKEN?.trim();
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const STRUCTURED_MARKER = '@CATALOG@';
+
+const runPowerShellScript = async (script: string, env: NodeJS.ProcessEnv, timeout: number) => {
+  const scriptDir = await mkdtemp(path.join(tmpdir(), 'construtec-ps-'));
+  const scriptPath = path.join(scriptDir, 'script.ps1');
+  try {
+    await writeFile(scriptPath, `\uFEFF${script}`, 'utf8');
+    return await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', scriptPath], {
+      env,
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024,
+      timeout,
+    });
+  } finally {
+    await rm(scriptDir, { recursive: true, force: true });
+  }
+};
 
 const mimeFromExtension = (extension: string) => {
   if (extension === '.png') return 'image/png';
@@ -345,10 +361,7 @@ foreach ($row in ($visualRows | Sort-Object CY)) {
   (($parts -join ' ') -replace '\s{4,}', '   ').Trim()
 }
 `;
-  const encoded = Buffer.from(script, 'utf16le').toString('base64');
-  const result = await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
-    env: { ...process.env, CONSTRUTEC_OCR_PATH: filePath }, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, timeout: 120_000,
-  });
+  const result = await runPowerShellScript(script, { ...process.env, CONSTRUTEC_OCR_PATH: filePath }, 120_000);
   return result.stdout.trim();
 };
 
@@ -380,11 +393,8 @@ for ($i = 0; $i -lt $pdf.PageCount; $i += 1) {
   } finally { $page.Dispose() }
 }
 `;
-  const encoded = Buffer.from(script, 'utf16le').toString('base64');
   try {
-    await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
-      env: { ...process.env, CONSTRUTEC_PDF_PATH: filePath, CONSTRUTEC_PDF_OUT: outputDir }, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, timeout: 180_000,
-    });
+    await runPowerShellScript(script, { ...process.env, CONSTRUTEC_PDF_PATH: filePath, CONSTRUTEC_PDF_OUT: outputDir }, 180_000);
     const pages = (await readdir(outputDir)).filter((name) => /^page-\d+\.png$/i.test(name)).sort().map((name) => path.join(outputDir, name));
     if (pages.length === 0) throw new Error('PDF_SEM_PAGINAS');
     return { outputDir, pages };
