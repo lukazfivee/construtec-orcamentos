@@ -76,12 +76,11 @@ const exsatRowFromText = (line: string): Row | null => {
   if (firstPriceIndex < 0) return null;
 
   const beforePrice = line.slice(0, firstPriceIndex).trim();
-  const codeMatches = [...beforePrice.matchAll(/\b\d{5,14}\b/g)];
-  if (codeMatches.length < 2 || codeMatches.length > 2) return null;
-  const manufacturerCode = codeMatches[0][0];
-  const supplierCode = codeMatches[1][0];
-  const supplierEnd = (codeMatches[1].index ?? 0) + supplierCode.length;
-  const description = beforePrice.slice(supplierEnd)
+  const codePrefix = beforePrice.match(/^\s*(\d{5,14})\s+(\d{2,10})\b/);
+  if (!codePrefix) return null;
+  const manufacturerCode = codePrefix[1];
+  const supplierCode = codePrefix[2];
+  const description = beforePrice.slice(codePrefix[0].length)
     .replace(/^\s*[-–—|:;]+\s*/, '')
     .replace(/\b(?:un|und|pc|p[cç])\b\s*$/i, '')
     .trim();
@@ -127,7 +126,7 @@ export const parseExsatQuoteText = (text: string): Row[] => {
   if (lineRows.length > 0) return lineRows;
 
   const normalized = text.replace(/\s+/g, ' ').trim();
-  const productPattern = /(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{3,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
+  const productPattern = /(\d{6,14})\s+(\d{2,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{2,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
   const rows = [...normalized.matchAll(productPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, description, , , , netPrice] = match;
     if (isAdministrativeExsatText(description)) return null;
