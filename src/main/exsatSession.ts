@@ -1,7 +1,7 @@
 import { app, BrowserWindow, session } from 'electron';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { CatalogImportItem, ExsatBatchPreview } from '../shared/contracts';
+import type { CatalogImportItem, ExsatBatchPreview, ExsatSyncHistoryEntry, ExsatSyncInfo } from '../shared/contracts';
 import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
 const LOGIN_URL = 'https://exsat.com.br/central-cliente/login/';
@@ -10,6 +10,7 @@ const PARTITION = 'persist:construtec-exsat';
 const MAX_AUTO_PAGES = 60;
 const MAX_INCREMENTAL_PAGES = 24;
 const MAX_AUTO_ITEMS = 500;
+const MAX_HISTORY = 20;
 const FULL_SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 let loginWindow: BrowserWindow | undefined;
 
@@ -19,14 +20,28 @@ type ExsatSyncPage = {
   lastSeenAt: string;
 };
 
+type ExsatPendingSync = Omit<ExsatSyncHistoryEntry, 'completedAt' | 'created' | 'updated'>;
+
 type ExsatSyncState = {
   lastSyncAt?: string;
   lastFullSyncAt?: string;
   pages: ExsatSyncPage[];
+  history: ExsatSyncHistoryEntry[];
+  pendingSync?: ExsatPendingSync;
 };
 
 const exsatSession = () => session.fromPartition(PARTITION);
 const syncStatePath = () => path.join(app.getPath('userData'), 'exsat-sync-state.json');
+
+const isHistoryEntry = (entry: unknown): entry is ExsatSyncHistoryEntry => {
+  if (!entry || typeof entry !== 'object') return false;
+  const value = entry as Partial<ExsatSyncHistoryEntry>;
+  return typeof value.id === 'string' && typeof value.startedAt === 'string' && typeof value.completedAt === 'string'
+    && (value.mode === 'full' || value.mode === 'incremental' || value.mode === 'manual')
+    && typeof value.pagesRead === 'number' && typeof value.itemsFound === 'number'
+    && typeof value.created === 'number' && typeof value.updated === 'number'
+    && typeof value.ignored === 'number' && typeof value.failedPages === 'number';
+};
 
 const loadSyncState = async (): Promise<ExsatSyncState> => {
   try {
@@ -37,15 +52,43 @@ const loadSyncState = async (): Promise<ExsatSyncState> => {
       pages: Array.isArray(state.pages) ? state.pages.filter((page): page is ExsatSyncPage => (
         Boolean(page) && typeof page.url === 'string' && typeof page.productCount === 'number' && typeof page.lastSeenAt === 'string'
       )).slice(0, MAX_AUTO_PAGES) : [],
+      history: Array.isArray(state.history) ? state.history.filter(isHistoryEntry).slice(0, MAX_HISTORY) : [],
+      pendingSync: state.pendingSync,
     };
   } catch {
-    return { pages: [] };
+    return { pages: [], history: [] };
   }
 };
 
 const saveSyncState = async (state: ExsatSyncState) => {
   await mkdir(path.dirname(syncStatePath()), { recursive: true });
   await writeFile(syncStatePath(), JSON.stringify(state, null, 2), 'utf8');
+};
+
+export const getExsatSyncInfo = async (): Promise<ExsatSyncInfo> => {
+  const state = await loadSyncState();
+  return {
+    lastSyncAt: state.lastSyncAt,
+    lastFullSyncAt: state.lastFullSyncAt,
+    history: state.history,
+  };
+};
+
+export const recordExsatSyncResult = async (result: { created: number; updated: number }) => {
+  const state = await loadSyncState();
+  if (!state.pendingSync) return getExsatSyncInfo();
+  const completed: ExsatSyncHistoryEntry = {
+    ...state.pendingSync,
+    completedAt: new Date().toISOString(),
+    created: Math.max(0, Math.trunc(result.created)),
+    updated: Math.max(0, Math.trunc(result.updated)),
+  };
+  await saveSyncState({
+    ...state,
+    pendingSync: undefined,
+    history: [completed, ...state.history].slice(0, MAX_HISTORY),
+  });
+  return getExsatSyncInfo();
 };
 
 const responseHtml = async (url: string) => {
@@ -144,6 +187,7 @@ export const previewAuthenticatedExsat = async (rawUrl: string): Promise<{ items
 export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise<ExsatBatchPreview> => {
   const status = await exsatConnectionStatus();
   if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
+  const startedAt = new Date().toISOString();
   const urls = [...new Set(rawUrls.map((value) => value.trim()).filter(Boolean).map((value) => validateExsatUrl(value).toString()))].slice(0, 30);
   if (urls.length === 0) throw new Error('EXSAT_URL_INVALID');
   const items = new Map<string, CatalogImportItem>();
@@ -162,6 +206,21 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
     }
   }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
+  const state = await loadSyncState();
+  const now = new Date().toISOString();
+  await saveSyncState({
+    ...state,
+    lastSyncAt: now,
+    pendingSync: {
+      id: crypto.randomUUID(),
+      startedAt,
+      mode: 'manual',
+      pagesRead: urls.length - failedUrls.length,
+      itemsFound: items.size,
+      ignored,
+      failedPages: failedUrls.length,
+    },
+  });
   return {
     items: [...items.values()].slice(0, 500),
     connected: true,
@@ -174,6 +233,7 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
 export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview> => {
   const status = await exsatConnectionStatus();
   if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
+  const startedAt = new Date().toISOString();
 
   const previous = await loadSyncState();
   const lastFullSync = previous.lastFullSyncAt ? Date.parse(previous.lastFullSyncAt) : 0;
@@ -231,9 +291,19 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     .sort((left, right) => right.productCount - left.productCount || Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt))
     .slice(0, MAX_AUTO_PAGES);
   await saveSyncState({
+    ...previous,
     lastSyncAt: now,
     lastFullSyncAt: fullSync ? now : previous.lastFullSyncAt,
     pages: nextPages,
+    pendingSync: {
+      id: crypto.randomUUID(),
+      startedAt,
+      mode: fullSync ? 'full' : 'incremental',
+      pagesRead: visited.size - failedUrls.length,
+      itemsFound: items.size,
+      ignored,
+      failedPages: failedUrls.length,
+    },
   });
 
   return {
