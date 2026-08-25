@@ -1,4 +1,4 @@
-import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ProposalDetail } from '../shared/contracts';
+import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ExsatSyncInfo, ProposalDetail } from '../shared/contracts';
 
 export {};
 
@@ -20,6 +20,8 @@ declare global {
       previewExsat: (url: string) => Promise<{ items: CatalogImportItem[]; connected: boolean }>;
       previewExsatBatch: (urls: string[]) => Promise<ExsatBatchPreview>;
       previewExsatAuto: () => Promise<ExsatBatchPreview>;
+      exsatSyncInfo: () => Promise<ExsatSyncInfo>;
+      recordExsatSync: (result: { created: number; updated: number }) => Promise<ExsatSyncInfo>;
     };
   }
 }
