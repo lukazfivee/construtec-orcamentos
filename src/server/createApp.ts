@@ -68,6 +68,18 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.status(409).json({ error: 'Já existe um item com esse código no catálogo.' });
       return;
     }
+    if (error instanceof Error && error.message === 'EXSAT_URL_INVALID') {
+      response.status(400).json({ error: 'Use um endereço HTTPS do site exsat.com.br.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS') {
+      response.status(422).json({ error: 'Nenhum produto foi identificado nessa página da Exsat.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'EXSAT_UNAVAILABLE') {
+      response.status(502).json({ error: 'Não foi possível consultar a Exsat agora.' });
+      return;
+    }
     console.error(error);
     response.status(500).json({ error: 'Não foi possível concluir a operação local.' });
   });
