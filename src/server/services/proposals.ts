@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { CatalogProduct, ProposalDetail, ProposalLine, ProposalRevisionSummary } from '../../shared/contracts';
+import type { CatalogProduct, ProposalDetail, ProposalLine, ProposalRevisionSummary, ProposalSummary } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 
 type ProposalRow = {
@@ -117,6 +117,86 @@ export const getCurrentProposal = async (database: LocalDatabase): Promise<Propo
   const proposalId = result.rows[0]?.id;
   return proposalId ? getProposalById(database, proposalId) : null;
 };
+
+export const listCurrentProposals = async (database: LocalDatabase): Promise<ProposalSummary[]> => {
+  const result = await database.query<{
+    id: string; proposal_number: string; revision: number; client_name: string; work_name: string;
+    status: ProposalDetail['status']; item_count: string; total_sale: string; updated_at: string;
+  }>(`
+    SELECT p.id, p.proposal_number, p.revision,
+      COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
+      COALESCE(p.snapshot_work_name, p.work_name) AS work_name,
+      p.status, count(i.id)::text AS item_count,
+      COALESCE(sum(i.quantity * i.sale_unit_price), 0)::text AS total_sale,
+      p.updated_at::text
+    FROM proposals p
+    JOIN clients c ON c.id = p.client_id
+    LEFT JOIN proposal_items i ON i.proposal_id = p.id
+    WHERE NOT EXISTS (
+      SELECT 1 FROM proposals newer
+      WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
+    )
+    GROUP BY p.id, c.trade_name, c.legal_name
+    ORDER BY p.updated_at DESC
+    LIMIT 20
+  `);
+  return result.rows.map((proposal) => ({
+    id: proposal.id,
+    number: proposal.proposal_number,
+    revision: proposal.revision,
+    clientName: proposal.client_name,
+    workName: proposal.work_name,
+    status: proposal.status,
+    itemCount: Number(proposal.item_count),
+    totalSale: roundMoney(Number(proposal.total_sale)),
+    updatedAt: proposal.updated_at,
+  }));
+};
+
+export const createProposal = async (
+  database: LocalDatabase,
+  input: { clientId: string; workId: string; scope: string; validUntil?: string | null },
+) => database.transaction(async (transaction) => {
+  const contextResult = await transaction.query<{ client_name: string; work_name: string }>(`
+    SELECT COALESCE(c.trade_name, c.legal_name) AS client_name, w.name AS work_name
+    FROM works w
+    JOIN clients c ON c.id = w.client_id
+    WHERE c.id = $1 AND w.id = $2 AND w.active = true
+  `, [input.clientId, input.workId]);
+  const context = contextResult.rows[0];
+  if (!context) throw new Error('WORK_NOT_FOUND');
+
+  const userResult = await transaction.query<{ id: string }>(`
+    SELECT id FROM users WHERE active = true
+    ORDER BY CASE WHEN role = 'admin' THEN 0 ELSE 1 END, created_at
+    LIMIT 1
+  `);
+  const userId = userResult.rows[0]?.id;
+  if (!userId) throw new Error('USER_NOT_FOUND');
+
+  const numberResult = await transaction.query<{ proposal_number: string }>(`
+    SELECT proposal_number
+    FROM proposals
+    WHERE proposal_number ~ '^PA-[0-9]+$'
+    ORDER BY substring(proposal_number from 4)::integer DESC
+    LIMIT 1
+  `);
+  const currentNumber = Number(numberResult.rows[0]?.proposal_number.slice(3) ?? 1000);
+  const proposalNumber = `PA-${String(currentNumber + 1).padStart(4, '0')}`;
+  const proposalId = randomUUID();
+  await transaction.query(`
+    INSERT INTO proposals
+      (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+       snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by)
+    VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', 1.45, $8, $9)
+  `, [proposalId, proposalNumber, input.clientId, input.workId, context.work_name,
+    context.client_name, input.scope.trim(), input.validUntil || null, userId]);
+  await transaction.query(`
+    INSERT INTO audit_events (id, user_id, entity_type, entity_id, action, after_data)
+    VALUES ($1, $2, 'proposal', $3, 'created', $4::jsonb)
+  `, [randomUUID(), userId, proposalId, JSON.stringify({ proposalNumber, revision: 0, ...input })]);
+  return proposalId;
+});
 
 type Queryable = Pick<LocalDatabase, 'query'>;
 
