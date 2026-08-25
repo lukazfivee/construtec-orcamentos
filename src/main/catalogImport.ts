@@ -11,6 +11,7 @@ const execFileAsync = promisify(execFile);
 const OCR_URL = process.env.CONSTRUTEC_OCR_URL?.trim();
 const OCR_TOKEN = process.env.CONSTRUTEC_OCR_TOKEN?.trim();
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const STRUCTURED_MARKER = '@CATALOG@';
 
 const mimeFromExtension = (extension: string) => {
   if (extension === '.png') return 'image/png';
@@ -60,6 +61,11 @@ function Await($operation, $resultType) {
 function Join-Words($items) {
   return ((@($items | Sort-Object X | ForEach-Object { [string]$_.Text }) -join ' ') -replace '\s+', ' ').Trim()
 }
+function Last-Money($value) {
+  $matches = [regex]::Matches([string]$value, '(?:\d{1,3}(?:\.\d{3})+|\d+)[,.]\d{2}')
+  if ($matches.Count -eq 0) { return '' }
+  return [string]$matches[$matches.Count - 1].Value
+}
 function Resolve-NetValue($netValue, $unitValue, $discountValue) {
   $net = (($netValue -replace '\s+', '')).Trim()
   if ($net -match '\d+[,.]\d{2}') { return $net }
@@ -71,15 +77,11 @@ function Resolve-NetValue($netValue, $unitValue, $discountValue) {
     $unit = [decimal]::Parse($unitText, $styles, $culture)
     $discount = [decimal]0
     $discountText = (($discountValue -replace '\s+', '')).Trim()
-    if ($discountText -match '\d+[,.]\d{2}') {
-      $discount = [decimal]::Parse($discountText, $styles, $culture)
-    }
+    if ($discountText -match '\d+[,.]\d{2}') { $discount = [decimal]::Parse($discountText, $styles, $culture) }
     $resolved = $unit - $discount
     if ($resolved -lt 0) { return '' }
     return $resolved.ToString('N2', $culture)
-  } catch {
-    return $unitText
-  }
+  } catch { return $unitText }
 }
 $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:CONSTRUTEC_OCR_PATH)) ([Windows.Storage.StorageFile])
 $stream = Await ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
@@ -115,16 +117,12 @@ $avgHeight = ($words | Measure-Object -Property H -Average).Average
 if (-not $avgHeight -or $avgHeight -lt 4) { $avgHeight = 14 }
 $tolerance = [Math]::Max(7, $avgHeight * 0.9)
 $visualRows = New-Object System.Collections.Generic.List[object]
-
 foreach ($word in ($words | Sort-Object CY, X)) {
   $best = $null
   $bestDistance = [double]::MaxValue
   foreach ($row in $visualRows) {
     $distance = [Math]::Abs([double]$row.CY - [double]$word.CY)
-    if ($distance -le $tolerance -and $distance -lt $bestDistance) {
-      $best = $row
-      $bestDistance = $distance
-    }
+    if ($distance -le $tolerance -and $distance -lt $bestDistance) { $best = $row; $bestDistance = $distance }
   }
   if ($null -eq $best) {
     $list = New-Object System.Collections.Generic.List[object]
@@ -136,13 +134,95 @@ foreach ($word in ($words | Sort-Object CY, X)) {
   }
 }
 
+# Layout Telcabos: Item, Codigo, Cod.Fab, Qtde, Un, Descricao Detalhada, CST, Class.Fiscal, Marca, Previsao Entrega, Vl. Unitario, Vl.ST, Total, Icms.
+$telHeader = $null
+foreach ($row in ($visualRows | Sort-Object CY)) {
+  $text = Join-Words $row.Words
+  if ($text -match '(?i)\b(?:I|Í)tem\b' -and $text -match '(?i)C[oó]digo' -and $text -match '(?i)Qtde' -and $text -match '(?i)Descri[cç][aã]o' -and $text -match '(?i)Marca' -and $text -match '(?i)Unit[aá]rio') {
+    $telHeader = $row
+    break
+  }
+}
+
+if ($null -ne $telHeader) {
+  $hw = @($telHeader.Words | Sort-Object X)
+  $itemWord = @($hw | Where-Object { $_.Text -match '^(?i:(?:I|Í)tem)$' })[0]
+  $codeWord = @($hw | Where-Object { $_.Text -match '^(?i:C[oó]digo)$' })[0]
+  $fabWord = @($hw | Where-Object { $_.Text -match '^(?i:C[oó]d\.?Fab)$' })[0]
+  $qtyWord = @($hw | Where-Object { $_.Text -match '^(?i:Qtde)$' })[0]
+  $unWord = @($hw | Where-Object { $_.Text -match '^(?i:Un)$' })[0]
+  $descriptionWord = @($hw | Where-Object { $_.Text -match '^(?i:Descri[cç][aã]o)$' })[0]
+  $cstWord = @($hw | Where-Object { $_.Text -match '^(?i:CST)$' })[0]
+  $brandWord = @($hw | Where-Object { $_.Text -match '^(?i:Marca)$' })[0]
+  $deliveryWord = @($hw | Where-Object { $_.Text -match '^(?i:Previs[aã]o)$' })[0]
+  $unitPriceWord = @($hw | Where-Object { $_.Text -match '^(?i:Unit[aá]rio)$' })[0]
+  $stWord = @($hw | Where-Object { $_.Text -match '^(?i:(?:Vl\.?ST|V\.?ST|ST))$' })[0]
+
+  if ($itemWord -and $codeWord -and $qtyWord -and $unWord -and $descriptionWord -and $cstWord -and $brandWord -and $deliveryWord -and $unitPriceWord) {
+    $itemX = [double]$itemWord.CX
+    $codeX = [double]$codeWord.CX
+    $fabX = if ($fabWord) { [double]$fabWord.CX } else { ($codeX + [double]$qtyWord.CX) / 2.0 }
+    $qtyX = [double]$qtyWord.CX
+    $unX = [double]$unWord.CX
+    $descriptionX = [double]$descriptionWord.CX
+    $cstX = [double]$cstWord.CX
+    $brandX = [double]$brandWord.CX
+    $deliveryX = [double]$deliveryWord.CX
+    $priceX = [double]$unitPriceWord.CX
+    $stX = if ($stWord) { [double]$stWord.CX } else { $priceX + [Math]::Max(60, $avgHeight * 5) }
+
+    $bItemCode = ($itemX + $codeX) / 2.0
+    $bCodeFab = ($codeX + $fabX) / 2.0
+    $bFabQty = ($fabX + $qtyX) / 2.0
+    $bQtyUn = ($qtyX + $unX) / 2.0
+    $bUnDescription = ($unX + $descriptionX) / 2.0
+    $bDescriptionCst = ($descriptionX + $cstX) / 2.0
+    $bBrandDelivery = ($brandX + $deliveryX) / 2.0
+    $bDeliveryPrice = ($deliveryX + $priceX) / 2.0
+    $bPriceSt = ($priceX + $stX) / 2.0
+
+    $anchors = @($words | Where-Object {
+      $_.CY -gt ($telHeader.CY + $avgHeight * 0.65) -and
+      $_.CX -lt $bItemCode -and
+      $_.Text -match '^\d{1,3}$'
+    } | Sort-Object CY)
+
+    $emitted = 0
+    for ($i = 0; $i -lt $anchors.Count; $i += 1) {
+      $anchor = $anchors[$i]
+      $top = if ($i -eq 0) { $telHeader.CY + ($avgHeight * 0.55) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
+      $bottom = if ($i -lt ($anchors.Count - 1)) { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 } else { [double]$anchor.CY + ($avgHeight * 3.2) }
+      $band = @($words | Where-Object { $_.CY -gt $top -and $_.CY -lt $bottom })
+
+      $code = Join-Words @($band | Where-Object { $_.CX -ge $bItemCode -and $_.CX -lt $bCodeFab })
+      $fabCode = Join-Words @($band | Where-Object { $_.CX -ge $bCodeFab -and $_.CX -lt $bFabQty })
+      $unit = Join-Words @($band | Where-Object { $_.CX -ge $bQtyUn -and $_.CX -lt $bUnDescription })
+      $description = Join-Words @($band | Where-Object { $_.CX -ge $bUnDescription -and $_.CX -lt $bDescriptionCst })
+      $brand = Join-Words @($band | Where-Object { $_.CX -ge $bBrandDelivery -and $_.CX -lt $bDeliveryPrice })
+      $unitPriceText = Join-Words @($band | Where-Object { $_.CX -ge $bDeliveryPrice -and $_.CX -lt $bPriceSt })
+
+      $code = ($code -replace '[^A-Za-z0-9./_-]', '').Trim()
+      $fabCode = ($fabCode -replace '\s+', ' ').Trim()
+      $unit = ($unit -replace '[^A-Za-z]', '').Trim()
+      $description = ($description -replace '\s+', ' ').Trim()
+      $brand = ($brand -replace '\s+', ' ').Trim()
+      $unitPrice = Last-Money $unitPriceText
+
+      if ($code -match '^\d{4,10}$' -and $description.Length -ge 3 -and $unitPrice -match '\d+[,.]\d{2}') {
+        $source = if ($fabCode) { 'TELCABOS COD.FAB ' + $fabCode } else { 'TELCABOS' }
+        [Console]::WriteLine(('@CATALOG@' + [char]9 + $code + [char]9 + $description + [char]9 + 'Importado' + [char]9 + $brand + [char]9 + '' + [char]9 + $unit + [char]9 + $unitPrice + [char]9 + $source))
+        $emitted += 1
+      }
+    }
+    if ($emitted -gt 0) { exit 0 }
+  }
+}
+
+# Layout Exsat.
 $header = $null
 foreach ($row in ($visualRows | Sort-Object CY)) {
   $text = Join-Words $row.Words
-  if ($text -match '(?i)\bFab\.?\b' -and $text -match '(?i)\bCod\.?\b' -and $text -match '(?i)Descri[cç][aã]o' -and $text -match '(?i)Total') {
-    $header = $row
-    break
-  }
+  if ($text -match '(?i)\bFab\.?\b' -and $text -match '(?i)\bCod\.?\b' -and $text -match '(?i)Descri[cç][aã]o' -and $text -match '(?i)Total') { $header = $row; break }
 }
 
 if ($null -ne $header) {
@@ -157,15 +237,9 @@ if ($null -ne $header) {
   $totalWord = @($hw | Where-Object { $_.Text -match '^(?i:Total)$' })[0]
 
   if ($fabWord -and $codWord -and $descriptionWord -and $qtWord -and $unitWord -and $descValueWord -and $liqWord -and $totalWord) {
-    $fabX = [double]$fabWord.CX
-    $codX = [double]$codWord.CX
-    $descriptionX = [double]$descriptionWord.CX
-    $qtX = [double]$qtWord.CX
-    $unitX = [double]$unitWord.CX
-    $descValueX = [double]$descValueWord.CX
-    $liqX = [double]$liqWord.CX
-    $totalX = [double]$totalWord.CX
-
+    $fabX = [double]$fabWord.CX; $codX = [double]$codWord.CX; $descriptionX = [double]$descriptionWord.CX
+    $qtX = [double]$qtWord.CX; $unitX = [double]$unitWord.CX; $descValueX = [double]$descValueWord.CX
+    $liqX = [double]$liqWord.CX; $totalX = [double]$totalWord.CX
     $bFabCod = ($fabX + $codX) / 2.0
     $bCodDescription = ($codX + $descriptionX) / 2.0
     $bDescriptionQt = [double]$qtWord.X - [Math]::Max(4, $avgHeight * 0.35)
@@ -173,32 +247,18 @@ if ($null -ne $header) {
     $bUnitDesc = ($unitX + $descValueX) / 2.0
     $bDescLiq = ($descValueX + $liqX) / 2.0
     $bLiqTotal = ($liqX + $totalX) / 2.0
-
-    $tableEndRow = @($visualRows | Sort-Object CY | Where-Object {
-      $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^\s*Total\b'
-    })[0]
+    $tableEndRow = @($visualRows | Sort-Object CY | Where-Object { $_.CY -gt $header.CY -and (Join-Words $_.Words) -match '(?i)^\s*Total\b' })[0]
     $tableBottom = if ($tableEndRow) { [double]$tableEndRow.CY - ($avgHeight * 0.08) } else { [double]::MaxValue }
-
     $anchors = @($words | Where-Object {
-      $_.CY -gt ($header.CY + $avgHeight) -and
-      $_.CY -lt $tableBottom -and
-      $_.CX -lt $bFabCod -and
-      $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
-      $_.Text -match '\d'
+      $_.CY -gt ($header.CY + $avgHeight) -and $_.CY -lt $tableBottom -and $_.CX -lt $bFabCod -and
+      $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and $_.Text -match '\d'
     } | Sort-Object CY)
-
-    $emitted = 0
-    $emittedCodes = @{}
+    $emitted = 0; $emittedCodes = @{}
     for ($i = 0; $i -lt $anchors.Count; $i += 1) {
       $anchor = $anchors[$i]
       $top = if ($i -eq 0) { $header.CY + ($avgHeight * 0.6) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
-      if ($i -eq $anchors.Count - 1) {
-        $bottom = if ($tableEndRow) { $tableBottom } else { [double]$anchor.CY + ($avgHeight * 3.0) }
-      } else {
-        $bottom = ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0
-      }
+      $bottom = if ($i -eq $anchors.Count - 1) { if ($tableEndRow) { $tableBottom } else { [double]$anchor.CY + ($avgHeight * 3.0) } } else { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 }
       $band = @($words | Where-Object { $_.CY -gt $top -and $_.CY -lt $bottom })
-
       $fab = [string]$anchor.Text
       $supplier = Join-Words @($band | Where-Object { $_.CX -ge $bFabCod -and $_.CX -lt $bCodDescription })
       $description = Join-Words @($band | Where-Object { $_.CX -ge $bCodDescription -and $_.CX -lt $bDescriptionQt })
@@ -206,34 +266,23 @@ if ($null -ne $header) {
       $unitValue = Join-Words @($band | Where-Object { $_.CX -ge $bQtUnit -and $_.CX -lt $bUnitDesc })
       $discountValue = Join-Words @($band | Where-Object { $_.CX -ge $bUnitDesc -and $_.CX -lt $bDescLiq })
       $netValue = Join-Words @($band | Where-Object { $_.CX -ge $bDescLiq -and $_.CX -lt $bLiqTotal })
-
       $supplier = ($supplier -replace '[^0-9]', '')
       $description = ($description -replace '\s+', ' ').Trim()
       $quantity = ($quantity -replace '\s+', '').Trim()
       $unitValue = ($unitValue -replace '\s+', '').Trim()
       $discountValue = ($discountValue -replace '\s+', '').Trim()
       $netValue = Resolve-NetValue $netValue $unitValue $discountValue
-
       if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
         [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
-        $emittedCodes[$fab.ToUpperInvariant()] = $true
-        $emitted += 1
+        $emittedCodes[$fab.ToUpperInvariant()] = $true; $emitted += 1
       }
     }
-
-    foreach ($row in @($visualRows | Sort-Object CY | Where-Object {
-      $_.CY -gt ($header.CY + $avgHeight) -and $_.CY -lt $tableBottom
-    })) {
+    foreach ($row in @($visualRows | Sort-Object CY | Where-Object { $_.CY -gt ($header.CY + $avgHeight) -and $_.CY -lt $tableBottom })) {
       $rowWords = @($row.Words | Sort-Object X)
-      $fabCandidate = @($rowWords | Where-Object {
-        $_.CX -lt $bFabCod -and
-        $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and
-        $_.Text -match '\d'
-      })[0]
+      $fabCandidate = @($rowWords | Where-Object { $_.CX -lt $bFabCod -and $_.Text -match '^[A-Za-z0-9][A-Za-z0-9./_-]{2,31}$' -and $_.Text -match '\d' })[0]
       if (-not $fabCandidate) { continue }
       $fab = [string]$fabCandidate.Text
       if ($emittedCodes.ContainsKey($fab.ToUpperInvariant())) { continue }
-
       $rescueTop = [double]$row.CY - ($avgHeight * 0.75)
       $rescueBottom = [Math]::Min($tableBottom, [double]$row.CY + ($avgHeight * 1.35))
       $band = @($words | Where-Object { $_.CY -gt $rescueTop -and $_.CY -lt $rescueBottom })
@@ -243,21 +292,17 @@ if ($null -ne $header) {
       $unitValue = Join-Words @($band | Where-Object { $_.CX -ge $bQtUnit -and $_.CX -lt $bUnitDesc })
       $discountValue = Join-Words @($band | Where-Object { $_.CX -ge $bUnitDesc -and $_.CX -lt $bDescLiq })
       $netValue = Join-Words @($band | Where-Object { $_.CX -ge $bDescLiq -and $_.CX -lt $bLiqTotal })
-
       $supplier = ($supplier -replace '[^0-9]', '')
       $description = ($description -replace '\s+', ' ').Trim()
       $quantity = ($quantity -replace '\s+', '').Trim()
       $unitValue = ($unitValue -replace '\s+', '').Trim()
       $discountValue = ($discountValue -replace '\s+', '').Trim()
       $netValue = Resolve-NetValue $netValue $unitValue $discountValue
-
       if ($supplier -match '^\d{2,10}$' -and $description.Length -ge 3 -and $netValue -match '\d+[,.]\d{2}') {
         [Console]::WriteLine(($fab + [char]9 + $supplier + [char]9 + $description + [char]9 + $quantity + [char]9 + $unitValue + [char]9 + $discountValue + [char]9 + $netValue))
-        $emittedCodes[$fab.ToUpperInvariant()] = $true
-        $emitted += 1
+        $emittedCodes[$fab.ToUpperInvariant()] = $true; $emitted += 1
       }
     }
-
     if ($emitted -gt 0) { exit 0 }
   }
 }
@@ -272,18 +317,14 @@ foreach ($row in ($visualRows | Sort-Object CY)) {
       $gap = [double]$word.X - ([double]$previous.X + [double]$previous.W)
       if ($gap -gt [Math]::Max(22, $avgHeight * 1.8)) { $parts.Add('   ') }
     }
-    $parts.Add([string]$word.Text)
-    $previous = $word
+    $parts.Add([string]$word.Text); $previous = $word
   }
   (($parts -join ' ') -replace '\s{4,}', '   ').Trim()
 }
 `;
   const encoded = Buffer.from(script, 'utf16le').toString('base64');
   const result = await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
-    env: { ...process.env, CONSTRUTEC_OCR_PATH: filePath },
-    encoding: 'utf8',
-    maxBuffer: 10 * 1024 * 1024,
-    timeout: 120_000,
+    env: { ...process.env, CONSTRUTEC_OCR_PATH: filePath }, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, timeout: 120_000,
   });
   return result.stdout.trim();
 };
@@ -301,15 +342,8 @@ $null = [Windows.Storage.CreationCollisionOption,Windows.Storage,ContentType=Win
 $null = [Windows.Data.Pdf.PdfDocument,Windows.Data.Pdf,ContentType=WindowsRuntime]
 $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.IsGenericMethod })[0]
 $asTaskAction = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and -not $_.IsGenericMethod })[0]
-function Await($operation, $resultType) {
-  $task = $asTaskGeneric.MakeGenericMethod($resultType).Invoke($null, @($operation))
-  $task.Wait()
-  return $task.Result
-}
-function Await-Action($operation) {
-  $task = $asTaskAction.Invoke($null, @($operation))
-  $task.Wait()
-}
+function Await($operation, $resultType) { $task = $asTaskGeneric.MakeGenericMethod($resultType).Invoke($null, @($operation)); $task.Wait(); return $task.Result }
+function Await-Action($operation) { $task = $asTaskAction.Invoke($null, @($operation)); $task.Wait() }
 $file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:CONSTRUTEC_PDF_PATH)) ([Windows.Storage.StorageFile])
 $pdf = Await ([Windows.Data.Pdf.PdfDocument]::LoadFromFileAsync($file)) ([Windows.Data.Pdf.PdfDocument])
 $folder = Await ([Windows.Storage.StorageFolder]::GetFolderFromPathAsync($env:CONSTRUTEC_PDF_OUT)) ([Windows.Storage.StorageFolder])
@@ -326,30 +360,18 @@ for ($i = 0; $i -lt $pdf.PageCount; $i += 1) {
   const encoded = Buffer.from(script, 'utf16le').toString('base64');
   try {
     await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
-      env: { ...process.env, CONSTRUTEC_PDF_PATH: filePath, CONSTRUTEC_PDF_OUT: outputDir },
-      encoding: 'utf8',
-      maxBuffer: 10 * 1024 * 1024,
-      timeout: 180_000,
+      env: { ...process.env, CONSTRUTEC_PDF_PATH: filePath, CONSTRUTEC_PDF_OUT: outputDir }, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, timeout: 180_000,
     });
-    const pages = (await readdir(outputDir))
-      .filter((name) => /^page-\d+\.png$/i.test(name))
-      .sort()
-      .map((name) => path.join(outputDir, name));
+    const pages = (await readdir(outputDir)).filter((name) => /^page-\d+\.png$/i.test(name)).sort().map((name) => path.join(outputDir, name));
     if (pages.length === 0) throw new Error('PDF_SEM_PAGINAS');
     return { outputDir, pages };
-  } catch (error) {
-    await rm(outputDir, { recursive: true, force: true });
-    throw error;
-  }
+  } catch (error) { await rm(outputDir, { recursive: true, force: true }); throw error; }
 };
 
 const recognizeImage = async (filePath: string): Promise<{ text: string; engine: 'cloudflare' | 'windows' }> => {
   if (OCR_URL) {
-    try {
-      return { text: await recognizeWithCloudflare(filePath), engine: 'cloudflare' };
-    } catch (error) {
-      console.warn('OCR Cloudflare indisponível; usando OCR local.', error);
-    }
+    try { return { text: await recognizeWithCloudflare(filePath), engine: 'cloudflare' }; }
+    catch (error) { console.warn('OCR Cloudflare indisponível; usando OCR local.', error); }
   }
   return { text: await recognizeWithWindows(filePath), engine: 'windows' };
 };
@@ -360,26 +382,31 @@ const recognizePdf = async (filePath: string): Promise<{ text: string; engine: '
   let engine: 'cloudflare' | 'windows' = OCR_URL ? 'cloudflare' : 'windows';
   try {
     for (const pagePath of rendered.pages) {
-      const result = await recognizeImage(pagePath);
-      texts.push(result.text);
-      engine = result.engine;
+      const result = await recognizeImage(pagePath); texts.push(result.text); engine = result.engine;
     }
-  } finally {
-    await rm(rendered.outputDir, { recursive: true, force: true });
-  }
+  } finally { await rm(rendered.outputDir, { recursive: true, force: true }); }
   const text = texts.filter(Boolean).join('\n');
   if (text.trim().length < 3) throw new Error('Nenhum texto foi reconhecido no PDF.');
   return { text, engine };
 };
 
+const normalizeStructuredOcr = (text: string) => {
+  const rows = text.split(/\r?\n/).filter((line) => line.startsWith(`${STRUCTURED_MARKER}\t`));
+  if (rows.length === 0) return text;
+  const unique = new Map<string, string>();
+  for (const row of rows) {
+    const values = row.split('\t').slice(1);
+    const code = values[0]?.trim();
+    if (code && !unique.has(code)) unique.set(code, values.join('\t'));
+  }
+  return ['Código\tDescrição\tCategoria\tFabricante\tModelo\tUnidade\tCusto\tFonte', ...unique.values()].join('\n');
+};
+
 export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<CatalogImportFile> => {
   const selection = await dialog.showOpenDialog({
-    title: 'Importar itens para o catálogo',
-    properties: ['openFile'],
+    title: 'Importar itens para o catálogo', properties: ['openFile'],
     filters: [
-      kind === 'image'
-        ? { name: 'Imagens e PDF', extensions: ['png', 'jpg', 'jpeg', 'bmp', 'pdf'] }
-        : { name: 'Planilhas', extensions: ['xlsx', 'csv', 'tsv', 'txt'] },
+      kind === 'image' ? { name: 'Imagens e PDF', extensions: ['png', 'jpg', 'jpeg', 'bmp', 'pdf'] } : { name: 'Planilhas', extensions: ['xlsx', 'csv', 'tsv', 'txt'] },
       { name: 'Todos os arquivos', extensions: ['*'] },
     ],
   });
@@ -389,11 +416,11 @@ export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<Cata
   const name = path.basename(filePath);
   if (extension === '.pdf') {
     const result = await recognizePdf(filePath);
-    return { canceled: false, kind: 'image', name, text: result.text, ocrEngine: result.engine };
+    return { canceled: false, kind: 'image', name, text: normalizeStructuredOcr(result.text), ocrEngine: result.engine };
   }
   if (['.png', '.jpg', '.jpeg', '.bmp'].includes(extension)) {
     const result = await recognizeImage(filePath);
-    return { canceled: false, kind: 'image', name, text: result.text, ocrEngine: result.engine };
+    return { canceled: false, kind: 'image', name, text: normalizeStructuredOcr(result.text), ocrEngine: result.engine };
   }
   const buffer = await readFile(filePath);
   const text = extension === '.xlsx' ? await xlsxToTsv(buffer) : buffer.toString('utf8').replace(/^\uFEFF/, '');
