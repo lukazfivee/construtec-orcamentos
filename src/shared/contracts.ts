@@ -14,6 +14,30 @@ export type CatalogProduct = {
 
 export type CatalogImportItem = Omit<CatalogProduct, 'id' | 'updatedAt'>;
 
+export type CatalogImportStatus = 'new' | 'updated' | 'unchanged' | 'no_price';
+
+export type CatalogImportPreviewItem = CatalogImportItem & {
+  status: CatalogImportStatus;
+};
+
+export type CatalogImportPreview = {
+  items: CatalogImportPreviewItem[];
+  summary: {
+    new: number;
+    updated: number;
+    unchanged: number;
+    noPrice: number;
+  };
+};
+
+export type ExsatBatchPreview = {
+  items: CatalogImportItem[];
+  connected: boolean;
+  sourceCount: number;
+  ignored: number;
+  failedUrls: string[];
+};
+
 export type CatalogImportFile = {
   canceled: boolean;
   kind?: 'table' | 'image';

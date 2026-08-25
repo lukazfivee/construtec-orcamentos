@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('construtec', {
   exsatLogin: () => ipcRenderer.invoke('exsat:login'),
   exsatLogout: () => ipcRenderer.invoke('exsat:logout'),
   previewExsat: (url: string) => ipcRenderer.invoke('exsat:preview', url),
+  previewExsatBatch: (urls: string[]) => ipcRenderer.invoke('exsat:preview-batch', urls),
 });

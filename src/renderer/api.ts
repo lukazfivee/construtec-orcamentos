@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, CatalogImportItem, CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
+import type { ApiErrorPayload, CatalogImportItem, CatalogImportPreview, CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -89,7 +89,10 @@ export const catalogApi = {
   update: (productId: string, input: Omit<CatalogProduct, 'id' | 'updatedAt'>) => request<{ products: CatalogProduct[] }>(
     `/api/catalog/${productId}`, { method: 'PATCH', body: JSON.stringify(input) },
   ),
-  importBulk: (items: CatalogImportItem[]) => request<{ created: number; updated: number; products: CatalogProduct[] }>(
+  previewImport: (items: CatalogImportItem[]) => request<CatalogImportPreview>(
+    '/api/catalog/import/preview', { method: 'POST', body: JSON.stringify({ items }) },
+  ),
+  importBulk: (items: CatalogImportItem[]) => request<{ created: number; updated: number; ignored: number; products: CatalogProduct[] }>(
     '/api/catalog/import/bulk', { method: 'POST', body: JSON.stringify({ items }) },
   ),
   previewExsat: (url: string) => request<{ items: CatalogImportItem[] }>(

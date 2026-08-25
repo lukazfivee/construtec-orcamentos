@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FileImage, FileSpreadsheet, Globe2, Import, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
-import type { CatalogImportItem, CatalogProduct } from '../shared/contracts';
+import type { CatalogImportItem, CatalogImportStatus, CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
   onImported: (products: CatalogProduct[], message: string) => void;
   onError: (message: string) => void;
 };
-type Row = CatalogImportItem & { key: string };
+type Row = CatalogImportItem & { key: string; status?: CatalogImportStatus };
 
 const aliases: Record<string, keyof CatalogImportItem> = {
   codigo: 'code', cód: 'code', cod: 'code', sku: 'code', code: 'code',
@@ -44,7 +44,7 @@ const splitLine = (line: string, delimiter: string) => {
   values.push(value.trim());
   return values;
 };
-const newRow = (partial: Partial<CatalogImportItem> = {}): Row => ({
+const newRow = (partial: Partial<CatalogImportItem> & { status?: CatalogImportStatus } = {}): Row => ({
   key: crypto.randomUUID(), code: '', description: '', category: 'Importado', manufacturer: null,
   model: null, unit: 'un', currentCost: 0, source: 'IMPORTAÇÃO', active: true, ...partial,
 });
@@ -154,16 +154,30 @@ const fields: Array<{ key: keyof CatalogImportItem; label: string; width?: strin
   { key: 'model', label: 'Modelo', width: '110px' }, { key: 'unit', label: 'Unid.', width: '70px' },
   { key: 'currentCost', label: 'Custo', width: '105px' }, { key: 'source', label: 'Fonte', width: '100px' },
 ];
+const statusLabel: Record<CatalogImportStatus, string> = {
+  new: 'Novo', updated: 'Atualizar', unchanged: 'Sem alteração', no_price: 'Sem preço',
+};
 
 export function CatalogImportDialog({ open, onClose, onImported, onError }: Props) {
   const [mode, setMode] = useState<'manual' | 'file' | 'image' | 'exsat'>('manual');
   const [manual, setManual] = useState('Código\tDescrição\tCategoria\tFabricante\tModelo\tUnidade\tCusto\tFonte');
-  const [exsatUrl, setExsatUrl] = useState('https://exsat.com.br/');
+  const [exsatUrls, setExsatUrls] = useState('https://exsat.com.br/');
   const [rows, setRows] = useState<Row[]>([]);
   const [sourceName, setSourceName] = useState('');
   const [loading, setLoading] = useState(false);
   const [exsatConnected, setExsatConnected] = useState(false);
+  const [batchInfo, setBatchInfo] = useState('');
   const validRows = useMemo(() => rows.filter((row) => row.code.trim().length >= 2 && row.description.trim().length >= 3 && row.category.trim().length >= 2 && row.unit.trim()), [rows]);
+  const previewSummary = useMemo(() => ({
+    new: rows.filter((row) => row.status === 'new').length,
+    updated: rows.filter((row) => row.status === 'updated').length,
+    unchanged: rows.filter((row) => row.status === 'unchanged').length,
+    noPrice: rows.filter((row) => row.status === 'no_price').length,
+  }), [rows]);
+  const importableRows = useMemo(() => mode === 'exsat'
+    ? validRows.filter((row) => row.status === 'new' || row.status === 'updated')
+    : validRows.filter((row) => row.currentCost > 0), [mode, validRows]);
+
   useEffect(() => {
     if (open && mode === 'exsat') void window.construtec?.exsatStatus().then((status) => setExsatConnected(status.connected));
   }, [open, mode]);
@@ -180,21 +194,30 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       const source = expected === 'image' ? 'IMAGEM' : result.name?.replace(/\.[^.]+$/, '').toUpperCase() || 'PLANILHA';
       const parsedRows = parseCatalogText(result.text ?? '', source);
       if (expected === 'image' && parsedRows.length === 0) throw new Error('Nenhum item foi reconhecido na imagem. Use a imagem original em boa resolução, sem a barra do Print Preview, e tente novamente.');
-      setRows(parsedRows); setSourceName(result.name ?? 'Arquivo importado');
+      setRows(parsedRows); setSourceName(result.name ?? 'Arquivo importado'); setBatchInfo('');
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível ler o arquivo.'); }
     finally { setLoading(false); }
   };
+
   const loadExsat = async () => {
     setLoading(true);
     try {
-      const result = window.construtec
-        ? await window.construtec.previewExsat(exsatUrl)
-        : await catalogApi.previewExsat(exsatUrl).then((fallback) => ({ ...fallback, connected: false }));
+      const urls = exsatUrls.split(/\r?\n|;/).map((url) => url.trim()).filter(Boolean);
+      if (!window.construtec?.previewExsatBatch) throw new Error('A atualização em lote da Exsat requer o aplicativo desktop atualizado.');
+      const result = await window.construtec.previewExsatBatch(urls);
       setExsatConnected(result.connected);
-      setRows(result.items.map((item) => newRow(item))); setSourceName('Exsat Distribuidora');
+      const preview = await catalogApi.previewImport(result.items);
+      setRows(preview.items.map((item) => newRow(item)));
+      setSourceName(`Exsat Distribuidora · ${result.sourceCount} fonte${result.sourceCount === 1 ? '' : 's'}`);
+      const notes = [
+        result.ignored > 0 ? `${result.ignored} duplicado${result.ignored === 1 ? '' : 's'} consolidado${result.ignored === 1 ? '' : 's'}` : '',
+        result.failedUrls.length > 0 ? `${result.failedUrls.length} fonte${result.failedUrls.length === 1 ? '' : 's'} não pôde ser lida` : '',
+      ].filter(Boolean);
+      setBatchInfo(notes.join(' · '));
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível consultar a Exsat.'); }
     finally { setLoading(false); }
   };
+
   const loginExsat = async () => {
     setLoading(true);
     try {
@@ -210,37 +233,47 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
     catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível desconectar da Exsat.'); }
     finally { setLoading(false); }
   };
+
   const importRows = async () => {
-    if (validRows.length === 0 || loading) return;
+    if (importableRows.length === 0 || loading) return;
     setLoading(true);
     try {
-      const result = await catalogApi.importBulk(validRows.map((row) => {
-        const { key, ...item } = row;
-        void key;
+      const cleanRows = importableRows.map((row) => {
+        const { key, status, ...item } = row;
+        void key; void status;
         return item;
-      }));
-      onImported(result.products, `${result.created} itens cadastrados e ${result.updated} atualizados.`);
-      setRows([]); onClose();
+      });
+      const preview = await catalogApi.previewImport(cleanRows);
+      const allowedCodes = new Set(preview.items.filter((item) => item.status === 'new' || item.status === 'updated').map((item) => item.code.toLowerCase()));
+      const finalRows = cleanRows.filter((item) => allowedCodes.has(item.code.toLowerCase()));
+      if (finalRows.length === 0) {
+        onError('Nenhum item precisa ser atualizado.');
+        return;
+      }
+      const result = await catalogApi.importBulk(finalRows);
+      onImported(result.products, `${result.created} itens cadastrados, ${result.updated} atualizados${result.ignored ? ` e ${result.ignored} ignorados` : ''}.`);
+      setRows([]); setBatchInfo(''); onClose();
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível importar os itens.'); }
     finally { setLoading(false); }
   };
   const updateRow = (key: string, field: keyof CatalogImportItem, value: string) => setRows((current) => current.map((row) => row.key === key ? {
-    ...row, [field]: field === 'currentCost' ? moneyValue(value) : value,
+    ...row, status: undefined, [field]: field === 'currentCost' ? moneyValue(value) : value,
   } : row));
 
   return <div className="import-overlay" role="presentation"><section className="import-dialog" role="dialog" aria-modal="true" aria-label="Importar catálogo em lote">
     <header><span><Import size={22} /><div><h2>Importar itens em lote</h2><p>Confira os dados antes de atualizar o catálogo.</p></div></span><button type="button" aria-label="Fechar" onClick={onClose}><X size={18} /></button></header>
     <nav>{[
       ['manual', Plus, 'Manual'], ['file', FileSpreadsheet, 'Planilha'], ['image', FileImage, 'Imagem'], ['exsat', Globe2, 'Exsat'],
-    ].map(([value, Icon, label]) => <button key={String(value)} type="button" className={mode === value ? 'active' : ''} onClick={() => setMode(value as typeof mode)}><Icon size={16} />{String(label)}</button>)}</nav>
+    ].map(([value, Icon, label]) => <button key={String(value)} type="button" className={mode === value ? 'active' : ''} onClick={() => { setMode(value as typeof mode); setRows([]); setBatchInfo(''); }}><Icon size={16} />{String(label)}</button>)}</nav>
     <div className="import-source">
       {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button></>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
       {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Foto, captura de tela ou orçamento da Exsat</b><small>Nos orçamentos Exsat, o app usa Fab. como código e Vl. Líq. como custo unitário. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem</button></div>}
-      {mode === 'exsat' && <div className="exsat-source"><label><span>Endereço de uma categoria ou busca da Exsat</span><input value={exsatUrl} onChange={(event) => setExsatUrl(event.target.value)} /></label><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><button type="button" className="primary" disabled={loading} onClick={() => void loadExsat()}>Consultar produtos e preços</button></div>}
+      {mode === 'exsat' && <div className="exsat-source"><label><span>Endereços de categorias ou buscas da Exsat — um por linha</span><textarea value={exsatUrls} onChange={(event) => setExsatUrls(event.target.value)} placeholder={'https://exsat.com.br/...\nhttps://exsat.com.br/...'} /></label><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><button type="button" className="primary" disabled={loading || !exsatConnected} onClick={() => void loadExsat()}>Buscar lote e comparar catálogo</button></div>}
     </div>
-    <div className="import-summary"><span><b>{rows.length}</b> linhas encontradas · <b>{validRows.length}</b> prontas</span><span>{sourceName || 'Nenhuma fonte carregada'}</span><button type="button" onClick={() => setRows((current) => [...current, newRow({ source: mode === 'exsat' ? 'EXSAT' : 'MANUAL' })])}><Plus size={14} /> Linha</button></div>
-    <div className="import-table"><table><thead><tr>{fields.map((field) => <th key={field.key} style={{ width: field.width }}>{field.label}</th>)}<th aria-label="Excluir" /></tr></thead><tbody>{rows.map((row) => <tr key={row.key} className={!row.code || !row.description ? 'invalid' : ''}>{fields.map((field) => <td key={field.key}><input value={field.key === 'currentCost' ? String(row.currentCost).replace('.', ',') : String(row[field.key] ?? '')} onChange={(event) => updateRow(row.key, field.key, event.target.value)} aria-label={`${field.label} da linha`} /></td>)}<td><button type="button" aria-label="Excluir linha" onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}><Trash2 size={14} /></button></td></tr>)}</tbody></table>{rows.length === 0 && <p>Carregue uma fonte ou adicione uma linha manualmente.</p>}</div>
-    <footer><span>Códigos existentes serão atualizados; propostas antigas permanecerão intactas.</span><button type="button" onClick={onClose}>Cancelar</button><button type="button" className="primary" disabled={validRows.length === 0 || loading} onClick={() => void importRows()}>{loading ? 'Processando…' : `Importar ${validRows.length} itens`}</button></footer>
+    {mode === 'exsat' && rows.length > 0 && <div className="import-summary"><span><b>{previewSummary.new}</b> novos · <b>{previewSummary.updated}</b> atualizar · <b>{previewSummary.unchanged}</b> sem alteração · <b>{previewSummary.noPrice}</b> sem preço</span><span>{batchInfo || 'Prévia comparada com o catálogo local'}</span></div>}
+    <div className="import-summary"><span><b>{rows.length}</b> linhas encontradas · <b>{importableRows.length}</b> para importar</span><span>{sourceName || 'Nenhuma fonte carregada'}</span><button type="button" onClick={() => setRows((current) => [...current, newRow({ source: mode === 'exsat' ? 'EXSAT' : 'MANUAL' })])}><Plus size={14} /> Linha</button></div>
+    <div className="import-table"><table><thead><tr>{mode === 'exsat' && <th style={{ width: '100px' }}>Situação</th>}{fields.map((field) => <th key={field.key} style={{ width: field.width }}>{field.label}</th>)}<th aria-label="Excluir" /></tr></thead><tbody>{rows.map((row) => <tr key={row.key} className={!row.code || !row.description || row.status === 'no_price' ? 'invalid' : ''}>{mode === 'exsat' && <td><b>{row.status ? statusLabel[row.status] : 'Editado'}</b></td>}{fields.map((field) => <td key={field.key}><input value={field.key === 'currentCost' ? String(row.currentCost).replace('.', ',') : String(row[field.key] ?? '')} onChange={(event) => updateRow(row.key, field.key, event.target.value)} aria-label={`${field.label} da linha`} /></td>)}<td><button type="button" aria-label="Excluir linha" onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}><Trash2 size={14} /></button></td></tr>)}</tbody></table>{rows.length === 0 && <p>Carregue uma fonte ou adicione uma linha manualmente.</p>}</div>
+    <footer><span>Sem preço e sem alteração não são importados; propostas antigas permanecem intactas.</span><button type="button" onClick={onClose}>Cancelar</button><button type="button" className="primary" disabled={importableRows.length === 0 || loading} onClick={() => void importRows()}>{loading ? 'Processando…' : `Confirmar ${importableRows.length} alterações`}</button></footer>
   </section></div>;
 }

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { LocalDatabase } from '../services/database';
 import { searchCatalog } from '../services/proposals';
-import { createCatalogProduct, importCatalogProducts, listCatalogProducts, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
+import { createCatalogProduct, importCatalogProducts, listCatalogProducts, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
 
 const searchSchema = z.object({
   q: z.string().trim().max(120).default(''),
@@ -54,6 +54,13 @@ export const createCatalogRouter = (database: LocalDatabase) => {
       const productId = idSchema.parse(request.params.productId);
       await updateCatalogProduct(database, productId, productSchema.parse(request.body));
       response.json({ products: await listCatalogProducts(database) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/import/preview', async (request, response, next) => {
+    try {
+      const input = importSchema.parse(request.body);
+      response.json(await previewCatalogImport(database, input.items));
     } catch (error) { next(error); }
   });
 
