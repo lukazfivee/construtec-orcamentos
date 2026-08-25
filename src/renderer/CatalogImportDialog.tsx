@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FileImage, FileSpreadsheet, Globe2, Import, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
+import { Copy, FileImage, FileSpreadsheet, Globe2, Import, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
 import type { CatalogImportItem, CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
 
@@ -161,6 +161,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   const [exsatUrl, setExsatUrl] = useState('https://exsat.com.br/');
   const [rows, setRows] = useState<Row[]>([]);
   const [sourceName, setSourceName] = useState('');
+  const [ocrText, setOcrText] = useState('');
   const [loading, setLoading] = useState(false);
   const [exsatConnected, setExsatConnected] = useState(false);
   const validRows = useMemo(() => rows.filter((row) => row.code.trim().length >= 2 && row.description.trim().length >= 3 && row.category.trim().length >= 2 && row.unit.trim()), [rows]);
@@ -179,10 +180,31 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       }
       const source = expected === 'image' ? 'IMAGEM' : result.name?.replace(/\.[^.]+$/, '').toUpperCase() || 'PLANILHA';
       const parsedRows = parseCatalogText(result.text ?? '', source);
-      if (expected === 'image' && parsedRows.length === 0) throw new Error('Nenhum item foi reconhecido na imagem. Use a imagem original em boa resolução, sem a barra do Print Preview, e tente novamente.');
+      if (expected === 'image' && parsedRows.length === 0) {
+        const recognizedText = (result.text ?? '').trim();
+        setRows([]);
+        setSourceName(result.name ?? 'Imagem lida pelo OCR');
+        setOcrText(recognizedText);
+        setManual(recognizedText || 'O Windows OCR não retornou texto para esta imagem.');
+        setMode('manual');
+        onError(recognizedText
+          ? 'O OCR leu texto, mas não encontrou itens. O texto reconhecido foi aberto na aba Manual para conferência.'
+          : 'O Windows OCR não encontrou texto nesta imagem. Tente recortar só a tabela do orçamento e importar novamente.');
+        return;
+      }
+      setOcrText('');
       setRows(parsedRows); setSourceName(result.name ?? 'Arquivo importado');
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível ler o arquivo.'); }
     finally { setLoading(false); }
+  };
+  const copyOcrText = async () => {
+    if (!ocrText) return;
+    try {
+      await navigator.clipboard.writeText(ocrText);
+      onError('Texto reconhecido pelo OCR copiado para a área de transferência.');
+    } catch {
+      onError('Não foi possível copiar automaticamente. Selecione o texto da aba Manual e copie com Ctrl+C.');
+    }
   };
   const loadExsat = async () => {
     setLoading(true);
@@ -234,7 +256,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       ['manual', Plus, 'Manual'], ['file', FileSpreadsheet, 'Planilha'], ['image', FileImage, 'Imagem'], ['exsat', Globe2, 'Exsat'],
     ].map(([value, Icon, label]) => <button key={String(value)} type="button" className={mode === value ? 'active' : ''} onClick={() => setMode(value as typeof mode)}><Icon size={16} />{String(label)}</button>)}</nav>
     <div className="import-source">
-      {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button></>}
+      {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button>{ocrText && <button type="button" className="ocr-copy" onClick={() => void copyOcrText()}><Copy size={14} /> Copiar OCR</button>}</>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
       {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Foto, captura de tela ou orçamento da Exsat</b><small>Nos orçamentos Exsat, o app usa Fab. como código e Vl. Líq. como custo unitário. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem</button></div>}
       {mode === 'exsat' && <div className="exsat-source"><label><span>Endereço de uma categoria ou busca da Exsat</span><input value={exsatUrl} onChange={(event) => setExsatUrl(event.target.value)} /></label><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><button type="button" className="primary" disabled={loading} onClick={() => void loadExsat()}>Consultar produtos e preços</button></div>}
