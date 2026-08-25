@@ -55,12 +55,10 @@ const categoryFromDescription = (description: string) => {
   return 'Exsat';
 };
 
-export const parseExsatQuoteText = (text: string): Row[] => text
-  .split(/\r?\n/)
-  .map((line) => line.replace(/\s+/g, ' ').trim())
-  .map((line) => line.match(/^(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})$/))
-  .filter((match): match is RegExpMatchArray => Boolean(match))
-  .map((match) => {
+export const parseExsatQuoteText = (text: string): Row[] => {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  const productPattern = /(\d{6,14})\s+(\d{3,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{3,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
+  return [...normalized.matchAll(productPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, description, , , , netPrice] = match;
     return newRow({
       code: manufacturerCode,
@@ -74,10 +72,12 @@ export const parseExsatQuoteText = (text: string): Row[] => text
       active: true,
     });
   });
+};
 
 export const parseCatalogText = (text: string, source: string): Row[] => {
   const exsatQuoteRows = parseExsatQuoteText(text);
   if (exsatQuoteRows.length > 0) return exsatQuoteRows;
+  if (source === 'IMAGEM' && /(?:Print\s*Preview|Num\.?\s*Or[cç]amento|Vl\.?\s*L[ií]q|Condi[cç][oõ]es\s+de\s+Pagamento)/i.test(text)) return [];
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   if (lines.length === 0) return [];
   const delimiter = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : ',';
@@ -145,7 +145,9 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
         throw new Error(expected === 'image' ? 'Selecione uma imagem PNG, JPG ou BMP.' : 'Selecione uma planilha XLSX, CSV ou TSV.');
       }
       const source = expected === 'image' ? 'IMAGEM' : result.name?.replace(/\.[^.]+$/, '').toUpperCase() || 'PLANILHA';
-      setRows(parseCatalogText(result.text ?? '', source)); setSourceName(result.name ?? 'Arquivo importado');
+      const parsedRows = parseCatalogText(result.text ?? '', source);
+      if (expected === 'image' && parsedRows.length === 0) throw new Error('Nenhum item foi reconhecido na imagem. Use a imagem original em boa resolução, sem a barra do Print Preview, e tente novamente.');
+      setRows(parsedRows); setSourceName(result.name ?? 'Arquivo importado');
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível ler o arquivo.'); }
     finally { setLoading(false); }
   };

@@ -29,9 +29,9 @@ $decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)
 $bitmap = Await ($decoder.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
 $engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromUserProfileLanguages()
 if ($null -eq $engine) { throw 'Instale o pacote de idioma Português nas configurações do Windows.' }
-$result = Await ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$result.Text
+$result = Await ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
+$result.Lines | ForEach-Object { $_.Text }
 `;
   const encoded = Buffer.from(script, 'utf16le').toString('base64');
   const result = await execFileAsync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded], {
