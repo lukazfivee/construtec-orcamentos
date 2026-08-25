@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { CatalogImportItem, CatalogProduct } from '../../shared/contracts';
+import type { CatalogImportItem, CatalogImportPreview, CatalogProduct } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 
 type ProductRow = {
@@ -89,11 +89,59 @@ export const updateCatalogProduct = async (database: LocalDatabase, productId: s
   });
 };
 
+const normalizedItem = (item: CatalogImportItem) => ({
+  code: item.code.trim().toUpperCase(),
+  manufacturer: item.manufacturer?.trim() || null,
+  model: item.model?.trim() || null,
+  description: item.description.trim(),
+  category: item.category.trim(),
+  unit: item.unit.trim().toLowerCase(),
+  currentCost: Number(item.currentCost),
+  source: item.source.trim() || 'IMPORTAÇÃO',
+  active: item.active,
+});
+
+export const previewCatalogImport = async (database: LocalDatabase, items: CatalogImportItem[]): Promise<CatalogImportPreview> => {
+  const codes = items.map((item) => item.code.trim()).filter(Boolean);
+  const existing = codes.length === 0 ? [] : (await database.query<ProductRow>(`
+    SELECT id, code, manufacturer, model, description, category, unit,
+      current_cost::text, source, active, updated_at::text
+    FROM products
+    WHERE lower(code) = ANY($1::text[])
+  `, [codes.map((code) => code.toLowerCase())])).rows;
+  const byCode = new Map(existing.map((row) => [row.code.toLowerCase(), row]));
+  const previewItems = items.map((item) => {
+    const normalized = normalizedItem(item);
+    if (!Number.isFinite(normalized.currentCost) || normalized.currentCost <= 0) return { ...item, status: 'no_price' as const };
+    const current = byCode.get(normalized.code.toLowerCase());
+    if (!current) return { ...item, status: 'new' as const };
+    const unchanged = (current.manufacturer ?? null) === normalized.manufacturer
+      && (current.model ?? null) === normalized.model
+      && current.description.trim() === normalized.description
+      && current.category.trim() === normalized.category
+      && current.unit.trim().toLowerCase() === normalized.unit
+      && Number(current.current_cost) === normalized.currentCost
+      && current.source.trim() === normalized.source
+      && current.active === normalized.active;
+    return { ...item, status: unchanged ? 'unchanged' as const : 'updated' as const };
+  });
+  return {
+    items: previewItems,
+    summary: {
+      new: previewItems.filter((item) => item.status === 'new').length,
+      updated: previewItems.filter((item) => item.status === 'updated').length,
+      unchanged: previewItems.filter((item) => item.status === 'unchanged').length,
+      noPrice: previewItems.filter((item) => item.status === 'no_price').length,
+    },
+  };
+};
+
 export const importCatalogProducts = async (database: LocalDatabase, items: CatalogImportItem[]) => {
+  const safeItems = items.filter((item) => Number.isFinite(item.currentCost) && item.currentCost > 0);
   return database.transaction(async (transaction) => {
     let created = 0;
     let updated = 0;
-    for (const input of items) {
+    for (const input of safeItems) {
       const code = input.code.trim().toUpperCase();
       const existing = await transaction.query<{ id: string }>(
         'SELECT id FROM products WHERE lower(code) = lower($1) FOR UPDATE',
@@ -123,8 +171,8 @@ export const importCatalogProducts = async (database: LocalDatabase, items: Cata
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
       VALUES ($1, 'catalog', $2, 'batch_imported', $3::jsonb)
-    `, [randomUUID(), randomUUID(), JSON.stringify({ created, updated, codes: items.map((item) => item.code) })]);
-    return { created, updated };
+    `, [randomUUID(), randomUUID(), JSON.stringify({ created, updated, ignored: items.length - safeItems.length, codes: safeItems.map((item) => item.code) })]);
+    return { created, updated, ignored: items.length - safeItems.length };
   });
 };
 
@@ -146,7 +194,7 @@ const isAdministrativeExsatText = (description: string) => (
   /\b(?:cliente|construtora|construtec|engenharia|ltda|cnpj|cpf|endere[cç]o|or[cç]amento|vendedor|comprador|representante|telefone|email|carrinho|categoria)\b/i.test(description)
 );
 
-export const parseExsatProductsHtml = (html: string): CatalogImportItem[] => {
+export const parseExsatProductsHtml = (html: string, includeMissingPrice = false): CatalogImportItem[] => {
   if (html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
   const category = decodeHtml(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? '') || 'Exsat';
   const items = new Map<string, CatalogImportItem>();
@@ -162,7 +210,7 @@ export const parseExsatProductsHtml = (html: string): CatalogImportItem[] => {
     if (!description || /produto não encontrado/i.test(description) || isAdministrativeExsatText(description)) continue;
     const priceText = after.match(/R\$\s*[\d.]+,\d{2}/i)?.[0];
     const currentCost = parsePrice(priceText);
-    if (currentCost <= 0) continue;
+    if (currentCost <= 0 && !includeMissingPrice) continue;
     items.set(code, {
       code,
       manufacturer: /intelbras/i.test(description) ? 'Intelbras' : null,
