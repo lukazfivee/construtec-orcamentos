@@ -67,6 +67,7 @@ const formatSyncDate = (value?: string) => value
 
 const pricePattern = /(?:R\$\s*)?(?:\d{1,3}(?:\.\d{3})+|\d+)(?:[,.]\d{2})/g;
 const exsatTerminatorPattern = /\b(?:total|condi[cç][oõ]es|tipo de frete|cobran[cç]a|plano de pag|observa[cç][oõ]es)\b/i;
+const fabCodePattern = '[A-Za-z0-9][A-Za-z0-9./_-]{2,31}';
 
 const exsatRowFromText = (line: string): Row | null => {
   const prices = line.match(pricePattern) ?? [];
@@ -76,8 +77,8 @@ const exsatRowFromText = (line: string): Row | null => {
   if (firstPriceIndex < 0) return null;
 
   const beforePrice = line.slice(0, firstPriceIndex).trim();
-  const codePrefix = beforePrice.match(/^\s*(\d{5,14})\s+(\d{2,10})\b/);
-  if (!codePrefix) return null;
+  const codePrefix = beforePrice.match(new RegExp(`^\\s*(${fabCodePattern})\\s+(\\d{2,10})\\b`, 'i'));
+  if (!codePrefix || !/\d/.test(codePrefix[1])) return null;
   const manufacturerCode = codePrefix[1];
   const supplierCode = codePrefix[2];
   const description = beforePrice.slice(codePrefix[0].length)
@@ -106,13 +107,14 @@ const parseExsatQuoteLines = (text: string): Row[] => {
 
   const blocks: string[] = [];
   let current = '';
+  const startsProductPattern = new RegExp(`^\\s*${fabCodePattern}\\s+\\d{2,10}\\b`, 'i');
   for (const line of lines) {
     if (exsatTerminatorPattern.test(line)) {
       if (current) blocks.push(current.trim());
       current = '';
       continue;
     }
-    const startsProduct = /^\s*\d{5,14}\s+\d{2,10}\b/.test(line);
+    const startsProduct = startsProductPattern.test(line) && /\d/.test(line.split(/\s+/)[0] ?? '');
     if (startsProduct && current) blocks.push(current.trim());
     if (startsProduct) current = line;
     else if (current && !isAdministrativeExsatText(line)) current += ` ${line}`;
@@ -126,10 +128,10 @@ export const parseExsatQuoteText = (text: string): Row[] => {
   if (lineRows.length > 0) return lineRows;
 
   const normalized = text.replace(/\s+/g, ' ').trim();
-  const productPattern = /(\d{6,14})\s+(\d{2,10})\s+(.+?)\s+(\d+(?:[.,]\d{3})?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})(?=\s+\d{6,14}\s+\d{2,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)/gi;
+  const productPattern = new RegExp(`(${fabCodePattern})\\s+(\\d{2,10})\\s+(.+?)\\s+(\\d+(?:[.,]\\d{3})?)\\s+([\\d.]+,\\d{2})\\s+([\\d.]+,\\d{2})\\s+([\\d.]+,\\d{2})\\s+([\\d.]+,\\d{2})(?=\\s+${fabCodePattern}\\s+\\d{2,10}\\s+|\\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag)|$)`, 'gi');
   const rows = [...normalized.matchAll(productPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, description, , , , netPrice] = match;
-    if (isAdministrativeExsatText(description)) return null;
+    if (!/\d/.test(manufacturerCode) || isAdministrativeExsatText(description)) return null;
     return newRow({
       code: manufacturerCode,
       description,
@@ -144,9 +146,10 @@ export const parseExsatQuoteText = (text: string): Row[] => {
   }).filter((row): row is Row => Boolean(row));
   if (rows.length > 0) return rows;
 
-  const looseProductPattern = /(\d{5,14})\s+(\d{2,10})\s+(.+?)(?=\s+\d{5,14}\s+\d{2,10}\s+|\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag|Observa[cç][oõ]es)|$)/gi;
+  const looseProductPattern = new RegExp(`(${fabCodePattern})\\s+(\\d{2,10})\\s+(.+?)(?=\\s+${fabCodePattern}\\s+\\d{2,10}\\s+|\\s+(?:Total|Condi[cç][oõ]es|Tipo de Frete|Cobran[cç]a|Plano de Pag|Observa[cç][oõ]es)|$)`, 'gi');
   return [...normalized.matchAll(looseProductPattern)].map((match) => {
     const [, manufacturerCode, supplierCode, productText] = match;
+    if (!/\d/.test(manufacturerCode)) return null;
     const prices = productText.match(pricePattern) ?? [];
     const firstPrice = prices[0] ? productText.indexOf(prices[0]) : -1;
     const descriptionSource = firstPrice >= 0 ? productText.slice(0, firstPrice) : productText;
@@ -204,7 +207,7 @@ export const parseCatalogText = (text: string, source: string): Row[] => {
       manufacturer: values[3] || (/intelbras/i.test(values[1]) ? 'Intelbras' : null), model: values[4] || null,
       unit: values[5] || 'un', currentCost: moneyValue(values[6] ?? values.at(-1) ?? '0'), source,
     });
-    const code = line.match(/^([A-Za-z0-9_-]{3,60})\s+/)?.[1] ?? '';
+    const code = line.match(/^([A-Za-z0-9./_-]{3,60})\s+/)?.[1] ?? '';
     const price = line.match(/R\$\s*[\d.]+,\d{2}|[\d.]+,\d{2}\s*$/)?.[0] ?? '0';
     const description = line.replace(code, '').replace(price, '').trim().replace(/^[-–—|;]+|[-–—|;]+$/g, '').trim();
     return newRow({ code, description, manufacturer: /intelbras/i.test(description) ? 'Intelbras' : null, currentCost: moneyValue(price), source });
