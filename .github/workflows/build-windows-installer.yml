@@ -39,6 +39,10 @@ jobs:
       - name: Gerar instalador x64
         run: npm run make:windows
 
+      - name: Preparar instalador com nome permanente
+        shell: pwsh
+        run: Copy-Item 'out/make/squirrel.windows/x64/Construtec-Orcamentos-1.0.1-Setup.exe' 'out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe'
+
       - name: Publicar artefato de compilação
         uses: actions/upload-artifact@v4
         with:
@@ -57,7 +61,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = 'windows-latest'
-          $asset = 'out/make/squirrel.windows/x64/Construtec-Orcamentos-1.0.0-Setup.exe'
+          $asset = 'out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe'
           gh release view $tag --repo ${{ github.repository }} 2>$null
           if ($LASTEXITCODE -ne 0) {
             gh release create $tag $asset --repo ${{ github.repository }} --target ${{ github.sha }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
