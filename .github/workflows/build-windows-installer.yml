@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: windows-installer-${{ github.ref }}
@@ -39,7 +39,7 @@ jobs:
       - name: Gerar instalador x64
         run: npm run make:windows
 
-      - name: Publicar instalador
+      - name: Publicar artefato de compilação
         uses: actions/upload-artifact@v4
         with:
           name: Construtec-Orcamentos-Windows-x64
@@ -49,3 +49,19 @@ jobs:
             out/make/squirrel.windows/x64/RELEASES
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publicar EXE para download direto
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = 'windows-latest'
+          $asset = 'out/make/squirrel.windows/x64/Construtec-Orcamentos-1.0.0-Setup.exe'
+          gh release view $tag --repo ${{ github.repository }} 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag $asset --repo ${{ github.repository }} --target ${{ github.sha }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
+          } else {
+            gh release upload $tag $asset --repo ${{ github.repository }} --clobber
+            gh release edit $tag --repo ${{ github.repository }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
+          }
