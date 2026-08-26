@@ -5,7 +5,19 @@ import type { CatalogImportItem, ExsatBatchPreview, ExsatSyncHistoryEntry, Exsat
 import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
 const LOGIN_URL = 'https://exsat.com.br/central-cliente/login/';
-const START_URL = 'https://exsat.com.br/';
+const START_URL = 'https://exsat.com.br/home/';
+const CATALOG_SEEDS = [
+  'https://exsat.com.br/produtos/departamento/controle-de-acesso/',
+  'https://exsat.com.br/produtos/departamento/seguranca-eletronica/',
+  'https://exsat.com.br/produtos/departamento/redes-e-cabeamento/',
+  'https://exsat.com.br/produtos/departamento/linha-comunicacao/',
+  'https://exsat.com.br/produtos/departamento/linha-energia/',
+  'https://exsat.com.br/produtos/departamento/energia-solar/',
+  'https://exsat.com.br/produtos/departamento/automatizadores/',
+  'https://exsat.com.br/produtos/departamento/gravadores-digitais/',
+  'https://exsat.com.br/produtos/departamento/cameras-ip/',
+  'https://exsat.com.br/produtos/departamento/acessorios-smart-home/',
+];
 const PARTITION = 'persist:construtec-exsat';
 const MAX_AUTO_PAGES = 60;
 const MAX_INCREMENTAL_PAGES = 24;
@@ -144,7 +156,7 @@ const isCatalogCandidate = (url: URL) => {
   if (url.hash) url.hash = '';
   return /produto|categoria|departamento|marca|busca|pesquisa|shop|loja|catalog/.test(pathName)
     || /page|paged|pagina|s=|search|orderby|product_cat/.test(query)
-    || pathName === '/';
+    || pathName === '/' || pathName === '/home/';
 };
 
 const discoverCatalogLinks = (html: string, baseUrl: string) => {
@@ -294,7 +306,9 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     .slice()
     .sort((left, right) => right.productCount - left.productCount || Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt))
     .map((page) => page.url);
-  const seeds = fullSync ? [START_URL, ...priorityPages] : [...priorityPages, START_URL];
+  const seeds = fullSync
+    ? [...CATALOG_SEEDS, START_URL, ...priorityPages]
+    : [...priorityPages, ...CATALOG_SEEDS, START_URL];
   const queue = [...new Set(seeds)].slice(0, pageLimit);
   const queued = new Set(queue);
   const visited = new Set<string>();
