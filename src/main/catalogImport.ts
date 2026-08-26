@@ -198,7 +198,6 @@ if ($null -ne $telHeader -or ([string]$result.Text -match '(?i)TELCABOS')) {
     $deliveryX = [double]$deliveryWord.CX
     $priceX = [double]$unitPriceWord.CX
     $stX = if ($stWord) { [double]$stWord.CX } else { $priceX + [Math]::Max(60, $avgHeight * 5) }
-
     $bItemCode = ($itemX + $codeX) / 2.0
     $bCodeFab = ($codeX + $fabX) / 2.0
     $bFabQty = ($fabX + $qtyX) / 2.0
@@ -215,21 +214,27 @@ if ($null -ne $telHeader -or ([string]$result.Text -match '(?i)TELCABOS')) {
     })[0]
     $telTableBottom = if ($telEndRow) { [double]$telEndRow.CY - ($avgHeight * 0.15) } else { [double]::MaxValue }
 
+    # Usa a coluna de código como âncora. Números de item são opcionais e o OCR
+    # frequentemente confunde o primeiro "1" com I/l.
     $anchors = @($words | Where-Object {
       $_.CY -gt ($headerY + $avgHeight * 0.55) -and
       $_.CY -lt $telTableBottom -and
-      $_.CX -lt $bItemCode -and
-      $_.Text -match '^\d{1,3}$'
+      $_.CX -ge $bItemCode -and $_.CX -lt $bCodeFab -and
+      $_.Text -match '^\d{3,10}$'
     } | Sort-Object CY)
 
     $emitted = 0
     $emittedItems = @{}
     for ($i = 0; $i -lt $anchors.Count; $i += 1) {
       $anchor = $anchors[$i]
-      $itemNo = [string]$anchor.Text
+      $itemNo = ('{0}:{1:N2}' -f ([string]$anchor.Text), [double]$anchor.CY)
       if ($emittedItems.ContainsKey($itemNo)) { continue }
-      $top = if ($i -eq 0) { $headerY + ($avgHeight * 0.45) } else { ([double]$anchors[$i - 1].CY + [double]$anchor.CY) / 2.0 }
-      $bottom = if ($i -lt ($anchors.Count - 1)) { ([double]$anchor.CY + [double]$anchors[$i + 1].CY) / 2.0 } else { [Math]::Min($telTableBottom, [double]$anchor.CY + ($avgHeight * 3.5)) }
+      $top = [Math]::Max($headerY + ($avgHeight * 0.45), [double]$anchor.CY - ($avgHeight * 0.7))
+      $bottom = if ($i -lt ($anchors.Count - 1)) {
+        [double]$anchors[$i + 1].CY - ($avgHeight * 0.7)
+      } else {
+        [Math]::Min($telTableBottom, [double]$anchor.CY + ($avgHeight * 4.5))
+      }
       $band = @($words | Where-Object { $_.CY -gt $top -and $_.CY -lt $bottom })
 
       $code = Join-VisualWords @($band | Where-Object { $_.CX -ge $bItemCode -and $_.CX -lt $bCodeFab })
@@ -245,8 +250,20 @@ if ($null -ne $telHeader -or ([string]$result.Text -match '(?i)TELCABOS')) {
       $description = ($description -replace '\s+', ' ').Trim()
       $brand = ($brand -replace '\s+', ' ').Trim()
       $unitPrice = Last-Money $unitPriceText
+      if ($unitPrice -notmatch '\d+[,.]\d{2}' -or $unitPrice -match '^[0O][,.][0O]{2}$') {
+        $widePriceText = Join-VisualWords @($band | Where-Object {
+          $_.CX -ge $bBrandDelivery -and $_.CX -lt $stX
+        })
+        $priceCandidates = [regex]::Matches([string]$widePriceText, '(?:\d{1,3}(?:\.\d{3})+|\d+)[,.]\d{2}')
+        foreach ($candidate in $priceCandidates) {
+          if ([string]$candidate.Value -notmatch '^[0O][,.][0O]{2}$') {
+            $unitPrice = [string]$candidate.Value
+            break
+          }
+        }
+      }
 
-      if ($code -match '^\d{4,10}$' -and $description.Length -ge 3 -and $unitPrice -match '\d+[,.]\d{2}') {
+      if ($code -match '^\d{3,10}$' -and $description.Length -ge 3 -and $unitPrice -match '\d+[,.]\d{2}' -and $unitPrice -notmatch '^[0O][,.][0O]{2}$') {
         $source = if ($fabCode) { 'TELCABOS COD.FAB ' + $fabCode } else { 'TELCABOS' }
         [Console]::WriteLine(('@CATALOG@' + [char]9 + $code + [char]9 + $description + [char]9 + 'Importado' + [char]9 + $brand + [char]9 + '' + [char]9 + $unit + [char]9 + $unitPrice + [char]9 + $source))
         $emittedItems[$itemNo] = $true
@@ -426,13 +443,10 @@ const recognizePdf = async (filePath: string): Promise<{ text: string; engine: '
 const normalizeStructuredOcr = (text: string) => {
   const rows = text.split(/\r?\n/).filter((line) => line.startsWith(`${STRUCTURED_MARKER}\t`));
   if (rows.length === 0) return text;
-  const unique = new Map<string, string>();
-  for (const row of rows) {
-    const values = row.split('\t').slice(1);
-    const code = values[0]?.trim();
-    if (code && !unique.has(code)) unique.set(code, values.join('\t'));
-  }
-  return ['Código\tDescrição\tCategoria\tFabricante\tModelo\tUnidade\tCusto\tFonte', ...unique.values()].join('\n');
+  const normalizedRows = rows
+    .map((row) => row.split('\t').slice(1).join('\t'))
+    .filter((row) => row.trim().length > 0);
+  return ['Código\tDescrição\tCategoria\tFabricante\tModelo\tUnidade\tCusto\tFonte', ...normalizedRows].join('\n');
 };
 
 export const selectCatalogImport = async (kind: 'table' | 'image'): Promise<CatalogImportFile> => {
