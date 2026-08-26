@@ -225,6 +225,66 @@ export const parseExsatProductsHtml = (html: string, includeMissingPrice = false
       active: true,
     });
   }
+
+  const lines = html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:a|article|button|div|h[1-6]|li|option|p|section|td|tr)>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+  const isCatalogCode = (value: string) => /^[A-Za-z0-9][A-Za-z0-9./_-]{2,59}$/.test(value) && /\d/.test(value);
+  const isProductDescription = (value: string) => value.length >= 3 && value.length <= 240
+    && /[A-Za-zÀ-ÿ]/.test(value)
+    && !isAdministrativeExsatText(value)
+    && !/^(?:ver produto|ver mais produtos|faça seu login|para ver o preço|criar minha conta|quero ser um revendedor|subtotal|atendimento|newsletter|comercial|políticas|termos e condições|política privacidade)$/i.test(value);
+
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    const rawCode = lines[index];
+    if (/^(?:ver mais produtos|©\s*exsat|cnpj\s*:)/i.test(rawCode)) break;
+    if (!isCatalogCode(rawCode)) continue;
+    const code = rawCode.toUpperCase();
+    let description = '';
+    let descriptionIndex = -1;
+    for (let offset = index + 1; offset < Math.min(lines.length, index + 6); offset += 1) {
+      if (isCatalogCode(lines[offset])) break;
+      if (isProductDescription(lines[offset])) {
+        description = lines[offset];
+        descriptionIndex = offset;
+        break;
+      }
+    }
+    if (!description) continue;
+
+    let currentCost = 0;
+    for (let offset = descriptionIndex + 1; offset < Math.min(lines.length, descriptionIndex + 7); offset += 1) {
+      if (isCatalogCode(lines[offset])) break;
+      const prices = lines[offset].match(/R\$\s*[\d.]+,\d{2}/gi) ?? [];
+      if (prices.length > 0) currentCost = parsePrice(prices.at(-1));
+    }
+    if (currentCost <= 0 && !includeMissingPrice) continue;
+
+    const previous = items.get(code);
+    if (!previous || (previous.currentCost <= 0 && currentCost > 0)) {
+      items.set(code, {
+        code,
+        manufacturer: /intelbras/i.test(description) ? 'Intelbras' : null,
+        model: null,
+        description,
+        category,
+        unit: 'un',
+        currentCost,
+        source: 'EXSAT',
+        active: true,
+      });
+    }
+  }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
   return [...items.values()].slice(0, 500);
 };
