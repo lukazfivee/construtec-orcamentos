@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, CatalogImportItem, CatalogImportPreview, CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
+import type { ApiErrorPayload, CatalogImportItem, CatalogImportPreview, CatalogProduct, ClientRecord, ProposalDetail, ProposalLaborInput, ProposalLaborItem, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -36,32 +36,38 @@ export const proposalApi = {
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
   history: (proposalId: string) => request<{ revisions: ProposalRevisionSummary[] }>(`/api/proposals/${proposalId}/history`),
   createRevision: (proposalId: string) => request<{ proposal: ProposalDetail }>(
-    `/api/proposals/${proposalId}/revisions`,
-    { method: 'POST' },
+    `/api/proposals/${proposalId}/revisions`, { method: 'POST' },
   ),
   catalog: (query: string, signal?: AbortSignal) => request<{ products: CatalogProduct[] }>(
-    `/api/catalog?q=${encodeURIComponent(query)}&limit=10`,
-    { signal },
+    `/api/catalog?q=${encodeURIComponent(query)}&limit=10`, { signal },
   ),
   addItem: (proposalId: string, productId: string) => request<{ proposal: ProposalDetail }>(
-    `/api/proposals/${proposalId}/items`,
-    { method: 'POST', body: JSON.stringify({ productId, quantity: 1 }) },
+    `/api/proposals/${proposalId}/items`, { method: 'POST', body: JSON.stringify({ productId, quantity: 1 }) },
   ),
   removeItems: (proposalId: string, itemIds: string[]) => request<{ proposal: ProposalDetail }>(
-    `/api/proposals/${proposalId}/items/remove`,
-    { method: 'POST', body: JSON.stringify({ itemIds }) },
+    `/api/proposals/${proposalId}/items/remove`, { method: 'POST', body: JSON.stringify({ itemIds }) },
   ),
   updateQuantity: (proposalId: string, itemId: string, quantity: number) => request<{ proposal: ProposalDetail }>(
-    `/api/proposals/${proposalId}/items/${itemId}`,
-    { method: 'PATCH', body: JSON.stringify({ quantity }) },
+    `/api/proposals/${proposalId}/items/${itemId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) },
   ),
   updateBdi: (proposalId: string, bdiMultiplier: number) => request<{ proposal: ProposalDetail }>(
-    `/api/proposals/${proposalId}/bdi`,
-    { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
+    `/api/proposals/${proposalId}/bdi`, { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
   ),
   updateContext: (proposalId: string, clientId: string, workId: string) => request<{ proposal: ProposalDetail }>(
-    `/api/proposals/${proposalId}/context`,
-    { method: 'PATCH', body: JSON.stringify({ clientId, workId }) },
+    `/api/proposals/${proposalId}/context`, { method: 'PATCH', body: JSON.stringify({ clientId, workId }) },
+  ),
+  labor: (proposalId: string) => request<{ items: ProposalLaborItem[]; standardMonthlyHours: number }>(`/api/proposals/${proposalId}/labor`),
+  addLabor: (proposalId: string, input: ProposalLaborInput) => request<{ items: ProposalLaborItem[] }>(
+    `/api/proposals/${proposalId}/labor`, { method: 'POST', body: JSON.stringify(input) },
+  ),
+  updateLabor: (proposalId: string, itemId: string, input: ProposalLaborInput) => request<{ items: ProposalLaborItem[] }>(
+    `/api/proposals/${proposalId}/labor/${itemId}`, { method: 'PATCH', body: JSON.stringify(input) },
+  ),
+  removeLabor: (proposalId: string, itemId: string) => request<{ items: ProposalLaborItem[] }>(
+    `/api/proposals/${proposalId}/labor/${itemId}/remove`, { method: 'POST' },
+  ),
+  updateLaborSettings: (proposalId: string, standardMonthlyHours: number) => request<{ standardMonthlyHours: number }>(
+    `/api/proposals/${proposalId}/labor-settings`, { method: 'PATCH', body: JSON.stringify({ standardMonthlyHours }) },
   ),
 };
 
