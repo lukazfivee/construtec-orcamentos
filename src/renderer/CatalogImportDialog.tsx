@@ -173,33 +173,44 @@ export const parseExsatQuoteText = (text: string): Row[] => {
   }).filter((row): row is Row => Boolean(row));
 };
 
-export const parseCatalogText = (text: string, source: string): Row[] => {
-  const exsatQuoteRows = parseExsatQuoteText(text);
-  if (exsatQuoteRows.length > 0) return exsatQuoteRows;
-  if (source === 'IMAGEM' && /(?:Print\s*Preview|Num\.?\s*Or[cç]amento|Vl\.?\s*L[ií]q|Condi[cç][oõ]es\s+de\s+Pagamento)/i.test(text)) return [];
+const parseStructuredTable = (text: string, source: string): Row[] | null => {
   const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  if (lines.length === 0) return [];
-  const delimiter = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : ',';
+  if (lines.length === 0) return null;
+  const delimiter = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : lines[0].includes(',') ? ',' : '';
+  if (!delimiter) return null;
   const first = splitLine(lines[0], delimiter);
   const mappedHeaders = first.map((header) => aliases[normalizeHeader(header)]);
   const hasHeader = mappedHeaders.includes('code') && mappedHeaders.includes('description');
+  if (!hasHeader) return null;
 
-  if (hasHeader) {
-    return lines.slice(1).map((line) => {
-      const values = splitLine(line, delimiter);
-      const partial: Partial<CatalogImportItem> = { source, active: true };
-      mappedHeaders.forEach((field, index) => {
-        if (!field) return;
-        const value = values[index] ?? '';
-        if (field === 'currentCost') partial.currentCost = moneyValue(value);
-        else if (field === 'active') partial.active = !/^(nao|não|0|false|inativo)$/i.test(value);
-        else if (field === 'manufacturer' || field === 'model') partial[field] = value || null;
-        else partial[field] = value;
-      });
-      return newRow(partial);
-    }).filter((row) => row.code || row.description);
-  }
+  return lines.slice(1).map((line) => {
+    const values = splitLine(line, delimiter);
+    const partial: Partial<CatalogImportItem> = { source, active: true };
+    mappedHeaders.forEach((field, index) => {
+      if (!field) return;
+      const value = values[index] ?? '';
+      if (field === 'currentCost') partial.currentCost = moneyValue(value);
+      else if (field === 'active') partial.active = !/^(nao|não|0|false|inativo)$/i.test(value);
+      else if (field === 'manufacturer' || field === 'model') partial[field] = value || null;
+      else partial[field] = value;
+    });
+    return newRow(partial);
+  }).filter((row) => row.code || row.description);
+};
 
+export const parseCatalogText = (text: string, source: string): Row[] => {
+  // Tabelas normalizadas pelo processo principal (Telcabos, fallback universal etc.)
+  // têm prioridade absoluta e nunca devem ser reinterpretadas como Exsat.
+  const structuredRows = parseStructuredTable(text, source);
+  if (structuredRows) return structuredRows;
+
+  const exsatQuoteRows = parseExsatQuoteText(text);
+  if (exsatQuoteRows.length > 0) return exsatQuoteRows;
+  if (source === 'IMAGEM' && /(?:Print\s*Preview|Num\.?\s*Or[cç]amento|Vl\.?\s*L[ií]q|Condi[cç][oõ]es\s+de\s+Pagamento)/i.test(text)) return [];
+
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length === 0) return [];
+  const delimiter = lines[0].includes('\t') ? '\t' : lines[0].includes(';') ? ';' : ',';
   return lines.map((line) => {
     const values = splitLine(line, delimiter);
     if (values.length >= 2) return newRow({
@@ -259,11 +270,11 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       const result = await window.construtec?.selectCatalogImport(expected === 'image' ? 'image' : 'table');
       if (!result || result.canceled) return;
       if (result.kind !== (expected === 'image' ? 'image' : 'table')) {
-        throw new Error(expected === 'image' ? 'Selecione uma imagem PNG, JPG ou BMP.' : 'Selecione uma planilha XLSX, CSV ou TSV.');
+        throw new Error(expected === 'image' ? 'Selecione uma imagem ou PDF.' : 'Selecione uma planilha XLSX, CSV ou TSV.');
       }
       const source = expected === 'image' ? 'IMAGEM' : result.name?.replace(/\.[^.]+$/, '').toUpperCase() || 'PLANILHA';
       const parsedRows = parseCatalogText(result.text ?? '', source);
-      if (expected === 'image' && parsedRows.length === 0) throw new Error('Nenhum item foi reconhecido na imagem. Use a imagem original em boa resolução, sem a barra do Print Preview, e tente novamente.');
+      if (expected === 'image' && parsedRows.length === 0) throw new Error('Nenhum produto, material ou equipamento com preço foi reconhecido. Tente um arquivo em melhor resolução ou confira se o preço aparece no documento.');
       setRows(parsedRows); setSourceName(result.name ?? 'Arquivo importado'); setBatchInfo('');
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível ler o arquivo.'); }
     finally { setLoading(false); }
@@ -350,12 +361,12 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   return <div className="import-overlay" role="presentation"><section className="import-dialog" role="dialog" aria-modal="true" aria-label="Importar catálogo em lote">
     <header><span><Import size={22} /><div><h2>Importar itens em lote</h2><p>Confira os dados antes de atualizar o catálogo.</p></div></span><button type="button" aria-label="Fechar" onClick={onClose}><X size={18} /></button></header>
     <nav>{[
-      ['manual', Plus, 'Manual'], ['file', FileSpreadsheet, 'Planilha'], ['image', FileImage, 'Imagem'], ['exsat', Globe2, 'Exsat'],
+      ['manual', Plus, 'Manual'], ['file', FileSpreadsheet, 'Planilha'], ['image', FileImage, 'Imagem/PDF'], ['exsat', Globe2, 'Exsat'],
     ].map(([value, Icon, label]) => <button key={String(value)} type="button" className={mode === value ? 'active' : ''} onClick={() => { setMode(value as typeof mode); setRows([]); setBatchInfo(''); }}><Icon size={16} />{String(label)}</button>)}</nav>
     <div className="import-source">
       {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button></>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
-      {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Foto, captura de tela ou orçamento da Exsat</b><small>Nos orçamentos Exsat, o app usa Fab. como código e Vl. Líq. como custo unitário. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem</button></div>}
+      {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Imagem, foto, captura de tela ou PDF</b><small>O app tenta reconhecer produtos, materiais e equipamentos com preço, com ou sem código. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem ou PDF</button></div>}
       {mode === 'exsat' && <div className="exsat-source"><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><div className="import-summary"><span><b>Última sincronização Exsat:</b> {formatSyncDate(syncInfo.lastSyncAt)}</span><span>Varredura completa: {formatSyncDate(syncInfo.lastFullSyncAt)}</span></div><button type="button" className="primary" disabled={loading || !exsatConnected} onClick={() => void loadExsatAuto()}>Atualizar catálogo automaticamente</button><small>O app prioriza páginas produtivas, usa até 24 páginas no incremental e faz varredura completa periódica de até 60 páginas.</small>{syncInfo.history.length > 0 && <details><summary>Histórico das últimas sincronizações</summary><div>{syncInfo.history.slice(0, 10).map((entry) => <p key={entry.id}><b>{formatSyncDate(entry.completedAt)}</b> · {entry.mode === 'full' ? 'Completa' : entry.mode === 'incremental' ? 'Incremental' : 'Manual'} · {entry.pagesRead} páginas · {entry.itemsFound} itens · <b>{entry.created} novos</b> · <b>{entry.updated} atualizados</b>{entry.failedPages ? ` · ${entry.failedPages} falhas` : ''}</p>)}</div></details>}<details><summary>Modo avançado: informar páginas manualmente</summary><label><span>Endereços de categorias ou buscas — um por linha</span><textarea value={exsatUrls} onChange={(event) => setExsatUrls(event.target.value)} placeholder={'https://exsat.com.br/...\nhttps://exsat.com.br/...'} /></label><button type="button" disabled={loading || !exsatConnected} onClick={() => void loadExsat()}>Buscar somente estas páginas</button></details></div>}
     </div>
     {mode === 'exsat' && rows.length > 0 && <div className="import-summary"><span><b>{previewSummary.new}</b> novos · <b>{previewSummary.updated}</b> atualizar · <b>{previewSummary.unchanged}</b> sem alteração · <b>{previewSummary.noPrice}</b> sem preço</span><span>{batchInfo || 'Prévia comparada com o catálogo local'}</span></div>}
