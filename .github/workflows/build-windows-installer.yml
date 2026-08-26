@@ -44,17 +44,6 @@ jobs:
         shell: pwsh
         run: Copy-Item 'out/make/squirrel.windows/x64/Construtec-Orcamentos-1.0.3-Setup.exe' 'out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe'
 
-      - name: Publicar artefato de compilação
-        uses: actions/upload-artifact@v4
-        with:
-          name: Construtec-Orcamentos-Windows-x64
-          path: |
-            out/make/squirrel.windows/x64/*.exe
-            out/make/squirrel.windows/x64/*.nupkg
-            out/make/squirrel.windows/x64/RELEASES
-          if-no-files-found: error
-          retention-days: 30
-
       - name: Publicar EXE para download direto
         if: github.event_name != 'pull_request'
         shell: pwsh
@@ -68,5 +57,19 @@ jobs:
             gh release create $tag $asset --repo ${{ github.repository }} --target ${{ github.sha }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
           } else {
             gh release upload $tag $asset --repo ${{ github.repository }} --clobber
-            gh release edit $tag --repo ${{ github.repository }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
+            gh release edit $tag --repo ${{ github.repository }} --target ${{ github.sha }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
           }
+
+      - name: Expor URL temporária do EXE
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $release = gh api 'repos/${{ github.repository }}/releases/tags/windows-latest' | ConvertFrom-Json
+          $asset = $release.assets | Where-Object { $_.name -eq 'Construtec-Orcamentos-Setup.exe' } | Select-Object -First 1
+          if (-not $asset) { throw 'EXE não encontrado na release.' }
+          $headers = curl.exe -sS -D - -o NUL -H "Authorization: Bearer $env:GH_TOKEN" -H 'Accept: application/octet-stream' "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)"
+          $url = (($headers -split "`r?`n") | Where-Object { $_ -match '^location:' } | Select-Object -First 1) -replace '^location:\s*', ''
+          if (-not $url) { throw 'URL temporária não retornada pelo GitHub.' }
+          Write-Host "SIGNED_DOWNLOAD_URL=$url"
