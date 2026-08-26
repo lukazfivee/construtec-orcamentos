@@ -200,6 +200,8 @@ export const createProposal = async (
 
 type Queryable = Pick<LocalDatabase, 'query'>;
 
+export type ProposalItemUpdateInput = Partial<Pick<ProposalLine, 'description' | 'quantity' | 'unit' | 'unitCost' | 'unitSale'>>;
+
 const getLatestProposal = async (database: Queryable, proposalId: string) => {
   const result = await database.query<{
     status: ProposalDetail['status']; bdi_multiplier: string; proposal_number: string; revision: number; superseded: boolean;
@@ -304,32 +306,129 @@ export const removeProposalItems = async (database: LocalDatabase, proposalId: s
   });
 };
 
+export const updateProposalItem = async (
+  database: LocalDatabase,
+  proposalId: string,
+  itemId: string,
+  input: ProposalItemUpdateInput,
+) => {
+  await database.transaction(async (transaction) => {
+    await getEditableProposal(transaction, proposalId);
+
+    const itemResult = await transaction.query<ItemRow>(`
+      SELECT id, snapshot_code, snapshot_description, quantity::text,
+        snapshot_unit, snapshot_unit_cost::text, sale_unit_price::text
+      FROM proposal_items
+      WHERE proposal_id = $1 AND id = $2
+      FOR UPDATE
+    `, [proposalId, itemId]);
+    const item = itemResult.rows[0];
+    if (!item) throw new Error('ITEM_NOT_FOUND');
+
+    const next = {
+      description: input.description?.trim() ?? item.snapshot_description,
+      quantity: input.quantity ?? Number(item.quantity),
+      unit: input.unit?.trim() ?? item.snapshot_unit,
+      unitCost: input.unitCost ?? Number(item.snapshot_unit_cost),
+      unitSale: input.unitSale ?? Number(item.sale_unit_price),
+    };
+
+    await transaction.query(`
+      UPDATE proposal_items
+      SET snapshot_description = $3, quantity = $4, snapshot_unit = $5,
+        snapshot_unit_cost = $6, sale_unit_price = $7
+      WHERE proposal_id = $1 AND id = $2
+    `, [proposalId, itemId, next.description, next.quantity, next.unit, next.unitCost, next.unitSale]);
+
+    await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal_item', $2, 'updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), itemId, JSON.stringify({
+      description: item.snapshot_description,
+      quantity: Number(item.quantity),
+      unit: item.snapshot_unit,
+      unitCost: Number(item.snapshot_unit_cost),
+      unitSale: Number(item.sale_unit_price),
+    }), JSON.stringify(next)]);
+  });
+};
+
 export const updateProposalItemQuantity = async (
   database: LocalDatabase,
   proposalId: string,
   itemId: string,
   quantity: number,
-) => {
+) => updateProposalItem(database, proposalId, itemId, { quantity });
+
+export const duplicateProposalItem = async (database: LocalDatabase, proposalId: string, itemId: string) => {
   await database.transaction(async (transaction) => {
     await getEditableProposal(transaction, proposalId);
+    const itemResult = await transaction.query<{
+      catalog_product_id: string | null; snapshot_code: string; snapshot_manufacturer: string | null;
+      snapshot_model: string | null; snapshot_description: string; snapshot_unit: string;
+      snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
+    }>(`
+      SELECT catalog_product_id, snapshot_code, snapshot_manufacturer, snapshot_model,
+        snapshot_description, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+      FROM proposal_items
+      WHERE proposal_id = $1 AND id = $2
+      FOR UPDATE
+    `, [proposalId, itemId]);
+    const item = itemResult.rows[0];
+    if (!item) throw new Error('ITEM_NOT_FOUND');
 
-    const itemResult = await transaction.query<{ quantity: string }>(
-      'SELECT quantity::text FROM proposal_items WHERE proposal_id = $1 AND id = $2 FOR UPDATE',
+    const positionResult = await transaction.query<{ next_position: number }>(
+      'SELECT COALESCE(max(position), 0) + 1 AS next_position FROM proposal_items WHERE proposal_id = $1',
+      [proposalId],
+    );
+    const newItemId = randomUUID();
+    await transaction.query(`
+      INSERT INTO proposal_items
+        (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
+         snapshot_model, snapshot_description, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    `, [newItemId, proposalId, item.catalog_product_id, positionResult.rows[0]?.next_position ?? 1,
+      item.snapshot_code, item.snapshot_manufacturer, item.snapshot_model, item.snapshot_description,
+      item.snapshot_unit, Number(item.snapshot_unit_cost), Number(item.quantity), Number(item.sale_unit_price)]);
+
+    await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal_item', $2, 'duplicated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), newItemId, JSON.stringify({ sourceItemId: itemId }), JSON.stringify({ position: positionResult.rows[0]?.next_position ?? 1 })]);
+  });
+};
+
+export const moveProposalItem = async (database: LocalDatabase, proposalId: string, itemId: string, direction: 'up' | 'down') => {
+  await database.transaction(async (transaction) => {
+    await getEditableProposal(transaction, proposalId);
+    const itemResult = await transaction.query<{ id: string; position: number }>(
+      'SELECT id, position FROM proposal_items WHERE proposal_id = $1 AND id = $2 FOR UPDATE',
       [proposalId, itemId],
     );
     const item = itemResult.rows[0];
     if (!item) throw new Error('ITEM_NOT_FOUND');
 
-    await transaction.query(
-      'UPDATE proposal_items SET quantity = $3 WHERE proposal_id = $1 AND id = $2',
-      [proposalId, itemId, quantity],
-    );
+    const siblingResult = await transaction.query<{ id: string; position: number }>(`
+      SELECT id, position
+      FROM proposal_items
+      WHERE proposal_id = $1 AND position ${direction === 'up' ? '<' : '>'} $2
+      ORDER BY position ${direction === 'up' ? 'DESC' : 'ASC'}
+      LIMIT 1
+      FOR UPDATE
+    `, [proposalId, item.position]);
+    const sibling = siblingResult.rows[0];
+    if (!sibling) return;
 
+    await transaction.query('UPDATE proposal_items SET position = -1 WHERE proposal_id = $1 AND id = $2', [proposalId, item.id]);
+    await transaction.query('UPDATE proposal_items SET position = $3 WHERE proposal_id = $1 AND id = $2', [proposalId, sibling.id, item.position]);
+    await transaction.query('UPDATE proposal_items SET position = $3 WHERE proposal_id = $1 AND id = $2', [proposalId, item.id, sibling.position]);
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
-      VALUES ($1, 'proposal_item', $2, 'quantity_updated', $3::jsonb, $4::jsonb)
-    `, [randomUUID(), itemId, JSON.stringify({ quantity: Number(item.quantity) }), JSON.stringify({ quantity })]);
+      VALUES ($1, 'proposal_item', $2, 'moved', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), itemId, JSON.stringify({ position: item.position }), JSON.stringify({ position: sibling.position })]);
   });
 };
 
