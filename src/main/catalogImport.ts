@@ -414,7 +414,8 @@ for ($i = 0; $i -lt $pdf.PageCount; $i += 1) {
     await runPowerShellScript(script, { ...process.env, CONSTRUTEC_PDF_PATH: filePath, CONSTRUTEC_PDF_OUT: outputDir }, 180_000);
     const pages = (await readdir(outputDir)).filter((name) => /^page-\d+\.png$/i.test(name)).sort().map((name) => path.join(outputDir, name));
     if (pages.length === 0) throw new Error('PDF_SEM_PAGINAS');
-    return { outputDir, pages };  } catch (error) { await rm(outputDir, { recursive: true, force: true }); throw error; }
+    return { outputDir, pages };
+  } catch (error) { await rm(outputDir, { recursive: true, force: true }); throw error; }
 };
 
 const recognizeImage = async (filePath: string): Promise<{ text: string; engine: 'cloudflare' | 'windows' }> => {
