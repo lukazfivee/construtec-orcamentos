@@ -203,13 +203,14 @@ export function App() {
   }, [mutationPending, proposal, selectedItemIds]);
 
   const parseDecimal = (value: string) => Number(value.trim().replace(',', '.'));
+  const formatDecimal = (value: number) => String(value).replace('.', ',');
 
   const updateQuantity = useCallback(async (itemId: string, value: string) => {
     if (!proposal || mutationPending) return;
     const nextQuantity = parseDecimal(value);
     const currentItem = proposal.items.find((item) => item.id === itemId);
     if (!Number.isFinite(nextQuantity) || nextQuantity <= 0 || nextQuantity > 1_000_000) {
-      setQuantityDrafts((current) => ({ ...current, [itemId]: String(currentItem?.quantity ?? 1).replace('.', ',') }));
+      setQuantityDrafts((current) => ({ ...current, [itemId]: formatDecimal(currentItem?.quantity ?? 1) }));
       showNotice('Informe uma quantidade maior que zero.');
       return;
     }
@@ -219,7 +220,7 @@ export function App() {
     try {
       const result = await proposalApi.updateQuantity(proposal.id, itemId, nextQuantity);
       setProposal(result.proposal);
-      setQuantityDrafts((current) => ({ ...current, [itemId]: String(nextQuantity).replace('.', ',') }));
+      setQuantityDrafts((current) => ({ ...current, [itemId]: formatDecimal(nextQuantity) }));
       showNotice('Quantidade atualizada e totais recalculados.');
     } catch (mutationError) {
       setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível alterar a quantidade.');
@@ -227,6 +228,81 @@ export function App() {
       setMutationPending(false);
     }
   }, [mutationPending, proposal]);
+
+  const updateItemText = useCallback(async (itemId: string, field: 'description' | 'unit', value: string) => {
+    if (!proposal || mutationPending) return;
+    const currentItem = proposal.items.find((item) => item.id === itemId);
+    const nextValue = value.trim();
+    if (!currentItem || currentItem[field] === nextValue) return;
+    if (nextValue.length < (field === 'description' ? 2 : 1)) {
+      showNotice(field === 'description' ? 'Informe uma descrição válida.' : 'Informe uma unidade válida.');
+      return;
+    }
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateItem(proposal.id, itemId, { [field]: nextValue });
+      setProposal(result.proposal);
+      showNotice('Item atualizado.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível atualizar o item.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
+  const updateItemMoney = useCallback(async (itemId: string, field: 'unitCost' | 'unitSale', value: string) => {
+    if (!proposal || mutationPending) return;
+    const currentItem = proposal.items.find((item) => item.id === itemId);
+    const nextValue = parseDecimal(value);
+    if (!currentItem || currentItem[field] === nextValue) return;
+    if (!Number.isFinite(nextValue) || nextValue < 0 || nextValue > 100_000_000) {
+      showNotice('Informe um valor válido.');
+      return;
+    }
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateItem(proposal.id, itemId, { [field]: nextValue });
+      setProposal(result.proposal);
+      showNotice('Item atualizado e totais recalculados.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível atualizar o item.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
+  const duplicateSelectedItem = useCallback(async () => {
+    if (!proposal || selectedItemIds.length !== 1 || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.duplicateItem(proposal.id, selectedItemIds[0]);
+      setProposal(result.proposal);
+      setSelectedItemIds([]);
+      showNotice('Item duplicado.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível duplicar o item.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal, selectedItemIds]);
+
+  const moveSelectedItem = useCallback(async (direction: 'up' | 'down') => {
+    if (!proposal || selectedItemIds.length !== 1 || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.moveItem(proposal.id, selectedItemIds[0], direction);
+      setProposal(result.proposal);
+      showNotice('Item movido.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível mover o item.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal, selectedItemIds]);
 
   const updateBdi = useCallback(async () => {
     if (!proposal || mutationPending) return;
@@ -428,6 +504,7 @@ export function App() {
   const proposalLabel = proposal ? `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}` : 'Carregando proposta';
   const allSelected = Boolean(proposal?.items.length) && selectedItemIds.length === proposal?.items.length;
   const isEditable = Boolean(proposal?.isLatest && (proposal.status === 'draft' || proposal.status === 'review'));
+  const singleItemSelected = selectedItemIds.length === 1;
   const materialsTotal = proposal?.totals.cost ?? 0;
   const baseCost = materialsTotal + laborTotal;
   const finalValue = baseCost * (proposal?.bdiMultiplier ?? 1);
@@ -513,9 +590,9 @@ export function App() {
           <div className="toolbar" aria-label="Ações dos itens">
             <button className="primary compact" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen((value) => !value)}><Plus size={17} /> Inserir <ChevronDown size={14} /></button>
             <button type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void removeSelectedItems()}><Trash2 size={16} /> Excluir</button>
-            <button type="button" disabled title="Duplicação será implementada em uma próxima etapa."><Copy size={16} /> Duplicar</button>
-            <button type="button" disabled title="Movimentação será implementada em uma próxima etapa.">Mover <ChevronDown size={14} /></button>
-            <button type="button" disabled title="Mais ações serão implementadas em uma próxima etapa.">Mais <ChevronDown size={14} /></button>
+            <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void duplicateSelectedItem()}><Copy size={16} /> Duplicar</button>
+            <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void moveSelectedItem('up')}><ChevronUp size={14} /> Mover</button>
+            <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void moveSelectedItem('down')}><ChevronDown size={14} /> Mover</button>
             <span className="toolbar-space" />
             <button type="button" disabled title="Importação será implementada em uma próxima etapa.">Importar <ChevronDown size={14} /></button>
             <button className="icon-button" aria-label="Configurar colunas" type="button" disabled><SlidersHorizontal size={18} /></button>
@@ -535,9 +612,14 @@ export function App() {
                 {proposal?.items.map((item, index) => (
                   <tr key={item.id}>
                     <td><input type="checkbox" aria-label={`Selecionar ${item.description}`} checked={selectedItemIds.includes(item.id)} disabled={!isEditable} onChange={() => setSelectedItemIds((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} /></td>
-                    <td>{index + 1}</td><td className="code">{item.code}</td><td title={item.description}>{item.description}</td>
-                    <td className="number editable-cell"><input className="quantity-input" type="text" inputMode="decimal" aria-label={`Quantidade de ${item.description}`} value={quantityDrafts[item.id] ?? String(item.quantity).replace('.', ',')} disabled={!isEditable || mutationPending} onChange={(event) => setQuantityDrafts((current) => ({ ...current, [item.id]: event.target.value }))} onBlur={(event) => void updateQuantity(item.id, event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setQuantityDrafts((current) => ({ ...current, [item.id]: String(item.quantity).replace('.', ',') })); event.currentTarget.blur(); } }} /></td>
-                    <td>{item.unit}</td><td className="number">{money.format(item.unitCost)}</td><td className="number">{money.format(item.totalCost)}</td><td className="number">{money.format(item.unitSale)}</td><td className="number">{money.format(item.totalSale)}</td>
+                    <td>{index + 1}</td><td className="code">{item.code}</td>
+                    <td className="editable-cell"><input key={`${item.id}-description-${item.description}`} className="line-input" type="text" defaultValue={item.description} title={item.description} disabled={!isEditable || mutationPending} aria-label={`Descrição de ${item.description}`} onBlur={(event) => void updateItemText(item.id, 'description', event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { event.currentTarget.value = item.description; event.currentTarget.blur(); } }} /></td>
+                    <td className="number editable-cell"><input className="quantity-input" type="text" inputMode="decimal" aria-label={`Quantidade de ${item.description}`} value={quantityDrafts[item.id] ?? formatDecimal(item.quantity)} disabled={!isEditable || mutationPending} onChange={(event) => setQuantityDrafts((current) => ({ ...current, [item.id]: event.target.value }))} onBlur={(event) => void updateQuantity(item.id, event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setQuantityDrafts((current) => ({ ...current, [item.id]: formatDecimal(item.quantity) })); event.currentTarget.blur(); } }} /></td>
+                    <td className="editable-cell"><input key={`${item.id}-unit-${item.unit}`} className="unit-input" type="text" defaultValue={item.unit} disabled={!isEditable || mutationPending} aria-label={`Unidade de ${item.description}`} onBlur={(event) => void updateItemText(item.id, 'unit', event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { event.currentTarget.value = item.unit; event.currentTarget.blur(); } }} /></td>
+                    <td className="number editable-cell"><input key={`${item.id}-cost-${item.unitCost}`} className="quantity-input" type="text" inputMode="decimal" defaultValue={formatDecimal(item.unitCost)} disabled={!isEditable || mutationPending} aria-label={`Custo unitário de ${item.description}`} onBlur={(event) => void updateItemMoney(item.id, 'unitCost', event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { event.currentTarget.value = formatDecimal(item.unitCost); event.currentTarget.blur(); } }} /></td>
+                    <td className="number">{money.format(item.totalCost)}</td>
+                    <td className="number editable-cell"><input key={`${item.id}-sale-${item.unitSale}`} className="quantity-input" type="text" inputMode="decimal" defaultValue={formatDecimal(item.unitSale)} disabled={!isEditable || mutationPending} aria-label={`Venda unitária de ${item.description}`} onBlur={(event) => void updateItemMoney(item.id, 'unitSale', event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { event.currentTarget.value = formatDecimal(item.unitSale); event.currentTarget.blur(); } }} /></td>
+                    <td className="number">{money.format(item.totalSale)}</td>
                   </tr>
                 ))}
                 {!loading && proposal?.items.length === 0 && <tr className="empty-row"><td colSpan={10}>Nenhum item nesta proposta. Use “Inserir” para pesquisar no catálogo local.</td></tr>}
