@@ -5,14 +5,16 @@ import {
   addProductToProposal,
   createProposal,
   createProposalRevision,
+  duplicateProposalItem,
   getCurrentProposal,
   getProposalById,
   listProposalHistory,
   listCurrentProposals,
+  moveProposalItem,
   removeProposalItems,
   updateProposalBdi,
   updateProposalContext,
-  updateProposalItemQuantity,
+  updateProposalItem,
 } from '../services/proposals';
 import {
   copyProposalLabor,
@@ -30,7 +32,14 @@ const addItemSchema = z.object({
   quantity: z.number().positive().max(1_000_000).default(1),
 });
 const removeItemsSchema = z.object({ itemIds: z.array(z.string().uuid()).min(1).max(500) });
-const updateQuantitySchema = z.object({ quantity: z.number().positive().max(1_000_000) });
+const updateItemSchema = z.object({
+  description: z.string().trim().min(2).max(240).optional(),
+  quantity: z.number().positive().max(1_000_000).optional(),
+  unit: z.string().trim().min(1).max(24).optional(),
+  unitCost: z.number().min(0).max(100_000_000).optional(),
+  unitSale: z.number().min(0).max(100_000_000).optional(),
+}).refine((input) => Object.keys(input).length > 0, { message: 'Informe ao menos um campo para atualizar.' });
+const moveItemSchema = z.object({ direction: z.enum(['up', 'down']) });
 const updateBdiSchema = z.object({ bdiMultiplier: z.number().positive().max(100) });
 const updateContextSchema = z.object({ clientId: z.string().uuid(), workId: z.string().uuid() });
 const createProposalSchema = z.object({
@@ -174,8 +183,27 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const itemId = idSchema.parse(request.params.itemId);
-      const input = updateQuantitySchema.parse(request.body);
-      await updateProposalItemQuantity(database, proposalId, itemId, input.quantity);
+      const input = updateItemSchema.parse(request.body);
+      await updateProposalItem(database, proposalId, itemId, input);
+      response.json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/items/:itemId/duplicate', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const itemId = idSchema.parse(request.params.itemId);
+      await duplicateProposalItem(database, proposalId, itemId);
+      response.status(201).json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/items/:itemId/move', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const itemId = idSchema.parse(request.params.itemId);
+      const input = moveItemSchema.parse(request.body);
+      await moveProposalItem(database, proposalId, itemId, input.direction);
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
