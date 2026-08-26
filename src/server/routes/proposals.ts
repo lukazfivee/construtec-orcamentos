@@ -14,6 +14,15 @@ import {
   updateProposalContext,
   updateProposalItemQuantity,
 } from '../services/proposals';
+import {
+  copyProposalLabor,
+  createProposalLaborItem,
+  getProposalStandardMonthlyHours,
+  listProposalLaborItems,
+  removeProposalLaborItem,
+  updateProposalLaborItem,
+  updateProposalStandardMonthlyHours,
+} from '../services/proposalLabor';
 
 const idSchema = z.string().uuid();
 const addItemSchema = z.object({
@@ -30,6 +39,17 @@ const createProposalSchema = z.object({
   scope: z.string().trim().min(3).max(300),
   validUntil: z.iso.date().nullable().optional(),
 });
+const laborSchema = z.object({
+  description: z.string().trim().min(2).max(160),
+  professionalCount: z.number().positive().max(1_000),
+  monthlySalary: z.number().min(0).max(100_000_000),
+  monthlyFood: z.number().min(0).max(100_000_000),
+  monthlyTransport: z.number().min(0).max(100_000_000),
+  monthlyOtherCosts: z.number().min(0).max(100_000_000),
+  standardMonthlyHours: z.number().positive().max(1_000),
+  plannedHours: z.number().min(0).max(1_000_000),
+});
+const standardHoursSchema = z.object({ standardMonthlyHours: z.number().positive().max(1_000) });
 
 export const createProposalsRouter = (database: LocalDatabase) => {
   const router = Router();
@@ -42,35 +62,73 @@ export const createProposalsRouter = (database: LocalDatabase) => {
         return;
       }
       response.json({ proposal });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.get('/', async (_request, response, next) => {
-    try {
-      response.json({ proposals: await listCurrentProposals(database) });
-    } catch (error) {
-      next(error);
-    }
+    try { response.json({ proposals: await listCurrentProposals(database) }); }
+    catch (error) { next(error); }
   });
 
   router.post('/', async (request, response, next) => {
     try {
       const proposalId = await createProposal(database, createProposalSchema.parse(request.body));
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.get('/:proposalId/history', async (request, response, next) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       response.json({ revisions: await listProposalHistory(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
+  });
+
+  router.get('/:proposalId/labor', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const [items, standardMonthlyHours] = await Promise.all([
+        listProposalLaborItems(database, proposalId),
+        getProposalStandardMonthlyHours(database, proposalId),
+      ]);
+      response.json({ items, standardMonthlyHours });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/labor', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      await createProposalLaborItem(database, proposalId, laborSchema.parse(request.body));
+      const items = await listProposalLaborItems(database, proposalId);
+      response.status(201).json({ items });
+    } catch (error) { next(error); }
+  });
+
+  router.patch('/:proposalId/labor/:itemId', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const itemId = idSchema.parse(request.params.itemId);
+      await updateProposalLaborItem(database, proposalId, itemId, laborSchema.parse(request.body));
+      response.json({ items: await listProposalLaborItems(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/labor/:itemId/remove', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const itemId = idSchema.parse(request.params.itemId);
+      await removeProposalLaborItem(database, proposalId, itemId);
+      response.json({ items: await listProposalLaborItems(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.patch('/:proposalId/labor-settings', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const input = standardHoursSchema.parse(request.body);
+      await updateProposalStandardMonthlyHours(database, proposalId, input.standardMonthlyHours);
+      response.json({ standardMonthlyHours: input.standardMonthlyHours });
+    } catch (error) { next(error); }
   });
 
   router.get('/:proposalId', async (request, response, next) => {
@@ -82,19 +140,16 @@ export const createProposalsRouter = (database: LocalDatabase) => {
         return;
       }
       response.json({ proposal });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.post('/:proposalId/revisions', async (request, response, next) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const newProposalId = await createProposalRevision(database, proposalId);
+      await copyProposalLabor(database, proposalId, newProposalId);
       response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.post('/:proposalId/items', async (request, response, next) => {
@@ -103,9 +158,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = addItemSchema.parse(request.body);
       await addProductToProposal(database, proposalId, input.productId, input.quantity);
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.post('/:proposalId/items/remove', async (request, response, next) => {
@@ -114,9 +167,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = removeItemsSchema.parse(request.body);
       await removeProposalItems(database, proposalId, input.itemIds);
       response.json({ proposal: await getProposalById(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.patch('/:proposalId/items/:itemId', async (request, response, next) => {
@@ -126,9 +177,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = updateQuantitySchema.parse(request.body);
       await updateProposalItemQuantity(database, proposalId, itemId, input.quantity);
       response.json({ proposal: await getProposalById(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.patch('/:proposalId/bdi', async (request, response, next) => {
@@ -137,9 +186,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = updateBdiSchema.parse(request.body);
       await updateProposalBdi(database, proposalId, input.bdiMultiplier);
       response.json({ proposal: await getProposalById(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.patch('/:proposalId/context', async (request, response, next) => {
@@ -148,9 +195,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = updateContextSchema.parse(request.body);
       await updateProposalContext(database, proposalId, input.clientId, input.workId);
       response.json({ proposal: await getProposalById(database, proposalId) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   return router;

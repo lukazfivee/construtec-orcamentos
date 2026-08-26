@@ -7,6 +7,7 @@ import { initialMigration } from '../migrations/001-initial';
 import { clientsAndWorksMigration } from '../migrations/002-clients-works';
 import { catalogManagementMigration } from '../migrations/003-catalog-management';
 import { cleanExsatAdministrativeOcrMigration } from '../migrations/004-clean-exsat-admin-ocr';
+import { proposalLaborMigration } from '../migrations/005-proposal-labor';
 import { ensureFirstRunData } from './bootstrap';
 
 export type LocalDatabase = PGliteModule.PGlite;
@@ -38,49 +39,25 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     );
   `);
 
-  const result = await database.query<{ version: number }>(
-    'SELECT version FROM schema_migrations WHERE version = $1',
-    [1],
-  );
+  const migrations = [
+    [1, initialMigration],
+    [2, clientsAndWorksMigration],
+    [3, catalogManagementMigration],
+    [4, cleanExsatAdministrativeOcrMigration],
+    [5, proposalLaborMigration],
+  ] as const;
 
-  if (result.rows.length === 0) {
-    await database.transaction(async (transaction) => {
-      await transaction.exec(initialMigration);
-      await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [1]);
-    });
-  }
-
-  const secondMigration = await database.query<{ version: number }>(
-    'SELECT version FROM schema_migrations WHERE version = $1',
-    [2],
-  );
-  if (secondMigration.rows.length === 0) {
-    await database.transaction(async (transaction) => {
-      await transaction.exec(clientsAndWorksMigration);
-      await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [2]);
-    });
-  }
-
-  const thirdMigration = await database.query<{ version: number }>(
-    'SELECT version FROM schema_migrations WHERE version = $1',
-    [3],
-  );
-  if (thirdMigration.rows.length === 0) {
-    await database.transaction(async (transaction) => {
-      await transaction.exec(catalogManagementMigration);
-      await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [3]);
-    });
-  }
-
-  const fourthMigration = await database.query<{ version: number }>(
-    'SELECT version FROM schema_migrations WHERE version = $1',
-    [4],
-  );
-  if (fourthMigration.rows.length === 0) {
-    await database.transaction(async (transaction) => {
-      await transaction.exec(cleanExsatAdministrativeOcrMigration);
-      await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [4]);
-    });
+  for (const [version, sql] of migrations) {
+    const result = await database.query<{ version: number }>(
+      'SELECT version FROM schema_migrations WHERE version = $1',
+      [version],
+    );
+    if (result.rows.length === 0) {
+      await database.transaction(async (transaction) => {
+        await transaction.exec(sql);
+        await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [version]);
+      });
+    }
   }
 
   await ensureFirstRunData(database);
