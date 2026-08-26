@@ -7,10 +7,15 @@ const STOP_BACKTRACK = /(?:Í|I)tem\s+C[oó]digo|TELCABOS|^Pag\s*:|Desc\.?\s*Imp
 const UNIT_PATTERN = /^(?:PC|PÇ|PCA|PÇS|MT|M|UN|UND|UNID|CX|RL|BB|KIT|JG|SV)$/i;
 const ADMIN_PATTERN = /\b(?:total|subtotal|investimento|frete|imposto|impostos|desconto|icms|fcp|pagamento|validade|proposta|or[cç]amento|cliente|cnpj|cpf|telefone|endere[cç]o|vendedor|comprador|contato|emiss[aã]o|condi[cç][oõ]es|observa[cç][oõ]es|data\s*base|reajuste|aceita[cç][aã]o|assinatura|respons[aá]vel|cr[eé]dito|prazo)\b/i;
 const GENERIC_PRICE_HEADER = /\b(?:pre[cç]o|valor|vl\.?|unit[aá]rio|custo)\b/i;
-const REAIS_PRICE = /R\s*\$\s*((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})/gi;
+const REAIS_PRICE = /R\s*\$\s*((?:[\dOIl]{1,3}(?:\.[\dOIl]{3})+|[\dOIl]+),[\dOIl]{2})/gi;
 const BARE_PRICE = /(?<![\d.])((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})(?!\d)/g;
 
 const clean = (value: string) => value.replace(/\s+/g, ' ').trim();
+const normalizeOcrDigits = (value: string) => value.replace(/[Oo]/g, '0').replace(/[Il|]/g, '1');
+const normalizeDescriptionOcr = (value: string) => clean(value).replace(
+  /\b(\d{1,3}U)X([\dOIl]{3,4})X([\dOIl]{3,5})M[A-Za-z\d]{0,3}\b/gi,
+  (_, rackUnit: string, width: string, depth: string) => `${rackUnit.toUpperCase()}X${normalizeOcrDigits(width)}X${normalizeOcrDigits(depth)}MM`,
+);
 
 const inferCategory = (description: string) => {
   if (/c[aâ]mera|dvr|nvr|gravador|cftv|hd\s+purple/i.test(description)) return 'CFTV';
@@ -30,14 +35,14 @@ const inferManufacturer = (description: string) => {
 };
 
 const parseBrazilianNumber = (value: string) => {
-  const normalized = value.replace(/R\s*\$/gi, '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '');
+  const normalized = normalizeOcrDigits(value).replace(/R\s*\$/gi, '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '');
   const number = Number(normalized);
   return Number.isFinite(number) && number >= 0 ? number : 0;
 };
 
 const formatBrazilianNumber = (value: number) => value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const extractReaisPrices = (value: string) => [...value.matchAll(REAIS_PRICE)].map((match) => match[1]);
+const extractReaisPrices = (value: string) => [...value.matchAll(REAIS_PRICE)].map((match) => normalizeOcrDigits(match[1]));
 
 const stableAutoCode = (description: string) => {
   const normalized = description.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
@@ -121,12 +126,15 @@ const descriptionBefore = (lines: string[], anchorIndex: number, previousAnchorI
 
 const descriptionAfter = (lines: string[], anchorIndex: number, priceIndex: number, nextItemIndex: number) => {
   const collected: string[] = [];
-  const limit = Math.min(priceIndex >= 0 ? priceIndex : nextItemIndex, nextItemIndex);
-  for (let index = anchorIndex + 1; index < limit && collected.length < 5; index += 1) {
-    const line = clean(lines[index]);
-    if (!line || parseAnchor(line, index) || STOP_BACKTRACK.test(line)) break;
-    if (!isLikelyDescription(line)) continue;
-    collected.push(line);
+  const limit = Math.min(priceIndex >= 0 ? priceIndex : nextItemIndex - 1, nextItemIndex - 1);
+  for (let index = anchorIndex + 1; index <= limit && collected.length < 5; index += 1) {
+    const rawLine = clean(lines[index]);
+    if (!rawLine || parseAnchor(rawLine, index) || STOP_BACKTRACK.test(rawLine)) break;
+    // OCR pode juntar a continuação da descrição e os preços na mesma linha.
+    const beforeMoney = clean(rawLine.split(/(?:R|U|US)\s*\$/i)[0] ?? '');
+    const candidate = index === priceIndex ? beforeMoney : rawLine;
+    if (!isLikelyDescription(candidate)) continue;
+    collected.push(candidate);
   }
   return clean(collected.join(' '));
 };
@@ -190,7 +198,7 @@ const parseTelcabos = (text: string) => {
 
     const baseDescription = meta.inlineDescription || descriptionBefore(lines, anchor.index, previousItemIndex);
     const continuation = descriptionAfter(lines, anchor.index, priceIndex, nextItemIndex);
-    const description = clean([baseDescription, continuation].filter(Boolean).join(' '));
+    const description = normalizeDescriptionOcr([baseDescription, continuation].filter(Boolean).join(' '));
     if (description.length < 3) continue;
 
     const fabCode = priceIndex >= 0 ? codeFabAfterPrice(lines, priceIndex, nextItemIndex, anchor.inlineFab) : anchor.inlineFab;
