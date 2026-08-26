@@ -80,9 +80,13 @@ type Anchor = {
 };
 
 const parseAnchor = (line: string, index: number): Anchor | undefined => {
-  const match = clean(line).match(/^(\d{1,3})\s+(\d{3,8})\s+(.+)$/i);
-  if (!match) return undefined;
-  const [, item, code, tail] = match;
+  const normalized = clean(line).replace(/^[Il|]\s+(?=\d{3,8}\b)/, '');
+  const withItem = normalized.match(/^(\d{1,3})\s+(\d{3,8})\s+(.+)$/i);
+  const withoutItem = normalized.match(/^(\d{3,8})\s+(.+)$/i);
+  if (!withItem && !withoutItem) return undefined;
+  const item = withItem?.[1] ?? '';
+  const code = withItem?.[2] ?? withoutItem?.[1] ?? '';
+  const tail = withItem?.[3] ?? withoutItem?.[2] ?? '';
   const tokens = tail.split(/\s+/);
   const unitIndex = tokens.findIndex((token) => UNIT_PATTERN.test(token));
   if (unitIndex < 1) return undefined;
@@ -111,6 +115,18 @@ const descriptionBefore = (lines: string[], anchorIndex: number, previousAnchorI
     if (parseAnchor(line, index)) break;
     if (!isLikelyDescription(line)) continue;
     collected.unshift(line);
+  }
+  return clean(collected.join(' '));
+};
+
+const descriptionAfter = (lines: string[], anchorIndex: number, priceIndex: number, nextItemIndex: number) => {
+  const collected: string[] = [];
+  const limit = Math.min(priceIndex >= 0 ? priceIndex : nextItemIndex, nextItemIndex);
+  for (let index = anchorIndex + 1; index < limit && collected.length < 5; index += 1) {
+    const line = clean(lines[index]);
+    if (!line || parseAnchor(line, index) || STOP_BACKTRACK.test(line)) break;
+    if (!isLikelyDescription(line)) continue;
+    collected.push(line);
   }
   return clean(collected.join(' '));
 };
@@ -159,20 +175,23 @@ const parseTelcabos = (text: string) => {
     const meta = parseMeta(anchor.rest);
     if (!meta) continue;
 
-    const description = meta.inlineDescription || descriptionBefore(lines, anchor.index, previousItemIndex);
-    if (description.length < 3) continue;
-
     let price = '';
     let priceIndex = -1;
-    for (let cursor = anchor.index; cursor < nextItemIndex && cursor <= anchor.index + 10; cursor += 1) {
+    for (let cursor = anchor.index; cursor < nextItemIndex; cursor += 1) {
       const prices = extractReaisPrices(lines[cursor]);
-      if (prices.length > 0) {
-        price = prices[0];
+      const positive = prices.find((value) => parseBrazilianNumber(value) > 0);
+      if (positive) {
+        price = positive;
         priceIndex = cursor;
         break;
       }
     }
     if (!price) continue;
+
+    const baseDescription = meta.inlineDescription || descriptionBefore(lines, anchor.index, previousItemIndex);
+    const continuation = descriptionAfter(lines, anchor.index, priceIndex, nextItemIndex);
+    const description = clean([baseDescription, continuation].filter(Boolean).join(' '));
+    if (description.length < 3) continue;
 
     const fabCode = priceIndex >= 0 ? codeFabAfterPrice(lines, priceIndex, nextItemIndex, anchor.inlineFab) : anchor.inlineFab;
     const source = fabCode ? `TELCABOS COD.FAB ${fabCode}` : 'TELCABOS';
