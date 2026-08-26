@@ -77,6 +77,23 @@ export type ProposalLine = {
   totalSale: number;
 };
 
+export type ProposalLaborItem = {
+  id: string;
+  description: string;
+  professionalCount: number;
+  monthlySalary: number;
+  monthlyFood: number;
+  monthlyTransport: number;
+  monthlyOtherCosts: number;
+  standardMonthlyHours: number;
+  plannedHours: number;
+  monthlyCost: number;
+  hourlyRate: number;
+  totalCost: number;
+};
+
+export type ProposalLaborInput = Omit<ProposalLaborItem, 'id' | 'monthlyCost' | 'hourlyRate' | 'totalCost'>;
+
 export type ProposalDetail = {
   id: string;
   clientId: string;
@@ -88,12 +105,19 @@ export type ProposalDetail = {
   scope: string;
   status: 'draft' | 'review' | 'sent' | 'approved' | 'rejected';
   bdiMultiplier: number;
+  standardMonthlyHours: number;
   validUntil: string | null;
   responsibleName: string;
   updatedAt: string;
   isLatest: boolean;
   items: ProposalLine[];
+  laborItems: ProposalLaborItem[];
   totals: {
+    materials: number;
+    labor: number;
+    baseCost: number;
+    additions: number;
+    finalValue: number;
     cost: number;
     sale: number;
     grossResult: number;
