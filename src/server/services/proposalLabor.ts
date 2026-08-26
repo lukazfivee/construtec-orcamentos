@@ -116,3 +116,18 @@ export const updateProposalStandardMonthlyHours = async (database: LocalDatabase
     await transaction.query('UPDATE proposals SET standard_monthly_hours=$2, updated_at=now() WHERE id=$1', [proposalId, hours]);
   });
 };
+
+export const copyProposalLabor = async (database: LocalDatabase, sourceProposalId: string, targetProposalId: string) => {
+  const items = await listProposalLaborItems(database, sourceProposalId);
+  const hours = await getProposalStandardMonthlyHours(database, sourceProposalId);
+  await database.query('UPDATE proposals SET standard_monthly_hours=$2 WHERE id=$1', [targetProposalId, hours]);
+  for (const [index, item] of items.entries()) {
+    await database.query(`
+      INSERT INTO proposal_labor_items
+        (id, proposal_id, position, description, professional_count, monthly_salary, monthly_food,
+         monthly_transport, monthly_other_costs, standard_monthly_hours, planned_hours)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+    `, [randomUUID(), targetProposalId, index + 1, item.description, item.professionalCount, item.monthlySalary,
+      item.monthlyFood, item.monthlyTransport, item.monthlyOtherCosts, item.standardMonthlyHours, item.plannedHours]);
+  }
+};
