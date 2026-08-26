@@ -1,5 +1,5 @@
 name: Gerar instalador do Windows
-# Build oficial do instalador Windows 1.0.3.
+# Build oficial do instalador Windows 1.0.3 - Exsat auth fix.
 
 on:
   workflow_dispatch:
