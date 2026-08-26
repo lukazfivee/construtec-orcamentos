@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FileImage, FileSpreadsheet, Globe2, Import, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
+import { Copy, FileImage, FileSpreadsheet, Globe2, Import, LogIn, LogOut, Plus, Trash2, X } from 'lucide-react';
 import type { CatalogImportItem, CatalogImportStatus, CatalogProduct, ExsatBatchPreview, ExsatSyncInfo } from '../shared/contracts';
 import { catalogApi } from './api';
 
@@ -241,6 +241,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   const [exsatUrls, setExsatUrls] = useState('https://exsat.com.br/');
   const [rows, setRows] = useState<Row[]>([]);
   const [sourceName, setSourceName] = useState('');
+  const [ocrText, setOcrText] = useState('');
   const [loading, setLoading] = useState(false);
   const [exsatConnected, setExsatConnected] = useState(false);
   const [batchInfo, setBatchInfo] = useState('');
@@ -274,10 +275,32 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       }
       const source = expected === 'image' ? 'IMAGEM' : result.name?.replace(/\.[^.]+$/, '').toUpperCase() || 'PLANILHA';
       const parsedRows = parseCatalogText(result.text ?? '', source);
-      if (expected === 'image' && parsedRows.length === 0) throw new Error('Nenhum produto, material ou equipamento com preço foi reconhecido. Tente um arquivo em melhor resolução ou confira se o preço aparece no documento.');
+      if (expected === 'image' && parsedRows.length === 0) {
+        const recognizedText = (result.text ?? '').trim();
+        setRows([]);
+        setSourceName(result.name ?? 'Imagem lida pelo OCR');
+        setOcrText(recognizedText);
+        setManual(recognizedText || 'O Windows OCR não retornou texto para esta imagem.');
+        setMode('manual');
+        onError(recognizedText
+          ? 'O OCR leu texto, mas não encontrou itens. O texto reconhecido foi aberto na aba Manual para conferência.'
+          : 'O Windows OCR não encontrou texto nesta imagem. Tente recortar só a tabela do orçamento e importar novamente.');
+        return;
+      }
+      setOcrText('');
       setRows(parsedRows); setSourceName(result.name ?? 'Arquivo importado'); setBatchInfo('');
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível ler o arquivo.'); }
     finally { setLoading(false); }
+  };
+
+  const copyOcrText = async () => {
+    if (!ocrText) return;
+    try {
+      await navigator.clipboard.writeText(ocrText);
+      onError('Texto reconhecido pelo OCR copiado para a área de transferência.');
+    } catch {
+      onError('Não foi possível copiar automaticamente. Selecione o texto da aba Manual e copie com Ctrl+C.');
+    }
   };
 
   const applyExsatPreview = async (result: ExsatBatchPreview, automatic: boolean) => {
@@ -364,7 +387,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       ['manual', Plus, 'Manual'], ['file', FileSpreadsheet, 'Planilha'], ['image', FileImage, 'Imagem/PDF'], ['exsat', Globe2, 'Exsat'],
     ].map(([value, Icon, label]) => <button key={String(value)} type="button" className={mode === value ? 'active' : ''} onClick={() => { setMode(value as typeof mode); setRows([]); setBatchInfo(''); }}><Icon size={16} />{String(label)}</button>)}</nav>
     <div className="import-source">
-      {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button></>}
+      {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button>{ocrText && <button type="button" className="ocr-copy" onClick={() => void copyOcrText()}><Copy size={14} /> Copiar OCR</button>}</>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
       {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Imagem, foto, captura de tela ou PDF</b><small>O app tenta reconhecer produtos, materiais e equipamentos com preço, com ou sem código. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem ou PDF</button></div>}
       {mode === 'exsat' && <div className="exsat-source"><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><div className="import-summary"><span><b>Última sincronização Exsat:</b> {formatSyncDate(syncInfo.lastSyncAt)}</span><span>Varredura completa: {formatSyncDate(syncInfo.lastFullSyncAt)}</span></div><button type="button" className="primary" disabled={loading || !exsatConnected} onClick={() => void loadExsatAuto()}>Atualizar catálogo automaticamente</button><small>O app prioriza páginas produtivas, usa até 24 páginas no incremental e faz varredura completa periódica de até 60 páginas.</small>{syncInfo.history.length > 0 && <details><summary>Histórico das últimas sincronizações</summary><div>{syncInfo.history.slice(0, 10).map((entry) => <p key={entry.id}><b>{formatSyncDate(entry.completedAt)}</b> · {entry.mode === 'full' ? 'Completa' : entry.mode === 'incremental' ? 'Incremental' : 'Manual'} · {entry.pagesRead} páginas · {entry.itemsFound} itens · <b>{entry.created} novos</b> · <b>{entry.updated} atualizados</b>{entry.failedPages ? ` · ${entry.failedPages} falhas` : ''}</p>)}</div></details>}<details><summary>Modo avançado: informar páginas manualmente</summary><label><span>Endereços de categorias ou buscas — um por linha</span><textarea value={exsatUrls} onChange={(event) => setExsatUrls(event.target.value)} placeholder={'https://exsat.com.br/...\nhttps://exsat.com.br/...'} /></label><button type="button" disabled={loading || !exsatConnected} onClick={() => void loadExsat()}>Buscar somente estas páginas</button></details></div>}
