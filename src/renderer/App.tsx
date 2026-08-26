@@ -31,6 +31,7 @@ import { clientsApi, proposalApi } from './api';
 import { ClientsWorkspace } from './ClientsWorkspace';
 import { NewProposalDialog } from './NewProposalDialog';
 import { CatalogWorkspace } from './CatalogWorkspace';
+import { ProposalLaborPanel } from './ProposalLaborPanel';
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
@@ -46,7 +47,7 @@ const date = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
 const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 const sectionTabs = [
   { label: 'Itens', enabled: true },
-  { label: 'Serviços', enabled: false },
+  { label: 'Mão de obra', enabled: true },
   { label: 'Kits', enabled: false },
   { label: 'Condições', enabled: false },
   { label: 'Histórico', enabled: true },
@@ -75,7 +76,8 @@ export function App() {
   const [error, setError] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [bdiDraft, setBdiDraft] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<'Itens' | 'Histórico'>('Itens');
+  const [activeSection, setActiveSection] = useState<'Itens' | 'Mão de obra' | 'Histórico'>('Itens');
+  const [laborTotal, setLaborTotal] = useState(0);
   const [revisions, setRevisions] = useState<ProposalRevisionSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
@@ -110,6 +112,20 @@ export function App() {
   useEffect(() => {
     void loadProposal();
   }, [loadProposal]);
+
+  useEffect(() => {
+    if (!proposal?.id) {
+      setLaborTotal(0);
+      return;
+    }
+    let active = true;
+    void proposalApi.labor(proposal.id).then((result) => {
+      if (active) setLaborTotal(result.items.reduce((total, item) => total + item.totalCost, 0));
+    }).catch((laborError: unknown) => {
+      if (active) setError(laborError instanceof Error ? laborError.message : 'Não foi possível carregar o total de mão de obra.');
+    });
+    return () => { active = false; };
+  }, [proposal?.id]);
 
   useEffect(() => {
     if (!catalogOpen) return undefined;
@@ -248,7 +264,7 @@ export function App() {
     }
   }, []);
 
-  const selectSection = (section: 'Itens' | 'Histórico') => {
+  const selectSection = (section: 'Itens' | 'Mão de obra' | 'Histórico') => {
     setActiveSection(section);
     setCatalogOpen(false);
     if (section === 'Histórico' && proposal) void loadHistory(proposal.id);
@@ -324,18 +340,18 @@ export function App() {
   }, [documentPending, proposal]);
 
   const exportProposal = useCallback(async () => {
-    if (!proposal || proposal.items.length === 0 || documentPending) return;
+    if (!proposal || (proposal.items.length === 0 && laborTotal <= 0) || documentPending) return;
     setDocumentPending(true);
     setError('');
     try {
-      const result = await window.construtec?.exportProposal(proposal);
-      if (result && !result.canceled) showNotice('Proposta gerada em PDF e Word com sucesso.');
+      await window.construtec?.exportProposal(proposal);
+      showNotice('Proposta gerada em PDF e Word com sucesso.');
     } catch (documentError) {
       setError(documentError instanceof Error ? documentError.message : 'Não foi possível gerar os documentos.');
     } finally {
       setDocumentPending(false);
     }
-  }, [documentPending, proposal]);
+  }, [documentPending, laborTotal, proposal]);
 
   const updateProposalContext = useCallback(async (clientId: string, workId: string) => {
     if (!proposal || !proposal.isLatest || mutationPending) return;
@@ -412,6 +428,10 @@ export function App() {
   const proposalLabel = proposal ? `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}` : 'Carregando proposta';
   const allSelected = Boolean(proposal?.items.length) && selectedItemIds.length === proposal?.items.length;
   const isEditable = Boolean(proposal?.isLatest && (proposal.status === 'draft' || proposal.status === 'review'));
+  const materialsTotal = proposal?.totals.cost ?? 0;
+  const baseCost = materialsTotal + laborTotal;
+  const finalValue = baseCost * (proposal?.bdiMultiplier ?? 1);
+  const additions = finalValue - baseCost;
   const formattedUpdatedAt = useMemo(() => {
     if (!proposal?.updatedAt) return '—';
     return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(proposal.updatedAt));
@@ -547,7 +567,15 @@ export function App() {
               <div className="popover-footer"><span>↑↓ Navegar</span><span><kbd>Enter</kbd> Inserir</span><span><kbd>Esc</kbd> Fechar</span></div>
             </div>
           )}
-          </> : (
+          </> : activeSection === 'Mão de obra' && proposal ? (
+            <ProposalLaborPanel
+              proposalId={proposal.id}
+              editable={isEditable}
+              onLaborTotalChange={setLaborTotal}
+              onError={setError}
+              onNotice={showNotice}
+            />
+          ) : (
             <div className="history-region" aria-busy={historyLoading}>
               <div className="history-heading">
                 <div><HistoryIcon size={18} /><span><b>Histórico da proposta</b><small>Versões anteriores permanecem preservadas e somente para consulta.</small></span></div>
@@ -573,10 +601,11 @@ export function App() {
 
         <aside className="commercial-panel">
           <div className="panel-title"><b>Resumo comercial</b><ChevronUp size={16} /></div>
-          <Amount label="Custo (materiais + serviços)" value={`R$ ${money.format(proposal?.totals.cost ?? 0)}`} />
-          <Amount label="Venda total" value={`R$ ${money.format(proposal?.totals.sale ?? 0)}`} tone="blue" />
-          <Amount label="Resultado bruto" value={`R$ ${money.format(proposal?.totals.grossResult ?? 0)}`} tone="green" />
-          <Amount label="Margem" value={`${money.format(proposal?.totals.marginPercent ?? 0)}%`} tone="green" compact />
+          <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
+          <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
+          <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
+          <Amount label="BDI / acréscimos" value={`R$ ${money.format(additions)}`} />
+          <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
 
           <div className="panel-section">
             <h2>Parâmetros internos</h2>
@@ -590,7 +619,7 @@ export function App() {
             <h2>Ações</h2>
             <button type="button" disabled={!proposal?.isLatest || mutationPending} onClick={() => void createRevision()}><Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd></button>
             <button type="button" disabled={!proposal || documentPending} onClick={() => void previewProposal()}><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
-            <button className="primary generate" type="button" disabled={!proposal?.items.length || documentPending} onClick={() => void exportProposal()}><FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd></button>
+            <button className="primary generate" type="button" disabled={(!proposal?.items.length && laborTotal <= 0) || documentPending} onClick={() => void exportProposal()}><FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd></button>
           </div>
           <div className="panel-footnote">
             <p className="demo-data-note">Base inicial demonstrativa · salva localmente</p>
