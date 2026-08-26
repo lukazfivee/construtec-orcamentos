@@ -42,6 +42,12 @@ type ExsatSyncState = {
   pendingSync?: ExsatPendingSync;
 };
 
+type ExsatCatalogPage = {
+  html: string;
+  finalUrl: string;
+  items: CatalogImportItem[];
+};
+
 const exsatSession = () => session.fromPartition(PARTITION);
 const syncStatePath = () => path.join(app.getPath('userData'), 'exsat-sync-state.json');
 
@@ -149,6 +155,40 @@ const responseHtml = async (url: string) => {
   return { html, finalUrl: response.url };
 };
 
+const responseRenderedHtml = async (url: string) => {
+  const window = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      partition: PARTITION,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  try {
+    await window.loadURL(url);
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const html = await window.webContents.executeJavaScript('document.documentElement.outerHTML', true) as string;
+    if (!html || html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
+    return { html, finalUrl: window.webContents.getURL() };
+  } finally {
+    if (!window.isDestroyed()) window.destroy();
+  }
+};
+
+const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
+  const raw = await responseHtml(url);
+  try {
+    return { ...raw, items: parseExsatProductsHtml(raw.html, includeMissingPrice) };
+  } catch (error) {
+    if (!(error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS')) throw error;
+  }
+
+  const rendered = await responseRenderedHtml(url);
+  return { ...rendered, items: parseExsatProductsHtml(rendered.html, includeMissingPrice) };
+};
+
 const isCatalogCandidate = (url: URL) => {
   const pathName = url.pathname.toLowerCase();
   const query = url.search.toLowerCase();
@@ -243,8 +283,8 @@ export const disconnectExsat = async () => {
 export const previewAuthenticatedExsat = async (rawUrl: string): Promise<{ items: CatalogImportItem[]; connected: boolean }> => {
   const url = validateExsatUrl(rawUrl);
   const status = await exsatConnectionStatus();
-  const { html } = await responseHtml(url.toString());
-  return { items: parseExsatProductsHtml(html), connected: status.connected };
+  const page = await loadCatalogPage(url.toString(), false);
+  return { items: page.items, connected: status.connected };
 };
 
 export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise<ExsatBatchPreview> => {
@@ -258,9 +298,8 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
   let ignored = 0;
   for (const url of urls) {
     try {
-      const { html } = await responseHtml(url);
-      const parsed = parseExsatProductsHtml(html, true);
-      for (const item of parsed) {
+      const page = await loadCatalogPage(url, true);
+      for (const item of page.items) {
         if (items.has(item.code.toLowerCase())) ignored += 1;
         items.set(item.code.toLowerCase(), item);
       }
@@ -322,22 +361,16 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     if (!url || visited.has(url)) continue;
     visited.add(url);
     try {
-      const { html, finalUrl } = await responseHtml(url);
-      const final = validateExsatUrl(finalUrl).toString();
-      let productCount = 0;
-      try {
-        const parsed = parseExsatProductsHtml(html, true);
-        productCount = parsed.length;
-        for (const item of parsed) {
-          if (items.has(item.code.toLowerCase())) ignored += 1;
-          items.set(item.code.toLowerCase(), item);
-          if (items.size >= MAX_AUTO_ITEMS) break;
-        }
-      } catch (error) {
-        if (!(error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS')) throw error;
+      const page = await loadCatalogPage(url, true);
+      const final = validateExsatUrl(page.finalUrl).toString();
+      const productCount = page.items.length;
+      for (const item of page.items) {
+        if (items.has(item.code.toLowerCase())) ignored += 1;
+        items.set(item.code.toLowerCase(), item);
+        if (items.size >= MAX_AUTO_ITEMS) break;
       }
       pageStats.set(final, { url: final, productCount, lastSeenAt: new Date().toISOString() });
-      for (const link of discoverCatalogLinks(html, final)) {
+      for (const link of discoverCatalogLinks(page.html, final)) {
         if (!visited.has(link) && !queued.has(link) && queued.size < pageLimit * 4) {
           queue.push(link);
           queued.add(link);
