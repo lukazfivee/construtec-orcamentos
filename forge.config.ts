@@ -20,7 +20,7 @@ const config: ForgeConfig = {
       name: 'ConstrutecOrcamentos',
       authors: 'Construtec Engenharia',
       description: 'Orçamentos profissionais, rápidos, seguros e offline para a Construtec Engenharia.',
-      setupExe: 'Construtec-Orcamentos-1.0.0-Setup.exe',
+      setupExe: 'Construtec-Orcamentos-1.0.1-Setup.exe',
       noMsi: true,
     }),
     new MakerZIP({}, ['darwin']),
