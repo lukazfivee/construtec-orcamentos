@@ -1,0 +1,101 @@
+.labor-panel {
+  padding: 18px 20px 24px;
+  overflow: auto;
+}
+
+.labor-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.labor-header h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.labor-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.labor-header label,
+.labor-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.labor-header input,
+.labor-form input {
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid #d9e0ea;
+  border-radius: 6px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.labor-header input {
+  width: 120px;
+}
+
+.labor-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(110px, 1fr));
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.labor-description {
+  grid-column: span 2;
+}
+
+.labor-form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 8px;
+  align-items: end;
+}
+
+.labor-table-region {
+  overflow: auto;
+}
+
+.labor-table {
+  min-width: 1300px;
+}
+
+.labor-edit-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.labor-edit-link:disabled {
+  cursor: default;
+}
+
+@media (max-width: 1280px) {
+  .labor-form {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+  }
+
+  .labor-description {
+    grid-column: span 2;
+  }
+}
