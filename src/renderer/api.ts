@@ -1,4 +1,4 @@
-import type { ApiErrorPayload, CatalogImportItem, CatalogImportPreview, CatalogProduct, ClientRecord, ProposalDetail, ProposalLaborInput, ProposalLaborItem, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
+import type { ApiErrorPayload, CatalogImportItem, CatalogImportPreview, CatalogProduct, ClientRecord, ProposalDetail, ProposalLaborInput, ProposalLaborItem, ProposalLine, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -49,6 +49,15 @@ export const proposalApi = {
   ),
   updateQuantity: (proposalId: string, itemId: string, quantity: number) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/items/${itemId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) },
+  ),
+  updateItem: (proposalId: string, itemId: string, input: Partial<Pick<ProposalLine, 'description' | 'quantity' | 'unit' | 'unitCost' | 'unitSale'>>) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/items/${itemId}`, { method: 'PATCH', body: JSON.stringify(input) },
+  ),
+  duplicateItem: (proposalId: string, itemId: string) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/items/${itemId}/duplicate`, { method: 'POST' },
+  ),
+  moveItem: (proposalId: string, itemId: string, direction: 'up' | 'down') => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/items/${itemId}/move`, { method: 'POST', body: JSON.stringify({ direction }) },
   ),
   updateBdi: (proposalId: string, bdiMultiplier: number) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/bdi`, { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
