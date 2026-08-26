@@ -33,6 +33,41 @@ type ExsatSyncState = {
 const exsatSession = () => session.fromPartition(PARTITION);
 const syncStatePath = () => path.join(app.getPath('userData'), 'exsat-sync-state.json');
 
+const isExsatLoginUrl = (rawUrl: string) => {
+  try {
+    const url = new URL(rawUrl);
+    return url.hostname === 'exsat.com.br' && url.pathname.toLowerCase().includes('/central-cliente/login');
+  } catch {
+    return false;
+  }
+};
+
+const isExsatAuthenticatedUrl = (rawUrl: string) => {
+  try {
+    const url = new URL(rawUrl);
+    return url.hostname === 'exsat.com.br' && !isExsatLoginUrl(rawUrl);
+  } catch {
+    return false;
+  }
+};
+
+const looksLikeLoginHtml = (html: string) => (
+  /Login do Revendedor|name=["']?(?:senha|password)|type=["']password/i.test(html)
+);
+
+const hasAuthenticatedAccountMarker = (html: string) => (
+  /(?:href|action)=["'][^"']*(?:logout|sair)[^"']*["']|\b(?:sair|encerrar sess[aã]o|minha conta|meus pedidos)\b/i.test(html)
+);
+
+const hasAuthenticationCookie = async () => {
+  try {
+    const cookies = await exsatSession().cookies.get({ url: START_URL });
+    return cookies.some((cookie) => /logged[_-]?in|auth|token|jwt|cliente|login|session/i.test(cookie.name) && Boolean(cookie.value));
+  } catch {
+    return false;
+  }
+};
+
 const isHistoryEntry = (entry: unknown): entry is ExsatSyncHistoryEntry => {
   if (!entry || typeof entry !== 'object') return false;
   const value = entry as Partial<ExsatSyncHistoryEntry>;
@@ -94,7 +129,7 @@ export const recordExsatSyncResult = async (result: { created: number; updated: 
 const responseHtml = async (url: string) => {
   const response = await exsatSession().fetch(url, {
     redirect: 'follow',
-    headers: { 'User-Agent': 'Construtec-Orcamentos/1.0 (+catalog-import)' },
+    credentials: 'include',
   });
   if (!response.ok) throw new Error('EXSAT_UNAVAILABLE');
   const html = await response.text();
@@ -129,9 +164,14 @@ const discoverCatalogLinks = (html: string, baseUrl: string) => {
 export const exsatConnectionStatus = async () => {
   try {
     const { html, finalUrl } = await responseHtml(LOGIN_URL);
-    const stillOnLogin = new URL(finalUrl).pathname.includes('/central-cliente/login')
-      || /Login do Revendedor|name=["']?(?:senha|password)|type=["']password/i.test(html);
-    return { connected: !stillOnLogin };
+    if (!isExsatLoginUrl(finalUrl) && !looksLikeLoginHtml(html)) return { connected: true };
+    if (!looksLikeLoginHtml(html) && await hasAuthenticationCookie()) return { connected: true };
+
+    const home = await responseHtml(START_URL);
+    if (!isExsatLoginUrl(home.finalUrl) && hasAuthenticatedAccountMarker(home.html) && await hasAuthenticationCookie()) {
+      return { connected: true };
+    }
+    return { connected: false };
   } catch {
     return { connected: false };
   }
@@ -161,11 +201,22 @@ export const openExsatLogin = async () => {
     },
   });
   loginWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+
+  let confirmedByNavigation = false;
+  const noteNavigation = (_event: Electron.Event, url: string) => {
+    if (isExsatAuthenticatedUrl(url)) confirmedByNavigation = true;
+  };
+  loginWindow.webContents.on('did-navigate', noteNavigation);
+  loginWindow.webContents.on('did-navigate-in-page', noteNavigation);
   await loginWindow.loadURL(LOGIN_URL);
 
   return new Promise<{ connected: boolean }>((resolve) => {
     loginWindow?.once('closed', () => {
       loginWindow = undefined;
+      if (confirmedByNavigation) {
+        resolve({ connected: true });
+        return;
+      }
       void exsatConnectionStatus().then(resolve);
     });
   });
