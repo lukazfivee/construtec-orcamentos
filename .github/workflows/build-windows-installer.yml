@@ -1,4 +1,5 @@
 name: Gerar instalador do Windows
+# Reinício controlado do build da versão 1.0.2.
 
 on:
   workflow_dispatch:
