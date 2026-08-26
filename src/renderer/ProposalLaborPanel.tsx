@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import type { ProposalLaborInput, ProposalLaborItem } from '../shared/contracts';
 import { proposalApi } from './api';
+import './ProposalLaborPanel.css';
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -86,12 +87,13 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
     if (!editable || saving || form.description.trim().length < 2 || form.professionalCount <= 0 || form.standardMonthlyHours <= 0 || form.plannedHours < 0) return;
     setSaving(true);
     try {
+      const wasEditing = Boolean(editingId);
       const result = editingId
         ? await proposalApi.updateLabor(proposalId, editingId, form)
         : await proposalApi.addLabor(proposalId, form);
       setItems(result.items);
       resetForm();
-      onNotice(editingId ? 'Função de mão de obra atualizada.' : 'Função de mão de obra adicionada.');
+      onNotice(wasEditing ? 'Função de mão de obra atualizada.' : 'Função de mão de obra adicionada.');
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Não foi possível salvar a mão de obra.');
     } finally {
