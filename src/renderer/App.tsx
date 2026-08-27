@@ -610,7 +610,7 @@ export function App() {
 
           <div className="section-tabs" role="tablist" aria-label="Seções da proposta">
             {sectionTabs.map((tab) => (
-              <button key={tab.label} type="button" className={activeSection === tab.label ? 'selected' : ''} role="tab" aria-selected={activeSection === tab.label} disabled={!tab.enabled} title={tab.enabled ? undefined : `${tab.label} será implementado na próxima etapa.`} onClick={() => { if (tab.enabled && tab.label !== 'Kits') selectSection(tab.label); }}>{tab.label}</button>
+              <button key={tab.label} type="button" className={activeSection === tab.label ? 'selected' : ''} role="tab" aria-selected={activeSection === tab.label} disabled={!tab.enabled} title={tab.enabled ? undefined : `${tab.label} será implementado na próxima etapa.`} onClick={() => { if (tab.enabled) selectSection(tab.label); }}>{tab.label}</button>
             ))}
           </div>
 
