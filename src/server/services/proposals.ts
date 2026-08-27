@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { CatalogProduct, ProposalDetail, ProposalLine, ProposalRevisionSummary, ProposalSummary } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
+import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
 
 type ProposalRow = {
   id: string;
@@ -74,9 +75,16 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     };
   });
 
-  const cost = roundMoney(items.reduce((total, item) => total + item.totalCost, 0));
+  const bdiMultiplier = Number(proposal.bdi_multiplier);
+  const laborItems = await listProposalLaborItems(database, proposal.id);
+  const standardMonthlyHours = await getProposalStandardMonthlyHours(database, proposal.id);
+  const materials = roundMoney(items.reduce((total, item) => total + item.totalCost, 0));
+  const labor = roundMoney(laborItems.reduce((total, item) => total + item.totalCost, 0));
+  const baseCost = roundMoney(materials + labor);
+  const finalValue = roundMoney(baseCost * bdiMultiplier);
+  const additions = roundMoney(finalValue - baseCost);
   const sale = roundMoney(items.reduce((total, item) => total + item.totalSale, 0));
-  const grossResult = roundMoney(sale - cost);
+  const grossResult = roundMoney(finalValue - baseCost);
 
   return {
     id: proposal.id,
@@ -88,17 +96,24 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     workName: proposal.work_name,
     scope: proposal.scope,
     status: proposal.status,
-    bdiMultiplier: Number(proposal.bdi_multiplier),
+    bdiMultiplier,
     validUntil: proposal.valid_until,
     responsibleName: proposal.responsible_name,
     updatedAt: proposal.updated_at,
     isLatest: proposal.is_latest,
     items,
+    laborItems,
+    standardMonthlyHours,
     totals: {
-      cost,
+      cost: materials,
       sale,
       grossResult,
-      marginPercent: sale > 0 ? roundMoney((grossResult / sale) * 100) : 0,
+      marginPercent: finalValue > 0 ? roundMoney((grossResult / finalValue) * 100) : 0,
+      materials,
+      labor,
+      baseCost,
+      additions,
+      finalValue,
     },
   };
 };
