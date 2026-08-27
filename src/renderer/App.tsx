@@ -53,7 +53,7 @@ const sectionTabs = [
   { label: 'Histórico', enabled: true },
 ] as const;
 
-type ActiveSection = 'Itens' | 'Mão de obra' | 'Condições' | 'Histórico';
+type ActiveSection = typeof sectionTabs[number]['label'];
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
   draft: 'Em edição',
@@ -686,18 +686,18 @@ export function App() {
               onNotice={showNotice}
             />
           ) : activeSection === 'Condições' && proposal ? (
-            <div className="conditions-region">
+            <div className="history-region">
               <div className="history-heading">
                 <div><FileText size={18} /><span><b>Condições comerciais</b><small>Edita o que aparece no PDF/Word do cliente.</small></span></div>
               </div>
-              <div className="conditions-form">
+              <div className="form-grid" style={{ padding: 20, maxWidth: 760 }}>
                 <label>Validade da proposta
                   <input type="date" defaultValue={proposal.validUntil ?? ''} disabled={!isEditable || mutationPending} onBlur={(event) => void updateProposalDetails({ validUntil: event.currentTarget.value || null })} />
                 </label>
-                <label>Escopo comercial
-                  <textarea key={`${proposal.id}-${proposal.scope}`} defaultValue={proposal.scope} maxLength={300} disabled={!isEditable || mutationPending} onBlur={(event) => void updateProposalDetails({ scope: event.currentTarget.value })} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.value = proposal.scope; event.currentTarget.blur(); } }} />
+                <label className="wide">Escopo comercial
+                  <textarea key={`${proposal.id}-${proposal.scope}`} defaultValue={proposal.scope} maxLength={300} disabled={!isEditable || mutationPending} style={{ minHeight: 110, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }} onBlur={(event) => void updateProposalDetails({ scope: event.currentTarget.value })} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.value = proposal.scope; event.currentTarget.blur(); } }} />
                 </label>
-                <p>BDI, salários, custos e margens continuam fora do documento do cliente.</p>
+                <p className="dialog-warning">BDI, salários, custos e margens continuam fora do documento do cliente.</p>
               </div>
             </div>
           ) : (
