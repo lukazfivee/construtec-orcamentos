@@ -63,6 +63,34 @@
   grid-column: span 2;
 }
 
+.labor-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  grid-column: 1 / -1;
+  gap: 8px;
+}
+
+.labor-preview span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #d9e0ea;
+  border-radius: 6px;
+}
+
+.labor-preview small {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.labor-preview b {
+  color: #0f172a;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
 .labor-form-actions {
   display: flex;
   grid-column: 1 / -1;
@@ -99,5 +127,11 @@
 
   .labor-description {
     grid-column: span 2;
+  }
+}
+
+@media (max-width: 900px) {
+  .labor-preview {
+    grid-template-columns: 1fr;
   }
 }
