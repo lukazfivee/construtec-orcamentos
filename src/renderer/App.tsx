@@ -49,9 +49,11 @@ const sectionTabs = [
   { label: 'Itens', enabled: true },
   { label: 'Mão de obra', enabled: true },
   { label: 'Kits', enabled: false },
-  { label: 'Condições', enabled: false },
+  { label: 'Condições', enabled: true },
   { label: 'Histórico', enabled: true },
 ] as const;
+
+type ActiveSection = 'Itens' | 'Mão de obra' | 'Condições' | 'Histórico';
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
   draft: 'Em edição',
@@ -76,7 +78,7 @@ export function App() {
   const [error, setError] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [bdiDraft, setBdiDraft] = useState<string | null>(null);
-  const [activeSection, setActiveSection] = useState<'Itens' | 'Mão de obra' | 'Histórico'>('Itens');
+  const [activeSection, setActiveSection] = useState<ActiveSection>('Itens');
   const [laborTotal, setLaborTotal] = useState(0);
   const [revisions, setRevisions] = useState<ProposalRevisionSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -327,6 +329,32 @@ export function App() {
     }
   }, [bdiDraft, mutationPending, proposal]);
 
+  const updateProposalDetails = useCallback(async (input: { scope?: string; validUntil?: string | null }) => {
+    if (!proposal || mutationPending) return;
+    const payload = { ...input };
+    if (payload.scope !== undefined) {
+      payload.scope = payload.scope.trim();
+      if (payload.scope.length < 3) {
+        showNotice('Informe um escopo válido.');
+        return;
+      }
+      if (payload.scope === proposal.scope) return;
+    }
+    if (payload.validUntil !== undefined && payload.validUntil === proposal.validUntil) return;
+
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateDetails(proposal.id, payload);
+      setProposal(result.proposal);
+      showNotice('Condições atualizadas.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível atualizar as condições.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
   const loadHistory = useCallback(async (proposalId: string) => {
     setHistoryLoading(true);
     setError('');
@@ -340,7 +368,7 @@ export function App() {
     }
   }, []);
 
-  const selectSection = (section: 'Itens' | 'Mão de obra' | 'Histórico') => {
+  const selectSection = (section: ActiveSection) => {
     setActiveSection(section);
     setCatalogOpen(false);
     if (section === 'Histórico' && proposal) void loadHistory(proposal.id);
@@ -582,7 +610,7 @@ export function App() {
 
           <div className="section-tabs" role="tablist" aria-label="Seções da proposta">
             {sectionTabs.map((tab) => (
-              <button key={tab.label} type="button" className={activeSection === tab.label ? 'selected' : ''} role="tab" aria-selected={activeSection === tab.label} disabled={!tab.enabled} title={tab.enabled ? undefined : `${tab.label} será implementado na próxima etapa.`} onClick={() => { if (tab.enabled) selectSection(tab.label); }}>{tab.label}</button>
+              <button key={tab.label} type="button" className={activeSection === tab.label ? 'selected' : ''} role="tab" aria-selected={activeSection === tab.label} disabled={!tab.enabled} title={tab.enabled ? undefined : `${tab.label} será implementado na próxima etapa.`} onClick={() => { if (tab.enabled && tab.label !== 'Kits') selectSection(tab.label); }}>{tab.label}</button>
             ))}
           </div>
 
@@ -657,6 +685,21 @@ export function App() {
               onError={setError}
               onNotice={showNotice}
             />
+          ) : activeSection === 'Condições' && proposal ? (
+            <div className="conditions-region">
+              <div className="history-heading">
+                <div><FileText size={18} /><span><b>Condições comerciais</b><small>Edita o que aparece no PDF/Word do cliente.</small></span></div>
+              </div>
+              <div className="conditions-form">
+                <label>Validade da proposta
+                  <input type="date" defaultValue={proposal.validUntil ?? ''} disabled={!isEditable || mutationPending} onBlur={(event) => void updateProposalDetails({ validUntil: event.currentTarget.value || null })} />
+                </label>
+                <label>Escopo comercial
+                  <textarea key={`${proposal.id}-${proposal.scope}`} defaultValue={proposal.scope} maxLength={300} disabled={!isEditable || mutationPending} onBlur={(event) => void updateProposalDetails({ scope: event.currentTarget.value })} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.value = proposal.scope; event.currentTarget.blur(); } }} />
+                </label>
+                <p>BDI, salários, custos e margens continuam fora do documento do cliente.</p>
+              </div>
+            </div>
           ) : (
             <div className="history-region" aria-busy={historyLoading}>
               <div className="history-heading">
