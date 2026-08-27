@@ -14,6 +14,7 @@ import {
   removeProposalItems,
   updateProposalBdi,
   updateProposalContext,
+  updateProposalDetails,
   updateProposalItem,
 } from '../services/proposals';
 import {
@@ -42,6 +43,10 @@ const updateItemSchema = z.object({
 const moveItemSchema = z.object({ direction: z.enum(['up', 'down']) });
 const updateBdiSchema = z.object({ bdiMultiplier: z.number().positive().max(100) });
 const updateContextSchema = z.object({ clientId: z.string().uuid(), workId: z.string().uuid() });
+const updateDetailsSchema = z.object({
+  scope: z.string().trim().min(3).max(300).optional(),
+  validUntil: z.iso.date().nullable().optional(),
+}).refine((input) => Object.keys(input).length > 0, { message: 'Informe ao menos um campo para atualizar.' });
 const createProposalSchema = z.object({
   clientId: z.string().uuid(),
   workId: z.string().uuid(),
@@ -213,6 +218,15 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = updateBdiSchema.parse(request.body);
       await updateProposalBdi(database, proposalId, input.bdiMultiplier);
+      response.json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.patch('/:proposalId/details', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const input = updateDetailsSchema.parse(request.body);
+      await updateProposalDetails(database, proposalId, input);
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
