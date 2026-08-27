@@ -62,6 +62,9 @@ export const proposalApi = {
   updateBdi: (proposalId: string, bdiMultiplier: number) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/bdi`, { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
   ),
+  updateDetails: (proposalId: string, input: { scope?: string; validUntil?: string | null }) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/details`, { method: 'PATCH', body: JSON.stringify(input) },
+  ),
   updateContext: (proposalId: string, clientId: string, workId: string) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/context`, { method: 'PATCH', body: JSON.stringify({ clientId, workId }) },
   ),
