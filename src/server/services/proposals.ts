@@ -472,6 +472,37 @@ export const updateProposalBdi = async (
   });
 };
 
+export const updateProposalDetails = async (
+  database: LocalDatabase,
+  proposalId: string,
+  input: { scope?: string; validUntil?: string | null },
+) => {
+  await database.transaction(async (transaction) => {
+    await getEditableProposal(transaction, proposalId);
+    const current = await transaction.query<{ scope: string; valid_until: string | null }>(
+      'SELECT scope, valid_until::text FROM proposals WHERE id = $1 FOR UPDATE',
+      [proposalId],
+    );
+    const before = current.rows[0];
+    if (!before) throw new Error('PROPOSAL_NOT_FOUND');
+
+    const hasValidUntil = Object.prototype.hasOwnProperty.call(input, 'validUntil');
+    const next = {
+      scope: input.scope?.trim() ?? before.scope,
+      validUntil: hasValidUntil ? input.validUntil ?? null : before.valid_until,
+    };
+
+    await transaction.query(
+      'UPDATE proposals SET scope = $2, valid_until = $3, updated_at = now() WHERE id = $1',
+      [proposalId, next.scope, next.validUntil],
+    );
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal', $2, 'details_updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), proposalId, JSON.stringify(before), JSON.stringify(next)]);
+  });
+};
+
 export const createProposalRevision = async (database: LocalDatabase, sourceProposalId: string) => {
   return database.transaction(async (transaction) => {
     const source = await getLatestProposal(transaction, sourceProposalId);
