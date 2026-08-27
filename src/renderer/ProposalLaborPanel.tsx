@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import type { ProposalLaborInput, ProposalLaborItem } from '../shared/contracts';
+import { calculateLaborItem } from '../shared/labor';
 import { proposalApi } from './api';
 import './ProposalLaborPanel.css';
 
@@ -35,6 +36,13 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
   const [saving, setSaving] = useState(false);
 
   const laborTotal = useMemo(() => items.reduce((sum, item) => sum + item.totalCost, 0), [items]);
+  const formPreview = useMemo(() => {
+    try {
+      return calculateLaborItem(form);
+    } catch {
+      return { monthlyCost: 0, hourlyRate: 0, totalCost: 0 };
+    }
+  }, [form]);
 
   useEffect(() => {
     onLaborTotalChange(laborTotal);
@@ -152,6 +160,11 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
       <label>Outros custos mensais<input type="number" min="0" step="0.01" value={form.monthlyOtherCosts} disabled={!editable || saving} onChange={(event) => updateNumber('monthlyOtherCosts', event.target.value)} /></label>
       <label>Horas mensais<input type="number" min="0.01" step="0.01" value={form.standardMonthlyHours} disabled={!editable || saving} onChange={(event) => updateNumber('standardMonthlyHours', event.target.value)} /></label>
       <label>Horas previstas<input type="number" min="0" step="0.01" value={form.plannedHours} disabled={!editable || saving} onChange={(event) => updateNumber('plannedHours', event.target.value)} /></label>
+      <div className="labor-preview" aria-label="Prévia do cálculo">
+        <span><small>Custo mensal</small><b>R$ {money.format(formPreview.monthlyCost)}</b></span>
+        <span><small>Valor hora</small><b>R$ {money.format(formPreview.hourlyRate)}</b></span>
+        <span><small>Custo total</small><b>R$ {money.format(formPreview.totalCost)}</b></span>
+      </div>
       <div className="labor-form-actions"><button className="primary compact" type="submit" disabled={!editable || saving || form.description.trim().length < 2}><Plus size={16} /> {editingId ? 'Salvar alteração' : 'Adicionar função'}</button>{editingId && <button type="button" disabled={saving} onClick={resetForm}>Cancelar edição</button>}</div>
     </form>
 
