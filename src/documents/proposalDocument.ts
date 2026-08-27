@@ -38,11 +38,22 @@ const escapeHtml = (value: string) => value
 const documentTitle = (proposal: ProposalDetail) =>
   `${proposal.number}-REV-${String(proposal.revision).padStart(2, '0')}`;
 
+const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const documentTotal = (proposal: ProposalDetail) => proposal.totals.finalValue ?? proposal.totals.sale;
+
+const commercialLaborTotal = (proposal: ProposalDetail) => {
+  const laborCost = proposal.totals.labor ?? 0;
+  return laborCost > 0 ? roundMoney(laborCost * proposal.bdiMultiplier) : 0;
+};
+
 export const proposalFileBaseName = (proposal: ProposalDetail) =>
   `Proposta-${documentTitle(proposal)}`.replace(/[^a-zA-Z0-9._-]/g, '-');
 
 export const buildProposalHtml = (proposal: ProposalDetail) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
+  const laborTotal = commercialLaborTotal(proposal);
+  const total = documentTotal(proposal);
   const rows = proposal.items.map((item, index) => `
     <tr>
       <td class="center">${index + 1}</td>
@@ -52,6 +63,16 @@ export const buildProposalHtml = (proposal: ProposalDetail) => {
       <td class="number">${money.format(item.unitSale)}</td>
       <td class="number strong">${money.format(item.totalSale)}</td>
     </tr>`).join('');
+  const laborRow = laborTotal > 0 ? `
+    <tr>
+      <td class="center">${proposal.items.length + 1}</td>
+      <td><strong>Mão de obra</strong><br><span>Serviços técnicos conforme escopo da proposta.</span></td>
+      <td class="center">vb</td>
+      <td class="number">1</td>
+      <td class="number">${money.format(laborTotal)}</td>
+      <td class="number strong">${money.format(laborTotal)}</td>
+    </tr>` : '';
+  const tableRows = rows + laborRow || '<tr><td colspan="6" class="center">Nenhum item incluído nesta revisão.</td></tr>';
 
   return `<!doctype html>
   <html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(documentTitle(proposal))}</title>
@@ -94,8 +115,8 @@ export const buildProposalHtml = (proposal: ProposalDetail) => {
     <h1>Proposta Comercial</h1><p class="subtitle">Apresentamos nossa composição comercial para o escopo descrito abaixo.</p>
     <section class="meta"><div><label>Cliente</label><strong>${escapeHtml(proposal.clientName)}</strong></div><div><label>Obra</label><strong>${escapeHtml(proposal.workName)}</strong></div><div><label>Escopo</label><strong>${escapeHtml(proposal.scope)}</strong></div><div><label>Responsável</label><strong>${escapeHtml(proposal.responsibleName)}</strong></div></section>
     <h2>Composição da proposta</h2>
-    <table><colgroup><col style="width:6%"><col style="width:42%"><col style="width:8%"><col style="width:10%"><col style="width:16%"><col style="width:18%"></colgroup><thead><tr><th class="center">Item</th><th>Descrição</th><th class="center">Un.</th><th class="number">Qtd.</th><th class="number">Valor unit.</th><th class="number">Valor total</th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="center">Nenhum item incluído nesta revisão.</td></tr>'}</tbody></table>
-    <div class="total"><span>VALOR TOTAL</span><strong>${money.format(proposal.totals.sale)}</strong></div>
+    <table><colgroup><col style="width:6%"><col style="width:42%"><col style="width:8%"><col style="width:10%"><col style="width:16%"><col style="width:18%"></colgroup><thead><tr><th class="center">Item</th><th>Descrição</th><th class="center">Un.</th><th class="number">Qtd.</th><th class="number">Valor unit.</th><th class="number">Valor total</th></tr></thead><tbody>${tableRows}</tbody></table>
+    <div class="total"><span>VALOR TOTAL</span><strong>${money.format(total)}</strong></div>
     <h2>Condições comerciais</h2><section class="conditions"><div class="condition"><b>Validade da proposta</b>${validUntil}</div><div class="condition"><b>Valores</b>Expressos em reais (BRL).</div></section>
     <p class="note">Esta proposta corresponde à revisão ${String(proposal.revision).padStart(2, '0')} e foi emitida com os dados comerciais preservados nessa versão. Alterações de escopo ou quantitativos poderão exigir uma nova revisão.</p>
     <footer>Construtec Engenharia - ${escapeHtml(proposal.number)} - REV.${String(proposal.revision).padStart(2, '0')}</footer>
@@ -117,6 +138,8 @@ const cell = (text: string, width: number, options: { bold?: boolean; align?: ty
 
 export const buildProposalDocx = async (proposal: ProposalDetail) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
+  const laborTotal = commercialLaborTotal(proposal);
+  const total = documentTotal(proposal);
   const headerRow = new TableRow({
     tableHeader: true,
     children: [
@@ -136,6 +159,14 @@ export const buildProposalDocx = async (proposal: ProposalDetail) => {
     cell(money.format(item.unitSale), 1370, { align: AlignmentType.RIGHT }),
     cell(money.format(item.totalSale), 1510, { bold: true, align: AlignmentType.RIGHT }),
   ] }));
+  const laborRows = laborTotal > 0 ? [new TableRow({ children: [
+    cell(String(proposal.items.length + 1), 650, { align: AlignmentType.CENTER }),
+    cell('Mão de obra\nServiços técnicos conforme escopo da proposta.', 3530),
+    cell('vb', 630, { align: AlignmentType.CENTER }),
+    cell('1', 810, { align: AlignmentType.RIGHT }),
+    cell(money.format(laborTotal), 1370, { align: AlignmentType.RIGHT }),
+    cell(money.format(laborTotal), 1510, { bold: true, align: AlignmentType.RIGHT }),
+  ] })] : [];
 
   const doc = new Document({
     styles: {
@@ -163,8 +194,8 @@ export const buildProposalDocx = async (proposal: ProposalDetail) => {
           new TableRow({ children: [cell(`ESCOPO\n${proposal.scope}`, 4275, { fill: LIGHT_BLUE }), cell(`RESPONSÁVEL\n${proposal.responsibleName}`, 4275, { fill: LIGHT_BLUE })] }),
         ] }),
         new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Composição da proposta' }),
-        new Table({ width: { size: 8500, type: WidthType.DXA }, columnWidths: [650, 3530, 630, 810, 1370, 1510], rows: [headerRow, ...itemRows] }),
-        new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 220, after: 260 }, shading: { fill: BLUE, type: ShadingType.CLEAR }, children: [new TextRun({ text: `VALOR TOTAL   ${money.format(proposal.totals.sale)}`, bold: true, color: WHITE, size: 28, font: 'Arial' })] }),
+        new Table({ width: { size: 8500, type: WidthType.DXA }, columnWidths: [650, 3530, 630, 810, 1370, 1510], rows: [headerRow, ...itemRows, ...laborRows] }),
+        new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 220, after: 260 }, shading: { fill: BLUE, type: ShadingType.CLEAR }, children: [new TextRun({ text: `VALOR TOTAL   ${money.format(total)}`, bold: true, color: WHITE, size: 28, font: 'Arial' })] }),
         new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Condições comerciais' }),
         new Paragraph({ children: [new TextRun({ text: 'Validade da proposta: ', bold: true }), new TextRun(validUntil)] }),
         new Paragraph({ children: [new TextRun({ text: 'Valores: ', bold: true }), new TextRun('expressos em reais (BRL).')] }),
