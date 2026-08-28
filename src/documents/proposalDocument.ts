@@ -28,6 +28,56 @@ const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL
 const quantity = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
 const date = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
 
+type CommercialConditions = {
+  scope: string;
+  executionTerm: string;
+  paymentTerms: string;
+  warranty: string;
+  notes: string;
+};
+
+const emptyConditions = (scope = ''): CommercialConditions => ({
+  scope: scope.trim() || 'A definir',
+  executionTerm: '',
+  paymentTerms: '',
+  warranty: '',
+  notes: '',
+});
+
+const fieldFromLines = (lines: string[], names: string[]) => {
+  const prefixes = names.map((name) => `${name}:`.toLowerCase());
+  const found = lines.find((line) => prefixes.some((prefix) => line.toLowerCase().startsWith(prefix)));
+  return found ? found.slice(found.indexOf(':') + 1).trim() : '';
+};
+
+const parseCommercialConditions = (scope: string): CommercialConditions => {
+  try {
+    const parsed = JSON.parse(scope) as Partial<CommercialConditions>;
+    if (parsed && typeof parsed === 'object' && typeof parsed.scope === 'string') {
+      return {
+        scope: parsed.scope.trim() || 'A definir',
+        executionTerm: typeof parsed.executionTerm === 'string' ? parsed.executionTerm.trim() : '',
+        paymentTerms: typeof parsed.paymentTerms === 'string' ? parsed.paymentTerms.trim() : '',
+        warranty: typeof parsed.warranty === 'string' ? parsed.warranty.trim() : '',
+        notes: typeof parsed.notes === 'string' ? parsed.notes.trim() : '',
+      };
+    }
+  } catch {
+    const lines = scope.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const lineScope = fieldFromLines(lines, ['escopo', 'scope']);
+    if (lineScope) {
+      return {
+        scope: lineScope,
+        executionTerm: fieldFromLines(lines, ['prazo', 'prazo de execução', 'execução']),
+        paymentTerms: fieldFromLines(lines, ['pagamento', 'forma de pagamento']),
+        warranty: fieldFromLines(lines, ['garantia']),
+        notes: fieldFromLines(lines, ['observações', 'observacao', 'observacoes', 'notas']),
+      };
+    }
+  }
+  return emptyConditions(scope);
+};
+
 const escapeHtml = (value: string) => value
   .replaceAll('&', '&amp;')
   .replaceAll('<', '&lt;')
@@ -52,6 +102,7 @@ export const proposalFileBaseName = (proposal: ProposalDetail) =>
 
 export const buildProposalHtml = (proposal: ProposalDetail) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
+  const conditions = parseCommercialConditions(proposal.scope);
   const laborTotal = commercialLaborTotal(proposal);
   const total = documentTotal(proposal);
   const rows = proposal.items.map((item, index) => `
@@ -73,6 +124,15 @@ export const buildProposalHtml = (proposal: ProposalDetail) => {
       <td class="number strong">${money.format(laborTotal)}</td>
     </tr>` : '';
   const tableRows = rows + laborRow || '<tr><td colspan="6" class="center">Nenhum item incluído nesta revisão.</td></tr>';
+  const conditionCards: Array<[string, string]> = [
+    ['Validade da proposta', validUntil],
+    ['Prazo de execução', conditions.executionTerm || 'A definir'],
+    ['Forma de pagamento', conditions.paymentTerms || 'A definir'],
+    ['Garantia', conditions.warranty || 'A definir'],
+    ['Valores', 'Expressos em reais (BRL).'],
+    ...(conditions.notes ? [['Observações', conditions.notes] as [string, string]] : []),
+  ];
+  const conditionRows = conditionCards.map(([label, value]) => `<div class="condition"><b>${escapeHtml(label)}</b>${escapeHtml(value)}</div>`).join('');
 
   return `<!doctype html>
   <html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(documentTitle(proposal))}</title>
@@ -113,11 +173,11 @@ export const buildProposalHtml = (proposal: ProposalDetail) => {
   </style></head><body>
     <header><div><div class="brand">CONSTRUTEC <span>ENGENHARIA</span></div><div class="tagline">Soluções técnicas com segurança, qualidade e compromisso.</div></div><div class="doc-id"><b>${escapeHtml(proposal.number)}</b><span>Revisão ${String(proposal.revision).padStart(2, '0')}</span></div></header>
     <h1>Proposta Comercial</h1><p class="subtitle">Apresentamos nossa composição comercial para o escopo descrito abaixo.</p>
-    <section class="meta"><div><label>Cliente</label><strong>${escapeHtml(proposal.clientName)}</strong></div><div><label>Obra</label><strong>${escapeHtml(proposal.workName)}</strong></div><div><label>Escopo</label><strong>${escapeHtml(proposal.scope)}</strong></div><div><label>Responsável</label><strong>${escapeHtml(proposal.responsibleName)}</strong></div></section>
+    <section class="meta"><div><label>Cliente</label><strong>${escapeHtml(proposal.clientName)}</strong></div><div><label>Obra</label><strong>${escapeHtml(proposal.workName)}</strong></div><div><label>Escopo</label><strong>${escapeHtml(conditions.scope)}</strong></div><div><label>Responsável</label><strong>${escapeHtml(proposal.responsibleName)}</strong></div></section>
     <h2>Composição da proposta</h2>
     <table><colgroup><col style="width:6%"><col style="width:42%"><col style="width:8%"><col style="width:10%"><col style="width:16%"><col style="width:18%"></colgroup><thead><tr><th class="center">Item</th><th>Descrição</th><th class="center">Un.</th><th class="number">Qtd.</th><th class="number">Valor unit.</th><th class="number">Valor total</th></tr></thead><tbody>${tableRows}</tbody></table>
     <div class="total"><span>VALOR TOTAL</span><strong>${money.format(total)}</strong></div>
-    <h2>Condições comerciais</h2><section class="conditions"><div class="condition"><b>Validade da proposta</b>${validUntil}</div><div class="condition"><b>Valores</b>Expressos em reais (BRL).</div></section>
+    <h2>Condições comerciais</h2><section class="conditions">${conditionRows}</section>
     <p class="note">Esta proposta corresponde à revisão ${String(proposal.revision).padStart(2, '0')} e foi emitida com os dados comerciais preservados nessa versão. Alterações de escopo ou quantitativos poderão exigir uma nova revisão.</p>
     <footer>Construtec Engenharia - ${escapeHtml(proposal.number)} - REV.${String(proposal.revision).padStart(2, '0')}</footer>
   </body></html>`;
@@ -138,8 +198,10 @@ const cell = (text: string, width: number, options: { bold?: boolean; align?: ty
 
 export const buildProposalDocx = async (proposal: ProposalDetail) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
+  const conditions = parseCommercialConditions(proposal.scope);
   const laborTotal = commercialLaborTotal(proposal);
   const total = documentTotal(proposal);
+  const conditionParagraph = (label: string, value: string) => new Paragraph({ children: [new TextRun({ text: `${label}: `, bold: true }), new TextRun(value || 'A definir')] });
   const headerRow = new TableRow({
     tableHeader: true,
     children: [
@@ -191,14 +253,18 @@ export const buildProposalDocx = async (proposal: ProposalDetail) => {
         new Paragraph({ children: [new TextRun({ text: 'Apresentamos nossa composição comercial para o escopo descrito abaixo.', color: MUTED, size: 20 })] }),
         new Table({ width: { size: 8550, type: WidthType.DXA }, columnWidths: [4275, 4275], rows: [
           new TableRow({ children: [cell(`CLIENTE\n${proposal.clientName}`, 4275, { fill: LIGHT_BLUE }), cell(`OBRA\n${proposal.workName}`, 4275, { fill: LIGHT_BLUE })] }),
-          new TableRow({ children: [cell(`ESCOPO\n${proposal.scope}`, 4275, { fill: LIGHT_BLUE }), cell(`RESPONSÁVEL\n${proposal.responsibleName}`, 4275, { fill: LIGHT_BLUE })] }),
+          new TableRow({ children: [cell(`ESCOPO\n${conditions.scope}`, 4275, { fill: LIGHT_BLUE }), cell(`RESPONSÁVEL\n${proposal.responsibleName}`, 4275, { fill: LIGHT_BLUE })] }),
         ] }),
         new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Composição da proposta' }),
         new Table({ width: { size: 8500, type: WidthType.DXA }, columnWidths: [650, 3530, 630, 810, 1370, 1510], rows: [headerRow, ...itemRows, ...laborRows] }),
         new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 220, after: 260 }, shading: { fill: BLUE, type: ShadingType.CLEAR }, children: [new TextRun({ text: `VALOR TOTAL   ${money.format(total)}`, bold: true, color: WHITE, size: 28, font: 'Arial' })] }),
         new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Condições comerciais' }),
-        new Paragraph({ children: [new TextRun({ text: 'Validade da proposta: ', bold: true }), new TextRun(validUntil)] }),
-        new Paragraph({ children: [new TextRun({ text: 'Valores: ', bold: true }), new TextRun('expressos em reais (BRL).')] }),
+        conditionParagraph('Validade da proposta', validUntil),
+        conditionParagraph('Prazo de execução', conditions.executionTerm || 'A definir'),
+        conditionParagraph('Forma de pagamento', conditions.paymentTerms || 'A definir'),
+        conditionParagraph('Garantia', conditions.warranty || 'A definir'),
+        conditionParagraph('Valores', 'expressos em reais (BRL).'),
+        ...(conditions.notes ? [conditionParagraph('Observações', conditions.notes)] : []),
         new Paragraph({ spacing: { before: 220 }, children: [new TextRun({ text: `Esta proposta corresponde à revisão ${String(proposal.revision).padStart(2, '0')} e foi emitida com os dados comerciais preservados nessa versão. Alterações de escopo ou quantitativos poderão exigir uma nova revisão.`, color: MUTED, size: 17 })] }),
       ],
     }],
