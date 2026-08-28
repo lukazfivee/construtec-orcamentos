@@ -44,13 +44,13 @@ const moveItemSchema = z.object({ direction: z.enum(['up', 'down']) });
 const updateBdiSchema = z.object({ bdiMultiplier: z.number().positive().max(100) });
 const updateContextSchema = z.object({ clientId: z.string().uuid(), workId: z.string().uuid() });
 const updateDetailsSchema = z.object({
-  scope: z.string().trim().min(3).max(300).optional(),
+  scope: z.string().trim().min(3).max(1200).optional(),
   validUntil: z.iso.date().nullable().optional(),
 }).refine((input) => Object.keys(input).length > 0, { message: 'Informe ao menos um campo para atualizar.' });
 const createProposalSchema = z.object({
   clientId: z.string().uuid(),
   workId: z.string().uuid(),
-  scope: z.string().trim().min(3).max(300),
+  scope: z.string().trim().min(3).max(1200),
   validUntil: z.iso.date().nullable().optional(),
 });
 const laborSchema = z.object({
