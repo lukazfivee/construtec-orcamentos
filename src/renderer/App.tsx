@@ -54,6 +54,13 @@ const sectionTabs = [
 ] as const;
 
 type ActiveSection = typeof sectionTabs[number]['label'];
+type CommercialConditions = {
+  scope: string;
+  executionTerm: string;
+  paymentTerms: string;
+  warranty: string;
+  notes: string;
+};
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
   draft: 'Em edição',
@@ -62,6 +69,50 @@ const statusLabels: Record<ProposalDetail['status'], string> = {
   approved: 'Aprovada',
   rejected: 'Recusada',
 };
+
+const emptyConditions = (scope = ''): CommercialConditions => ({
+  scope: scope.trim(),
+  executionTerm: '',
+  paymentTerms: '',
+  warranty: '',
+  notes: '',
+});
+
+const fieldFromLines = (lines: string[], names: string[]) => {
+  const prefixes = names.map((name) => `${name}:`.toLowerCase());
+  const found = lines.find((line) => prefixes.some((prefix) => line.toLowerCase().startsWith(prefix)));
+  return found ? found.slice(found.indexOf(':') + 1).trim() : '';
+};
+
+const parseCommercialConditions = (scope: string): CommercialConditions => {
+  try {
+    const parsed = JSON.parse(scope) as Partial<CommercialConditions>;
+    if (parsed && typeof parsed === 'object' && typeof parsed.scope === 'string') {
+      return {
+        scope: parsed.scope.trim(),
+        executionTerm: typeof parsed.executionTerm === 'string' ? parsed.executionTerm.trim() : '',
+        paymentTerms: typeof parsed.paymentTerms === 'string' ? parsed.paymentTerms.trim() : '',
+        warranty: typeof parsed.warranty === 'string' ? parsed.warranty.trim() : '',
+        notes: typeof parsed.notes === 'string' ? parsed.notes.trim() : '',
+      };
+    }
+  } catch {
+    const lines = scope.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const lineScope = fieldFromLines(lines, ['escopo', 'scope']);
+    if (lineScope) {
+      return {
+        scope: lineScope,
+        executionTerm: fieldFromLines(lines, ['prazo', 'prazo de execução', 'execução']),
+        paymentTerms: fieldFromLines(lines, ['pagamento', 'forma de pagamento']),
+        warranty: fieldFromLines(lines, ['garantia']),
+        notes: fieldFromLines(lines, ['observações', 'observacao', 'observacoes', 'notas']),
+      };
+    }
+  }
+  return emptyConditions(scope);
+};
+
+const serializeCommercialConditions = (conditions: CommercialConditions) => JSON.stringify(conditions);
 
 export function App() {
   const [activeNav, setActiveNav] = useState<'Propostas' | 'Catálogo' | 'Clientes'>('Propostas');
@@ -355,6 +406,16 @@ export function App() {
     }
   }, [mutationPending, proposal]);
 
+  const updateCommercialCondition = useCallback((field: keyof CommercialConditions, value: string) => {
+    if (!proposal) return;
+    const next = { ...parseCommercialConditions(proposal.scope), [field]: value.trim() };
+    if (next.scope.length < 3) {
+      showNotice('Informe um escopo válido.');
+      return;
+    }
+    void updateProposalDetails({ scope: serializeCommercialConditions(next) });
+  }, [proposal, updateProposalDetails]);
+
   const loadHistory = useCallback(async (proposalId: string) => {
     setHistoryLoading(true);
     setError('');
@@ -537,6 +598,7 @@ export function App() {
   const baseCost = materialsTotal + laborTotal;
   const finalValue = baseCost * (proposal?.bdiMultiplier ?? 1);
   const additions = finalValue - baseCost;
+  const commercialConditions = useMemo(() => parseCommercialConditions(proposal?.scope ?? ''), [proposal?.scope]);
   const formattedUpdatedAt = useMemo(() => {
     if (!proposal?.updatedAt) return '—';
     return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(proposal.updatedAt));
@@ -690,12 +752,24 @@ export function App() {
               <div className="history-heading">
                 <div><FileText size={18} /><span><b>Condições comerciais</b><small>Edita o que aparece no PDF/Word do cliente.</small></span></div>
               </div>
-              <div className="form-grid" style={{ padding: 20, maxWidth: 760 }}>
+              <div className="form-grid" style={{ padding: 20, maxWidth: 960 }}>
                 <label>Validade da proposta
                   <input type="date" defaultValue={proposal.validUntil ?? ''} disabled={!isEditable || mutationPending} onBlur={(event) => void updateProposalDetails({ validUntil: event.currentTarget.value || null })} />
                 </label>
+                <label>Prazo de execução
+                  <input key={`${proposal.id}-execution-${commercialConditions.executionTerm}`} type="text" defaultValue={commercialConditions.executionTerm} maxLength={160} placeholder="Ex.: 15 dias úteis" disabled={!isEditable || mutationPending} onBlur={(event) => updateCommercialCondition('executionTerm', event.currentTarget.value)} />
+                </label>
                 <label className="wide">Escopo comercial
-                  <textarea key={`${proposal.id}-${proposal.scope}`} defaultValue={proposal.scope} maxLength={300} disabled={!isEditable || mutationPending} style={{ minHeight: 110, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }} onBlur={(event) => void updateProposalDetails({ scope: event.currentTarget.value })} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.value = proposal.scope; event.currentTarget.blur(); } }} />
+                  <textarea key={`${proposal.id}-scope-${commercialConditions.scope}`} defaultValue={commercialConditions.scope} maxLength={300} disabled={!isEditable || mutationPending} style={{ minHeight: 88, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }} onBlur={(event) => updateCommercialCondition('scope', event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.value = commercialConditions.scope; event.currentTarget.blur(); } }} />
+                </label>
+                <label className="wide">Forma de pagamento
+                  <textarea key={`${proposal.id}-payment-${commercialConditions.paymentTerms}`} defaultValue={commercialConditions.paymentTerms} maxLength={240} placeholder="Ex.: 40% entrada, 60% na entrega" disabled={!isEditable || mutationPending} style={{ minHeight: 70, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }} onBlur={(event) => updateCommercialCondition('paymentTerms', event.currentTarget.value)} />
+                </label>
+                <label>Garantia
+                  <input key={`${proposal.id}-warranty-${commercialConditions.warranty}`} type="text" defaultValue={commercialConditions.warranty} maxLength={160} placeholder="Ex.: 90 dias" disabled={!isEditable || mutationPending} onBlur={(event) => updateCommercialCondition('warranty', event.currentTarget.value)} />
+                </label>
+                <label className="wide">Observações
+                  <textarea key={`${proposal.id}-notes-${commercialConditions.notes}`} defaultValue={commercialConditions.notes} maxLength={500} disabled={!isEditable || mutationPending} style={{ minHeight: 82, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }} onBlur={(event) => updateCommercialCondition('notes', event.currentTarget.value)} />
                 </label>
                 <p className="dialog-warning">BDI, salários, custos e margens continuam fora do documento do cliente.</p>
               </div>
