@@ -37,6 +37,7 @@ const mimeFromExtension = (extension: string) => {
 
 const recognizeWithCloudflare = async (filePath: string) => {
   if (!OCR_URL) throw new Error('OCR_CLOUDFLARE_NOT_CONFIGURED');
+  if (!OCR_TOKEN) throw new Error('OCR_CLOUDFLARE_TOKEN_REQUIRED');
   const buffer = await readFile(filePath);
   if (buffer.byteLength > MAX_IMAGE_BYTES) throw new Error('OCR_IMAGE_TOO_LARGE');
   const extension = path.extname(filePath).toLowerCase();

@@ -1,0 +1,8 @@
+# Mudanças sensíveis exigem revisão explícita.
+/.github/workflows/ @lukazfivee
+/.github/dependabot.yml @lukazfivee
+/forge.config.ts @lukazfivee
+/cloudflare/ocr-worker/ @lukazfivee
+/src/main/ @lukazfivee
+/src/preload.ts @lukazfivee
+/src/server/ @lukazfivee

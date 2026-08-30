@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: windows-installer-${{ github.ref }}
@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Baixar código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -35,6 +35,9 @@ jobs:
 
       - name: Validar TypeScript e ESLint
         run: npm run verify
+
+      - name: Auditar dependências de produção
+        run: npm run security:audit:prod
 
       - name: Gerar instalador x64
         run: npm run make:windows
@@ -46,8 +49,54 @@ jobs:
           if (-not $setup) { throw 'Instalador versionado não encontrado.' }
           Copy-Item $setup.FullName 'out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe' -Force
 
+      - name: Guardar instalador para publicação
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Construtec-Orcamentos-Setup
+          path: out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-windows-installer:
+    name: Assinar e publicar instalador
+    needs: build-windows-installer
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Baixar instalador validado
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: Construtec-Orcamentos-Setup
+          path: out/make/squirrel.windows/x64
+
+      - name: Assinar instalador Windows quando certificado estiver configurado
+        shell: pwsh
+        env:
+          WINDOWS_CODESIGN_PFX_BASE64: ${{ secrets.WINDOWS_CODESIGN_PFX_BASE64 }}
+          WINDOWS_CODESIGN_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_PASSWORD }}
+        run: |
+          if (-not $env:WINDOWS_CODESIGN_PFX_BASE64 -or -not $env:WINDOWS_CODESIGN_PASSWORD) {
+            Write-Host 'Certificado de assinatura não configurado; seguindo sem assinatura Authenticode.'
+            exit 0
+          }
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+            Where-Object { $_.FullName -match '\\x64\\signtool\.exe$' } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $signtool) { throw 'signtool.exe não encontrado no runner Windows.' }
+          $pfxPath = Join-Path $env:RUNNER_TEMP 'construtec-codesign.pfx'
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_CODESIGN_PFX_BASE64))
+          try {
+            & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $pfxPath /p $env:WINDOWS_CODESIGN_PASSWORD 'out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe'
+          } finally {
+            Remove-Item $pfxPath -Force -ErrorAction SilentlyContinue
+          }
+
       - name: Publicar EXE para download direto
-        if: github.event_name != 'pull_request'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,61 @@
+name: Auditoria de segurança
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 8 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    name: Dependências npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Bloquear vulnerabilidades de produção
+        run: npm run security:audit:prod
+
+      - name: Relatar vulnerabilidades de build/dev
+        continue-on-error: true
+        run: npm run security:audit
+
+  secret-patterns:
+    name: Padrões de segredo e APIs perigosas
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Verificar padrões sensíveis
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE '(api[_-]?key|secret|password|token)\s*[:=]\s*["'\''][^"'\'']{12,}|dangerouslySetInnerHTML|eval\(|new Function|shell\.openExternal' \
+            --exclude-dir=.git \
+            --exclude=package-lock.json \
+            --exclude-dir=node_modules \
+            .; then
+            echo "::error::Revise os achados acima antes de prosseguir."
+            exit 1
+          fi

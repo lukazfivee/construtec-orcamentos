@@ -7,7 +7,7 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 });
 
 const authorized = (request, env) => {
-  if (!env.OCR_SHARED_TOKEN) return true;
+  if (!env.OCR_SHARED_TOKEN) return false;
   return request.headers.get('authorization') === `Bearer ${env.OCR_SHARED_TOKEN}`;
 };
 
@@ -75,7 +75,12 @@ const recognizeWithMarkdown = async (file, env) => {
 export default {
   async fetch(request, env) {
     if (request.method === 'GET') {
-      return json({ ok: true, service: 'construtec-catalog-ocr', model: '@cf/google/gemma-4-26b-a4b-it' });
+      return json({
+        ok: true,
+        service: 'construtec-catalog-ocr',
+        model: '@cf/google/gemma-4-26b-a4b-it',
+        authentication: env.OCR_SHARED_TOKEN ? 'required' : 'not_configured',
+      });
     }
     if (request.method !== 'POST') return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
     if (!authorized(request, env)) return json({ error: 'UNAUTHORIZED' }, 401);

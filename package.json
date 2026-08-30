@@ -13,7 +13,9 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint"
+    "verify": "npm run typecheck && npm run lint",
+    "security:audit": "npm audit --audit-level=high",
+    "security:audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "keywords": [
     "electron",
