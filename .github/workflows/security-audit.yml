@@ -54,6 +54,7 @@ jobs:
           if grep -RInE '(api[_-]?key|secret|password|token)\s*[:=]\s*["'\''][^"'\'']{12,}|dangerouslySetInnerHTML|eval\(|new Function|shell\.openExternal' \
             --exclude-dir=.git \
             --exclude=package-lock.json \
+            --exclude=security-audit.yml \
             --exclude-dir=node_modules \
             .; then
             echo "::error::Revise os achados acima antes de prosseguir."
