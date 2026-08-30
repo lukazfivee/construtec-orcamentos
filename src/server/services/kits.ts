@@ -30,7 +30,7 @@ export const listKits = async (database: LocalDatabase, query = ''): Promise<Kit
       k.updated_at::text
     FROM kits k
     LEFT JOIN kit_items ki ON ki.kit_id = k.id
-    LEFT JOIN products p ON p.id = ki.product_id
+    LEFT JOIN products p ON p.id = ki.catalog_product_id
     WHERE $1 = '%%' OR k.name ILIKE $1 OR k.category ILIKE $1 OR k.description ILIKE $1
     GROUP BY k.id, k.name, k.description, k.category, k.active, k.updated_at
     ORDER BY k.active DESC, k.category, k.name
@@ -75,16 +75,16 @@ export const getKitById = async (database: LocalDatabase, id: string): Promise<K
   }>(`
     SELECT
       ki.id,
-      ki.product_id,
-      p.code,
-      p.description,
-      p.category,
-      p.unit,
-      p.current_cost::text,
+      ki.catalog_product_id as product_id,
+      COALESCE(p.code, ki.snapshot_code) as code,
+      COALESCE(p.description, ki.snapshot_description) as description,
+      COALESCE(p.category, 'Geral') as category,
+      COALESCE(p.unit, ki.snapshot_unit) as unit,
+      COALESCE(p.current_cost::text, '0') as current_cost,
       ki.quantity::text,
       ki.position
     FROM kit_items ki
-    JOIN products p ON p.id = ki.product_id
+    LEFT JOIN products p ON p.id = ki.catalog_product_id
     WHERE ki.kit_id = $1
     ORDER BY ki.position ASC
   `, [id]);
@@ -144,15 +144,23 @@ export const createKit = async (database: LocalDatabase, input: KitInput): Promi
 
     for (const [index, item] of input.items.entries()) {
       if (item.quantity <= 0) continue;
+      const prodRes = await transaction.query<{
+        code: string; description: string; unit: string;
+      }>('SELECT code, description, unit FROM products WHERE id = $1', [item.productId]);
+      const prod = prodRes.rows[0];
+      if (!prod) throw new Error('PRODUCT_NOT_FOUND');
       await transaction.query(`
-        INSERT INTO kit_items (id, kit_id, product_id, quantity, position)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO kit_items (id, kit_id, catalog_product_id, position, snapshot_code, snapshot_description, snapshot_unit, quantity)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `, [
         randomUUID(),
         kitId,
         item.productId,
-        item.quantity,
         index + 1,
+        prod.code,
+        prod.description,
+        prod.unit,
+        item.quantity,
       ]);
     }
   });
@@ -187,15 +195,23 @@ export const updateKit = async (database: LocalDatabase, id: string, input: KitI
 
     for (const [index, item] of input.items.entries()) {
       if (item.quantity <= 0) continue;
+      const prodRes = await transaction.query<{
+        code: string; description: string; unit: string;
+      }>('SELECT code, description, unit FROM products WHERE id = $1', [item.productId]);
+      const prod = prodRes.rows[0];
+      if (!prod) throw new Error('PRODUCT_NOT_FOUND');
       await transaction.query(`
-        INSERT INTO kit_items (id, kit_id, product_id, quantity, position)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO kit_items (id, kit_id, catalog_product_id, position, snapshot_code, snapshot_description, snapshot_unit, quantity)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `, [
         randomUUID(),
         id,
         item.productId,
-        item.quantity,
         index + 1,
+        prod.code,
+        prod.description,
+        prod.unit,
+        item.quantity,
       ]);
     }
   });
