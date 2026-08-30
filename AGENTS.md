@@ -16,6 +16,14 @@ Estas regras valem para todo o repositório.
 - Preserve dados comerciais internos: BDI, salários, custos e margens não devem aparecer em PDF/Word do cliente.
 - Prefira fluxo simples e seguro para orçamento: materiais, mão de obra, condições comerciais, revisão e exportação.
 
+## Rastro de continuidade
+
+- Antes de encerrar qualquer bloco com avanço real, atualize `CODEX_HANDOFF.md`.
+- Se o próximo operador puder ser outra IA/editor, mantenha `OPENCODE.md` coerente com o handoff.
+- O rastro deve permitir continuar sem ler a conversa original do Codex.
+- Registre no mínimo: data/hora BRT, commit, o que mudou, validação, próximo passo e bloqueios.
+- Não coloque segredos, tokens, senhas, URLs assinadas temporárias ou dados sensíveis nesses arquivos.
+
 ## Checks
 
 - Antes de mudança substancial, faça um pre-flight curto cobrindo as camadas relevantes: frontend, dados, auth, APIs, CI/CD, segurança, rate limit, cache/performance, escala e observabilidade.
