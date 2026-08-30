@@ -67,6 +67,7 @@ export function KitsWorkspace({
   const [pickerQuery, setPickerQuery] = useState('');
   const [pickerProducts, setPickerProducts] = useState<CatalogProduct[]>([]);
   const [pickerLoading, setPickerLoading] = useState(false);
+  const [selectedPickerIds, setSelectedPickerIds] = useState<Set<string>>(new Set());
 
   const applyKits = (nextKits: KitSummary[], preferredId?: string | null) => {
     setKits(nextKits);
@@ -178,6 +179,31 @@ export function KitsWorkspace({
         ],
       });
     }
+    setPickerOpen(false);
+    setPickerQuery('');
+    setSelectedPickerIds(new Set());
+  };
+
+  const togglePickerSelection = (productId: string) => {
+    setSelectedPickerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  };
+
+  const addSelectedProductsToKit = () => {
+    const selected = pickerProducts.filter((p) => selectedPickerIds.has(p.id));
+    if (selected.length === 0) return;
+    const updated = [...draft.items];
+    for (const product of selected) {
+      const idx = updated.findIndex((it) => it.productId === product.id);
+      if (idx >= 0) updated[idx].quantity += 1;
+      else updated.push({ productId: product.id, code: product.code, description: product.description, category: product.category, unit: product.unit, currentCost: product.currentCost, quantity: 1 });
+    }
+    setDraft({ ...draft, items: updated });
+    setSelectedPickerIds(new Set());
     setPickerOpen(false);
     setPickerQuery('');
   };
@@ -421,7 +447,7 @@ export function KitsWorkspace({
                   </h3>
                   <button
                     type="button"
-                    onClick={() => setPickerOpen(true)}
+                    onClick={() => { setSelectedPickerIds(new Set()); setPickerOpen(true); }}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -530,7 +556,7 @@ export function KitsWorkspace({
                   <p>Pesquise e selecione itens do catálogo cadastrado.</p>
                 </div>
               </div>
-              <button type="button" className="dialog-close" onClick={() => setPickerOpen(false)}>
+              <button type="button" className="dialog-close" onClick={() => { setSelectedPickerIds(new Set()); setPickerOpen(false); }}>
                 ✕
               </button>
             </header>
@@ -547,22 +573,31 @@ export function KitsWorkspace({
               </label>
 
               <div style={{ maxHeight: '320px', overflowY: 'auto', border: '1px solid #e4e6ea', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: '#f8f9fb', borderBottom: '1px solid #e4e6ea', fontSize: '11px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={pickerProducts.length > 0 && selectedPickerIds.size === pickerProducts.length} onChange={(e) => setSelectedPickerIds(e.target.checked ? new Set(pickerProducts.map((p) => p.id)) : new Set())} /> Selecionar todos
+                  </label>
+                  <span style={{ color: '#697386' }}>{selectedPickerIds.size} selecionado(s)</span>
+                </div>
                 {pickerProducts.map((product) => (
                   <div
                     key={product.id}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
+                      gap: '10px',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
                       borderBottom: '1px solid #f0f2f5',
+                      background: selectedPickerIds.has(product.id) ? '#eff5ff' : 'white',
                     }}
                   >
-                    <div>
+                    <input type="checkbox" checked={selectedPickerIds.has(product.id)} onChange={() => togglePickerSelection(product.id)} style={{ width: '16px', height: '16px' }} />
+                    <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: '12px' }}>{product.code} - {product.description}</div>
                       <div style={{ fontSize: '10px', color: '#697386' }}>{product.category} • Un: {product.unit}</div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontWeight: 600, fontSize: '11px' }}>{money.format(product.currentCost)}</span>
                       <button
                         type="button"
@@ -583,10 +618,16 @@ export function KitsWorkspace({
               </div>
             </div>
 
-            <footer>
-              <button type="button" onClick={() => setPickerOpen(false)}>
-                Fechar
-              </button>
+            <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', color: '#697386' }}>{selectedPickerIds.size} selecionado(s)</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => { setSelectedPickerIds(new Set()); setPickerOpen(false); }}>
+                  Fechar
+                </button>
+                <button type="button" className="primary" disabled={selectedPickerIds.size === 0} onClick={() => addSelectedProductsToKit()}>
+                  <Plus size={14} /> Adicionar em lote ({selectedPickerIds.size})
+                </button>
+              </div>
             </footer>
           </div>
         </div>
