@@ -110,3 +110,19 @@ jobs:
             gh release upload $tag $asset --repo ${{ github.repository }} --clobber
             gh release edit $tag --repo ${{ github.repository }} --target ${{ github.sha }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
           }
+
+      - name: Publicar release versionada quando solicitado
+        if: contains(github.event.head_commit.message, '[release]')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $versionTag = "build-$env:GITHUB_RUN_NUMBER"
+          $asset = 'out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe'
+          $notes = @"
+          Instalador Windows x64 do Construtec Orçamentos.
+
+          Commit: $env:GITHUB_SHA
+          Workflow: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID
+          "@
+          gh release create $versionTag $asset --repo ${{ github.repository }} --target ${{ github.sha }} --title "Construtec Orçamentos $versionTag" --notes $notes --latest
