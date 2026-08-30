@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-30 12:45 BRT`
+Última atualização deste rastro: `2026-08-30 12:50 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,7 +36,7 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 12:45`
+Data/hora BRT: `2026-08-30 12:50`
 
 Commits criados neste bloco:
 
@@ -45,12 +45,15 @@ Commits criados neste bloco:
 a6acd8f02a2074f1d3f7e0c693213bed0464a21d docs: add opencode continuation guide
 0e19437c45fef953fe6cb352b2d6e6a5c568e8f0 docs: require durable handoff trail
 fa5aa28f39abf485564a441cfa1a6dfd7475feff ci: skip installer build for docs-only changes
+3ffc73f2ff01d61dd9f947bec48cf1e1bace2c24 docs: record continuation trail updates
+e39a55e232c3644a0eb056f6d2e92dbc3bfe1620 docs: require opencode continuity trail
 ```
 
 O que mudou:
 
 - `CODEX_HANDOFF.md` virou o diário principal de continuidade.
 - `OPENCODE.md` foi criado como ponto de entrada para OpenCode/outra IA.
+- `OPENCODE.md` agora manda o OpenCode atualizar `CODEX_HANDOFF.md` antes de encerrar avanço real.
 - `AGENTS.md` agora exige atualização do rastro antes de encerrar avanço real.
 - `.github/workflows/build-windows-installer.yml` passou a ignorar alterações apenas em Markdown em push/PR.
 
@@ -198,13 +201,14 @@ Não commitar segredos.
 
 ### 2. Total em listas de propostas pode estar incompleto
 
-Suspeita técnica: `src/server/services/proposals.ts` calcula `total_sale` em `listCurrentProposals` a partir de `proposal_items`. Se a lista/tabs usam esse valor, mão de obra e valor final com BDI podem não aparecer corretamente fora do detalhe da proposta.
+Confirmado em inspeção: `src/server/services/proposals.ts` calcula `total_sale` em `listCurrentProposals` e `listProposalHistory` a partir de `proposal_items`. Isso deixa mão de obra e BDI fora dos totais resumidos.
 
 Próximo alvo recomendado de código:
 
 - revisar `listCurrentProposals`;
+- revisar `listProposalHistory`;
 - incluir agregação de mão de obra;
-- decidir se o valor de lista deve ser `finalValue` ou custo base;
+- decidir se o valor resumido deve exibir `finalValue`;
 - manter documentos do cliente sem BDI explícito.
 
 ### 3. Kits, Home e Configurações
