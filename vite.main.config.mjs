@@ -1,5 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  build: {},
+  build: {
+    rollupOptions: {
+      external: [/^node:.*/, 'electron'],
+    },
+  },
 });
