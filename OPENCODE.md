@@ -64,9 +64,19 @@ Regras:
 
 Ver `CODEX_HANDOFF.md`. No momento, o próximo alvo sugerido é revisar a consistência dos totais comerciais nas listas/resumos de propostas, especialmente se `listCurrentProposals` ainda considera só itens e ignora mão de obra/BDI.
 
-## Regra de rastro
+## Regra de rastro para OpenCode e outras IAs
 
-Antes de encerrar qualquer avanço real, atualize `CODEX_HANDOFF.md` com:
+Antes de encerrar qualquer avanço real, atualize `CODEX_HANDOFF.md` para que Codex, OpenCode ou outra IA consigam continuar sem a conversa original.
+
+Atualize também este `OPENCODE.md` quando o modo de retomada mudar, por exemplo:
+
+- novo próximo alvo;
+- novo fluxo de validação;
+- nova regra de release;
+- novo bloqueio externo;
+- mudança importante na arquitetura.
+
+O rastro deve ser concreto e operacional. Não escreva resumo genérico. Inclua sempre:
 
 ```text
 Data/hora BRT:
@@ -76,3 +86,7 @@ Validação:
 Próximo passo:
 Bloqueios:
 ```
+
+Nunca grave segredos, tokens, senhas, URLs assinadas temporárias, chaves de API ou dados sensíveis no rastro.
+
+Se estiver sem contexto, pare e leia `CODEX_HANDOFF.md` antes de mexer no código. Se corrigir algo, atualize o handoff antes de devolver a tarefa.
