@@ -1,0 +1,100 @@
+---
+description: Production engineering guardrails for AI-assisted changes in Construtec Orçamentos
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# AI architecture rule — Construtec Orçamentos
+
+This repository is a local-first Electron desktop app for construction estimates. Build robust, scalable, secure, production-ready software. Avoid superficial vibe coding: implement the smallest correct solution, fix root causes, and preserve a simple product flow.
+
+Follow `AGENTS.md`, `SECURITY.md`, and this rule together.
+
+## Pre-flight check
+
+On any substantial feature request, code generation, PR review, or refactor, briefly analyze the request against the relevant layers below before finalizing code. Keep it short and practical; skip layers that are not touched.
+
+Use this shape when useful:
+
+```text
+pre_flight_check:
+- Frontend: ...
+- Data/API/Security: ...
+- CI/Release: ...
+```
+
+## Mandatory layers
+
+### 1. Frontend
+
+- Ensure production build readiness.
+- Never expose secrets, API keys, tokens, signing credentials, or internal commercial parameters in the frontend.
+- Disable or avoid sensitive source maps in distributable builds.
+- Keep sensitive/heavy business logic outside the UI when a local API/backend boundary is appropriate.
+
+### 2. Database and local data
+
+- Preserve local-first behavior and data integrity.
+- The current app uses local/offline storage; do not force remote-database patterns into PGlite.
+- If shared/remote tables are introduced, enforce Row Level Security, strict policies, and tenant/user isolation.
+- Treat migrations as production changes: compatible, recoverable, and tested.
+
+### 3. Auth and routing
+
+- Require secure session management and token validation for private or remote routes.
+- Apply RBAC/permissions to private routes when multi-user or cloud access exists.
+- Keep desktop-only routes scoped to local trust assumptions.
+
+### 4. Versioning and CI/CD
+
+- Use Conventional Commits.
+- Keep changes atomic and reviewable.
+- Maintain CI/CD readiness, minimal workflow permissions, and safe rollback paths.
+
+### 5. APIs and third-party services
+
+- Modularize API integrations.
+- Use explicit timeouts, typed/validated responses where practical, and clear error handling.
+- Isolate third-party services and preserve app consistency if they fail.
+
+### 6. Hosting and environment
+
+- Use environment variables for runtime/deployment configuration.
+- Never hardcode secrets.
+- Keep cloud services deploy-ready while preserving offline desktop operation for core workflows.
+
+### 7. Security
+
+- Validate and sanitize all inputs crossing trust boundaries.
+- Prevent SQL injection, XSS, path traversal, unsafe file handling, and secret leakage.
+- Hide internal infrastructure details from public endpoints and user-facing errors.
+- Preserve business confidentiality: BDI, salaries, costs, margins, and internal parameters must not leak into customer exports.
+
+### 8. Rate limiting
+
+- Add rate limiting and abuse protection to public/auth endpoints and costly services such as OCR.
+- Use frontend debouncing/throttling for repeated expensive user actions.
+
+### 9. Caching and performance
+
+- Cache infrequently changing data when safe.
+- Optimize queries and avoid redundant server-side or local recalculation.
+- Keep editing, totals, and export flows responsive.
+
+### 10. Scale
+
+- Keep cloud/service code stateless for horizontal scaling.
+- Avoid coupling remote workers to local desktop state.
+
+### 11. Observability
+
+- Use structured, non-sensitive logging for key events.
+- Never swallow errors silently.
+- Add global error tracking only if it does not expose customer data, pricing data, or secrets.
+
+## Product-specific guardrails
+
+- Customer-facing PDF/Word exports must not reveal internal costs, BDI details, salaries, margins, or private calculation parameters.
+- OCR must degrade safely: if remote OCR is not configured or fails, use the safe local fallback path.
+- Installer/release changes must keep Windows build reproducible and signed when signing secrets are available.
