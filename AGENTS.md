@@ -8,6 +8,7 @@ Estas regras valem para todo o repositório.
 - Corrija causa raiz. Antes de alterar uma função compartilhada, procure seus chamadores.
 - Use `caveman full` na comunicação com o usuário: português curto, direto, sem floreio.
 - Use Context7 quando a mudança depender de API, biblioteca, framework ou comportamento atual que possa ter mudado. Primeiro resolva o library ID; depois consulte docs. Não envie segredos nem dados sensíveis ao Context7.
+- Use `.cursorrules` e `.cursor/rules/ai-architecture.mdc` como guardrails de arquitetura para assistentes no editor.
 
 ## Produto
 
@@ -17,6 +18,8 @@ Estas regras valem para todo o repositório.
 
 ## Checks
 
+- Antes de mudança substancial, faça um pre-flight curto cobrindo as camadas relevantes: frontend, dados, auth, APIs, CI/CD, segurança, rate limit, cache/performance, escala e observabilidade.
+- Para app local-first, RLS/stateless/cloud-native só se aplica quando houver backend remoto ou serviço compartilhado; não force complexidade no PGlite local.
 - Para mudança de código, rode ou confirme no CI: `npm run verify`.
 - Para instalador Windows, workflow principal esperado: `Gerar instalador do Windows`.
 - Não gere EXE por curiosidade; gere quando mudança precisa ser testada no app instalado ou quando usuário pedir.
