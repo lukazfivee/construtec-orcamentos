@@ -62,7 +62,7 @@ Regras:
 
 ## Próximo alvo atual
 
-Ver `CODEX_HANDOFF.md`. No momento, o próximo alvo sugerido é revisar a consistência dos totais comerciais nas listas/resumos de propostas, especialmente se `listCurrentProposals` ainda considera só itens e ignora mão de obra/BDI.
+Ver `CODEX_HANDOFF.md`. Os módulos Home (Dashboard), Kits e Configurações foram entregues e validados com `npm run verify`. Próximo alvo: validação visual no executável Windows (`npm run make:windows`) e verificação do fluxo completo de emissão de propostas.
 
 ## Regra de rastro para OpenCode e outras IAs
 

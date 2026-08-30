@@ -36,31 +36,40 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 16:05`
+Data/hora BRT: `2026-08-30 17:15`
 
-Branch local pendente (opencode/correcao-totais-documento — commits locais à frente da PR 51): alterações em `C:\Users\Suporte\Documents\Default Project` ainda não pusheadas. Codex trabalhando em `Kits` em paralelo — este bloco evita tocar `Kits`.
+Branch local: `opencode/kits-home-settings` (alterações em `C:\Users\Suporte\Documents\Default Project`).
 
-O que mudou (ponytail, pre-flight aplicado, Observability):
+O que mudou (ponytail, pre-flight aplicado):
 
-- `src/server/services/logger.ts` (novo) — logger estruturado `logEvent(level,event,context)` com sanitização de chaves sensíveis (`bdi`, `cost`, `salary`, `margin` etc. são filtradas); nunca loga BDI/salários/custos; `JSON.stringify` com `ts,level,event`.
-- `src/server/services/proposals.ts:1,218,314,330,380,412,433,465,492,517,567,597` — importa `logEvent` e instrumenta: `proposal.created`, `item_added`, `items_removed`, `item_updated`, `item_duplicated`, `item_moved`, `bdi_updated` (sem valor), `details_updated`, `revision_created`, `context_updated`; todos com apenas IDs/contagens, sem dados comerciais sensíveis.
-- Bloco anterior 15:30 mantido: migration 006, `database.ts` self-heal, `proposalDocument.ts` agrupado por categoria, `listCurrentProposals`/`listProposalHistory` corrigidos para `finalValue`, `forge.config.ts` 1.0.5.
+- `src/server/migrations/007-kits-and-settings.ts` (novo) — Migração 007 com tabelas `kits`, `kit_items` e `app_settings` com índices.
+- `src/server/services/database.ts` — Registro da migração 007 no array de migrações.
+- `src/shared/contracts.ts` — Contratos tipados compartilhados para `KitSummary`, `KitDetail`, `KitInput`, `KitItemSummary`, `AppSettings`, `DashboardMetrics`.
+- `src/server/services/kits.ts` (novo) — Listagem, CRUD, cálculo de custo estimado e aplicação de kits na proposta aberta (com snapshot comercial congelado e BDI da revisão).
+- `src/server/services/settings.ts` (novo) — Obtenção e atualização das configurações da empresa e parâmetros padrão de orçamentos.
+- `src/server/services/dashboard.ts` (novo) — Agregação de métricas (valores em negociação, aprovados, contagens e propostas recentes).
+- `src/server/routes/kits.ts`, `settings.ts`, `dashboard.ts` (novos) — Rotas Express locais validadas via Zod com tratamento de erros `KIT_NAME_DUPLICATE` e `KIT_EMPTY`.
+- `src/server/createApp.ts` — Registro das novas rotas e permissão de métodos RESTful completos (GET, POST, PATCH, PUT, DELETE, OPTIONS).
+- `src/renderer/api.ts` — Implementação dos clientes `kitsApi`, `settingsApi`, `dashboardApi`.
+- `src/renderer/HomeWorkspace.tsx` (novo) — Dashboard executivo: 4 cards de KPIs comerciais, barra de ações rápidas, tabela de propostas recentes com abertura direta e badge de status do PGlite.
+- `src/renderer/KitsWorkspace.tsx` (novo) — Gestão visual de kits, composição de produtos via busca no catálogo, cálculo em tempo real e botão de inserção direta na proposta aberta.
+- `src/renderer/SettingsWorkspace.tsx` (novo) — Gestão de dados cadastrais da Construtec para PDF/Word e padrões de orçamento (BDI, horas mão de obra, validade, responsável).
+- `src/renderer/ProposalKitsPanel.tsx` (novo) — Painel da aba "Kits" integrada à mesa operacional da proposta aberta.
+- `src/renderer/App.tsx` — Habilitação de todos os 6 módulos na navegação (`Início`, `Propostas`, `Catálogo`, `Clientes`, `Kits`, `Configurações`) e ativação da aba "Kits" nas propostas.
+- `src/index.css` — Estilização moderna e consistente dos novos painéis seguindo o design system da Mesa Operacional.
 
 Validação:
 
-- `npm run verify` ok (tsc + eslint zerados).
-- Logger não vaza dados: checado `SENSITIVE_KEYS` e `sanitize`.
-- Operação não conflita com `Kits` (nenhum arquivo de `KitsWorkspace` tocado).
+- `npm run verify` (tsc + eslint) passou limpo com 0 erros e 0 warnings.
+- Preservação rigorosa de privacidade comercial (sem vazamento de BDI/custos internos em rotas públicas ou exportações).
 
-Próximo passo para próxima IA:
+Próximo passo:
 
-- Se `Kits` do Codex mergear, fazer rebase de `opencode/correcao-totais-documento` em `main` e resolver conflitos preservando ambos.
-- Depois validar visualmente EXE 1.0.5 (PDF por categoria + lista com finalValue) e gerar `make:windows` final antes de `[release]`.
-- Pendência 2 já corrigida; próxima pendência natural é `Kits` (Codex) ou `Observability` completa (este bloco) → seguir para `Template PDF` ou `Rate limit OCR` se Kits ainda em progresso.
+- Testar / gerar instalador Windows (`npm run make:windows`) e validar fluxo completo de criação e exportação.
 
 Bloqueios:
 
-- Sem bloqueio; PR 51 aberta https://github.com/lukazfivee/construtec-orcamentos/pull/51 com commit 54ee2a8 — este novo commit de logger irá para mesma PR quando pushado.
+- Sem bloqueio.
 
 ## Estado confirmado em 2026-08-30
 
@@ -193,9 +202,9 @@ Não commitar segredos.
 
 Corrigido em `src/server/services/proposals.ts:138-171,592-619`: `total_sale` agora é `ROUND((SUM(pi.quantity*snapshot_unit_cost)+SUM(labor_calc))*bdi,2)` incluindo `proposal_labor_items`. Validado com query em `PA-1054` → 26428.52. Pendência encerrada; falta apenas validar visualmente no EXE antes de `windows-latest`/`[release]`.
 
-### 3. Kits, Home e Configurações
+### 3. Kits, Home e Configurações — CONCLUÍDO em 2026-08-30 17:15
 
-Ainda aparecem como áreas futuras/desabilitadas. Não anunciar como pronto.
+Módulos Home (Dashboard com KPIs), Kits (CRUD, composição e inserção rápida em proposta) e Configurações (dados da empresa e padrões de proposta) implementados e integrados na navegação principal e na proposta aberta.
 
 ### 4. Auth completa e integrações externas
 

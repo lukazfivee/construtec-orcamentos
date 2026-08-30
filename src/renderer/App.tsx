@@ -27,11 +27,15 @@ import {
   Users,
 } from 'lucide-react';
 import type { CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
-import { clientsApi, proposalApi } from './api';
+import { clientsApi, kitsApi, proposalApi } from './api';
 import { ClientsWorkspace } from './ClientsWorkspace';
 import { NewProposalDialog } from './NewProposalDialog';
 import { CatalogWorkspace } from './CatalogWorkspace';
 import { ProposalLaborPanel } from './ProposalLaborPanel';
+import { HomeWorkspace } from './HomeWorkspace';
+import { KitsWorkspace } from './KitsWorkspace';
+import { SettingsWorkspace } from './SettingsWorkspace';
+import { ProposalKitsPanel } from './ProposalKitsPanel';
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
@@ -48,7 +52,7 @@ const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyl
 const sectionTabs = [
   { label: 'Itens', enabled: true },
   { label: 'Mão de obra', enabled: true },
-  { label: 'Kits', enabled: false },
+  { label: 'Kits', enabled: true },
   { label: 'Condições', enabled: true },
   { label: 'Histórico', enabled: true },
 ] as const;
@@ -115,7 +119,7 @@ const parseCommercialConditions = (scope: string): CommercialConditions => {
 const serializeCommercialConditions = (conditions: CommercialConditions) => JSON.stringify(conditions);
 
 export function App() {
-  const [activeNav, setActiveNav] = useState<'Propostas' | 'Catálogo' | 'Clientes'>('Propostas');
+  const [activeNav, setActiveNav] = useState<'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações'>('Início');
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [query, setQuery] = useState('leit');
   const [notice, setNotice] = useState('');
@@ -623,13 +627,24 @@ export function App() {
       <aside className="sidebar" aria-label="Navegação principal">
         <nav>
           {navItems.map(({ label, icon: Icon }) => {
-            const enabled = label === 'Propostas' || label === 'Catálogo' || label === 'Clientes';
             const active = label === activeNav;
             return (
-            <button key={label} type="button" className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} disabled={!enabled} title={enabled ? undefined : `${label} será implementado em uma próxima etapa.`} onClick={() => { if (enabled) { setActiveNav(label as 'Propostas' | 'Catálogo' | 'Clientes'); setCatalogOpen(false); setContextOpen(false); setError(''); } }}>
-              <Icon size={22} /><span>{label}</span>
-            </button>
-          ); })}
+              <button
+                key={label}
+                type="button"
+                className={active ? 'active' : ''}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => {
+                  setActiveNav(label as 'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações');
+                  setCatalogOpen(false);
+                  setContextOpen(false);
+                  setError('');
+                }}
+              >
+                <Icon size={22} /><span>{label}</span>
+              </button>
+            );
+          })}
         </nav>
         <button className="collapse" type="button"><ChevronLeft size={17} /><span>Recolher</span></button>
       </aside>
@@ -747,6 +762,19 @@ export function App() {
               onError={setError}
               onNotice={showNotice}
             />
+          ) : activeSection === 'Kits' && proposal ? (
+            <ProposalKitsPanel
+              proposalId={proposal.id}
+              proposalNumber={proposal.number}
+              bdiMultiplier={proposal.bdiMultiplier}
+              editable={isEditable}
+              onApplied={() => {
+                void loadProposal();
+                setActiveSection('Itens');
+              }}
+              onError={setError}
+              onNotice={showNotice}
+            />
           ) : activeSection === 'Condições' && proposal ? (
             <div className="history-region">
               <div className="history-heading">
@@ -825,7 +853,47 @@ export function App() {
             <p className="last-change">Última alteração: {formattedUpdatedAt}<br />por {proposal?.responsibleName ?? '—'}</p>
           </div>
         </aside>
-      </main> : activeNav === 'Catálogo' ? <CatalogWorkspace onNotice={showNotice} onError={setError} /> : <ClientsWorkspace onNotice={showNotice} onError={setError} />}
+      </main> : activeNav === 'Início' ? (
+        <HomeWorkspace
+          onOpenProposal={async (proposalId) => {
+            await openProposal(proposalId);
+            setActiveNav('Propostas');
+          }}
+          onNewProposal={() => {
+            setError('');
+            setNewProposalOpen(true);
+          }}
+          onNavigate={(section) => {
+            setActiveNav(section);
+            setError('');
+          }}
+          onError={setError}
+        />
+      ) : activeNav === 'Catálogo' ? (
+        <CatalogWorkspace onNotice={showNotice} onError={setError} />
+      ) : activeNav === 'Clientes' ? (
+        <ClientsWorkspace onNotice={showNotice} onError={setError} />
+      ) : activeNav === 'Kits' ? (
+        <KitsWorkspace
+          activeProposal={proposal}
+          onApplyKitToProposal={async (kitId) => {
+            if (!proposal) return;
+            try {
+              await kitsApi.applyToProposal(kitId, proposal.id);
+              await loadProposal();
+              setActiveNav('Propostas');
+              setActiveSection('Itens');
+              showNotice(`Itens do kit adicionados à proposta ${proposal.number}.`);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Erro ao aplicar kit.');
+            }
+          }}
+          onNotice={showNotice}
+          onError={setError}
+        />
+      ) : (
+        <SettingsWorkspace onNotice={showNotice} onError={setError} />
+      )}
 
       {notice && <div className="toast" role="status">{notice}</div>}
       <NewProposalDialog open={newProposalOpen} onClose={() => setNewProposalOpen(false)} onCreated={(created) => void proposalCreated(created)} onError={setError} />

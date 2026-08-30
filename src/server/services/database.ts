@@ -9,6 +9,7 @@ import { catalogManagementMigration } from '../migrations/003-catalog-management
 import { cleanExsatAdministrativeOcrMigration } from '../migrations/004-clean-exsat-admin-ocr';
 import { proposalLaborMigration } from '../migrations/005-proposal-labor';
 import { proposalItemCategoryMigration } from '../migrations/006-proposal-item-category';
+import { kitsAndSettingsMigration } from '../migrations/007-kits-and-settings';
 import { ensureFirstRunData } from './bootstrap';
 
 export type LocalDatabase = PGliteModule.PGlite;
@@ -47,6 +48,7 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     [4, cleanExsatAdministrativeOcrMigration],
     [5, proposalLaborMigration],
     [6, proposalItemCategoryMigration],
+    [7, kitsAndSettingsMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {
