@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-30 12:35 BRT`
+Última atualização deste rastro: `2026-08-30 12:45 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -34,16 +34,44 @@ Interpretação prática:
 - não expor custos internos, salários, BDI ou margem em documentos do cliente;
 - usar Context7 quando mexer em API/biblioteca/framework cujo comportamento possa ter mudado.
 
-## Estado confirmado em 2026-08-30
+## Último avanço registrado
 
-Último commit conhecido da `main` antes desta atualização:
+Data/hora BRT: `2026-08-30 12:45`
+
+Commits criados neste bloco:
 
 ```text
-b8a62b33a0bc0120b6df50bda9973ecf27dfa581
-ci: publish versioned release on demand [release]
+71d25fad01ab64dcb7b51855b85848e7d431abda docs: update development handoff trail
+a6acd8f02a2074f1d3f7e0c693213bed0464a21d docs: add opencode continuation guide
+0e19437c45fef953fe6cb352b2d6e6a5c568e8f0 docs: require durable handoff trail
+fa5aa28f39abf485564a441cfa1a6dfd7475feff ci: skip installer build for docs-only changes
 ```
 
-Release versionada mais recente:
+O que mudou:
+
+- `CODEX_HANDOFF.md` virou o diário principal de continuidade.
+- `OPENCODE.md` foi criado como ponto de entrada para OpenCode/outra IA.
+- `AGENTS.md` agora exige atualização do rastro antes de encerrar avanço real.
+- `.github/workflows/build-windows-installer.yml` passou a ignorar alterações apenas em Markdown em push/PR.
+
+Validação:
+
+- Mudanças principais são documentação.
+- Mudança de workflow é sintática e pequena: adiciona `paths-ignore: ['**/*.md']` em `push` e `pull_request`.
+- Não foi criada release versionada neste bloco porque nenhum commit usou `[release]`.
+
+Próximo passo:
+
+- Revisar consistência dos totais comerciais nas listas/resumos de propostas, especialmente `listCurrentProposals` em `src/server/services/proposals.ts`.
+
+Bloqueios:
+
+- Sem bloqueio local para documentação.
+- Para Cloudflare OCR/deployment vermelho, ainda são necessários logs/secrets/configuração externa.
+
+## Estado confirmado em 2026-08-30
+
+Última release versionada confirmada antes deste bloco:
 
 ```text
 Tag: build-127
@@ -123,6 +151,7 @@ As condições são serializadas em JSON dentro de `proposal.scope`, com fallbac
 Já existem:
 
 - `AGENTS.md`
+- `OPENCODE.md`
 - `.cursorrules`
 - `.cursor/rules/ai-architecture.mdc`
 - workflow com `npm run verify`;
@@ -150,7 +179,7 @@ Regras:
 
 - commit normal na `main`: atualiza a release fixa `windows-latest` quando o workflow roda;
 - commit com `[release]`: também cria uma release versionada `build-N`;
-- alteração apenas em Markdown deve evitar rebuild, quando `paths-ignore` estiver configurado.
+- alteração apenas em Markdown não deve rebuildar o instalador no workflow principal.
 
 ## Pendências conhecidas
 
