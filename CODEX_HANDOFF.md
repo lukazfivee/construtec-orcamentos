@@ -36,32 +36,31 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 15:30`
+Data/hora BRT: `2026-08-30 16:05`
 
-Branch local pendente (opencode/correcao-totais — aguardando commit): alterações não pusheadas em `C:\Users\Suporte\Documents\Default Project`.
+Branch local pendente (opencode/correcao-totais-documento — commits locais à frente da PR 51): alterações em `C:\Users\Suporte\Documents\Default Project` ainda não pusheadas. Codex trabalhando em `Kits` em paralelo — este bloco evita tocar `Kits`.
 
-O que mudou (ponytail, pre-flight aplicado):
+O que mudou (ponytail, pre-flight aplicado, Observability):
 
-- `AGENTS.md:19-33` — mantido rastro + re-adicionado `Colaboração com Codex` após sync da `main`.
-- `src/server/migrations/006-proposal-item-category.ts` — `snapshot_category` (já entregue no bloco 15:00).
-- `src/server/services/proposals.ts:138-171,592-619` — `listCurrentProposals` e `listProposalHistory` agora calculam `total_sale` como `ROUND((SUM(snapshot_unit_cost*quantity)+SUM(labor calc))*bdi,2)` incluindo `proposal_labor_items` (`professional_count*(monthly_salary+food+transport+other)/NULLIF(standard_hours,0)*planned_hours`); `GROUP BY` inclui `p.bdi_multiplier`; corrige pendência 2 (totais antes só somavam `sale_unit_price` sem mão de obra/BDI).
-- `src/server/services/database.ts:64` — self-heal `ADD COLUMN IF NOT EXISTS snapshot_category` para reparar DB já migrado sem coluna (bug do banner amarelo `Não foi possível concluir a operação local`).
-- `forge.config.ts:23` — `setupExe` corrigido `1.0.3` → `1.0.5`.
-- Bug banner amarelo corrigido manualmente no DB local (`Construtec Orçamentos/data/postgres`) e `npm run verify` ok.
+- `src/server/services/logger.ts` (novo) — logger estruturado `logEvent(level,event,context)` com sanitização de chaves sensíveis (`bdi`, `cost`, `salary`, `margin` etc. são filtradas); nunca loga BDI/salários/custos; `JSON.stringify` com `ts,level,event`.
+- `src/server/services/proposals.ts:1,218,314,330,380,412,433,465,492,517,567,597` — importa `logEvent` e instrumenta: `proposal.created`, `item_added`, `items_removed`, `item_updated`, `item_duplicated`, `item_moved`, `bdi_updated` (sem valor), `details_updated`, `revision_created`, `context_updated`; todos com apenas IDs/contagens, sem dados comerciais sensíveis.
+- Bloco anterior 15:30 mantido: migration 006, `database.ts` self-heal, `proposalDocument.ts` agrupado por categoria, `listCurrentProposals`/`listProposalHistory` corrigidos para `finalValue`, `forge.config.ts` 1.0.5.
 
 Validação:
 
-- `npm run verify` ok.
-- Query manual `PGlite` em `Construtec Orçamentos/data/postgres` retorna `total_sale 26428.52` para `PA-1054` com BDI 1.45 (inclui labor).
-- Migration self-heal validada.
+- `npm run verify` ok (tsc + eslint zerados).
+- Logger não vaza dados: checado `SENSITIVE_KEYS` e `sanitize`.
+- Operação não conflita com `Kits` (nenhum arquivo de `KitsWorkspace` tocado).
 
-Próximo passo:
+Próximo passo para próxima IA:
 
-- Gerar novo `make:windows` 1.0.5 e validar lista/Histórico mostrando `finalValue` (materials+labor)*BDI; PDF/Word já separados por categoria.
+- Se `Kits` do Codex mergear, fazer rebase de `opencode/correcao-totais-documento` em `main` e resolver conflitos preservando ambos.
+- Depois validar visualmente EXE 1.0.5 (PDF por categoria + lista com finalValue) e gerar `make:windows` final antes de `[release]`.
+- Pendência 2 já corrigida; próxima pendência natural é `Kits` (Codex) ou `Observability` completa (este bloco) → seguir para `Template PDF` ou `Rate limit OCR` se Kits ainda em progresso.
 
 Bloqueios:
 
-- Sem bloqueio.
+- Sem bloqueio; PR 51 aberta https://github.com/lukazfivee/construtec-orcamentos/pull/51 com commit 54ee2a8 — este novo commit de logger irá para mesma PR quando pushado.
 
 ## Estado confirmado em 2026-08-30
 

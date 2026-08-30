@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { CatalogProduct, ProposalDetail, ProposalLine, ProposalRevisionSummary, ProposalSummary } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
+import { logEvent } from './logger';
 import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
 
 type ProposalRow = {
@@ -218,6 +219,7 @@ export const createProposal = async (
     INSERT INTO audit_events (id, user_id, entity_type, entity_id, action, after_data)
     VALUES ($1, $2, 'proposal', $3, 'created', $4::jsonb)
   `, [randomUUID(), userId, proposalId, JSON.stringify({ proposalNumber, revision: 0, ...input })]);
+  logEvent('info', 'proposal.created', { proposalId, proposalNumber });
   return proposalId;
 });
 
@@ -310,6 +312,7 @@ export const addProductToProposal = async (database: LocalDatabase, proposalId: 
       INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
       VALUES ($1, 'proposal_item', $2, 'created', $3::jsonb)
     `, [randomUUID(), itemId, JSON.stringify({ productId, snapshotUnitCost: unitCost, quantity, salePrice })]);
+    logEvent('info', 'proposal.item_added', { proposalId, itemId, quantity });
   });
 };
 
@@ -326,6 +329,7 @@ export const removeProposalItems = async (database: LocalDatabase, proposalId: s
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data)
       VALUES ($1, 'proposal', $2, 'items_removed', $3::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify({ itemIds })]);
+    logEvent('info', 'proposal.items_removed', { proposalId, count: itemIds.length });
   });
 };
 
@@ -376,6 +380,7 @@ export const updateProposalItem = async (
       unitCost: Number(item.snapshot_unit_cost),
       unitSale: Number(item.sale_unit_price),
     }), JSON.stringify(next)]);
+    logEvent('info', 'proposal.item_updated', { proposalId, itemId });
   });
 };
 
@@ -422,6 +427,7 @@ export const duplicateProposalItem = async (database: LocalDatabase, proposalId:
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal_item', $2, 'duplicated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), newItemId, JSON.stringify({ sourceItemId: itemId }), JSON.stringify({ position: positionResult.rows[0]?.next_position ?? 1 })]);
+    logEvent('info', 'proposal.item_duplicated', { proposalId, sourceItemId: itemId, newItemId });
   });
 };
 
@@ -454,6 +460,7 @@ export const moveProposalItem = async (database: LocalDatabase, proposalId: stri
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal_item', $2, 'moved', $3::jsonb, $4::jsonb)
     `, [randomUUID(), itemId, JSON.stringify({ position: item.position }), JSON.stringify({ position: sibling.position })]);
+    logEvent('info', 'proposal.item_moved', { proposalId, itemId, direction });
   });
 };
 
@@ -479,6 +486,7 @@ export const updateProposalBdi = async (
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal', $2, 'bdi_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify({ bdiMultiplier: Number(proposal.bdi_multiplier) }), JSON.stringify({ bdiMultiplier })]);
+    logEvent('info', 'proposal.bdi_updated', { proposalId });
   });
 };
 
@@ -510,6 +518,7 @@ export const updateProposalDetails = async (
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal', $2, 'details_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify(before), JSON.stringify(next)]);
+    logEvent('info', 'proposal.details_updated', { proposalId });
   });
 };
 
@@ -556,6 +565,7 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
       INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
       VALUES ($1, 'proposal', $2, 'revision_created', $3::jsonb)
     `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision })]);
+    logEvent('info', 'proposal.revision_created', { sourceProposalId, newProposalId, revision });
     return newProposalId;
   });
 };
@@ -592,6 +602,7 @@ export const updateProposalContext = async (
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal', $2, 'context_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify(current.rows[0] ?? null), JSON.stringify({ clientId, workId, clientName: context.client_name, workName: context.work_name })]);
+    logEvent('info', 'proposal.context_updated', { proposalId });
   });
 };
 
