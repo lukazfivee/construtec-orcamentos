@@ -24,6 +24,14 @@ Estas regras valem para todo o repositório.
 - Registre no mínimo: data/hora BRT, commit, o que mudou, validação, próximo passo e bloqueios.
 - Não coloque segredos, tokens, senhas, URLs assinadas temporárias ou dados sensíveis nesses arquivos.
 
+## Colaboração com Codex
+
+- Trabalho conjunto Opencode + Codex: toda alteração deve ser sinalizada para o outro agente.
+- Na mesma PR/branch, atualize `CODEX_HANDOFF.md` (seção Estado atual / Próximas etapas) com: o que mudou, por que, arquivos afetados e como testar localmente.
+- Antes de merge, faça rebase/merge de `main` e resolva conflitos preservando alterações do Codex — nunca sobrescreva sem integrar.
+- Use branches `opencode/*` e `codex/*` e PRs descritivos para rastreabilidade cruzada.
+- Ao tocar módulo que o Codex alterou (`git log --oneline -20` + `CODEX_HANDOFF.md`), revise chamadores e mantenha contratos em `src/shared/*`.
+
 ## Checks
 
 - Antes de mudança substancial, faça um pre-flight curto cobrindo as camadas relevantes: frontend, dados, auth, APIs, CI/CD, segurança, rate limit, cache/performance, escala e observabilidade.

@@ -36,41 +36,32 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 12:50`
+Data/hora BRT: `2026-08-30 15:30`
 
-Commits criados neste bloco:
+Branch local pendente (opencode/correcao-totais — aguardando commit): alterações não pusheadas em `C:\Users\Suporte\Documents\Default Project`.
 
-```text
-71d25fad01ab64dcb7b51855b85848e7d431abda docs: update development handoff trail
-a6acd8f02a2074f1d3f7e0c693213bed0464a21d docs: add opencode continuation guide
-0e19437c45fef953fe6cb352b2d6e6a5c568e8f0 docs: require durable handoff trail
-fa5aa28f39abf485564a441cfa1a6dfd7475feff ci: skip installer build for docs-only changes
-3ffc73f2ff01d61dd9f947bec48cf1e1bace2c24 docs: record continuation trail updates
-e39a55e232c3644a0eb056f6d2e92dbc3bfe1620 docs: require opencode continuity trail
-```
+O que mudou (ponytail, pre-flight aplicado):
 
-O que mudou:
-
-- `CODEX_HANDOFF.md` virou o diário principal de continuidade.
-- `OPENCODE.md` foi criado como ponto de entrada para OpenCode/outra IA.
-- `OPENCODE.md` agora manda o OpenCode atualizar `CODEX_HANDOFF.md` antes de encerrar avanço real.
-- `AGENTS.md` agora exige atualização do rastro antes de encerrar avanço real.
-- `.github/workflows/build-windows-installer.yml` passou a ignorar alterações apenas em Markdown em push/PR.
+- `AGENTS.md:19-33` — mantido rastro + re-adicionado `Colaboração com Codex` após sync da `main`.
+- `src/server/migrations/006-proposal-item-category.ts` — `snapshot_category` (já entregue no bloco 15:00).
+- `src/server/services/proposals.ts:138-171,592-619` — `listCurrentProposals` e `listProposalHistory` agora calculam `total_sale` como `ROUND((SUM(snapshot_unit_cost*quantity)+SUM(labor calc))*bdi,2)` incluindo `proposal_labor_items` (`professional_count*(monthly_salary+food+transport+other)/NULLIF(standard_hours,0)*planned_hours`); `GROUP BY` inclui `p.bdi_multiplier`; corrige pendência 2 (totais antes só somavam `sale_unit_price` sem mão de obra/BDI).
+- `src/server/services/database.ts:64` — self-heal `ADD COLUMN IF NOT EXISTS snapshot_category` para reparar DB já migrado sem coluna (bug do banner amarelo `Não foi possível concluir a operação local`).
+- `forge.config.ts:23` — `setupExe` corrigido `1.0.3` → `1.0.5`.
+- Bug banner amarelo corrigido manualmente no DB local (`Construtec Orçamentos/data/postgres`) e `npm run verify` ok.
 
 Validação:
 
-- Mudanças principais são documentação.
-- Mudança de workflow é sintática e pequena: adiciona `paths-ignore: ['**/*.md']` em `push` e `pull_request`.
-- Não foi criada release versionada neste bloco porque nenhum commit usou `[release]`.
+- `npm run verify` ok.
+- Query manual `PGlite` em `Construtec Orçamentos/data/postgres` retorna `total_sale 26428.52` para `PA-1054` com BDI 1.45 (inclui labor).
+- Migration self-heal validada.
 
 Próximo passo:
 
-- Revisar consistência dos totais comerciais nas listas/resumos de propostas, especialmente `listCurrentProposals` em `src/server/services/proposals.ts`.
+- Gerar novo `make:windows` 1.0.5 e validar lista/Histórico mostrando `finalValue` (materials+labor)*BDI; PDF/Word já separados por categoria.
 
 Bloqueios:
 
-- Sem bloqueio local para documentação.
-- Para Cloudflare OCR/deployment vermelho, ainda são necessários logs/secrets/configuração externa.
+- Sem bloqueio.
 
 ## Estado confirmado em 2026-08-30
 
@@ -199,17 +190,9 @@ Verificar sem inventar segredo:
 
 Não commitar segredos.
 
-### 2. Total em listas de propostas pode estar incompleto
+### 2. Total em listas de propostas — CORRIGIDO em 2026-08-30 15:30
 
-Confirmado em inspeção: `src/server/services/proposals.ts` calcula `total_sale` em `listCurrentProposals` e `listProposalHistory` a partir de `proposal_items`. Isso deixa mão de obra e BDI fora dos totais resumidos.
-
-Próximo alvo recomendado de código:
-
-- revisar `listCurrentProposals`;
-- revisar `listProposalHistory`;
-- incluir agregação de mão de obra;
-- decidir se o valor resumido deve exibir `finalValue`;
-- manter documentos do cliente sem BDI explícito.
+Corrigido em `src/server/services/proposals.ts:138-171,592-619`: `total_sale` agora é `ROUND((SUM(pi.quantity*snapshot_unit_cost)+SUM(labor_calc))*bdi,2)` incluindo `proposal_labor_items`. Validado com query em `PA-1054` → 26428.52. Pendência encerrada; falta apenas validar visualmente no EXE antes de `windows-latest`/`[release]`.
 
 ### 3. Kits, Home e Configurações
 

@@ -100,30 +100,53 @@ const commercialLaborTotal = (proposal: ProposalDetail) => {
 export const proposalFileBaseName = (proposal: ProposalDetail) =>
   `Proposta-${documentTitle(proposal)}`.replace(/[^a-zA-Z0-9._-]/g, '-');
 
+const groupItemsByCategory = (proposal: ProposalDetail) => {
+  const grouped = new Map<string, typeof proposal.items>();
+  for (const item of proposal.items) {
+    const key = (item.category ?? 'Outros').trim() || 'Outros';
+    const existing = grouped.get(key);
+    if (existing) existing.push(item);
+    else grouped.set(key, [item]);
+  }
+  return [...grouped.entries()];
+};
+
 export const buildProposalHtml = (proposal: ProposalDetail) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
   const conditions = parseCommercialConditions(proposal.scope);
   const laborTotal = commercialLaborTotal(proposal);
   const total = documentTotal(proposal);
-  const rows = proposal.items.map((item, index) => `
+  const grouped = groupItemsByCategory(proposal);
+  let itemIndex = 0;
+  const categorySections = grouped.map(([category, items]) => {
+    const categoryTotal = items.reduce((sum, item) => sum + item.totalSale, 0);
+    const rows = items.map((item) => {
+      itemIndex += 1;
+      return `
     <tr>
-      <td class="center">${index + 1}</td>
+      <td class="center">${itemIndex}</td>
       <td><strong>${escapeHtml(item.code)}</strong><br><span>${escapeHtml(item.description)}</span></td>
       <td class="center">${escapeHtml(item.unit)}</td>
       <td class="number">${quantity.format(item.quantity)}</td>
       <td class="number">${money.format(item.unitSale)}</td>
       <td class="number strong">${money.format(item.totalSale)}</td>
-    </tr>`).join('');
-  const laborRow = laborTotal > 0 ? `
+    </tr>`;
+    }).join('');
+    return `
+    <tr class="category-row"><td colspan="6"><strong>${escapeHtml(category)}</strong> — ${money.format(categoryTotal)}</td></tr>
+    ${rows}`;
+  }).join('');
+  const laborSection = laborTotal > 0 ? `
+    <tr class="category-row"><td colspan="6"><strong>Mão de obra</strong> — ${money.format(laborTotal)}</td></tr>
     <tr>
-      <td class="center">${proposal.items.length + 1}</td>
+      <td class="center">${itemIndex + 1}</td>
       <td><strong>Mão de obra</strong><br><span>Serviços técnicos conforme escopo da proposta.</span></td>
       <td class="center">vb</td>
       <td class="number">1</td>
       <td class="number">${money.format(laborTotal)}</td>
       <td class="number strong">${money.format(laborTotal)}</td>
     </tr>` : '';
-  const tableRows = rows + laborRow || '<tr><td colspan="6" class="center">Nenhum item incluído nesta revisão.</td></tr>';
+  const tableRows = (categorySections + laborSection) || '<tr><td colspan="6" class="center">Nenhum item incluído nesta revisão.</td></tr>';
   const conditionCards: Array<[string, string]> = [
     ['Validade da proposta', validUntil],
     ['Prazo de execução', conditions.executionTerm || 'A definir'],
@@ -162,6 +185,7 @@ export const buildProposalHtml = (proposal: ProposalDetail) => {
     .center { text-align: center; }
     .number { text-align: right; font-variant-numeric: tabular-nums; }
     .strong { font-weight: 700; }
+    .category-row td { background: #eff5ff; color: #122036; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: .3px; border-top: 2px solid #085ce5; }
     .total { display: flex; justify-content: flex-end; align-items: center; gap: 10mm; margin: 5mm 0 9mm auto; padding: 5mm; width: 78mm; color: white; background: #085ce5; }
     .total span { font-size: 9pt; font-weight: 600; }
     .total strong { font-size: 15pt; font-variant-numeric: tabular-nums; }
@@ -213,22 +237,51 @@ export const buildProposalDocx = async (proposal: ProposalDetail) => {
       cell('VALOR TOTAL', 1510, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
     ],
   });
-  const itemRows = proposal.items.map((item, index) => new TableRow({ children: [
-    cell(String(index + 1), 650, { align: AlignmentType.CENTER }),
-    cell(`${item.code}\n${item.description}`, 3530),
-    cell(item.unit, 630, { align: AlignmentType.CENTER }),
-    cell(quantity.format(item.quantity), 810, { align: AlignmentType.RIGHT }),
-    cell(money.format(item.unitSale), 1370, { align: AlignmentType.RIGHT }),
-    cell(money.format(item.totalSale), 1510, { bold: true, align: AlignmentType.RIGHT }),
-  ] }));
-  const laborRows = laborTotal > 0 ? [new TableRow({ children: [
-    cell(String(proposal.items.length + 1), 650, { align: AlignmentType.CENTER }),
-    cell('Mão de obra\nServiços técnicos conforme escopo da proposta.', 3530),
-    cell('vb', 630, { align: AlignmentType.CENTER }),
-    cell('1', 810, { align: AlignmentType.RIGHT }),
-    cell(money.format(laborTotal), 1370, { align: AlignmentType.RIGHT }),
-    cell(money.format(laborTotal), 1510, { bold: true, align: AlignmentType.RIGHT }),
-  ] })] : [];
+  const categoryHeaderCell = (label: string, total: number) => new TableCell({
+    columnSpan: 6,
+    shading: { fill: LIGHT_BLUE, type: ShadingType.CLEAR },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 6, color: BLUE },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: LINE },
+      left: { style: BorderStyle.SINGLE, size: 1, color: LINE },
+      right: { style: BorderStyle.SINGLE, size: 1, color: LINE },
+    },
+    children: [new Paragraph({ children: [new TextRun({ text: `${label.toUpperCase()} — ${money.format(total)}`, bold: true, color: NAVY, size: 18, font: 'Arial' })] })],
+  });
+  const grouped = groupItemsByCategory(proposal);
+  let docxIndex = 0;
+  const groupedRows: TableRow[] = [];
+  for (const [category, items] of grouped) {
+    const categoryTotal = items.reduce((sum, item) => sum + item.totalSale, 0);
+    groupedRows.push(new TableRow({ children: [categoryHeaderCell(category, categoryTotal)] }));
+    for (const item of items) {
+      docxIndex += 1;
+      groupedRows.push(new TableRow({ children: [
+        cell(String(docxIndex), 650, { align: AlignmentType.CENTER }),
+        cell(`${item.code}\n${item.description}`, 3530),
+        cell(item.unit, 630, { align: AlignmentType.CENTER }),
+        cell(quantity.format(item.quantity), 810, { align: AlignmentType.RIGHT }),
+        cell(money.format(item.unitSale), 1370, { align: AlignmentType.RIGHT }),
+        cell(money.format(item.totalSale), 1510, { bold: true, align: AlignmentType.RIGHT }),
+      ] }));
+    }
+  }
+  const laborRows: TableRow[] = [];
+  if (laborTotal > 0) {
+    const laborCategoryTotal = laborTotal;
+    groupedRows.push(new TableRow({ children: [categoryHeaderCell('Mão de obra', laborCategoryTotal)] }));
+    docxIndex += 1;
+    laborRows.push(new TableRow({ children: [
+      cell(String(docxIndex), 650, { align: AlignmentType.CENTER }),
+      cell('Mão de obra\nServiços técnicos conforme escopo da proposta.', 3530),
+      cell('vb', 630, { align: AlignmentType.CENTER }),
+      cell('1', 810, { align: AlignmentType.RIGHT }),
+      cell(money.format(laborTotal), 1370, { align: AlignmentType.RIGHT }),
+      cell(money.format(laborTotal), 1510, { bold: true, align: AlignmentType.RIGHT }),
+    ] }));
+  }
+  const itemRows = [...groupedRows, ...laborRows];
+  const docRows = itemRows.length > 0 ? [headerRow, ...itemRows] : [headerRow, new TableRow({ children: [new TableCell({ columnSpan: 6, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Nenhum item incluído nesta revisão.', color: MUTED, size: 18 })] })] })] })];
 
   const doc = new Document({
     styles: {
@@ -256,7 +309,7 @@ export const buildProposalDocx = async (proposal: ProposalDetail) => {
           new TableRow({ children: [cell(`ESCOPO\n${conditions.scope}`, 4275, { fill: LIGHT_BLUE }), cell(`RESPONSÁVEL\n${proposal.responsibleName}`, 4275, { fill: LIGHT_BLUE })] }),
         ] }),
         new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Composição da proposta' }),
-        new Table({ width: { size: 8500, type: WidthType.DXA }, columnWidths: [650, 3530, 630, 810, 1370, 1510], rows: [headerRow, ...itemRows, ...laborRows] }),
+        new Table({ width: { size: 8500, type: WidthType.DXA }, columnWidths: [650, 3530, 630, 810, 1370, 1510], rows: docRows }),
         new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 220, after: 260 }, shading: { fill: BLUE, type: ShadingType.CLEAR }, children: [new TextRun({ text: `VALOR TOTAL   ${money.format(total)}`, bold: true, color: WHITE, size: 28, font: 'Arial' })] }),
         new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Condições comerciais' }),
         conditionParagraph('Validade da proposta', validUntil),

@@ -25,6 +25,7 @@ export type ProposalLine = {
   id: string;
   code: string;
   description: string;
+  category: string;
   quantity: number;
   unit: string;
   unitCost: number;

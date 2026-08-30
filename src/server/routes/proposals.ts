@@ -35,6 +35,7 @@ const addItemSchema = z.object({
 const removeItemsSchema = z.object({ itemIds: z.array(z.string().uuid()).min(1).max(500) });
 const updateItemSchema = z.object({
   description: z.string().trim().min(2).max(240).optional(),
+  category: z.string().trim().min(2).max(80).optional(),
   quantity: z.number().positive().max(1_000_000).optional(),
   unit: z.string().trim().min(1).max(24).optional(),
   unitCost: z.number().min(0).max(100_000_000).optional(),
