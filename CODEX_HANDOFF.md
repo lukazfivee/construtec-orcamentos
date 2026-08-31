@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 16:25 BRT`
+Última atualização deste rastro: `2026-08-31 16:34 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,7 +36,7 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 16:25`
+Data/hora BRT: `2026-08-31 16:34`
 
 Branch: `main`
 
@@ -44,6 +44,7 @@ Commit:
 
 ```text
 0cddbfc fix: fit window to available display [release]
+11db582 fix: keep home content within viewport [release]
 ```
 
 O que mudou:
@@ -52,6 +53,7 @@ O que mudou:
 - Causa raiz: `build-151` abria sempre em `1536x1024`; em tela `1280x720`, parte direita e inferior ficava fora da área visível.
 - `src/index.css`: `home-body` recebeu `min-width: 0` e a barra de ações rápidas agora permite quebra de linha.
 - Segunda causa confirmada no `build-152`: barra sem quebra aumentava a largura intrínseca da Home e cortava KPIs/ações à direita.
+- Causa raiz final confirmada no `build-153`: `body { min-width: 1180px; }` forçava overflow quando a escala do Windows reduzia o viewport CSS. Mínimo global removido; grids/tabelas mantêm seus próprios limites e scroll.
 - Patch mínimo, sem dependência nova e sem mudar frontend, banco, API ou documentos.
 - API `screen.getPrimaryDisplay().workAreaSize` confirmada na documentação atual do Electron via Context7.
 
@@ -68,10 +70,14 @@ Validação:
 - Workflow `Gerar instalador do Windows` run `33429423941`: `success`.
 - Workflow `Build Windows Installer` run `33429423959`: `success`.
 - Workflow `Auditoria de segurança` run `33429423974`: `success`.
+- Release `build-153` publicada para `11db582`; SHA256 `5e31262ba9d35f1f6c4eb05445175407972f7e16cf84796e628fa18d84b9b27c`.
+- Workflows `33430581324`, `33430581368` e `33430581315`: `success`.
+- `build-153` instalado com exit code `0`; teste visual confirmou que o tamanho da janela foi corrigido, mas o mínimo global do `body` ainda cortava a Home.
+- `npm run verify`: sucesso após remover o mínimo global.
 
 Próximo passo:
 
-1. Publicar patch responsivo da Home com `[release]`.
+1. Publicar correção final do viewport com `[release]`.
 2. Instalar o novo EXE em `1280x720`.
 3. Confirmar que KPIs e ações rápidas não ficam cortados.
 

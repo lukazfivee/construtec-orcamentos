@@ -27,7 +27,7 @@
 
 html, body, #root { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 
-body { min-width: 1180px; background: var(--surface); }
+body { background: var(--surface); }
 
 button, input { font: inherit; }
 button { color: inherit; }
