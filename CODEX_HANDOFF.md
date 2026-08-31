@@ -36,14 +36,15 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 09:55`
+Data/hora BRT: `2026-08-31 09:58`
 
 Branch: `main`
 
-Commit principal integrado:
+Commits:
 
 ```text
 d7b2993f491bd2c2922575ce2c7af35a76a451e0 feat: release version with proposal kpis, cloning and advanced management [release]
+28612d1a12b07084200f36d4c7cdb152561173ec docs: fix handoff merge markers
 ```
 
 O que mudou:
@@ -52,19 +53,36 @@ O que mudou:
 - `main` agora contém Kits no código-fonte: `src/renderer/KitsWorkspace.tsx`, `src/renderer/ProposalKitsPanel.tsx`, `src/server/routes/kits.ts`, `src/server/services/kits.ts` e migration `src/server/migrations/007-kits-and-settings.ts`.
 - Home/Dashboard, Central de Propostas, Configurações, clonagem/exclusão de propostas e KPIs também estão no `main`.
 - Corrigidos marcadores de conflito que ficaram neste `CODEX_HANDOFF.md` durante integração anterior.
+- EXE atualizado baixado para `C:\Users\Suporte\Downloads\Construtec-Orcamentos-Setup.exe`.
 
-Validação em andamento:
+Validação concluída:
 
-- Workflow `Gerar instalador do Windows` run `33393586102`, commit `d7b2993f...`, status inicial: `in_progress`.
-- Workflow `Build Windows Installer` run `33393586132`, commit `d7b2993f...`, status inicial: `in_progress`.
-- Como o commit contém `[release]`, workflow deve atualizar `windows-latest` e criar release versionada `build-N` se concluir com sucesso.
+- Workflow `Gerar instalador do Windows` run `33393586102`: `success`.
+- Workflow `Build Windows Installer` run `33393586132`: `success`.
+- Jobs do workflow principal:
+  - `Validar e gerar instalador`: `success`.
+  - `Assinar e publicar instalador`: `success`.
+- `npm run verify` no CI: `success`.
+- `npm run security:audit:prod` no CI: `success`.
+- Release versionada criada: `build-146`.
+- `windows-latest` atualizado para target `d7b2993f491bd2c2922575ce2c7af35a76a451e0`.
+- Asset: `Construtec-Orcamentos-Setup.exe`, tamanho `153962496` bytes.
+- SHA256 GitHub/local confirmado: `f2def305d2ef85f95513931763a63ec067f470540e359cd9246a93baab8368b5`.
+
+Links úteis:
+
+- Release versionada: `https://github.com/lukazfivee/construtec-orcamentos/releases/tag/build-146`
+- EXE versionado: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/build-146/Construtec-Orcamentos-Setup.exe`
+- EXE fixo: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/windows-latest/Construtec-Orcamentos-Setup.exe`
+- Workflow: `https://github.com/lukazfivee/construtec-orcamentos/actions/runs/33393586102`
 
 Próximo passo imediato:
 
-1. Aguardar conclusão dos workflows do commit `d7b2993f...`.
-2. Confirmar que `windows-latest` passou a apontar para `d7b2993f...`.
-3. Baixar novo `Construtec-Orcamentos-Setup.exe` para `C:\Users\Suporte\Downloads`.
-4. Validar hash SHA256 local contra digest do asset GitHub.
+1. Instalar/testar visualmente o EXE baixado.
+2. Conferir Home, Propostas, Kits e Configurações.
+3. Criar kit pequeno e inserir em proposta ativa.
+4. Conferir total comercial: materiais + mão de obra + BDI.
+5. Exportar PDF/Word e confirmar que não expõe custos internos.
 
 Bloqueios:
 
