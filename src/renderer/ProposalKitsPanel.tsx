@@ -133,19 +133,19 @@ export function ProposalKitsPanel({
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, padding: '20px', overflowY: 'auto' }}>
         {selectedKitDetail ? (
           <div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '16px' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#122036' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#122036', overflowWrap: 'anywhere' }}>
                   {selectedKitDetail.name}
                 </h2>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#697386' }}>
+                <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#697386', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                   Categoria: <b>{selectedKitDetail.category}</b>
                   {selectedKitDetail.description ? ` • ${selectedKitDetail.description}` : ''}
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ textAlign: 'right' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <div style={{ textAlign: 'right', minWidth: '120px' }}>
                   <span style={{ display: 'block', fontSize: '10px', color: '#697386' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
                   <strong style={{ fontSize: '16px', color: '#085ce5' }}>{money.format(estimatedSaleTotal)}</strong>
                 </div>
@@ -162,6 +162,7 @@ export function ProposalKitsPanel({
                     padding: '0 16px',
                     fontSize: '12px',
                     fontWeight: 600,
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   <Send size={15} />
