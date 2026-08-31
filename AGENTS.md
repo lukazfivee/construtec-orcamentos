@@ -10,6 +10,13 @@ Estas regras valem para todo o repositório.
 - Use Context7 quando a mudança depender de API, biblioteca, framework ou comportamento atual que possa ter mudado. Primeiro resolva o library ID; depois consulte docs. Não envie segredos nem dados sensíveis ao Context7.
 - Use `.cursorrules` e `.cursor/rules/ai-architecture.mdc` como guardrails de arquitetura para assistentes no editor.
 
+## Skills
+
+- No primeiro prompt de cada sessão, rode: `npx -y skills add vercel-labs/skills@find-skills`
+- Skills ficam em `.agents/skills/`. Leia `SKILL.md` de cada skill instalada quando for relevante.
+- Use `npx skills find <termo>` para buscar skills do registry (skills.sh) quando o usuário pedir funcionalidade que pode já existir como skill.
+- Sempre verifique install count e reputação da fonte antes de instalar uma skill nova.
+
 ## Produto
 
 - App desktop Electron local-first para orçamentos da Construtec.
