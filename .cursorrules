@@ -66,6 +66,15 @@ Before substantial feature work, code generation, refactors, or PR reviews, brie
 - Surface actionable errors; never swallow errors silently.
 - Integrate error tracking only when it does not leak private customer or pricing data.
 
+## Continuity trail
+
+Every AI/editor workflow must leave an operational trail before stopping after meaningful progress.
+
+- Update `CODEX_HANDOFF.md` with date/time BRT, commit, what changed, validation, next step, and blockers.
+- Keep `OPENCODE.md` aligned when the continuation workflow changes.
+- The trail must allow Codex, OpenCode, Cursor, or another IA to continue without the original conversation.
+- Never record secrets, passwords, tokens, API keys, signed temporary URLs, customer-sensitive data, or private commercial details in the trail.
+
 ## Output protocol for AI-assisted changes
 
 For meaningful code work, include a short pre-flight note in the response, issue, PR body, or implementation notes, covering the touched layers and tradeoffs. Then provide secure, production-ready code or a concise implementation summary.
