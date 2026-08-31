@@ -77,7 +77,7 @@ Regras:
 
 ## Próximo alvo atual
 
-Ver `CODEX_HANDOFF.md`. Últimos avanços: Central de Gestão de Propostas (listagem, filtros, busca, exclusão) e Clonagem de Orçamentos completa (backend + UI). Próximo alvo: finalizar layout de `ProposalKitsPanel.tsx` e gerar build do instalador Windows (`npm run make:windows`).
+Ver `CODEX_HANDOFF.md`. Último avanço: correção do tamanho inicial da janela para respeitar a área útil da tela. Próximo alvo: publicar release, instalar o novo EXE e validar o layout em `1280x720`.
 
 ## Regra de rastro para OpenCode e outras IAs
 

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
@@ -32,11 +32,12 @@ const loadDocumentWindow = async (proposal: ProposalDetail, show: boolean) => {
 };
 
 const createWindow = async () => {
+  const { width: availableWidth, height: availableHeight } = screen.getPrimaryDisplay().workAreaSize;
   const mainWindow = new BrowserWindow({
-    width: 1536,
-    height: 1024,
-    minWidth: 1280,
-    minHeight: 720,
+    width: Math.min(1536, availableWidth),
+    height: Math.min(1024, availableHeight),
+    minWidth: Math.min(1280, availableWidth),
+    minHeight: Math.min(720, availableHeight),
     backgroundColor: '#fefefe',
     show: true,
     autoHideMenuBar: true,

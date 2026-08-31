@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 10:34 BRT`
+Última atualização deste rastro: `2026-08-31 16:12 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -35,6 +35,93 @@ Interpretação prática:
 - usar Context7 quando mexer em API/biblioteca/framework cujo comportamento possa ter mudado.
 
 ## Último avanço registrado
+
+Data/hora BRT: `2026-08-31 16:12`
+
+Branch: `main`
+
+Commit: pendente.
+
+O que mudou:
+
+- `src/main.ts`: janela principal agora limita `width`, `height`, `minWidth` e `minHeight` à `workAreaSize` da tela primária.
+- Causa raiz: `build-151` abria sempre em `1536x1024`; em tela `1280x720`, parte direita e inferior ficava fora da área visível.
+- Patch mínimo, sem dependência nova e sem mudar frontend, banco, API ou documentos.
+- API `screen.getPrimaryDisplay().workAreaSize` confirmada na documentação atual do Electron via Context7.
+
+Validação:
+
+- EXE `build-151` baixado separadamente e SHA256 confirmado: `8f206514abf3b628cbd5efae597855a45fb0620eac4a289fba0d83e273efa3c7`.
+- Backup do banco criado antes da instalação em `C:\Users\Suporte\Documents\Construtec-backup-pre-build-151-20260831-1558`.
+- `build-151` instalado silenciosamente com exit code `0` e aberto com sucesso.
+- Reprodução visual em `1280x720`: janela de `1536x1024` excede a tela.
+- `npm run verify`: sucesso após o patch.
+- `npm start`: bundle do processo principal não concluiu no teste local e foi interrompido; sem erro de TypeScript/ESLint. Validar no instalador gerado pelo CI.
+
+Próximo passo:
+
+1. Criar commit `[release]`, publicar e confirmar workflow/release.
+2. Instalar o novo EXE em `1280x720`.
+3. Confirmar que janela cabe integralmente na área útil e que Home/Propostas permanecem navegáveis.
+
+Bloqueios:
+
+- Sem bloqueio de código; validação final depende do novo instalador.
+
+## Registro anterior
+
+Data/hora BRT: `2026-08-31 15:54`
+
+Branch: `main`
+
+Commit:
+
+```text
+3db75e0 style: full-app Impeccable audit [release]
+```
+
+Status: contexto local sincronizado com `origin/main`; release `build-151` e workflows confirmados no GitHub.
+
+O que mudou:
+
+- `src/impeccable-audit.css`: auditoria visual global aplicada aos controles, KPIs, propostas, catálogo, clientes, kits, configurações, importação e modais.
+- `src/renderer.tsx`: stylesheet da auditoria visual carregada no renderer.
+- Contexto operacional atualizado para remover próximos passos já concluídos e apontar a validação visual da release atual.
+
+Validação:
+
+- `git fetch origin --prune`, `git checkout main` e `git pull --ff-only origin main`: sucesso; `HEAD`, `origin/main` e tag `build-151` em `3db75e093067e271d7fcf1a5d4cb7a2f84e315a6`.
+- `npm run verify`: sucesso local em 2026-08-31.
+- `npm run security:audit:prod`: 0 vulnerabilidades.
+- `npm run security:audit`: 30 vulnerabilidades apenas na cadeia de build/dev (`3 low`, `26 high`, `1 critical`), herdadas por Electron Forge 7.11.2.
+- `npm audit fix --dry-run`: nenhuma mudança segura disponível; `--force` propõe downgrade breaking para Electron Forge 6.4.2 e não foi executado.
+- Workflow `Gerar instalador do Windows` run `33408926761`: `success`.
+- Workflow `Build Windows Installer` run `33408926813`: `success`.
+- Workflow `Auditoria de segurança` run `33408926798`: `success`.
+- Release versionada `build-151` publicada em `2026-08-31T15:35:19Z`.
+- Asset `Construtec-Orcamentos-Setup.exe`: `153964544` bytes.
+- SHA256 confirmado pela API do GitHub: `8f206514abf3b628cbd5efae597855a45fb0620eac4a289fba0d83e273efa3c7`.
+
+Links úteis:
+
+- Release: `https://github.com/lukazfivee/construtec-orcamentos/releases/tag/build-151`
+- EXE: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/build-151/Construtec-Orcamentos-Setup.exe`
+- Workflow principal: `https://github.com/lukazfivee/construtec-orcamentos/actions/runs/33408926761`
+
+Próximo passo:
+
+1. Instalar/testar visualmente o EXE `build-151` em resolução normal e janela reduzida.
+2. Validar Home, Central de Propostas, editor, Catálogo, Clientes, Kits, Configurações, importação e modais.
+3. Criar kit pequeno, inserir em proposta e conferir total comercial: materiais + mão de obra + BDI.
+4. Exportar PDF/Word e confirmar que custos, salários, BDI detalhado e margem interna não aparecem.
+5. Registrar defeitos concretos antes de novo patch/release.
+
+Bloqueios:
+
+- Validação visual do EXE exige execução interativa no Windows.
+- Auditoria completa de dependências dev permanece vermelha por vulnerabilidades transitivas de `@electron-forge/cli@7.11.2`; auditoria de produção permanece limpa. Workflow continua verde porque o relatório dev usa `continue-on-error: true`.
+
+## Registro anterior
 
 Data/hora BRT: `2026-08-31 10:34`
 
@@ -374,13 +461,7 @@ Ainda são fase futura. O produto menciona JWT/hash, mas não tratar como sistem
 
 ## Próximo passo recomendado
 
-Depois que o EXE do commit `d7b2993f...` estiver publicado:
-
-1. instalar/testar visualmente Home, Propostas, Kits e Configurações;
-2. criar kit pequeno e inserir em proposta ativa;
-3. conferir total comercial: materiais + mão de obra + BDI;
-4. exportar PDF/Word e confirmar que não expõe custos internos;
-5. seguir para próxima etapa funcional escolhida pelo usuário.
+Validar visualmente o EXE `build-151`, registrar defeitos concretos e corrigir apenas causas confirmadas. Depois, seguir para a próxima etapa funcional escolhida pelo usuário.
 
 ## Checklist obrigatório antes de encerrar um bloco de trabalho
 
