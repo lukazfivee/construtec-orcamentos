@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 10:15 BRT`
+Última atualização deste rastro: `2026-08-31 10:23 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -35,6 +35,40 @@ Interpretação prática:
 - usar Context7 quando mexer em API/biblioteca/framework cujo comportamento possa ter mudado.
 
 ## Último avanço registrado
+
+Data/hora BRT: `2026-08-31 10:23`
+
+Branch: `main`
+
+Commit:
+
+```text
+80757ea fix: self-heal settings storage [release]
+```
+
+Status: commit local criado; aguardando push e release.
+
+O que mudou:
+
+- `src/server/services/settings.ts`: Configurações agora garante a existência da tabela local `app_settings` antes de consultar/salvar parâmetros.
+- Causa provável corrigida: instalações existentes podiam estar com migração registrada, mas sem a tabela `app_settings`, fazendo `GET /api/settings` cair no erro genérico `Não foi possível concluir a operação local.` ao clicar em Configurações.
+- Patch mínimo no backend; sem dependência nova e sem alterar UI.
+
+Validação:
+
+- `npm run verify`: sucesso local em 2026-08-31 10:23 BRT.
+
+Próximo passo:
+
+1. Publicar commit com `[release]`.
+2. Aguardar workflow `Gerar instalador do Windows`.
+3. Baixar EXE novo e testar abrir Configurações sem toast de erro.
+
+Bloqueios:
+
+- Sem bloqueio no momento.
+
+## Registro anterior
 
 Data/hora BRT: `2026-08-31 10:15`
 

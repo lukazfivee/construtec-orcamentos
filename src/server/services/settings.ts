@@ -14,7 +14,19 @@ const defaultSettings: AppSettings = {
   defaultValidityDays: 15,
 };
 
+const ensureSettingsStorage = async (database: LocalDatabase): Promise<void> => {
+  await database.exec(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key text PRIMARY KEY,
+      value jsonb NOT NULL,
+      updated_at timestamptz NOT NULL DEFAULT now()
+    );
+  `);
+};
+
 export const getAppSettings = async (database: LocalDatabase): Promise<AppSettings> => {
+  await ensureSettingsStorage(database);
+
   const result = await database.query<{ value: AppSettings }>(
     "SELECT value FROM app_settings WHERE key = 'general'",
   );
