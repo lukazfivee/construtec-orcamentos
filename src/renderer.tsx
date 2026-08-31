@@ -31,6 +31,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './renderer/App';
 import '@fontsource-variable/ibm-plex-sans';
 import './index.css';
+import './impeccable-audit.css';
 
 const rootElement = document.getElementById('root');
 

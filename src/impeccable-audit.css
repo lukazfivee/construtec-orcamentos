@@ -1,0 +1,513 @@
+/* Impeccable full-app audit — visual consistency layer.
+ * Loaded after index.css so current screens converge on the design system
+ * without changing business behavior or document/export logic.
+ */
+
+:root {
+  --danger: #b42318;
+  --danger-soft: #fff1f0;
+  --control-height: 34px;
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --shadow-popover: 0 10px 25px rgba(28, 40, 59, .14), 0 2px 5px rgba(28, 40, 59, .08);
+}
+
+/* Base interaction consistency */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+select,
+textarea {
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+}
+
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.icon-button:hover,
+.dialog-close:hover {
+  border-color: var(--line-strong);
+}
+
+/* Shell and navigation */
+.topbar,
+.sidebar {
+  -webkit-font-smoothing: antialiased;
+}
+
+.global-search:hover {
+  background: #303a4c;
+  border-color: #556176;
+}
+
+.global-search:focus-visible,
+.profile:focus-visible,
+.sidebar button:focus-visible {
+  outline-color: #86b6ff;
+}
+
+.sidebar nav button span,
+.collapse span {
+  line-height: 1.2;
+}
+
+/* Shared workspace structure */
+.management-workspace,
+.home-workspace {
+  background: var(--surface-subtle);
+}
+
+.management-header,
+.home-header {
+  min-height: 72px;
+  padding: 14px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.management-header h1,
+.home-header h1 {
+  letter-spacing: -.01em;
+}
+
+.management-header-actions,
+.home-header-actions {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.management-header > button,
+.management-header-actions button,
+.home-header button,
+.primary-btn,
+.secondary-btn {
+  min-height: var(--control-height);
+  border-radius: var(--radius-control);
+}
+
+.management-body {
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.management-search {
+  min-height: 36px;
+  background: var(--surface);
+}
+
+.management-search input::placeholder,
+.search-box input::placeholder {
+  color: #8993a3;
+}
+
+.client-list > button:focus-visible,
+.product-list > button:focus-visible {
+  z-index: 1;
+  outline-offset: -2px;
+}
+
+.client-list > button.selected {
+  color: var(--ink);
+}
+
+.client-editor {
+  background: var(--surface);
+}
+
+.editor-heading h2,
+.works-heading h2 {
+  margin: 0;
+}
+
+.form-grid label,
+.work-form label {
+  font-weight: 600;
+}
+
+.form-grid input:hover,
+.work-form input:not([type="checkbox"]):hover,
+.new-proposal-dialog input:hover,
+.new-proposal-dialog select:hover {
+  border-color: #aeb8c6;
+}
+
+/* Home / dashboard */
+.home-workspace {
+  gap: 16px;
+  padding: 20px;
+}
+
+.kpi-grid {
+  gap: 12px;
+}
+
+.kpi-card {
+  min-height: 84px;
+  gap: 14px;
+  padding: 15px 17px;
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-card:hover {
+  box-shadow: 0 4px 12px rgba(18, 32, 54, .07);
+}
+
+.kpi-icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 7px;
+}
+
+.kpi-content strong {
+  font-size: 18px;
+}
+
+.quick-actions-bar,
+.home-section-card,
+.home-system-banner {
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-actions-bar button {
+  min-height: 32px;
+  border-radius: var(--radius-control);
+}
+
+.home-card-header button:focus-visible {
+  border-radius: 4px;
+}
+
+.home-proposals-table th,
+.proposals-table th {
+  letter-spacing: .025em;
+}
+
+.home-proposals-table tbody tr:last-child td,
+.proposals-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Central de propostas */
+.proposals-filter-bar {
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.search-box {
+  height: 36px;
+  min-width: 300px;
+  padding: 0 11px;
+  border-color: var(--line-strong);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+}
+
+.search-box:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(8, 92, 229, .12);
+}
+
+.filter-chips {
+  gap: 6px;
+}
+
+.filter-chip {
+  height: 32px;
+  padding: 0 11px;
+  border-color: var(--line-strong);
+  border-radius: var(--radius-control);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.filter-chip.active {
+  background: var(--blue-soft);
+  border-color: #9bbff3;
+}
+
+.chip-count {
+  min-width: 20px;
+  text-align: center;
+}
+
+.proposals-table-wrapper {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.proposals-table th {
+  height: 36px;
+}
+
+.proposals-table td {
+  height: 50px;
+}
+
+.table-action-btn,
+.view-list-tab,
+.status-select,
+.open-proposal-btn {
+  border-radius: var(--radius-control);
+}
+
+.table-action-btn {
+  margin-left: 4px;
+}
+
+.table-action-btn:focus-visible,
+.view-list-tab:focus-visible,
+.status-select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Proposal editor */
+.proposal-tabs button {
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.proposal-meta {
+  background: var(--surface);
+}
+
+.meta-field button {
+  border-radius: 4px;
+}
+
+.toolbar {
+  background: #fbfcfd;
+}
+
+.toolbar button,
+.actions button {
+  border-radius: var(--radius-control);
+}
+
+.table-region table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Commercial panel */
+.commercial-panel {
+  background: #fbfcfd;
+}
+
+.amount strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.locked-input,
+.editable-parameter {
+  border-radius: var(--radius-control);
+}
+
+/* Clients / Catalog */
+.catalog-workspace .management-body,
+.kits-workspace .management-body {
+  min-height: 0;
+}
+
+.works-list,
+.work-form {
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.works-list > div > button:hover {
+  color: var(--blue);
+  border-color: #9bbff3;
+  background: var(--blue-soft);
+}
+
+/* Kits */
+.kits-workspace .client-form {
+  min-height: 100%;
+}
+
+.kit-form .editor-heading {
+  align-items: flex-start;
+}
+
+.kit-form .work-active {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.kit-form .work-active input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+}
+
+.kit-items-section table {
+  min-width: 760px;
+}
+
+.kit-items-section tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.kit-items-section input[type="number"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* Settings */
+.settings-body {
+  min-height: 0;
+  background: var(--surface-subtle);
+}
+
+.settings-card {
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-card .form-grid {
+  max-width: none;
+}
+
+.settings-card input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Import dialog */
+.import-dialog,
+.new-proposal-dialog,
+.modal-card {
+  border-radius: var(--radius-panel);
+}
+
+.import-dialog > nav button,
+.import-picker button,
+.exsat-source button,
+.import-dialog > footer button {
+  border-radius: var(--radius-control);
+}
+
+.import-dialog > nav button:hover,
+.import-picker button:hover,
+.exsat-source button:hover,
+.import-dialog > footer button:hover {
+  background: #f7f9fb;
+  border-color: #aeb8c6;
+}
+
+.import-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.import-table tr.invalid:hover td {
+  background: #fff4db;
+}
+
+/* Dialogs / destructive actions */
+.dialog-backdrop,
+.import-overlay,
+.modal-overlay {
+  background: rgba(12, 23, 40, .58);
+}
+
+.dialog-close:hover {
+  color: var(--ink);
+  background: var(--surface-subtle);
+}
+
+.danger-action-btn,
+.danger-btn,
+.table-action-btn.danger {
+  border-radius: var(--radius-control);
+}
+
+.danger-action-btn:focus-visible,
+.danger-btn:focus-visible,
+.table-action-btn.danger:focus-visible {
+  outline: 2px solid #e66a62;
+  outline-offset: 2px;
+}
+
+/* Empty, loading and feedback states */
+.management-empty,
+.editor-empty p,
+.import-table > p {
+  line-height: 1.5;
+}
+
+.global-error,
+.error-banner {
+  box-shadow: var(--shadow-popover);
+}
+
+/* Compact desktop tuning from the Impeccable breakpoints. */
+@media (max-width: 1350px) {
+  .home-workspace {
+    padding: 16px;
+  }
+
+  .management-body {
+    margin: 12px;
+  }
+
+  .settings-body {
+    padding: 18px !important;
+  }
+
+  .proposals-filter-bar {
+    align-items: stretch;
+  }
+
+  .search-box {
+    min-width: 260px;
+  }
+}
+
+@media (max-height: 800px) {
+  .management-header,
+  .home-header {
+    min-height: 64px;
+    padding-block: 10px;
+  }
+
+  .home-workspace {
+    gap: 12px;
+  }
+
+  .kpi-card {
+    min-height: 72px;
+    padding-block: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transform: none !important;
+  }
+}
