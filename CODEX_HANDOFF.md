@@ -36,6 +36,42 @@ Interpretação prática:
 
 ## Último avanço registrado
 
+Data/hora BRT: `2026-08-31 09:55`
+
+Branch: `main`
+
+Commit principal integrado:
+
+```text
+d7b2993f491bd2c2922575ce2c7af35a76a451e0 feat: release version with proposal kpis, cloning and advanced management [release]
+```
+
+O que mudou:
+
+- Branch `opencode/correcao-totais-documento` já foi integrada ao `main` por merge commit do Opencode.
+- `main` agora contém Kits no código-fonte: `src/renderer/KitsWorkspace.tsx`, `src/renderer/ProposalKitsPanel.tsx`, `src/server/routes/kits.ts`, `src/server/services/kits.ts` e migration `src/server/migrations/007-kits-and-settings.ts`.
+- Home/Dashboard, Central de Propostas, Configurações, clonagem/exclusão de propostas e KPIs também estão no `main`.
+- Corrigidos marcadores de conflito que ficaram neste `CODEX_HANDOFF.md` durante integração anterior.
+
+Validação em andamento:
+
+- Workflow `Gerar instalador do Windows` run `33393586102`, commit `d7b2993f...`, status inicial: `in_progress`.
+- Workflow `Build Windows Installer` run `33393586132`, commit `d7b2993f...`, status inicial: `in_progress`.
+- Como o commit contém `[release]`, workflow deve atualizar `windows-latest` e criar release versionada `build-N` se concluir com sucesso.
+
+Próximo passo imediato:
+
+1. Aguardar conclusão dos workflows do commit `d7b2993f...`.
+2. Confirmar que `windows-latest` passou a apontar para `d7b2993f...`.
+3. Baixar novo `Construtec-Orcamentos-Setup.exe` para `C:\Users\Suporte\Downloads`.
+4. Validar hash SHA256 local contra digest do asset GitHub.
+
+Bloqueios:
+
+- Sem bloqueio no momento.
+
+## Registro anterior
+
 Data/hora BRT: `2026-08-31 09:45`
 
 Branch: `main`
@@ -52,26 +88,6 @@ Validação:
 
 - `npm run verify` (tsc --noEmit + eslint): 100% verde (0 erros, 0 avisos).
 - `npm run security:audit:prod`: 0 vulnerabilidades (auditoria limpa).
-
-### Diretrizes de Release:
-- Para gerar release versionada no GitHub com o EXE compilado, o commit de merge em `main` deve conter `[release]`.
-
-Bloqueios:
-
-- Sem bloqueio.
-
-## Registro anterior
-
-Data/hora BRT: `2026-08-31`
-
-Commits anteriores de governança e regras:
-
-```text
-84ad81465f010e1dfc5b724addc48e20fcee2ecc docs: add continuity trail to editor guardrails
-583540f849286810ed1bacf924e945075e51aa30 docs: add continuity trail to cursor rule
-```
-
-- `.cursorrules` e `.cursor/rules/ai-architecture.mdc` alinhados com rastro operacional obrigatório.
 
 ## Estado confirmado em 2026-08-30
 
@@ -108,6 +124,30 @@ Observação importante: a release fixa `windows-latest` pode aparecer no GitHub
 - BDI/multiplicador interno.
 - Histórico de revisões.
 - Resumo comercial.
+- Central completa de propostas com KPIs, busca, status, clonagem e exclusão.
+
+### Kits
+
+Implementado e integrado.
+
+Arquivos principais:
+
+- `src/renderer/KitsWorkspace.tsx`
+- `src/renderer/ProposalKitsPanel.tsx`
+- `src/server/routes/kits.ts`
+- `src/server/services/kits.ts`
+- `src/server/migrations/007-kits-and-settings.ts`
+- `src/shared/contracts.ts`
+- `src/renderer/api.ts`
+- `src/renderer/App.tsx`
+
+Funcionalidades:
+
+- CRUD de kits/composições;
+- busca por nome/categoria;
+- seleção de múltiplos itens do catálogo;
+- custo estimado por kit;
+- inserção rápida de kit na proposta ativa.
 
 ### Mão de obra
 
@@ -200,13 +240,9 @@ Verificar sem inventar segredo:
 
 Não commitar segredos.
 
-<<<<<<< HEAD
-### 2. Total em listas de propostas incompleto
-=======
 ### 2. Total em listas de propostas — CORRIGIDO em 2026-08-30 15:30
->>>>>>> opencode/correcao-totais-documento
 
-Corrigido em `src/server/services/proposals.ts:138-171,592-619`: `total_sale` agora é `ROUND((SUM(pi.quantity*snapshot_unit_cost)+SUM(labor_calc))*bdi,2)` incluindo `proposal_labor_items`. Validado com query em `PA-1054` → 26428.52. Pendência encerrada; falta apenas validar visualmente no EXE antes de `windows-latest`/`[release]`.
+Corrigido em `src/server/services/proposals.ts:138-171,592-619`: `total_sale` agora é `ROUND((SUM(pi.quantity*snapshot_unit_cost)+SUM(labor_calc))*bdi,2)` incluindo `proposal_labor_items`. Validado com query em `PA-1054` → 26428.52. Pendência encerrada; falta apenas validar visualmente no EXE atualizado.
 
 ### 3. Kits, Home e Configurações — CONCLUÍDO em 2026-08-30 17:15
 
@@ -218,12 +254,13 @@ Ainda são fase futura. O produto menciona JWT/hash, mas não tratar como sistem
 
 ## Próximo passo recomendado
 
-Fazer a etapa de consistência comercial:
+Depois que o EXE do commit `d7b2993f...` estiver publicado:
 
-1. corrigir totais resumidos/listados para refletirem materiais + mão de obra + BDI;
-2. revisar se exportação PDF/Word mostra apenas valor comercial final;
-3. rodar `npm run verify` no CI;
-4. só criar release versionada com `[release]` depois da validação visual no EXE.
+1. instalar/testar visualmente Home, Propostas, Kits e Configurações;
+2. criar kit pequeno e inserir em proposta ativa;
+3. conferir total comercial: materiais + mão de obra + BDI;
+4. exportar PDF/Word e confirmar que não expõe custos internos;
+5. seguir para próxima etapa funcional escolhida pelo usuário.
 
 ## Checklist obrigatório antes de encerrar um bloco de trabalho
 
