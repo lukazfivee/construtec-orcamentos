@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-30 12:50 BRT`
+Última atualização deste rastro: `2026-08-31 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,9 +36,42 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 12:50`
+Data/hora BRT: `2026-08-31`
 
 Commits criados neste bloco:
+
+```text
+84ad81465f010e1dfc5b724addc48e20fcee2ecc docs: add continuity trail to editor guardrails
+583540f849286810ed1bacf924e945075e51aa30 docs: add continuity trail to cursor rule
+```
+
+O que mudou:
+
+- `.cursorrules` agora exige rastro operacional antes de qualquer IA/editor encerrar avanço real.
+- `.cursor/rules/ai-architecture.mdc` agora exige o mesmo rastro para Cursor e assistentes de editor.
+- A regra ficou alinhada entre Codex, OpenCode, Cursor e outras IAs: atualizar `CODEX_HANDOFF.md` e manter `OPENCODE.md` coerente quando o fluxo de retomada mudar.
+- A pasta local atual `C:\Users\Suporte\Documents\ChatGPT\APP Construtec orçamentos` contém apenas `.git`; o binário `git` não está disponível no PATH deste ambiente. Nesta sessão, os commits foram feitos pelo conector GitHub.
+
+Validação:
+
+- Mudanças apenas em documentação/regras.
+- Não foi criada release versionada.
+- O workflow principal já possui `paths-ignore: ['**/*.md']`, mas alterações em `.cursorrules` e `.cursor/**` ainda podem disparar CI porque não são Markdown puro.
+
+Próximo passo:
+
+- Corrigir consistência dos totais comerciais em `src/server/services/proposals.ts`: `listCurrentProposals` e `listProposalHistory` ainda usam soma antiga baseada só em itens.
+
+Bloqueios:
+
+- Sem `git` local disponível no PATH.
+- Para trabalhar localmente nessa pasta, será preciso restaurar/popular a árvore de arquivos do repositório ou instalar/disponibilizar `git`.
+
+## Registro anterior
+
+Data/hora BRT: `2026-08-30 12:50`
+
+Commits criados no bloco anterior:
 
 ```text
 71d25fad01ab64dcb7b51855b85848e7d431abda docs: update development handoff trail
@@ -53,28 +86,13 @@ O que mudou:
 
 - `CODEX_HANDOFF.md` virou o diário principal de continuidade.
 - `OPENCODE.md` foi criado como ponto de entrada para OpenCode/outra IA.
-- `OPENCODE.md` agora manda o OpenCode atualizar `CODEX_HANDOFF.md` antes de encerrar avanço real.
-- `AGENTS.md` agora exige atualização do rastro antes de encerrar avanço real.
-- `.github/workflows/build-windows-installer.yml` passou a ignorar alterações apenas em Markdown em push/PR.
-
-Validação:
-
-- Mudanças principais são documentação.
-- Mudança de workflow é sintática e pequena: adiciona `paths-ignore: ['**/*.md']` em `push` e `pull_request`.
-- Não foi criada release versionada neste bloco porque nenhum commit usou `[release]`.
-
-Próximo passo:
-
-- Revisar consistência dos totais comerciais nas listas/resumos de propostas, especialmente `listCurrentProposals` em `src/server/services/proposals.ts`.
-
-Bloqueios:
-
-- Sem bloqueio local para documentação.
-- Para Cloudflare OCR/deployment vermelho, ainda são necessários logs/secrets/configuração externa.
+- `OPENCODE.md` manda o OpenCode atualizar `CODEX_HANDOFF.md` antes de encerrar avanço real.
+- `AGENTS.md` exige atualização do rastro antes de encerrar avanço real.
+- `.github/workflows/build-windows-installer.yml` ignora alterações apenas em Markdown em push/PR.
 
 ## Estado confirmado em 2026-08-30
 
-Última release versionada confirmada antes deste bloco:
+Última release versionada confirmada antes dos blocos de documentação:
 
 ```text
 Tag: build-127
@@ -199,7 +217,7 @@ Verificar sem inventar segredo:
 
 Não commitar segredos.
 
-### 2. Total em listas de propostas pode estar incompleto
+### 2. Total em listas de propostas incompleto
 
 Confirmado em inspeção: `src/server/services/proposals.ts` calcula `total_sale` em `listCurrentProposals` e `listProposalHistory` a partir de `proposal_items`. Isso deixa mão de obra e BDI fora dos totais resumidos.
 
