@@ -98,3 +98,12 @@ pre_flight_check:
 - Customer-facing PDF/Word exports must not reveal internal costs, BDI details, salaries, margins, or private calculation parameters.
 - OCR must degrade safely: if remote OCR is not configured or fails, use the safe local fallback path.
 - Installer/release changes must keep Windows build reproducible and signed when signing secrets are available.
+
+## Continuity trail
+
+Before stopping after meaningful progress, update the durable project trail.
+
+- Update `CODEX_HANDOFF.md` with date/time BRT, commit, what changed, validation, next step, and blockers.
+- Keep `OPENCODE.md` aligned when the continuation workflow changes.
+- The trail must be concrete enough for Codex, OpenCode, Cursor, or another IA to continue without the original conversation.
+- Do not write secrets, passwords, tokens, API keys, signed temporary URLs, customer-sensitive data, or private commercial details into the trail.
