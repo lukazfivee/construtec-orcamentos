@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 10:23 BRT`
+Última atualização deste rastro: `2026-08-31 10:34 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,7 +36,7 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 10:23`
+Data/hora BRT: `2026-08-31 10:34`
 
 Branch: `main`
 
@@ -46,7 +46,7 @@ Commit:
 f116565 fix: self-heal settings storage [release]
 ```
 
-Status: commit/push concluído no GitHub; release em processamento.
+Status: commit/push concluído no GitHub. Release `build-148` publicada e EXE baixado.
 
 O que mudou:
 
@@ -57,12 +57,27 @@ O que mudou:
 Validação:
 
 - `npm run verify`: sucesso local em 2026-08-31 10:23 BRT.
+- Workflow `Gerar instalador do Windows` run `33396779852`: `success`.
+- Jobs do workflow:
+  - `Validar e gerar instalador`: `success`.
+  - `Assinar e publicar instalador`: `success`.
+- Release versionada criada: `build-148`.
+- `windows-latest` atualizado para target `f116565dd0dc096c59e31e812bc08da2ad260994`.
+- EXE baixado em `C:\Users\Suporte\Downloads\Construtec-Orcamentos-Setup.exe`.
+- SHA256 GitHub/local confirmado: `eb5b4a3708bb44dbfd7cd80f7f7e027d3470443678739253dff4a0c45ec44dcc`.
+
+Links úteis:
+
+- Release versionada: `https://github.com/lukazfivee/construtec-orcamentos/releases/tag/build-148`
+- EXE versionado: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/build-148/Construtec-Orcamentos-Setup.exe`
+- EXE fixo: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/windows-latest/Construtec-Orcamentos-Setup.exe`
+- Workflow: `https://github.com/lukazfivee/construtec-orcamentos/actions/runs/33396779852`
 
 Próximo passo:
 
-1. Publicar commit com `[release]`.
-2. Aguardar workflow `Gerar instalador do Windows`.
-3. Baixar EXE novo e testar abrir Configurações sem toast de erro.
+1. Instalar/testar o EXE baixado.
+2. Abrir Configurações e confirmar que o toast `Não foi possível concluir a operação local.` não aparece mais.
+3. Alterar um campo simples, salvar e reabrir Configurações para confirmar persistência local.
 
 Bloqueios:
 
