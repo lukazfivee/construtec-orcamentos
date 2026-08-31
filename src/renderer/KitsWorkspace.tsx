@@ -362,14 +362,14 @@ export function KitsWorkspace({
         <section className="client-editor">
           {creating || selectedKitId ? (
             <form className="client-form kit-form" onSubmit={(e) => void saveKit(e)}>
-              <div className="editor-heading">
-                <div>
-                  <h2>{creating ? 'Novo kit' : draft.name}</h2>
-                  <p>
+              <div className="editor-heading" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                  <h2 style={{ overflowWrap: 'anywhere' }}>{creating ? 'Novo kit' : draft.name}</h2>
+                  <p style={{ overflowWrap: 'anywhere' }}>
                     Composição estimada: <b>{money.format(totalEstimatedCost)}</b> ({draft.items.length} itens)
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   {selectedKitId && !creating && activeProposal && (
                     <button
                       type="button"
