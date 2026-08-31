@@ -3,8 +3,10 @@ import { z } from 'zod';
 import type { LocalDatabase } from '../services/database';
 import {
   addProductToProposal,
+  cloneProposal,
   createProposal,
   createProposalRevision,
+  deleteProposal,
   duplicateProposalItem,
   getCurrentProposal,
   getProposalById,
@@ -16,6 +18,7 @@ import {
   updateProposalContext,
   updateProposalDetails,
   updateProposalItem,
+  updateProposalStatus,
 } from '../services/proposals';
 import {
   copyProposalLabor,
@@ -35,6 +38,7 @@ const addItemSchema = z.object({
 const removeItemsSchema = z.object({ itemIds: z.array(z.string().uuid()).min(1).max(500) });
 const updateItemSchema = z.object({
   description: z.string().trim().min(2).max(240).optional(),
+  category: z.string().trim().min(2).max(80).optional(),
   quantity: z.number().positive().max(1_000_000).optional(),
   unit: z.string().trim().min(1).max(24).optional(),
   unitCost: z.number().min(0).max(100_000_000).optional(),
@@ -65,6 +69,15 @@ const laborSchema = z.object({
 });
 const standardHoursSchema = z.object({ standardMonthlyHours: z.number().positive().max(1_000) });
 
+const statusSchema = z.object({
+  status: z.enum(['draft', 'review', 'sent', 'approved', 'rejected']),
+});
+const cloneProposalSchema = z.object({
+  clientId: z.string().uuid().optional(),
+  workId: z.string().uuid().optional(),
+  scope: z.string().trim().min(3).max(1200).optional(),
+}).optional();
+
 export const createProposalsRouter = (database: LocalDatabase) => {
   const router = Router();
 
@@ -88,6 +101,33 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = await createProposal(database, createProposalSchema.parse(request.body));
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/clone', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const input = cloneProposalSchema.parse(request.body);
+      const newProposalId = await cloneProposal(database, proposalId, input);
+      response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.delete('/:proposalId', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const mode = request.query.mode === 'revision' ? 'revision' : 'all';
+      const result = await deleteProposal(database, proposalId, mode);
+      response.json({ success: true, ...result });
+    } catch (error) { next(error); }
+  });
+
+  router.patch('/:proposalId/status', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const { status } = statusSchema.parse(request.body);
+      const proposal = await updateProposalStatus(database, proposalId, status);
+      response.json({ proposal });
     } catch (error) { next(error); }
   });
 

@@ -1,4 +1,21 @@
-import type { ApiErrorPayload, CatalogImportItem, CatalogImportPreview, CatalogProduct, ClientRecord, ProposalDetail, ProposalLaborInput, ProposalLaborItem, ProposalLine, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
+import type {
+  ApiErrorPayload,
+  AppSettings,
+  CatalogImportItem,
+  CatalogImportPreview,
+  CatalogProduct,
+  ClientRecord,
+  DashboardMetrics,
+  KitDetail,
+  KitInput,
+  KitSummary,
+  ProposalDetail,
+  ProposalLaborInput,
+  ProposalLaborItem,
+  ProposalLine,
+  ProposalRevisionSummary,
+  ProposalSummary,
+} from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
 
@@ -34,6 +51,15 @@ export const proposalApi = {
     '/api/proposals', { method: 'POST', body: JSON.stringify(input) },
   ),
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
+  delete: (proposalId: string, mode: 'all' | 'revision' = 'all') => request<{ success: boolean; nextProposalId?: string }>(
+    `/api/proposals/${proposalId}?mode=${mode}`, { method: 'DELETE' },
+  ),
+  updateStatus: (proposalId: string, status: ProposalDetail['status']) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) },
+  ),
+  clone: (proposalId: string, input?: { clientId?: string; workId?: string; scope?: string }) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/clone`, { method: 'POST', body: JSON.stringify(input ?? {}) },
+  ),
   history: (proposalId: string) => request<{ revisions: ProposalRevisionSummary[] }>(`/api/proposals/${proposalId}/history`),
   createRevision: (proposalId: string) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/revisions`, { method: 'POST' },
@@ -117,3 +143,36 @@ export const catalogApi = {
     '/api/catalog/import/exsat', { method: 'POST', body: JSON.stringify({ url }) },
   ),
 };
+
+export const kitsApi = {
+  list: (query = '') => request<{ kits: KitSummary[] }>(`/api/kits?q=${encodeURIComponent(query)}`),
+  get: (kitId: string) => request<{ kit: KitDetail }>(`/api/kits/${kitId}`),
+  create: (input: KitInput) => request<{ kit: KitDetail; kits: KitSummary[] }>('/api/kits', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  }),
+  update: (kitId: string, input: KitInput) => request<{ kit: KitDetail; kits: KitSummary[] }>(`/api/kits/${kitId}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  }),
+  delete: (kitId: string) => request<{ success: boolean; kits: KitSummary[] }>(`/api/kits/${kitId}`, {
+    method: 'DELETE',
+  }),
+  applyToProposal: (kitId: string, proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/kits/${kitId}/apply-to-proposal`, {
+    method: 'POST',
+    body: JSON.stringify({ proposalId }),
+  }),
+};
+
+export const settingsApi = {
+  get: () => request<{ settings: AppSettings }>('/api/settings'),
+  update: (input: Partial<AppSettings>) => request<{ settings: AppSettings }>('/api/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  }),
+};
+
+export const dashboardApi = {
+  get: () => request<{ summary: DashboardMetrics }>('/api/dashboard'),
+};
+

@@ -25,6 +25,7 @@ export type ProposalLine = {
   id: string;
   code: string;
   description: string;
+  category: string;
   quantity: number;
   unit: string;
   unitCost: number;
@@ -86,3 +87,64 @@ export type ClientRecord = { id: string; legalName: string; tradeName: string | 
 export type ProposalRevisionSummary = { id: string; number: string; revision: number; status: ProposalDetail['status']; itemCount: number; totalSale: number; responsibleName: string; updatedAt: string; isLatest: boolean };
 export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string };
 export type ApiErrorPayload = { error: string; details?: unknown };
+
+export type KitItemSummary = {
+  id: string;
+  productId: string;
+  code: string;
+  description: string;
+  category: string;
+  unit: string;
+  currentCost: number;
+  quantity: number;
+  totalCost: number;
+  position: number;
+};
+
+export type KitSummary = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  active: boolean;
+  itemCount: number;
+  totalEstimatedCost: number;
+  updatedAt: string;
+};
+
+export type KitDetail = KitSummary & {
+  items: KitItemSummary[];
+};
+
+export type KitInput = {
+  name: string;
+  description?: string | null;
+  category: string;
+  active?: boolean;
+  items: Array<{ productId: string; quantity: number }>;
+};
+
+export type AppSettings = {
+  companyName: string;
+  tradeName: string;
+  document: string;
+  phone: string;
+  email: string;
+  address: string;
+  defaultResponsible: string;
+  defaultBdi: number;
+  defaultStandardHours: number;
+  defaultValidityDays: number;
+};
+
+export type DashboardMetrics = {
+  activeProposalsCount: number;
+  approvedProposalsCount: number;
+  totalInNegotiation: number;
+  totalApproved: number;
+  totalClientsCount: number;
+  totalProductsCount: number;
+  totalKitsCount: number;
+  recentProposals: ProposalSummary[];
+};
+

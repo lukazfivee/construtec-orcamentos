@@ -10,6 +10,8 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    junk: false,
+    prune: false,
     extraResource: ['node_modules/@electric-sql/pglite'],
     name: 'ConstrutecOrcamentos',
     executableName: 'ConstrutecOrcamentos',
@@ -20,7 +22,7 @@ const config: ForgeConfig = {
       name: 'ConstrutecOrcamentos',
       authors: 'Construtec Engenharia',
       description: 'Orçamentos profissionais, rápidos, seguros e offline para a Construtec Engenharia.',
-      setupExe: 'Construtec-Orcamentos-1.0.3-Setup.exe',
+      setupExe: 'Construtec-Orcamentos-1.0.5-Setup.exe',
       noMsi: true,
     }),
     new MakerZIP({}, ['darwin']),

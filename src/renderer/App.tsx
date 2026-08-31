@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  AlertTriangle,
   Bell,
   Box,
   Building2,
@@ -16,6 +17,7 @@ import {
   HelpCircle,
   History as HistoryIcon,
   Layers3,
+  LayoutList,
   LockKeyhole,
   MapPin,
   Plus,
@@ -27,11 +29,24 @@ import {
   Users,
 } from 'lucide-react';
 import type { CatalogProduct, ClientRecord, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../shared/contracts';
-import { clientsApi, proposalApi } from './api';
+import { clientsApi, kitsApi, proposalApi } from './api';
 import { ClientsWorkspace } from './ClientsWorkspace';
 import { NewProposalDialog } from './NewProposalDialog';
 import { CatalogWorkspace } from './CatalogWorkspace';
 import { ProposalLaborPanel } from './ProposalLaborPanel';
+import { HomeWorkspace } from './HomeWorkspace';
+import { KitsWorkspace } from './KitsWorkspace';
+import { SettingsWorkspace } from './SettingsWorkspace';
+import { ProposalKitsPanel } from './ProposalKitsPanel';
+import { ProposalsListWorkspace } from './ProposalsListWorkspace';
+
+const statusClasses: Record<ProposalDetail['status'], string> = {
+  draft: 'status-draft',
+  review: 'status-review',
+  sent: 'status-sent',
+  approved: 'status-approved',
+  rejected: 'status-rejected',
+};
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
@@ -48,7 +63,7 @@ const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyl
 const sectionTabs = [
   { label: 'Itens', enabled: true },
   { label: 'Mão de obra', enabled: true },
-  { label: 'Kits', enabled: false },
+  { label: 'Kits', enabled: true },
   { label: 'Condições', enabled: true },
   { label: 'Histórico', enabled: true },
 ] as const;
@@ -115,7 +130,7 @@ const parseCommercialConditions = (scope: string): CommercialConditions => {
 const serializeCommercialConditions = (conditions: CommercialConditions) => JSON.stringify(conditions);
 
 export function App() {
-  const [activeNav, setActiveNav] = useState<'Propostas' | 'Catálogo' | 'Clientes'>('Propostas');
+  const [activeNav, setActiveNav] = useState<'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações'>('Início');
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [query, setQuery] = useState('leit');
   const [notice, setNotice] = useState('');
@@ -140,6 +155,8 @@ export function App() {
   const [documentPending, setDocumentPending] = useState(false);
   const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
   const [newProposalOpen, setNewProposalOpen] = useState(false);
+  const [proposalViewMode, setProposalViewMode] = useState<'editor' | 'list'>('editor');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const catalogInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string) => {
@@ -534,6 +551,63 @@ export function App() {
     }
   }, [mutationPending, proposal]);
 
+  const updateProposalStatusDirect = useCallback(async (newStatus: ProposalDetail['status']) => {
+    if (!proposal || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateStatus(proposal.id, newStatus);
+      setProposal(result.proposal);
+      showNotice(`Status alterado para "${statusLabels[newStatus]}".`);
+      const tabsResult = await proposalApi.list();
+      setProposalTabs(tabsResult.proposals);
+    } catch (statusError) {
+      setError(statusError instanceof Error ? statusError.message : 'Não foi possível alterar o status.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, proposal]);
+
+  const deleteCurrentProposal = useCallback(async () => {
+    if (!proposal || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.delete(proposal.id, 'all');
+      showNotice(`Orçamento ${proposal.number} excluído com sucesso.`);
+      setDeleteModalOpen(false);
+      const tabsResult = await proposalApi.list();
+      setProposalTabs(tabsResult.proposals);
+      if (result.nextProposalId) {
+        await openProposal(result.nextProposalId);
+      } else {
+        setProposal(null);
+        setProposalViewMode('list');
+      }
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Não foi possível excluir a proposta.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, openProposal, proposal]);
+
+  const cloneCurrentProposal = useCallback(async () => {
+    if (!proposal || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.clone(proposal.id);
+      showNotice(`Orçamento ${result.proposal.number} criado com sucesso a partir de ${proposal.number}.`);
+      const tabsResult = await proposalApi.list();
+      setProposalTabs(tabsResult.proposals);
+      await openProposal(result.proposal.id);
+    } catch (cloneError) {
+      setError(cloneError instanceof Error ? cloneError.message : 'Não foi possível clonar a proposta.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, openProposal, proposal]);
+
   useEffect(() => {
     setSelectedCatalogIndex(0);
   }, [query]);
@@ -623,20 +697,53 @@ export function App() {
       <aside className="sidebar" aria-label="Navegação principal">
         <nav>
           {navItems.map(({ label, icon: Icon }) => {
-            const enabled = label === 'Propostas' || label === 'Catálogo' || label === 'Clientes';
             const active = label === activeNav;
             return (
-            <button key={label} type="button" className={active ? 'active' : ''} aria-current={active ? 'page' : undefined} disabled={!enabled} title={enabled ? undefined : `${label} será implementado em uma próxima etapa.`} onClick={() => { if (enabled) { setActiveNav(label as 'Propostas' | 'Catálogo' | 'Clientes'); setCatalogOpen(false); setContextOpen(false); setError(''); } }}>
-              <Icon size={22} /><span>{label}</span>
-            </button>
-          ); })}
+              <button
+                key={label}
+                type="button"
+                className={active ? 'active' : ''}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => {
+                  setActiveNav(label as 'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações');
+                  setCatalogOpen(false);
+                  setContextOpen(false);
+                  setError('');
+                }}
+              >
+                <Icon size={22} /><span>{label}</span>
+              </button>
+            );
+          })}
         </nav>
         <button className="collapse" type="button"><ChevronLeft size={17} /><span>Recolher</span></button>
       </aside>
 
       {activeNav !== 'Propostas' && error && <div className="global-error" role="alert"><span>{error}</span><button type="button" onClick={() => setError('')}>Fechar</button></div>}
-      {activeNav === 'Propostas' ? <main className="workspace">
+      {activeNav === 'Propostas' && (proposalViewMode === 'list' || !proposal) ? (
+        <ProposalsListWorkspace
+          onOpenProposal={async (proposalId) => {
+            await openProposal(proposalId);
+            setProposalViewMode('editor');
+          }}
+          onNewProposal={() => {
+            setError('');
+            setNewProposalOpen(true);
+          }}
+          onError={setError}
+          onNotice={showNotice}
+        />
+      ) : activeNav === 'Propostas' ? <main className="workspace">
         <div className="proposal-tabs" role="tablist" aria-label="Propostas abertas">
+          <button
+            type="button"
+            className="view-list-tab"
+            onClick={() => setProposalViewMode('list')}
+            title="Ver lista completa de propostas"
+          >
+            <LayoutList size={15} /> Ver todas ({proposalTabs.length})
+          </button>
+          <span className="tab-divider" />
           {proposalTabs.map((tab) => {
             const selected = tab.id === proposal?.id;
             return <button key={tab.id} className={selected ? 'selected' : ''} type="button" role="tab" aria-selected={selected} disabled={loading} title={`${tab.clientName} · ${tab.workName}`} onClick={() => void openProposal(tab.id)}>{tab.number} • REV.{String(tab.revision).padStart(2, '0')}</button>;
@@ -649,7 +756,21 @@ export function App() {
           <div className="proposal-meta">
             <MetaField label="Cliente" value={proposal?.clientName ?? '—'} icon={<Building2 size={19} />} disabled={!isEditable || mutationPending} onClick={() => { setCatalogOpen(false); setContextOpen((value) => !value); }} />
             <MetaField label="Obra" value={proposal?.workName ?? '—'} disabled={!isEditable || mutationPending} onClick={() => { setCatalogOpen(false); setContextOpen((value) => !value); }} />
-            <MetaField label="Status" value={proposal ? statusLabels[proposal.status] : 'Carregando'} accent disabled />
+            <div className="meta-field status-field">
+              <label>Status</label>
+              <select
+                className={`status-select ${statusClasses[proposal?.status ?? 'draft']}`}
+                value={proposal?.status ?? 'draft'}
+                disabled={!proposal || mutationPending}
+                onChange={(e) => void updateProposalStatusDirect(e.target.value as ProposalDetail['status'])}
+              >
+                <option value="draft">Em edição</option>
+                <option value="review">Em revisão</option>
+                <option value="sent">Enviada</option>
+                <option value="approved">Aprovada</option>
+                <option value="rejected">Recusada</option>
+              </select>
+            </div>
             <MetaField label="Validade" value={proposal?.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : '—'} disabled />
             <MetaField label="Responsável" value={proposal?.responsibleName ?? '—'} disabled />
           </div>
@@ -747,6 +868,19 @@ export function App() {
               onError={setError}
               onNotice={showNotice}
             />
+          ) : activeSection === 'Kits' && proposal ? (
+            <ProposalKitsPanel
+              proposalId={proposal.id}
+              proposalNumber={proposal.number}
+              bdiMultiplier={proposal.bdiMultiplier}
+              editable={isEditable}
+              onApplied={() => {
+                void loadProposal();
+                setActiveSection('Itens');
+              }}
+              onError={setError}
+              onNotice={showNotice}
+            />
           ) : activeSection === 'Condições' && proposal ? (
             <div className="history-region">
               <div className="history-heading">
@@ -817,18 +951,109 @@ export function App() {
           <div className="panel-section actions">
             <h2>Ações</h2>
             <button type="button" disabled={!proposal?.isLatest || mutationPending} onClick={() => void createRevision()}><Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd></button>
+            <button type="button" disabled={!proposal || mutationPending} onClick={() => void cloneCurrentProposal()} title="Clonar este orçamento gerando um novo número"><Copy size={18} /> Clonar proposta</button>
             <button type="button" disabled={!proposal || documentPending} onClick={() => void previewProposal()}><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
             <button className="primary generate" type="button" disabled={(!proposal?.items.length && laborTotal <= 0) || documentPending} onClick={() => void exportProposal()}><FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd></button>
+            <button
+              type="button"
+              className="danger-action-btn"
+              disabled={!proposal || mutationPending}
+              onClick={() => setDeleteModalOpen(true)}
+              title="Excluir este orçamento definitivamente"
+            >
+              <Trash2 size={16} /> Excluir orçamento
+            </button>
           </div>
           <div className="panel-footnote">
             <p className="demo-data-note">Base inicial demonstrativa · salva localmente</p>
             <p className="last-change">Última alteração: {formattedUpdatedAt}<br />por {proposal?.responsibleName ?? '—'}</p>
           </div>
         </aside>
-      </main> : activeNav === 'Catálogo' ? <CatalogWorkspace onNotice={showNotice} onError={setError} /> : <ClientsWorkspace onNotice={showNotice} onError={setError} />}
+      </main> : activeNav === 'Início' ? (
+        <HomeWorkspace
+          onOpenProposal={async (proposalId) => {
+            await openProposal(proposalId);
+            setActiveNav('Propostas');
+          }}
+          onNewProposal={() => {
+            setError('');
+            setNewProposalOpen(true);
+          }}
+          onNavigate={(section) => {
+            setActiveNav(section);
+            setError('');
+          }}
+          onError={setError}
+        />
+      ) : activeNav === 'Catálogo' ? (
+        <CatalogWorkspace onNotice={showNotice} onError={setError} />
+      ) : activeNav === 'Clientes' ? (
+        <ClientsWorkspace onNotice={showNotice} onError={setError} />
+      ) : activeNav === 'Kits' ? (
+        <KitsWorkspace
+          activeProposal={proposal}
+          onApplyKitToProposal={async (kitId) => {
+            if (!proposal) return;
+            try {
+              await kitsApi.applyToProposal(kitId, proposal.id);
+              await loadProposal();
+              setActiveNav('Propostas');
+              setActiveSection('Itens');
+              showNotice(`Itens do kit adicionados à proposta ${proposal.number}.`);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Erro ao aplicar kit.');
+            }
+          }}
+          onNotice={showNotice}
+          onError={setError}
+        />
+      ) : (
+        <SettingsWorkspace onNotice={showNotice} onError={setError} />
+      )}
 
       {notice && <div className="toast" role="status">{notice}</div>}
       <NewProposalDialog open={newProposalOpen} onClose={() => setNewProposalOpen(false)} onCreated={(created) => void proposalCreated(created)} onError={setError} />
+
+      {deleteModalOpen && proposal && (
+        <div className="modal-overlay">
+          <div className="modal-card delete-modal">
+            <div className="modal-header danger-header">
+              <AlertTriangle size={24} color="#dc2626" />
+              <div>
+                <h3>Excluir Orçamento</h3>
+                <p>Confirmação de exclusão permanente</p>
+              </div>
+            </div>
+            <div className="modal-body">
+              <p>
+                Tem certeza que deseja excluir o orçamento <strong>{proposal.number}</strong> (Cliente: <em>{proposal.clientName}</em>)?
+              </p>
+              <div className="danger-callout">
+                Esta ação removerá todas as revisões, itens, composições de mão de obra e histórico associados a este orçamento do banco de dados local.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="secondary-btn"
+                disabled={mutationPending}
+                onClick={() => setDeleteModalOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                disabled={mutationPending}
+                onClick={() => void deleteCurrentProposal()}
+              >
+                <Trash2 size={16} />
+                {mutationPending ? 'Excluindo...' : 'Sim, excluir definitivamente'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

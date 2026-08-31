@@ -2,7 +2,10 @@ import express from 'express';
 import { ZodError } from 'zod';
 import { createCatalogRouter } from './routes/catalog';
 import { createClientsRouter } from './routes/clients';
+import { createDashboardRouter } from './routes/dashboard';
+import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
+import { createSettingsRouter } from './routes/settings';
 import type { LocalDatabase } from './services/database';
 
 export const createApp = (database: LocalDatabase, apiToken: string) => {
@@ -21,7 +24,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.setHeader('Vary', 'Origin');
     }
     response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
     if (request.method === 'OPTIONS') {
       response.sendStatus(204);
       return;
@@ -45,6 +48,9 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.use('/api/catalog', createCatalogRouter(database));
   api.use('/api/clients', createClientsRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
+  api.use('/api/kits', createKitsRouter(database));
+  api.use('/api/settings', createSettingsRouter(database));
+  api.use('/api/dashboard', createDashboardRouter(database));
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
     void _next;
@@ -66,6 +72,14 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     }
     if (error instanceof Error && error.message === 'PRODUCT_DUPLICATE') {
       response.status(409).json({ error: 'Já existe um item com esse código no catálogo.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'KIT_NAME_DUPLICATE') {
+      response.status(409).json({ error: 'Já existe um kit com esse nome.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'KIT_EMPTY') {
+      response.status(422).json({ error: 'O kit selecionado não possui itens.' });
       return;
     }
     if (error instanceof Error && error.message === 'EXSAT_URL_INVALID') {

@@ -8,6 +8,8 @@ import { clientsAndWorksMigration } from '../migrations/002-clients-works';
 import { catalogManagementMigration } from '../migrations/003-catalog-management';
 import { cleanExsatAdministrativeOcrMigration } from '../migrations/004-clean-exsat-admin-ocr';
 import { proposalLaborMigration } from '../migrations/005-proposal-labor';
+import { proposalItemCategoryMigration } from '../migrations/006-proposal-item-category';
+import { kitsAndSettingsMigration } from '../migrations/007-kits-and-settings';
 import { ensureFirstRunData } from './bootstrap';
 
 export type LocalDatabase = PGliteModule.PGlite;
@@ -45,6 +47,8 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     [3, catalogManagementMigration],
     [4, cleanExsatAdministrativeOcrMigration],
     [5, proposalLaborMigration],
+    [6, proposalItemCategoryMigration],
+    [7, kitsAndSettingsMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {
@@ -59,6 +63,9 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
       });
     }
   }
+
+  // Self-heal: garante coluna snapshot_category mesmo se migration 6 foi marcada antes de aplicar corretamente
+  await database.exec("ALTER TABLE proposal_items ADD COLUMN IF NOT EXISTS snapshot_category text NOT NULL DEFAULT 'Outros'");
 
   await ensureFirstRunData(database);
 

@@ -15,6 +15,21 @@ Leia primeiro:
 
 Depois disso, siga o próximo passo descrito em `CODEX_HANDOFF.md`.
 
+## Skills (obrigatório no primeiro prompt)
+
+O projeto usa o ecossistema `npx skills` para estender as capacidades dos agentes.
+Antes de qualquer trabalho no código, instale as skills do projeto:
+
+```powershell
+npx -y skills add vercel-labs/skills@find-skills
+```
+
+As skills ficam em `.agents/skills/`. Quando o usuário pedir algo que pode ser resolvido por uma skill existente, use `npx skills find <termo>` para buscar no registry (skills.sh).
+
+Skills já instaladas no projeto:
+
+- `find-skills` (vercel-labs) — busca e instala skills do registry skills.sh. 3.2M installs.
+
 ## Estilo operacional
 
 O usuário prefere:
@@ -62,7 +77,7 @@ Regras:
 
 ## Próximo alvo atual
 
-Ver `CODEX_HANDOFF.md`. No momento, o próximo alvo sugerido é revisar a consistência dos totais comerciais nas listas/resumos de propostas, especialmente se `listCurrentProposals` ainda considera só itens e ignora mão de obra/BDI.
+Ver `CODEX_HANDOFF.md`. Últimos avanços: Central de Gestão de Propostas (listagem, filtros, busca, exclusão) e Clonagem de Orçamentos completa (backend + UI). Próximo alvo: finalizar layout de `ProposalKitsPanel.tsx` e gerar build do instalador Windows (`npm run make:windows`).
 
 ## Regra de rastro para OpenCode e outras IAs
 

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { CatalogProduct, ProposalDetail, ProposalLine, ProposalRevisionSummary, ProposalSummary } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
+import { logEvent } from './logger';
 import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
 
 type ProposalRow = {
@@ -24,6 +25,7 @@ type ItemRow = {
   id: string;
   snapshot_code: string;
   snapshot_description: string;
+  snapshot_category: string;
   quantity: string;
   snapshot_unit: string;
   snapshot_unit_cost: string;
@@ -51,7 +53,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   if (!proposal) return null;
 
   const itemResult = await database.query<ItemRow>(`
-    SELECT id, snapshot_code, snapshot_description, quantity::text,
+    SELECT id, snapshot_code, snapshot_description, snapshot_category, quantity::text,
       snapshot_unit, snapshot_unit_cost::text, sale_unit_price::text
     FROM proposal_items
     WHERE proposal_id = $1
@@ -66,6 +68,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       id: item.id,
       code: item.snapshot_code,
       description: item.snapshot_description,
+      category: item.snapshot_category ?? 'Outros',
       quantity,
       unit: item.snapshot_unit,
       unitCost,
@@ -142,7 +145,13 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name,
       p.status, count(i.id)::text AS item_count,
-      COALESCE(sum(i.quantity * i.sale_unit_price), 0)::text AS total_sale,
+      COALESCE(ROUND((
+        COALESCE((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 0)
+        + COALESCE((SELECT SUM(
+            pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
+            / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
+          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 0)
+      ) * p.bdi_multiplier, 2), 0)::text AS total_sale,
       p.updated_at::text
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
@@ -151,7 +160,7 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
       SELECT 1 FROM proposals newer
       WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
     )
-    GROUP BY p.id, c.trade_name, c.legal_name
+    GROUP BY p.id, c.trade_name, c.legal_name, p.bdi_multiplier
     ORDER BY p.updated_at DESC
     LIMIT 20
   `);
@@ -210,12 +219,13 @@ export const createProposal = async (
     INSERT INTO audit_events (id, user_id, entity_type, entity_id, action, after_data)
     VALUES ($1, $2, 'proposal', $3, 'created', $4::jsonb)
   `, [randomUUID(), userId, proposalId, JSON.stringify({ proposalNumber, revision: 0, ...input })]);
+  logEvent('info', 'proposal.created', { proposalId, proposalNumber });
   return proposalId;
 });
 
 type Queryable = Pick<LocalDatabase, 'query'>;
 
-export type ProposalItemUpdateInput = Partial<Pick<ProposalLine, 'description' | 'quantity' | 'unit' | 'unitCost' | 'unitSale'>>;
+export type ProposalItemUpdateInput = Partial<Pick<ProposalLine, 'description' | 'category' | 'quantity' | 'unit' | 'unitCost' | 'unitSale'>>;
 
 const getLatestProposal = async (database: Queryable, proposalId: string) => {
   const result = await database.query<{
@@ -276,8 +286,8 @@ export const addProductToProposal = async (database: LocalDatabase, proposalId: 
 
     const productResult = await transaction.query<{
       id: string; code: string; manufacturer: string | null; model: string | null;
-      description: string; unit: string; current_cost: string;
-    }>('SELECT id, code, manufacturer, model, description, unit, current_cost::text FROM products WHERE id = $1', [productId]);
+      description: string; category: string; unit: string; current_cost: string;
+    }>('SELECT id, code, manufacturer, model, description, category, unit, current_cost::text FROM products WHERE id = $1', [productId]);
     const product = productResult.rows[0];
     if (!product) throw new Error('PRODUCT_NOT_FOUND');
 
@@ -292,16 +302,17 @@ export const addProductToProposal = async (database: LocalDatabase, proposalId: 
     await transaction.query(`
       INSERT INTO proposal_items
         (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
-         snapshot_model, snapshot_description, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     `, [itemId, proposalId, product.id, positionResult.rows[0]?.next_position ?? 1, product.code,
-      product.manufacturer, product.model, product.description, product.unit, unitCost, quantity, salePrice]);
+      product.manufacturer, product.model, product.description, product.category, product.unit, unitCost, quantity, salePrice]);
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
       VALUES ($1, 'proposal_item', $2, 'created', $3::jsonb)
     `, [randomUUID(), itemId, JSON.stringify({ productId, snapshotUnitCost: unitCost, quantity, salePrice })]);
+    logEvent('info', 'proposal.item_added', { proposalId, itemId, quantity });
   });
 };
 
@@ -318,6 +329,7 @@ export const removeProposalItems = async (database: LocalDatabase, proposalId: s
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data)
       VALUES ($1, 'proposal', $2, 'items_removed', $3::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify({ itemIds })]);
+    logEvent('info', 'proposal.items_removed', { proposalId, count: itemIds.length });
   });
 };
 
@@ -331,7 +343,7 @@ export const updateProposalItem = async (
     await getEditableProposal(transaction, proposalId);
 
     const itemResult = await transaction.query<ItemRow>(`
-      SELECT id, snapshot_code, snapshot_description, quantity::text,
+      SELECT id, snapshot_code, snapshot_description, snapshot_category, quantity::text,
         snapshot_unit, snapshot_unit_cost::text, sale_unit_price::text
       FROM proposal_items
       WHERE proposal_id = $1 AND id = $2
@@ -342,6 +354,7 @@ export const updateProposalItem = async (
 
     const next = {
       description: input.description?.trim() ?? item.snapshot_description,
+      category: input.category?.trim() ?? item.snapshot_category ?? 'Outros',
       quantity: input.quantity ?? Number(item.quantity),
       unit: input.unit?.trim() ?? item.snapshot_unit,
       unitCost: input.unitCost ?? Number(item.snapshot_unit_cost),
@@ -350,10 +363,10 @@ export const updateProposalItem = async (
 
     await transaction.query(`
       UPDATE proposal_items
-      SET snapshot_description = $3, quantity = $4, snapshot_unit = $5,
-        snapshot_unit_cost = $6, sale_unit_price = $7
+      SET snapshot_description = $3, snapshot_category = $4, quantity = $5, snapshot_unit = $6,
+        snapshot_unit_cost = $7, sale_unit_price = $8
       WHERE proposal_id = $1 AND id = $2
-    `, [proposalId, itemId, next.description, next.quantity, next.unit, next.unitCost, next.unitSale]);
+    `, [proposalId, itemId, next.description, next.category, next.quantity, next.unit, next.unitCost, next.unitSale]);
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
     await transaction.query(`
@@ -361,11 +374,13 @@ export const updateProposalItem = async (
       VALUES ($1, 'proposal_item', $2, 'updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), itemId, JSON.stringify({
       description: item.snapshot_description,
+      category: item.snapshot_category ?? 'Outros',
       quantity: Number(item.quantity),
       unit: item.snapshot_unit,
       unitCost: Number(item.snapshot_unit_cost),
       unitSale: Number(item.sale_unit_price),
     }), JSON.stringify(next)]);
+    logEvent('info', 'proposal.item_updated', { proposalId, itemId });
   });
 };
 
@@ -381,11 +396,11 @@ export const duplicateProposalItem = async (database: LocalDatabase, proposalId:
     await getEditableProposal(transaction, proposalId);
     const itemResult = await transaction.query<{
       catalog_product_id: string | null; snapshot_code: string; snapshot_manufacturer: string | null;
-      snapshot_model: string | null; snapshot_description: string; snapshot_unit: string;
+      snapshot_model: string | null; snapshot_description: string; snapshot_category: string; snapshot_unit: string;
       snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
     }>(`
       SELECT catalog_product_id, snapshot_code, snapshot_manufacturer, snapshot_model,
-        snapshot_description, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+        snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
       FROM proposal_items
       WHERE proposal_id = $1 AND id = $2
       FOR UPDATE
@@ -401,17 +416,18 @@ export const duplicateProposalItem = async (database: LocalDatabase, proposalId:
     await transaction.query(`
       INSERT INTO proposal_items
         (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
-         snapshot_model, snapshot_description, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     `, [newItemId, proposalId, item.catalog_product_id, positionResult.rows[0]?.next_position ?? 1,
       item.snapshot_code, item.snapshot_manufacturer, item.snapshot_model, item.snapshot_description,
-      item.snapshot_unit, Number(item.snapshot_unit_cost), Number(item.quantity), Number(item.sale_unit_price)]);
+      item.snapshot_category ?? 'Outros', item.snapshot_unit, Number(item.snapshot_unit_cost), Number(item.quantity), Number(item.sale_unit_price)]);
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal_item', $2, 'duplicated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), newItemId, JSON.stringify({ sourceItemId: itemId }), JSON.stringify({ position: positionResult.rows[0]?.next_position ?? 1 })]);
+    logEvent('info', 'proposal.item_duplicated', { proposalId, sourceItemId: itemId, newItemId });
   });
 };
 
@@ -444,6 +460,7 @@ export const moveProposalItem = async (database: LocalDatabase, proposalId: stri
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal_item', $2, 'moved', $3::jsonb, $4::jsonb)
     `, [randomUUID(), itemId, JSON.stringify({ position: item.position }), JSON.stringify({ position: sibling.position })]);
+    logEvent('info', 'proposal.item_moved', { proposalId, itemId, direction });
   });
 };
 
@@ -469,6 +486,7 @@ export const updateProposalBdi = async (
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal', $2, 'bdi_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify({ bdiMultiplier: Number(proposal.bdi_multiplier) }), JSON.stringify({ bdiMultiplier })]);
+    logEvent('info', 'proposal.bdi_updated', { proposalId });
   });
 };
 
@@ -500,6 +518,7 @@ export const updateProposalDetails = async (
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal', $2, 'details_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify(before), JSON.stringify(next)]);
+    logEvent('info', 'proposal.details_updated', { proposalId });
   });
 };
 
@@ -521,10 +540,10 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
     const items = await transaction.query<{
       catalog_product_id: string | null; position: number; snapshot_code: string;
       snapshot_manufacturer: string | null; snapshot_model: string | null; snapshot_description: string;
-      snapshot_unit: string; snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
+      snapshot_category: string; snapshot_unit: string; snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
     }>(`
       SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
-        snapshot_description, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+        snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
       FROM proposal_items
       WHERE proposal_id = $1
       ORDER BY position
@@ -534,10 +553,10 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
       await transaction.query(`
         INSERT INTO proposal_items
           (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
-           snapshot_model, snapshot_description, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+           snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       `, [randomUUID(), newProposalId, item.catalog_product_id, item.position, item.snapshot_code,
-        item.snapshot_manufacturer, item.snapshot_model, item.snapshot_description, item.snapshot_unit,
+        item.snapshot_manufacturer, item.snapshot_model, item.snapshot_description, item.snapshot_category ?? 'Outros', item.snapshot_unit,
         Number(item.snapshot_unit_cost), Number(item.quantity), Number(item.sale_unit_price)]);
     }
 
@@ -546,6 +565,7 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
       INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
       VALUES ($1, 'proposal', $2, 'revision_created', $3::jsonb)
     `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision })]);
+    logEvent('info', 'proposal.revision_created', { sourceProposalId, newProposalId, revision });
     return newProposalId;
   });
 };
@@ -582,6 +602,7 @@ export const updateProposalContext = async (
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'proposal', $2, 'context_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify(current.rows[0] ?? null), JSON.stringify({ clientId, workId, clientName: context.client_name, workName: context.work_name })]);
+    logEvent('info', 'proposal.context_updated', { proposalId });
   });
 };
 
@@ -592,14 +613,20 @@ export const listProposalHistory = async (database: LocalDatabase, proposalId: s
   }>(`
     SELECT p.id, p.proposal_number, p.revision, p.status,
       count(i.id)::text AS item_count,
-      COALESCE(sum(i.quantity * i.sale_unit_price), 0)::text AS total_sale,
+      COALESCE(ROUND((
+        COALESCE((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 0)
+        + COALESCE((SELECT SUM(
+            pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
+            / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
+          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 0)
+      ) * p.bdi_multiplier, 2), 0)::text AS total_sale,
       u.name AS responsible_name, p.updated_at::text,
       p.revision = max(p.revision) OVER (PARTITION BY p.proposal_number) AS is_latest
     FROM proposals p
     JOIN proposals selected ON selected.id = $1 AND selected.proposal_number = p.proposal_number
     JOIN users u ON u.id = p.created_by
     LEFT JOIN proposal_items i ON i.proposal_id = p.id
-    GROUP BY p.id, u.name
+    GROUP BY p.id, u.name, p.bdi_multiplier
     ORDER BY p.revision DESC
   `, [proposalId]);
   return result.rows.map((revision) => ({
@@ -613,4 +640,219 @@ export const listProposalHistory = async (database: LocalDatabase, proposalId: s
     updatedAt: revision.updated_at,
     isLatest: revision.is_latest,
   }));
+};
+
+export const deleteProposal = async (
+  database: LocalDatabase,
+  proposalId: string,
+  mode: 'all' | 'revision' = 'all',
+): Promise<{ nextProposalId?: string }> => {
+  let nextProposalId: string | undefined;
+
+  await database.transaction(async (transaction) => {
+    const current = await transaction.query<{ proposal_number: string; revision: number }>(
+      'SELECT proposal_number, revision FROM proposals WHERE id = $1',
+      [proposalId],
+    );
+    const row = current.rows[0];
+    if (!row) throw new Error('PROPOSAL_NOT_FOUND');
+
+    if (mode === 'all') {
+      await transaction.query('DELETE FROM proposals WHERE proposal_number = $1', [row.proposal_number]);
+      logEvent('info', 'proposal.deleted_all', { proposalNumber: row.proposal_number });
+    } else {
+      await transaction.query('DELETE FROM proposals WHERE id = $1', [proposalId]);
+      logEvent('info', 'proposal.deleted_revision', { proposalId, proposalNumber: row.proposal_number, revision: row.revision });
+    }
+
+    const remaining = await transaction.query<{ id: string }>(`
+      SELECT id FROM proposals
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `);
+    nextProposalId = remaining.rows[0]?.id;
+  });
+
+  return { nextProposalId };
+};
+
+export const updateProposalStatus = async (
+  database: LocalDatabase,
+  proposalId: string,
+  status: ProposalDetail['status'],
+): Promise<ProposalDetail> => {
+  await database.transaction(async (transaction) => {
+    const current = await transaction.query<{ status: ProposalDetail['status'] }>(
+      'SELECT status FROM proposals WHERE id = $1',
+      [proposalId],
+    );
+    const row = current.rows[0];
+    if (!row) throw new Error('PROPOSAL_NOT_FOUND');
+
+    await transaction.query('UPDATE proposals SET status = $2, updated_at = now() WHERE id = $1', [proposalId, status]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal', $2, 'status_updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), proposalId, JSON.stringify({ status: row.status }), JSON.stringify({ status })]);
+    logEvent('info', 'proposal.status_updated', { proposalId, status });
+  });
+
+  const updated = await getProposalById(database, proposalId);
+  if (!updated) throw new Error('PROPOSAL_NOT_FOUND');
+  return updated;
+};
+
+export const cloneProposal = async (
+  database: LocalDatabase,
+  sourceProposalId: string,
+  input?: { clientId?: string; workId?: string; scope?: string },
+): Promise<string> => {
+  return database.transaction(async (transaction) => {
+    const userResult = await transaction.query<{ id: string }>('SELECT id FROM users ORDER BY created_at ASC LIMIT 1');
+    const userId = userResult.rows[0]?.id;
+    if (!userId) throw new Error('NO_USER_FOUND');
+
+    const sourceResult = await transaction.query<{
+      client_id: string; work_id: string; work_name: string;
+      snapshot_client_name: string; snapshot_work_name: string;
+      scope: string; bdi_multiplier: string; proposal_number: string;
+    }>(`
+      SELECT p.client_id, p.work_id, p.work_name, p.snapshot_client_name,
+        p.snapshot_work_name, p.scope, p.bdi_multiplier::text, p.proposal_number
+      FROM proposals p
+      WHERE p.id = $1
+    `, [sourceProposalId]);
+    const source = sourceResult.rows[0];
+    if (!source) throw new Error('PROPOSAL_NOT_FOUND');
+
+    const targetClientId = input?.clientId || source.client_id;
+    const targetWorkId = input?.workId || source.work_id;
+
+    const workResult = await transaction.query<{ client_name: string; work_name: string }>(`
+      SELECT c.trade_name AS client_name, w.name AS work_name
+      FROM works w
+      JOIN clients c ON c.id = w.client_id
+      WHERE w.id = $1 AND w.client_id = $2 AND w.active = true
+    `, [targetWorkId, targetClientId]);
+    const targetContext = workResult.rows[0];
+    if (!targetContext) throw new Error('WORK_NOT_FOUND');
+
+    const numberResult = await transaction.query<{ proposal_number: string }>(`
+      SELECT proposal_number
+      FROM proposals
+      WHERE proposal_number ~ '^PA-[0-9]+$'
+      ORDER BY substring(proposal_number from 4)::integer DESC
+      LIMIT 1
+    `);
+    const currentNumber = Number(numberResult.rows[0]?.proposal_number.slice(3) ?? 1000);
+    const newProposalNumber = `PA-${String(currentNumber + 1).padStart(4, '0')}`;
+    const newProposalId = randomUUID();
+
+    await transaction.query(`
+      INSERT INTO proposals
+        (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+         snapshot_work_name, scope, status, bdi_multiplier, created_by)
+      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9)
+    `, [
+      newProposalId,
+      newProposalNumber,
+      targetClientId,
+      targetWorkId,
+      targetContext.work_name,
+      targetContext.client_name,
+      input?.scope?.trim() || source.scope,
+      Number(source.bdi_multiplier),
+      userId,
+    ]);
+
+    const items = await transaction.query<{
+      catalog_product_id: string | null; position: number; snapshot_code: string;
+      snapshot_manufacturer: string | null; snapshot_model: string | null; snapshot_description: string;
+      snapshot_category: string; snapshot_unit: string; snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
+    }>(`
+      SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
+        snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+      FROM proposal_items
+      WHERE proposal_id = $1
+      ORDER BY position
+    `, [sourceProposalId]);
+
+    for (const item of items.rows) {
+      await transaction.query(`
+        INSERT INTO proposal_items
+          (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
+           snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `, [
+        randomUUID(),
+        newProposalId,
+        item.catalog_product_id,
+        item.position,
+        item.snapshot_code,
+        item.snapshot_manufacturer,
+        item.snapshot_model,
+        item.snapshot_description,
+        item.snapshot_category ?? 'Outros',
+        item.snapshot_unit,
+        Number(item.snapshot_unit_cost),
+        Number(item.quantity),
+        Number(item.sale_unit_price),
+      ]);
+    }
+
+    const laborItems = await transaction.query<{
+      position: number; description: string; professional_count: string; monthly_salary: string;
+      monthly_food: string; monthly_transport: string; monthly_other_costs: string;
+      standard_monthly_hours: string; planned_hours: string;
+    }>(`
+      SELECT position, description, professional_count::text, monthly_salary::text, monthly_food::text,
+        monthly_transport::text, monthly_other_costs::text, standard_monthly_hours::text, planned_hours::text
+      FROM proposal_labor_items
+      WHERE proposal_id = $1
+      ORDER BY position
+    `, [sourceProposalId]);
+
+    for (const lItem of laborItems.rows) {
+      await transaction.query(`
+        INSERT INTO proposal_labor_items
+          (id, proposal_id, position, description, professional_count, monthly_salary, monthly_food,
+           monthly_transport, monthly_other_costs, standard_monthly_hours, planned_hours)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `, [
+        randomUUID(),
+        newProposalId,
+        lItem.position,
+        lItem.description,
+        Number(lItem.professional_count),
+        Number(lItem.monthly_salary),
+        Number(lItem.monthly_food),
+        Number(lItem.monthly_transport),
+        Number(lItem.monthly_other_costs),
+        Number(lItem.standard_monthly_hours),
+        Number(lItem.planned_hours),
+      ]);
+    }
+
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
+      VALUES ($1, 'proposal', $2, 'cloned', $3::jsonb)
+    `, [
+      randomUUID(),
+      newProposalId,
+      JSON.stringify({
+        sourceProposalId,
+        sourceProposalNumber: source.proposal_number,
+        newProposalNumber,
+      }),
+    ]);
+
+    logEvent('info', 'proposal.cloned', {
+      sourceProposalId,
+      newProposalId,
+      sourceProposalNumber: source.proposal_number,
+      newProposalNumber,
+    });
+
+    return newProposalId;
+  });
 };

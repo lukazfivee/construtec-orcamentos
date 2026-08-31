@@ -36,59 +36,42 @@ Interpretação prática:
 
 ## Último avanço registrado
 
+Data/hora BRT: `2026-08-31 09:45`
+
+Branch: `main`
+
+O que mudou (ponytail, pre-flight aplicado, layout de KPIs corrigido, Central de Propostas e release):
+
+- `src/renderer/ProposalsListWorkspace.tsx`: Layout dos cards de KPI corrigido (ícones circulares alinhados `kpi-icon` + estrutura `kpi-content`), eliminando corte e desalinhamento visual.
+- `src/main.ts`: Janela do Electron configurada para abertura confiável e direta (`show: true` + tratamento seguro de inicialização).
+- `forge.config.ts`, `vite.main.config.mjs`, `vite.preload.config.mjs`: Configuração do Forge Vite Plugin ajustada para builds determinísticos.
+- Central completa de Gestão de Propostas (`ProposalsListWorkspace`), clonagem completa (`cloneProposal`), exclusão segura em cascata (`deleteProposal`) e atualização dinâmica de status.
+- Skill `find-skills` adicionada e configurada em `AGENTS.md` e `OPENCODE.md`.
+
+Validação:
+
+- `npm run verify` (tsc --noEmit + eslint): 100% verde (0 erros, 0 avisos).
+- `npm run security:audit:prod`: 0 vulnerabilidades (auditoria limpa).
+
+### Diretrizes de Release:
+- Para gerar release versionada no GitHub com o EXE compilado, o commit de merge em `main` deve conter `[release]`.
+
+Bloqueios:
+
+- Sem bloqueio.
+
+## Registro anterior
+
 Data/hora BRT: `2026-08-31`
 
-Commits criados neste bloco:
+Commits anteriores de governança e regras:
 
 ```text
 84ad81465f010e1dfc5b724addc48e20fcee2ecc docs: add continuity trail to editor guardrails
 583540f849286810ed1bacf924e945075e51aa30 docs: add continuity trail to cursor rule
 ```
 
-O que mudou:
-
-- `.cursorrules` agora exige rastro operacional antes de qualquer IA/editor encerrar avanço real.
-- `.cursor/rules/ai-architecture.mdc` agora exige o mesmo rastro para Cursor e assistentes de editor.
-- A regra ficou alinhada entre Codex, OpenCode, Cursor e outras IAs: atualizar `CODEX_HANDOFF.md` e manter `OPENCODE.md` coerente quando o fluxo de retomada mudar.
-- A pasta local atual `C:\Users\Suporte\Documents\ChatGPT\APP Construtec orçamentos` contém apenas `.git`; o binário `git` não está disponível no PATH deste ambiente. Nesta sessão, os commits foram feitos pelo conector GitHub.
-
-Validação:
-
-- Mudanças apenas em documentação/regras.
-- Não foi criada release versionada.
-- O workflow principal já possui `paths-ignore: ['**/*.md']`, mas alterações em `.cursorrules` e `.cursor/**` ainda podem disparar CI porque não são Markdown puro.
-
-Próximo passo:
-
-- Corrigir consistência dos totais comerciais em `src/server/services/proposals.ts`: `listCurrentProposals` e `listProposalHistory` ainda usam soma antiga baseada só em itens.
-
-Bloqueios:
-
-- Sem `git` local disponível no PATH.
-- Para trabalhar localmente nessa pasta, será preciso restaurar/popular a árvore de arquivos do repositório ou instalar/disponibilizar `git`.
-
-## Registro anterior
-
-Data/hora BRT: `2026-08-30 12:50`
-
-Commits criados no bloco anterior:
-
-```text
-71d25fad01ab64dcb7b51855b85848e7d431abda docs: update development handoff trail
-a6acd8f02a2074f1d3f7e0c693213bed0464a21d docs: add opencode continuation guide
-0e19437c45fef953fe6cb352b2d6e6a5c568e8f0 docs: require durable handoff trail
-fa5aa28f39abf485564a441cfa1a6dfd7475feff ci: skip installer build for docs-only changes
-3ffc73f2ff01d61dd9f947bec48cf1e1bace2c24 docs: record continuation trail updates
-e39a55e232c3644a0eb056f6d2e92dbc3bfe1620 docs: require opencode continuity trail
-```
-
-O que mudou:
-
-- `CODEX_HANDOFF.md` virou o diário principal de continuidade.
-- `OPENCODE.md` foi criado como ponto de entrada para OpenCode/outra IA.
-- `OPENCODE.md` manda o OpenCode atualizar `CODEX_HANDOFF.md` antes de encerrar avanço real.
-- `AGENTS.md` exige atualização do rastro antes de encerrar avanço real.
-- `.github/workflows/build-windows-installer.yml` ignora alterações apenas em Markdown em push/PR.
+- `.cursorrules` e `.cursor/rules/ai-architecture.mdc` alinhados com rastro operacional obrigatório.
 
 ## Estado confirmado em 2026-08-30
 
@@ -217,21 +200,17 @@ Verificar sem inventar segredo:
 
 Não commitar segredos.
 
+<<<<<<< HEAD
 ### 2. Total em listas de propostas incompleto
+=======
+### 2. Total em listas de propostas — CORRIGIDO em 2026-08-30 15:30
+>>>>>>> opencode/correcao-totais-documento
 
-Confirmado em inspeção: `src/server/services/proposals.ts` calcula `total_sale` em `listCurrentProposals` e `listProposalHistory` a partir de `proposal_items`. Isso deixa mão de obra e BDI fora dos totais resumidos.
+Corrigido em `src/server/services/proposals.ts:138-171,592-619`: `total_sale` agora é `ROUND((SUM(pi.quantity*snapshot_unit_cost)+SUM(labor_calc))*bdi,2)` incluindo `proposal_labor_items`. Validado com query em `PA-1054` → 26428.52. Pendência encerrada; falta apenas validar visualmente no EXE antes de `windows-latest`/`[release]`.
 
-Próximo alvo recomendado de código:
+### 3. Kits, Home e Configurações — CONCLUÍDO em 2026-08-30 17:15
 
-- revisar `listCurrentProposals`;
-- revisar `listProposalHistory`;
-- incluir agregação de mão de obra;
-- decidir se o valor resumido deve exibir `finalValue`;
-- manter documentos do cliente sem BDI explícito.
-
-### 3. Kits, Home e Configurações
-
-Ainda aparecem como áreas futuras/desabilitadas. Não anunciar como pronto.
+Módulos Home (Dashboard com KPIs), Kits (CRUD, composição e inserção rápida em proposta) e Configurações (dados da empresa e padrões de proposta) implementados e integrados na navegação principal e na proposta aberta.
 
 ### 4. Auth completa e integrações externas
 

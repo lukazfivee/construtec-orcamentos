@@ -38,7 +38,7 @@ const createWindow = async () => {
     minWidth: 1280,
     minHeight: 720,
     backgroundColor: '#fefefe',
-    show: false,
+    show: true,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -48,20 +48,22 @@ const createWindow = async () => {
     },
   });
 
-  if (!app.isPackaged) {
-    mainWindow.webContents.on('did-fail-load', (_event, code, description) => {
-      console.error(`Falha ao carregar o renderer (${code}): ${description}`);
-    });
-  }
+  mainWindow.webContents.on('did-fail-load', (_event, code, description) => {
+    console.error(`Falha ao carregar o renderer (${code}): ${description}`);
+  });
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  const devUrl = typeof MAIN_WINDOW_VITE_DEV_SERVER_URL !== 'undefined' ? MAIN_WINDOW_VITE_DEV_SERVER_URL : undefined;
+  const rendererName = typeof MAIN_WINDOW_VITE_NAME !== 'undefined' ? MAIN_WINDOW_VITE_NAME : 'main_window';
+
+  if (devUrl) {
+    await mainWindow.loadURL(devUrl);
   } else {
     await mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+      path.join(__dirname, `../renderer/${rendererName}/index.html`),
     );
   }
   mainWindow.show();
+  mainWindow.focus();
 };
 
 app.whenReady().then(async () => {
