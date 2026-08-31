@@ -43,10 +43,10 @@ Branch: `main`
 Commit:
 
 ```text
-80757ea fix: self-heal settings storage [release]
+f116565 fix: self-heal settings storage [release]
 ```
 
-Status: commit local criado; aguardando push e release.
+Status: commit/push concluído no GitHub; release em processamento.
 
 O que mudou:
 
