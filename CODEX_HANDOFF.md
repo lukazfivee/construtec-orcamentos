@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 16:34 BRT`
+Última atualização deste rastro: `2026-08-31 16:46 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,7 +36,7 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 16:34`
+Data/hora BRT: `2026-08-31 16:46`
 
 Branch: `main`
 
@@ -45,6 +45,7 @@ Commit:
 ```text
 0cddbfc fix: fit window to available display [release]
 11db582 fix: keep home content within viewport [release]
+6f5252b fix: remove global viewport overflow [release]
 ```
 
 O que mudou:
@@ -74,16 +75,21 @@ Validação:
 - Workflows `33430581324`, `33430581368` e `33430581315`: `success`.
 - `build-153` instalado com exit code `0`; teste visual confirmou que o tamanho da janela foi corrigido, mas o mínimo global do `body` ainda cortava a Home.
 - `npm run verify`: sucesso após remover o mínimo global.
+- Release `build-154` publicada para `6f5252b`; SHA256 `6e50f461db5dabde304b8e194a59af91de50cf7e834161c8f9d772bd0a4903e5`.
+- Workflows `33431404871`, `33431404861` e `33431404859`: `success`.
+- `build-154` instalado com exit code `0`.
+- Validação visual final em tela física `1920x1080`, escala do Windows `150%` (`1280x720` lógico): Home e editor de Propostas cabem integralmente na área útil; scroll permanece apenas nos painéis/tabelas esperados.
+- Capturas anteriores de `1280x720` eram DPI-virtualizadas pelo PowerShell e mostravam apenas parte da tela física; captura final DPI correta confirmou layout aprovado.
 
 Próximo passo:
 
-1. Publicar correção final do viewport com `[release]`.
-2. Instalar o novo EXE em `1280x720`.
-3. Confirmar que KPIs e ações rápidas não ficam cortados.
+1. Validar criação/inserção de kit em proposta ativa.
+2. Conferir total comercial: materiais + mão de obra + BDI.
+3. Exportar PDF/Word e confirmar ausência de custos, salários, BDI detalhado e margem interna.
 
 Bloqueios:
 
-- Sem bloqueio de código; validação final da Home depende do próximo instalador.
+- Sem bloqueio.
 
 ## Registro anterior
 

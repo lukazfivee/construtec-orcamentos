@@ -77,7 +77,7 @@ Regras:
 
 ## Próximo alvo atual
 
-Ver `CODEX_HANDOFF.md`. Último avanço: janela respeita a área útil e o mínimo global que causava overflow em escala do Windows foi removido. Próximo alvo: publicar novo EXE e validar Home em `1280x720`.
+Ver `CODEX_HANDOFF.md`. Último avanço: `build-154` validada em tela com escala do Windows; Home e Propostas cabem integralmente. Próximo alvo: validar kit, total comercial e exportações PDF/Word sem dados internos.
 
 ## Regra de rastro para OpenCode e outras IAs
 
