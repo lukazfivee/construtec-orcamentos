@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 10:10 BRT`
+Última atualização deste rastro: `2026-08-31 10:15 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,7 +36,7 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 10:10`
+Data/hora BRT: `2026-08-31 10:15`
 
 Branch: `main`
 
@@ -46,7 +46,7 @@ Commit:
 47e171f fix: repair app layouts [release]
 ```
 
-Status: commit/push concluído no GitHub. Workflow de release deve iniciar a partir do commit `47e171f`.
+Status: commit/push concluído no GitHub. Release `build-147` publicada e EXE baixado.
 
 O que mudou:
 
@@ -60,12 +60,28 @@ Validação:
 
 - `npm run verify`: sucesso local em 2026-08-31 10:06 BRT.
 - `npm run verify`: sucesso local novamente após reancorar a pasta no `origin/main`.
+- Workflow `Gerar instalador do Windows` run `33395546510`: `success`.
+- Jobs do workflow:
+  - `Validar e gerar instalador`: `success`.
+  - `Assinar e publicar instalador`: `success`.
+- Release versionada criada: `build-147`.
+- `windows-latest` atualizado para target `47e171f6d54a8d78108877731f5b31a60134f990`.
+- EXE baixado em `C:\Users\Suporte\Downloads\Construtec-Orcamentos-Setup.exe`.
+- SHA256 GitHub/local confirmado: `c471533cc3fa28c44d874693f88fd6d826f01a57b872e88a24a92a3b4cfe9463`.
+
+Links úteis:
+
+- Release versionada: `https://github.com/lukazfivee/construtec-orcamentos/releases/tag/build-147`
+- EXE versionado: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/build-147/Construtec-Orcamentos-Setup.exe`
+- EXE fixo: `https://github.com/lukazfivee/construtec-orcamentos/releases/download/windows-latest/Construtec-Orcamentos-Setup.exe`
+- Workflow: `https://github.com/lukazfivee/construtec-orcamentos/actions/runs/33395546510`
 
 Próximo passo:
 
-1. Aguardar workflow `Gerar instalador do Windows`.
-2. Baixar novo `Construtec-Orcamentos-Setup.exe`.
-3. Validar visualmente Central, Kits, Mão de obra e modal de exclusão.
+1. Instalar/testar visualmente o EXE baixado.
+2. Validar Central de Propostas: header, botões, KPIs, filtros e tabela.
+3. Validar aba Kits dentro da proposta: painel deve ocupar toda a altura útil.
+4. Validar modal de exclusão: deve abrir centralizado, sobre o app inteiro.
 
 Bloqueios:
 
