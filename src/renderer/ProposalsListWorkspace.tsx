@@ -195,38 +195,38 @@ export function ProposalsListWorkspace({
 
       <div className="home-body">
         {/* KPI Mini-Bar */}
-        <section className="kpi-grid">
-          <div className="kpi-card">
-            <div className="kpi-card-header">
-              <span className="kpi-card-title">Total de Orçamentos</span>
-              <span className="kpi-card-icon" style={{ background: '#eff5ff', color: '#085ce5' }}>
-                <FileText size={18} />
-              </span>
+        <section className="kpi-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+          <div className="kpi-card highlight-blue">
+            <div className="kpi-icon">
+              <FileText size={22} />
             </div>
-            <div className="kpi-card-value">{stats.totalCount}</div>
-            <div className="kpi-card-sub">Registros cadastrados no banco local</div>
+            <div className="kpi-content">
+              <span>Total de Orçamentos</span>
+              <strong>{stats.totalCount}</strong>
+              <small>Registros no banco local</small>
+            </div>
           </div>
 
           <div className="kpi-card">
-            <div className="kpi-card-header">
-              <span className="kpi-card-title">Em Negociação</span>
-              <span className="kpi-card-icon" style={{ background: '#fffbeb', color: '#b45309' }}>
-                <Clock size={18} />
-              </span>
+            <div className="kpi-icon" style={{ background: '#fffbeb', color: '#b45309' }}>
+              <Clock size={22} />
             </div>
-            <div className="kpi-card-value">{money.format(stats.inNegotiation)}</div>
-            <div className="kpi-card-sub">Propostas em edição, revisão ou enviadas</div>
+            <div className="kpi-content">
+              <span>Em Negociação</span>
+              <strong>{money.format(stats.inNegotiation)}</strong>
+              <small>Edição, revisão ou enviadas</small>
+            </div>
           </div>
 
-          <div className="kpi-card">
-            <div className="kpi-card-header">
-              <span className="kpi-card-title">Propostas Aprovadas</span>
-              <span className="kpi-card-icon" style={{ background: '#ecfdf5', color: '#047857' }}>
-                <CheckCircle2 size={18} />
-              </span>
+          <div className="kpi-card highlight-green">
+            <div className="kpi-icon">
+              <CheckCircle2 size={22} />
             </div>
-            <div className="kpi-card-value">{money.format(stats.approved)}</div>
-            <div className="kpi-card-sub">Obras com fechamento confirmado</div>
+            <div className="kpi-content">
+              <span>Propostas Aprovadas</span>
+              <strong>{money.format(stats.approved)}</strong>
+              <small>Fechamento confirmado</small>
+            </div>
           </div>
         </section>
 

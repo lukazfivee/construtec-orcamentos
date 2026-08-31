@@ -36,28 +36,25 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 21:55`
+Data/hora BRT: `2026-08-31 09:45`
 
-Branch: `codex/settings-home-rate-limit` (commit pronto e testado).
+Branch: `opencode/correcao-totais-documento`
 
-O que mudou (ponytail, pre-flight aplicado, clonagem & gestão avançada de propostas):
+O que mudou (ponytail, pre-flight aplicado, layout de KPIs corrigido, Central de Propostas e release):
 
-- `src/server/services/proposals.ts:cloneProposal` (novo) — Duplicação completa de propostas para um novo número sequencial oficial (`PA-XXXX`), clonando todos os itens de catálogo, composições de mão de obra (`proposal_labor_items`), multiplicador BDI e escopo original, com registro de auditoria `proposal.cloned`.
-- `src/server/routes/proposals.ts` — Novo endpoint `POST /api/proposals/:proposalId/clone` com validação de cliente/obra opcionais.
-- `src/renderer/api.ts` — Método `proposalApi.clone(proposalId, input)`.
-- `src/renderer/ProposalsListWorkspace.tsx` — Adicionado botão de ação rápida "Clonar" na tabela de orçamentos com abertura direta da nova proposta gerada.
-- `src/renderer/App.tsx` — Adicionado botão "Clonar proposta" na barra lateral de ações comerciais da Mesa Operacional.
-- Central completa de Gestão de Propostas (`ProposalsListWorkspace`), exclusão segura em cascata (`deleteProposal`) e atualização dinâmica de status mantidas e 100% integradas.
+- `src/renderer/ProposalsListWorkspace.tsx`: Layout dos cards de KPI corrigido (ícones circulares alinhados `kpi-icon` + estrutura `kpi-content`), eliminando corte e desalinhamento visual.
+- `src/main.ts`: Janela do Electron configurada para abertura confiável e direta (`show: true` + tratamento seguro de inicialização).
+- `forge.config.ts`, `vite.main.config.mjs`, `vite.preload.config.mjs`: Configuração do Forge Vite Plugin ajustada para builds determinísticos.
+- Central completa de Gestão de Propostas (`ProposalsListWorkspace`), clonagem completa (`cloneProposal`), exclusão segura em cascata (`deleteProposal`) e atualização dinâmica de status.
+- Skill `find-skills` adicionada e configurada em `AGENTS.md` e `OPENCODE.md`.
 
 Validação:
 
 - `npm run verify` (tsc --noEmit + eslint): 100% verde (0 erros, 0 avisos).
-- `npm run security:audit:prod`: 0 vulnerabilidades (auditoria de produção limpa).
+- `npm run security:audit:prod`: 0 vulnerabilidades (auditoria limpa).
 
-### Diretrizes para a IA 1 (OpenCode) enquanto esta etapa é concluída:
-1. **Foco exclusivo**: Ajuste fino de layout/CSS e responsividade no `ProposalKitsPanel.tsx` (corrigir o corte/truncamento de layout na aba Kits da Mesa Operacional).
-2. **Não alterar**: Estrutura de rotas de `proposals.ts`, `settings.ts` ou `ProposalsListWorkspace.tsx`.
-3. **Próximo passo conjunto**: Assim que o painel de Kits estiver com layout 100% polido, faremos o merge e o build final do instalador Windows (`npm run make:windows`).
+### Diretrizes de Release:
+- Para gerar release versionada no GitHub com o EXE compilado, o commit de merge em `main` deve conter `[release]`.
 
 Bloqueios:
 
