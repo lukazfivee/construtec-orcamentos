@@ -77,7 +77,7 @@ Regras:
 
 ## Próximo alvo atual
 
-Ver `CODEX_HANDOFF.md`. Último avanço: correção do tamanho inicial da janela para respeitar a área útil da tela. Próximo alvo: publicar release, instalar o novo EXE e validar o layout em `1280x720`.
+Ver `CODEX_HANDOFF.md`. Último avanço: janela respeita a área útil e Home permite quebra das ações rápidas. Próximo alvo: publicar novo EXE e validar KPIs/ações em `1280x720`.
 
 ## Regra de rastro para OpenCode e outras IAs
 

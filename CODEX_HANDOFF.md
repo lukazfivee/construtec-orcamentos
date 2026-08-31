@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 16:12 BRT`
+Última atualização deste rastro: `2026-08-31 16:25 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,16 +36,22 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 16:12`
+Data/hora BRT: `2026-08-31 16:25`
 
 Branch: `main`
 
-Commit: pendente.
+Commit:
+
+```text
+0cddbfc fix: fit window to available display [release]
+```
 
 O que mudou:
 
 - `src/main.ts`: janela principal agora limita `width`, `height`, `minWidth` e `minHeight` à `workAreaSize` da tela primária.
 - Causa raiz: `build-151` abria sempre em `1536x1024`; em tela `1280x720`, parte direita e inferior ficava fora da área visível.
+- `src/index.css`: `home-body` recebeu `min-width: 0` e a barra de ações rápidas agora permite quebra de linha.
+- Segunda causa confirmada no `build-152`: barra sem quebra aumentava a largura intrínseca da Home e cortava KPIs/ações à direita.
 - Patch mínimo, sem dependência nova e sem mudar frontend, banco, API ou documentos.
 - API `screen.getPrimaryDisplay().workAreaSize` confirmada na documentação atual do Electron via Context7.
 
@@ -57,16 +63,21 @@ Validação:
 - Reprodução visual em `1280x720`: janela de `1536x1024` excede a tela.
 - `npm run verify`: sucesso após o patch.
 - `npm start`: bundle do processo principal não concluiu no teste local e foi interrompido; sem erro de TypeScript/ESLint. Validar no instalador gerado pelo CI.
+- Release `build-152` publicada para `0cddbfc`; SHA256 `9c764252bd5bfc89ac829e37f367a4a5cf799044593f65086488d3eafb2f5e4a`.
+- `build-152` instalado com exit code `0`; janela medida em `1280x672`, exatamente igual à área útil da tela.
+- Workflow `Gerar instalador do Windows` run `33429423941`: `success`.
+- Workflow `Build Windows Installer` run `33429423959`: `success`.
+- Workflow `Auditoria de segurança` run `33429423974`: `success`.
 
 Próximo passo:
 
-1. Criar commit `[release]`, publicar e confirmar workflow/release.
+1. Publicar patch responsivo da Home com `[release]`.
 2. Instalar o novo EXE em `1280x720`.
-3. Confirmar que janela cabe integralmente na área útil e que Home/Propostas permanecem navegáveis.
+3. Confirmar que KPIs e ações rápidas não ficam cortados.
 
 Bloqueios:
 
-- Sem bloqueio de código; validação final depende do novo instalador.
+- Sem bloqueio de código; validação final da Home depende do próximo instalador.
 
 ## Registro anterior
 

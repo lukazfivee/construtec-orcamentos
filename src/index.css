@@ -499,6 +499,7 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
   min-height: 0;
   padding: 24px;
   overflow-y: auto;
@@ -581,6 +582,7 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .quick-actions-bar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 12px 18px;
   background: #fff;
