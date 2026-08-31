@@ -641,3 +641,63 @@ export const listProposalHistory = async (database: LocalDatabase, proposalId: s
     isLatest: revision.is_latest,
   }));
 };
+
+export const deleteProposal = async (
+  database: LocalDatabase,
+  proposalId: string,
+  mode: 'all' | 'revision' = 'all',
+): Promise<{ nextProposalId?: string }> => {
+  let nextProposalId: string | undefined;
+
+  await database.transaction(async (transaction) => {
+    const current = await transaction.query<{ proposal_number: string; revision: number }>(
+      'SELECT proposal_number, revision FROM proposals WHERE id = $1',
+      [proposalId],
+    );
+    const row = current.rows[0];
+    if (!row) throw new Error('PROPOSAL_NOT_FOUND');
+
+    if (mode === 'all') {
+      await transaction.query('DELETE FROM proposals WHERE proposal_number = $1', [row.proposal_number]);
+      logEvent('info', 'proposal.deleted_all', { proposalNumber: row.proposal_number });
+    } else {
+      await transaction.query('DELETE FROM proposals WHERE id = $1', [proposalId]);
+      logEvent('info', 'proposal.deleted_revision', { proposalId, proposalNumber: row.proposal_number, revision: row.revision });
+    }
+
+    const remaining = await transaction.query<{ id: string }>(`
+      SELECT id FROM proposals
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `);
+    nextProposalId = remaining.rows[0]?.id;
+  });
+
+  return { nextProposalId };
+};
+
+export const updateProposalStatus = async (
+  database: LocalDatabase,
+  proposalId: string,
+  status: ProposalDetail['status'],
+): Promise<ProposalDetail> => {
+  await database.transaction(async (transaction) => {
+    const current = await transaction.query<{ status: ProposalDetail['status'] }>(
+      'SELECT status FROM proposals WHERE id = $1',
+      [proposalId],
+    );
+    const row = current.rows[0];
+    if (!row) throw new Error('PROPOSAL_NOT_FOUND');
+
+    await transaction.query('UPDATE proposals SET status = $2, updated_at = now() WHERE id = $1', [proposalId, status]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+      VALUES ($1, 'proposal', $2, 'status_updated', $3::jsonb, $4::jsonb)
+    `, [randomUUID(), proposalId, JSON.stringify({ status: row.status }), JSON.stringify({ status })]);
+    logEvent('info', 'proposal.status_updated', { proposalId, status });
+  });
+
+  const updated = await getProposalById(database, proposalId);
+  if (!updated) throw new Error('PROPOSAL_NOT_FOUND');
+  return updated;
+};

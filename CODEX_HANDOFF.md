@@ -36,36 +36,28 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 17:15`
+Data/hora BRT: `2026-08-30 21:50`
 
-Branch local: `opencode/kits-home-settings` (alterações em `C:\Users\Suporte\Documents\Default Project`).
+Branch: `codex/settings-home-rate-limit` (commit pronto e testado).
 
-O que mudou (ponytail, pre-flight aplicado):
+O que mudou (ponytail, pre-flight aplicado, funções avançadas de propostas):
 
-- `src/server/migrations/007-kits-and-settings.ts` (novo) — Migração 007 com tabelas `kits`, `kit_items` e `app_settings` com índices.
-- `src/server/services/database.ts` — Registro da migração 007 no array de migrações.
-- `src/shared/contracts.ts` — Contratos tipados compartilhados para `KitSummary`, `KitDetail`, `KitInput`, `KitItemSummary`, `AppSettings`, `DashboardMetrics`.
-- `src/server/services/kits.ts` (novo) — Listagem, CRUD, cálculo de custo estimado e aplicação de kits na proposta aberta (com snapshot comercial congelado e BDI da revisão).
-- `src/server/services/settings.ts` (novo) — Obtenção e atualização das configurações da empresa e parâmetros padrão de orçamentos.
-- `src/server/services/dashboard.ts` (novo) — Agregação de métricas (valores em negociação, aprovados, contagens e propostas recentes).
-- `src/server/routes/kits.ts`, `settings.ts`, `dashboard.ts` (novos) — Rotas Express locais validadas via Zod com tratamento de erros `KIT_NAME_DUPLICATE` e `KIT_EMPTY`.
-- `src/server/createApp.ts` — Registro das novas rotas e permissão de métodos RESTful completos (GET, POST, PATCH, PUT, DELETE, OPTIONS).
-- `src/renderer/api.ts` — Implementação dos clientes `kitsApi`, `settingsApi`, `dashboardApi`.
-- `src/renderer/HomeWorkspace.tsx` (novo) — Dashboard executivo: 4 cards de KPIs comerciais, barra de ações rápidas, tabela de propostas recentes com abertura direta e badge de status do PGlite.
-- `src/renderer/KitsWorkspace.tsx` (novo) — Gestão visual de kits, composição de produtos via busca no catálogo, cálculo em tempo real e botão de inserção direta na proposta aberta.
-- `src/renderer/SettingsWorkspace.tsx` (novo) — Gestão de dados cadastrais da Construtec para PDF/Word e padrões de orçamento (BDI, horas mão de obra, validade, responsável).
-- `src/renderer/ProposalKitsPanel.tsx` (novo) — Painel da aba "Kits" integrada à mesa operacional da proposta aberta.
-- `src/renderer/App.tsx` — Habilitação de todos os 6 módulos na navegação (`Início`, `Propostas`, `Catálogo`, `Clientes`, `Kits`, `Configurações`) e ativação da aba "Kits" nas propostas.
-- `src/index.css` — Estilização moderna e consistente dos novos painéis seguindo o design system da Mesa Operacional.
+- `src/renderer/ProposalsListWorkspace.tsx` (novo) — Central completa de Gestão de Propostas: busca em tempo real por número/cliente/obra, filtros dinâmicos por status (Em edição, Em revisão, Enviadas, Aprovadas, Recusadas), ordenação multidirecional, mini-banner de KPIs (total em carteira / aprovados), abertura rápida na mesa e exclusão com modal de confirmação.
+- `src/server/services/proposals.ts` — Implementadas as funções `deleteProposal` (exclusão segura de todas as revisões/itens em cascata com log de auditoria e seleção automática da próxima proposta ativa) e `updateProposalStatus` (transição auditada de status da proposta).
+- `src/server/routes/proposals.ts` — Adicionados endpoints `DELETE /api/proposals/:proposalId` e `PATCH /api/proposals/:proposalId/status` validados via Zod (`statusSchema`).
+- `src/renderer/api.ts` — Métodos `proposalApi.delete(id, mode)` e `proposalApi.updateStatus(id, status)`.
+- `src/renderer/App.tsx` — Alternância fluida entre a Mesa Operacional de Edição e a Central de Propostas (`proposalViewMode: 'editor' | 'list'`), seletor de status em tempo real no cabeçalho da proposta e botão de exclusão com modal de confirmação na barra lateral comercial.
+- `src/index.css` — Estilização refinada para a tabela de propostas, chips de filtro com contadores, botões de ação e modal de exclusão perigosa.
 
 Validação:
 
-- `npm run verify` (tsc + eslint) passou limpo com 0 erros e 0 warnings.
-- Preservação rigorosa de privacidade comercial (sem vazamento de BDI/custos internos em rotas públicas ou exportações).
+- `npm run verify` (tsc --noEmit + eslint): 100% verde (0 erros, 0 avisos).
+- `npm run security:audit:prod`: 0 vulnerabilidades (auditoria de produção limpa).
 
-Próximo passo:
-
-- Testar / gerar instalador Windows (`npm run make:windows`) e validar fluxo completo de criação e exportação.
+### Diretrizes para a IA 1 (OpenCode) enquanto esta etapa é concluída:
+1. **Foco exclusivo**: Ajuste fino de layout/CSS e responsividade no `ProposalKitsPanel.tsx` (corrigir o corte/truncamento de layout na aba Kits da Mesa Operacional).
+2. **Não alterar**: Estrutura de rotas de `proposals.ts`, `settings.ts` ou `ProposalsListWorkspace.tsx`.
+3. **Próximo passo conjunto**: Assim que o painel de Kits estiver com layout 100% polido, faremos o merge e o build final do instalador Windows (`npm run make:windows`).
 
 Bloqueios:
 

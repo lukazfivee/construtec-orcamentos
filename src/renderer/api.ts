@@ -51,6 +51,12 @@ export const proposalApi = {
     '/api/proposals', { method: 'POST', body: JSON.stringify(input) },
   ),
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
+  delete: (proposalId: string, mode: 'all' | 'revision' = 'all') => request<{ success: boolean; nextProposalId?: string }>(
+    `/api/proposals/${proposalId}?mode=${mode}`, { method: 'DELETE' },
+  ),
+  updateStatus: (proposalId: string, status: ProposalDetail['status']) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) },
+  ),
   history: (proposalId: string) => request<{ revisions: ProposalRevisionSummary[] }>(`/api/proposals/${proposalId}/history`),
   createRevision: (proposalId: string) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/revisions`, { method: 'POST' },

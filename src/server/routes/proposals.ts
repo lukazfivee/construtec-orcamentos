@@ -5,6 +5,7 @@ import {
   addProductToProposal,
   createProposal,
   createProposalRevision,
+  deleteProposal,
   duplicateProposalItem,
   getCurrentProposal,
   getProposalById,
@@ -16,6 +17,7 @@ import {
   updateProposalContext,
   updateProposalDetails,
   updateProposalItem,
+  updateProposalStatus,
 } from '../services/proposals';
 import {
   copyProposalLabor,
@@ -66,6 +68,10 @@ const laborSchema = z.object({
 });
 const standardHoursSchema = z.object({ standardMonthlyHours: z.number().positive().max(1_000) });
 
+const statusSchema = z.object({
+  status: z.enum(['draft', 'review', 'sent', 'approved', 'rejected']),
+});
+
 export const createProposalsRouter = (database: LocalDatabase) => {
   const router = Router();
 
@@ -89,6 +95,24 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = await createProposal(database, createProposalSchema.parse(request.body));
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.delete('/:proposalId', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const mode = request.query.mode === 'revision' ? 'revision' : 'all';
+      const result = await deleteProposal(database, proposalId, mode);
+      response.json({ success: true, ...result });
+    } catch (error) { next(error); }
+  });
+
+  router.patch('/:proposalId/status', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const { status } = statusSchema.parse(request.body);
+      const proposal = await updateProposalStatus(database, proposalId, status);
+      response.json({ proposal });
     } catch (error) { next(error); }
   });
 
