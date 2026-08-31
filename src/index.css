@@ -19,6 +19,8 @@
   --surface: #fefefe;
   --surface-subtle: #f7f8fa;
   --focus: #2f7cf4;
+  --ink-secondary: #465268;
+  --shadow-sm: 0 1px 3px rgba(18, 32, 54, .05);
 }
 
 * { box-sizing: border-box; }
@@ -48,6 +50,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); out
 
 .topbar {
   grid-column: 1 / -1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   min-width: 0;
@@ -108,7 +111,7 @@ kbd {
 .profile > span { display: grid; place-items: center; width: 29px; height: 29px; font-size: 11px; font-weight: 700; background: #445169; border-radius: 50%; }
 .profile b { font-size: 12px; font-weight: 500; }
 
-.sidebar { display: flex; flex-direction: column; min-height: 0; color: var(--nav-muted); background: var(--nav); }
+.sidebar { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; color: var(--nav-muted); background: var(--nav); }
 .sidebar nav { flex: 1; padding-top: 10px; }
 .sidebar nav button, .collapse { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; width: 100%; height: 82px; padding: 8px; color: inherit; background: transparent; border: 0; cursor: pointer; }
 .sidebar nav button span, .collapse span { font-size: 12px; }
@@ -117,7 +120,7 @@ kbd {
 .sidebar nav button.active::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--blue); }
 .collapse { flex-direction: row; height: 48px; gap: 4px; color: #c7cfda; border-top: 1px solid #2b3a50; }
 
-.workspace { display: grid; grid-template: 45px minmax(0, 1fr) / minmax(760px, 1fr) 284px; min-width: 0; min-height: 0; background: var(--surface); }
+.workspace { grid-column: 2; grid-row: 2; display: grid; grid-template: 45px minmax(0, 1fr) / minmax(760px, 1fr) 284px; min-width: 0; min-height: 0; overflow: hidden; background: var(--surface); }
 .proposal-tabs { grid-column: 1 / -1; display: flex; height: 45px; min-width: 0; background: #fafbfc; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .proposal-tabs button { position: relative; display: flex; align-items: center; gap: 20px; min-width: 170px; height: 100%; padding: 0 22px; font-size: 12px; background: transparent; border: 0; border-right: 1px solid var(--line); cursor: pointer; white-space: nowrap; }
 .proposal-tabs button:hover { background: #f1f4f8; }
@@ -208,7 +211,15 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .catalog-message { min-height: 58px; margin: 0; padding: 20px 14px; color: #657184; font-size: 11px; text-align: center; }
 .popover-footer { display: flex; align-items: center; gap: 18px; height: 34px; padding: 0 12px; color: #647083; font-size: 10px; background: #f8f9fb; border-radius: 0 0 7px 7px; }
 
-.history-region { grid-row: 3 / -1; min-width: 0; min-height: 0; background: #fff; overflow: auto; }
+.history-region,
+.labor-panel,
+.proposal-kits-panel {
+  grid-row: 3 / -1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.history-region { background: #fff; overflow: auto; }
 .history-heading { display: flex; align-items: center; justify-content: space-between; min-height: 62px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
 .history-heading > div { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .history-heading > div > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -241,7 +252,7 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .context-results section > button em { color: var(--green); font-size: 9px; font-style: normal; font-weight: 700; }
 .context-results section > p { margin: 6px 8px; }
 
-.management-workspace { display: grid; grid-template-rows: 70px minmax(0, 1fr); min-width: 0; min-height: 0; color: var(--ink); background: var(--surface-subtle); }
+.management-workspace { grid-column: 2; grid-row: 2; display: grid; grid-template-rows: 70px minmax(0, 1fr); min-width: 0; min-height: 0; overflow: hidden; color: var(--ink); background: var(--surface-subtle); }
 .management-header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #fff; border-bottom: 1px solid var(--line); }
 .management-header > div { display: flex; align-items: center; gap: 12px; }
 .management-header > div > svg { color: var(--blue); }
@@ -377,6 +388,113 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 /* ==========================================================================
    Home / Dashboard Workspace Styles
    ========================================================================== */
+.home-workspace {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--surface-subtle);
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 154px;
+  padding: 22px 36px 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.home-header > div:first-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-header h1,
+.home-header p {
+  margin: 0;
+}
+
+.home-header h1 {
+  color: var(--ink);
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -.03em;
+}
+
+.home-header p {
+  max-width: 880px;
+  color: #384459;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.app-badge {
+  color: #526177;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.home-header-actions {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 10px;
+}
+
+.secondary-btn,
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.secondary-btn {
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+}
+
+.secondary-btn:hover {
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-color: #b8d1fb;
+}
+
+.primary-btn {
+  color: #fff;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+}
+
+.primary-btn:hover {
+  background: #064ebf;
+  border-color: #064ebf;
+}
+
+.proposals-list-workspace .home-body {
+  gap: 24px;
+  padding: 28px 36px 36px;
+}
+
 .home-body {
   display: flex;
   flex-direction: column;
@@ -958,6 +1076,76 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
   border-color: #b8d1fb;
 }
 
+.modal-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(12, 23, 40, .56);
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  width: min(520px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(8, 18, 35, .28);
+  animation: popover-in 180ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-header h3,
+.modal-header p,
+.modal-body p {
+  margin: 0;
+}
+
+.modal-header h3 {
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.modal-header p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 66px;
+  padding: 14px 20px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--line);
+}
+
+.delete-modal {
+  width: min(560px, calc(100vw - 48px));
+}
+
 .tab-divider {
   display: inline-block;
   width: 1px;
@@ -1073,4 +1261,3 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
-

@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 BRT`
+Última atualização deste rastro: `2026-08-31 10:06 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -35,6 +35,37 @@ Interpretação prática:
 - usar Context7 quando mexer em API/biblioteca/framework cujo comportamento possa ter mudado.
 
 ## Último avanço registrado
+
+Data/hora BRT: `2026-08-31 10:06`
+
+Branch: `main`
+
+Status: alterações locais prontas, ainda pendentes de commit/push.
+
+O que mudou:
+
+- `src/index.css`: corrigido encaixe do shell principal com `topbar`, `sidebar`, `workspace`, `management-workspace` e `home-workspace` posicionados explicitamente no grid.
+- `src/index.css`: adicionado CSS faltante para a Central de Propostas (`home-header`, `home-header-actions`, `app-badge`, `primary-btn`, `secondary-btn`), removendo aparência de HTML cru e restaurando padding/alinhamento.
+- `src/index.css`: `ProposalKitsPanel` e `ProposalLaborPanel` agora ocupam todo o corpo do editor (`grid-row: 3 / -1`), evitando corte vertical na aba Kits/Mão de obra.
+- `src/index.css`: adicionadas regras para `modal-overlay`, `modal-card`, `modal-header`, `modal-body`, `modal-footer` e `delete-modal`, centralizando corretamente o modal de exclusão acima do app.
+- `.impeccable` consultado como referência visual/contrato; não existe script npm dedicado para rodar o Impeccable neste projeto.
+
+Validação:
+
+- `npm run verify`: sucesso local em 2026-08-31 10:06 BRT.
+
+Próximo passo:
+
+1. Subir `src/index.css` com commit contendo `[release]`.
+2. Aguardar workflow `Gerar instalador do Windows`.
+3. Baixar novo `Construtec-Orcamentos-Setup.exe`.
+4. Validar visualmente Central, Kits, Mão de obra e modal de exclusão.
+
+Bloqueios:
+
+- `git` não está instalado/disponível no PATH local; para subir é necessário usar o conector GitHub/API ou instalar Git.
+
+## Registro anterior
 
 Data/hora BRT: `2026-08-31 09:58`
 
