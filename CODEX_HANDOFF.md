@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-08-31 10:06 BRT`
+Última atualização deste rastro: `2026-08-31 10:10 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente de onde o trabalho parou.
 
@@ -36,11 +36,17 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-31 10:06`
+Data/hora BRT: `2026-08-31 10:10`
 
 Branch: `main`
 
-Status: alterações locais prontas, ainda pendentes de commit/push.
+Commit:
+
+```text
+47e171f fix: repair app layouts [release]
+```
+
+Status: commit/push concluído no GitHub. Workflow de release deve iniciar a partir do commit `47e171f`.
 
 O que mudou:
 
@@ -53,17 +59,17 @@ O que mudou:
 Validação:
 
 - `npm run verify`: sucesso local em 2026-08-31 10:06 BRT.
+- `npm run verify`: sucesso local novamente após reancorar a pasta no `origin/main`.
 
 Próximo passo:
 
-1. Subir `src/index.css` com commit contendo `[release]`.
-2. Aguardar workflow `Gerar instalador do Windows`.
-3. Baixar novo `Construtec-Orcamentos-Setup.exe`.
-4. Validar visualmente Central, Kits, Mão de obra e modal de exclusão.
+1. Aguardar workflow `Gerar instalador do Windows`.
+2. Baixar novo `Construtec-Orcamentos-Setup.exe`.
+3. Validar visualmente Central, Kits, Mão de obra e modal de exclusão.
 
 Bloqueios:
 
-- `git` não está instalado/disponível no PATH local; para subir é necessário usar o conector GitHub/API ou instalar Git.
+- Sem bloqueio no momento.
 
 ## Registro anterior
 
