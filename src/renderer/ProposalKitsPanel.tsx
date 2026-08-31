@@ -92,10 +92,10 @@ export function ProposalKitsPanel({
   };
 
   return (
-    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', height: '100%', minHeight: 0, background: '#fff' }}>
+    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', height: '100%', minHeight: 0, background: '#fff', overflow: 'hidden' }}>
       {/* Kits List */}
-      <div style={{ borderRight: '1px solid #e4e6ea', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <div style={{ padding: '12px', borderBottom: '1px solid #e4e6ea' }}>
+      <div style={{ borderRight: '1px solid #e4e6ea', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
+        <div style={{ padding: '12px', borderBottom: '1px solid #e4e6ea', flexShrink: 0 }}>
           <label className="management-search" style={{ margin: 0, height: '32px' }}>
             <Search size={14} />
             <input
@@ -106,7 +106,7 @@ export function ProposalKitsPanel({
             />
           </label>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto' }} className="client-list product-list" aria-busy={loading}>
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, scrollbarWidth: 'thin' }} className="client-list product-list" aria-busy={loading}>
           {kits.map((kit) => (
             <button
               key={kit.id}

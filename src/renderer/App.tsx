@@ -591,6 +591,23 @@ export function App() {
     }
   }, [mutationPending, openProposal, proposal]);
 
+  const cloneCurrentProposal = useCallback(async () => {
+    if (!proposal || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.clone(proposal.id);
+      showNotice(`Orçamento ${result.proposal.number} criado com sucesso a partir de ${proposal.number}.`);
+      const tabsResult = await proposalApi.list();
+      setProposalTabs(tabsResult.proposals);
+      await openProposal(result.proposal.id);
+    } catch (cloneError) {
+      setError(cloneError instanceof Error ? cloneError.message : 'Não foi possível clonar a proposta.');
+    } finally {
+      setMutationPending(false);
+    }
+  }, [mutationPending, openProposal, proposal]);
+
   useEffect(() => {
     setSelectedCatalogIndex(0);
   }, [query]);
@@ -934,6 +951,7 @@ export function App() {
           <div className="panel-section actions">
             <h2>Ações</h2>
             <button type="button" disabled={!proposal?.isLatest || mutationPending} onClick={() => void createRevision()}><Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd></button>
+            <button type="button" disabled={!proposal || mutationPending} onClick={() => void cloneCurrentProposal()} title="Clonar este orçamento gerando um novo número"><Copy size={18} /> Clonar proposta</button>
             <button type="button" disabled={!proposal || documentPending} onClick={() => void previewProposal()}><Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd></button>
             <button className="primary generate" type="button" disabled={(!proposal?.items.length && laborTotal <= 0) || documentPending} onClick={() => void exportProposal()}><FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd></button>
             <button

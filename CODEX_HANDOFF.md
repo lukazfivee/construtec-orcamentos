@@ -36,18 +36,18 @@ Interpretação prática:
 
 ## Último avanço registrado
 
-Data/hora BRT: `2026-08-30 21:50`
+Data/hora BRT: `2026-08-30 21:55`
 
 Branch: `codex/settings-home-rate-limit` (commit pronto e testado).
 
-O que mudou (ponytail, pre-flight aplicado, funções avançadas de propostas):
+O que mudou (ponytail, pre-flight aplicado, clonagem & gestão avançada de propostas):
 
-- `src/renderer/ProposalsListWorkspace.tsx` (novo) — Central completa de Gestão de Propostas: busca em tempo real por número/cliente/obra, filtros dinâmicos por status (Em edição, Em revisão, Enviadas, Aprovadas, Recusadas), ordenação multidirecional, mini-banner de KPIs (total em carteira / aprovados), abertura rápida na mesa e exclusão com modal de confirmação.
-- `src/server/services/proposals.ts` — Implementadas as funções `deleteProposal` (exclusão segura de todas as revisões/itens em cascata com log de auditoria e seleção automática da próxima proposta ativa) e `updateProposalStatus` (transição auditada de status da proposta).
-- `src/server/routes/proposals.ts` — Adicionados endpoints `DELETE /api/proposals/:proposalId` e `PATCH /api/proposals/:proposalId/status` validados via Zod (`statusSchema`).
-- `src/renderer/api.ts` — Métodos `proposalApi.delete(id, mode)` e `proposalApi.updateStatus(id, status)`.
-- `src/renderer/App.tsx` — Alternância fluida entre a Mesa Operacional de Edição e a Central de Propostas (`proposalViewMode: 'editor' | 'list'`), seletor de status em tempo real no cabeçalho da proposta e botão de exclusão com modal de confirmação na barra lateral comercial.
-- `src/index.css` — Estilização refinada para a tabela de propostas, chips de filtro com contadores, botões de ação e modal de exclusão perigosa.
+- `src/server/services/proposals.ts:cloneProposal` (novo) — Duplicação completa de propostas para um novo número sequencial oficial (`PA-XXXX`), clonando todos os itens de catálogo, composições de mão de obra (`proposal_labor_items`), multiplicador BDI e escopo original, com registro de auditoria `proposal.cloned`.
+- `src/server/routes/proposals.ts` — Novo endpoint `POST /api/proposals/:proposalId/clone` com validação de cliente/obra opcionais.
+- `src/renderer/api.ts` — Método `proposalApi.clone(proposalId, input)`.
+- `src/renderer/ProposalsListWorkspace.tsx` — Adicionado botão de ação rápida "Clonar" na tabela de orçamentos com abertura direta da nova proposta gerada.
+- `src/renderer/App.tsx` — Adicionado botão "Clonar proposta" na barra lateral de ações comerciais da Mesa Operacional.
+- Central completa de Gestão de Propostas (`ProposalsListWorkspace`), exclusão segura em cascata (`deleteProposal`) e atualização dinâmica de status mantidas e 100% integradas.
 
 Validação:
 

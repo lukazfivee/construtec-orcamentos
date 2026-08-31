@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { LocalDatabase } from '../services/database';
 import {
   addProductToProposal,
+  cloneProposal,
   createProposal,
   createProposalRevision,
   deleteProposal,
@@ -71,6 +72,11 @@ const standardHoursSchema = z.object({ standardMonthlyHours: z.number().positive
 const statusSchema = z.object({
   status: z.enum(['draft', 'review', 'sent', 'approved', 'rejected']),
 });
+const cloneProposalSchema = z.object({
+  clientId: z.string().uuid().optional(),
+  workId: z.string().uuid().optional(),
+  scope: z.string().trim().min(3).max(1200).optional(),
+}).optional();
 
 export const createProposalsRouter = (database: LocalDatabase) => {
   const router = Router();
@@ -95,6 +101,15 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = await createProposal(database, createProposalSchema.parse(request.body));
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/clone', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const input = cloneProposalSchema.parse(request.body);
+      const newProposalId = await cloneProposal(database, proposalId, input);
+      response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) { next(error); }
   });
 

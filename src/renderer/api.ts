@@ -57,6 +57,9 @@ export const proposalApi = {
   updateStatus: (proposalId: string, status: ProposalDetail['status']) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) },
   ),
+  clone: (proposalId: string, input?: { clientId?: string; workId?: string; scope?: string }) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/clone`, { method: 'POST', body: JSON.stringify(input ?? {}) },
+  ),
   history: (proposalId: string) => request<{ revisions: ProposalRevisionSummary[] }>(`/api/proposals/${proposalId}/history`),
   createRevision: (proposalId: string) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/revisions`, { method: 'POST' },

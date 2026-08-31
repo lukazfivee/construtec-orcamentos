@@ -701,3 +701,158 @@ export const updateProposalStatus = async (
   if (!updated) throw new Error('PROPOSAL_NOT_FOUND');
   return updated;
 };
+
+export const cloneProposal = async (
+  database: LocalDatabase,
+  sourceProposalId: string,
+  input?: { clientId?: string; workId?: string; scope?: string },
+): Promise<string> => {
+  return database.transaction(async (transaction) => {
+    const userResult = await transaction.query<{ id: string }>('SELECT id FROM users ORDER BY created_at ASC LIMIT 1');
+    const userId = userResult.rows[0]?.id;
+    if (!userId) throw new Error('NO_USER_FOUND');
+
+    const sourceResult = await transaction.query<{
+      client_id: string; work_id: string; work_name: string;
+      snapshot_client_name: string; snapshot_work_name: string;
+      scope: string; bdi_multiplier: string; proposal_number: string;
+    }>(`
+      SELECT p.client_id, p.work_id, p.work_name, p.snapshot_client_name,
+        p.snapshot_work_name, p.scope, p.bdi_multiplier::text, p.proposal_number
+      FROM proposals p
+      WHERE p.id = $1
+    `, [sourceProposalId]);
+    const source = sourceResult.rows[0];
+    if (!source) throw new Error('PROPOSAL_NOT_FOUND');
+
+    const targetClientId = input?.clientId || source.client_id;
+    const targetWorkId = input?.workId || source.work_id;
+
+    const workResult = await transaction.query<{ client_name: string; work_name: string }>(`
+      SELECT c.trade_name AS client_name, w.name AS work_name
+      FROM works w
+      JOIN clients c ON c.id = w.client_id
+      WHERE w.id = $1 AND w.client_id = $2 AND w.active = true
+    `, [targetWorkId, targetClientId]);
+    const targetContext = workResult.rows[0];
+    if (!targetContext) throw new Error('WORK_NOT_FOUND');
+
+    const numberResult = await transaction.query<{ proposal_number: string }>(`
+      SELECT proposal_number
+      FROM proposals
+      WHERE proposal_number ~ '^PA-[0-9]+$'
+      ORDER BY substring(proposal_number from 4)::integer DESC
+      LIMIT 1
+    `);
+    const currentNumber = Number(numberResult.rows[0]?.proposal_number.slice(3) ?? 1000);
+    const newProposalNumber = `PA-${String(currentNumber + 1).padStart(4, '0')}`;
+    const newProposalId = randomUUID();
+
+    await transaction.query(`
+      INSERT INTO proposals
+        (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+         snapshot_work_name, scope, status, bdi_multiplier, created_by)
+      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9)
+    `, [
+      newProposalId,
+      newProposalNumber,
+      targetClientId,
+      targetWorkId,
+      targetContext.work_name,
+      targetContext.client_name,
+      input?.scope?.trim() || source.scope,
+      Number(source.bdi_multiplier),
+      userId,
+    ]);
+
+    const items = await transaction.query<{
+      catalog_product_id: string | null; position: number; snapshot_code: string;
+      snapshot_manufacturer: string | null; snapshot_model: string | null; snapshot_description: string;
+      snapshot_category: string; snapshot_unit: string; snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
+    }>(`
+      SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
+        snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+      FROM proposal_items
+      WHERE proposal_id = $1
+      ORDER BY position
+    `, [sourceProposalId]);
+
+    for (const item of items.rows) {
+      await transaction.query(`
+        INSERT INTO proposal_items
+          (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
+           snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `, [
+        randomUUID(),
+        newProposalId,
+        item.catalog_product_id,
+        item.position,
+        item.snapshot_code,
+        item.snapshot_manufacturer,
+        item.snapshot_model,
+        item.snapshot_description,
+        item.snapshot_category ?? 'Outros',
+        item.snapshot_unit,
+        Number(item.snapshot_unit_cost),
+        Number(item.quantity),
+        Number(item.sale_unit_price),
+      ]);
+    }
+
+    const laborItems = await transaction.query<{
+      position: number; description: string; professional_count: string; monthly_salary: string;
+      monthly_food: string; monthly_transport: string; monthly_other_costs: string;
+      standard_monthly_hours: string; planned_hours: string;
+    }>(`
+      SELECT position, description, professional_count::text, monthly_salary::text, monthly_food::text,
+        monthly_transport::text, monthly_other_costs::text, standard_monthly_hours::text, planned_hours::text
+      FROM proposal_labor_items
+      WHERE proposal_id = $1
+      ORDER BY position
+    `, [sourceProposalId]);
+
+    for (const lItem of laborItems.rows) {
+      await transaction.query(`
+        INSERT INTO proposal_labor_items
+          (id, proposal_id, position, description, professional_count, monthly_salary, monthly_food,
+           monthly_transport, monthly_other_costs, standard_monthly_hours, planned_hours)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `, [
+        randomUUID(),
+        newProposalId,
+        lItem.position,
+        lItem.description,
+        Number(lItem.professional_count),
+        Number(lItem.monthly_salary),
+        Number(lItem.monthly_food),
+        Number(lItem.monthly_transport),
+        Number(lItem.monthly_other_costs),
+        Number(lItem.standard_monthly_hours),
+        Number(lItem.planned_hours),
+      ]);
+    }
+
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
+      VALUES ($1, 'proposal', $2, 'cloned', $3::jsonb)
+    `, [
+      randomUUID(),
+      newProposalId,
+      JSON.stringify({
+        sourceProposalId,
+        sourceProposalNumber: source.proposal_number,
+        newProposalNumber,
+      }),
+    ]);
+
+    logEvent('info', 'proposal.cloned', {
+      sourceProposalId,
+      newProposalId,
+      sourceProposalNumber: source.proposal_number,
+      newProposalNumber,
+    });
+
+    return newProposalId;
+  });
+};

@@ -6,6 +6,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  Copy,
   ExternalLink,
   FilePlus2,
   FileText,
@@ -82,6 +83,19 @@ export function ProposalsListWorkspace({
       await loadProposals();
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Erro ao atualizar status da proposta.');
+    } finally {
+      setActionPending(false);
+    }
+  };
+
+  const handleClone = async (item: ProposalSummary) => {
+    setActionPending(true);
+    try {
+      const result = await proposalApi.clone(item.id);
+      onNotice(`Orçamento ${result.proposal.number} criado com sucesso a partir de ${item.number}.`);
+      onOpenProposal(result.proposal.id);
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Erro ao clonar o orçamento.');
     } finally {
       setActionPending(false);
     }
@@ -366,6 +380,16 @@ export function ProposalsListWorkspace({
                         >
                           <ExternalLink size={15} />
                           Abrir
+                        </button>
+                        <button
+                          type="button"
+                          className="table-action-btn secondary"
+                          title="Clonar como novo orçamento"
+                          disabled={actionPending}
+                          onClick={() => void handleClone(item)}
+                        >
+                          <Copy size={14} />
+                          Clonar
                         </button>
                         <button
                           type="button"
