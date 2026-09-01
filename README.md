@@ -20,7 +20,9 @@ Lotes de itens podem ser revisados e importados por colagem manual, planilhas XL
 
 A autenticação local individual está implementada com configuração do primeiro administrador, hash bcrypt de senhas, sessões JWT efêmeras, perfis `admin`, `commercial` e `viewer`, gestão de usuários e logout. As principais mutações de propostas, mão de obra, catálogo, clientes e obras registram o usuário autenticado em `audit_events`, mantendo rastreabilidade sem expor o banco nem depender de nuvem.
 
-A próxima etapa de segurança é implementar backup e restauração controlados do banco local. Integrações externas adicionais permanecem opcionais e não alteram o princípio local-first.
+Backup e restauração controlados do banco local também estão implementados para administradores. O backup usa `PGlite.dumpDataDir('gzip')`. Na restauração, o arquivo é validado em um PGlite temporário antes de qualquer troca, o banco atual recebe um backup de emergência, a API é fechada, o data directory é substituído de forma controlada e o aplicativo reinicia. Se a carga do backup falhar, o diretório anterior é recolocado automaticamente antes do reinício.
+
+A próxima frente de evolução passa a ser integrações externas e sincronização opcional, preservando o princípio local-first e sem tornar a operação normal dependente de internet.
 
 ## Executar localmente
 
