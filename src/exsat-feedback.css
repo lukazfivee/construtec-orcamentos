@@ -48,16 +48,6 @@
   background: #f5f9fd;
 }
 
-.import-source:has(.exsat-source) + .import-summary::before {
-  content: 'Prévia carregada · aguardando confirmação';
-  display: block;
-  width: 100%;
-  margin-bottom: 4px;
-  color: #245c8c;
-  font-size: 10px;
-  font-weight: 700;
-}
-
 .import-dialog:has(.exsat-source) footer span::before {
   content: 'Etapa final · ';
   font-weight: 700;
