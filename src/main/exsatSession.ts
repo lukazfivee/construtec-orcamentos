@@ -112,14 +112,17 @@ export const getExsatSyncInfo = async (): Promise<ExsatSyncInfo> => {
 export const recordExsatSyncResult = async (result: { created: number; updated: number }) => {
   const state = await loadSyncState();
   if (!state.pendingSync) return getExsatSyncInfo();
+  const completedAt = new Date().toISOString();
   const completed: ExsatSyncHistoryEntry = {
     ...state.pendingSync,
-    completedAt: new Date().toISOString(),
+    completedAt,
     created: Math.max(0, Math.trunc(result.created)),
     updated: Math.max(0, Math.trunc(result.updated)),
   };
   await saveSyncState({
     ...state,
+    lastSyncAt: completedAt,
+    lastFullSyncAt: state.pendingSync.mode === 'full' ? completedAt : state.lastFullSyncAt,
     pendingSync: undefined,
     history: [completed, ...state.history].slice(0, MAX_HISTORY),
   });
@@ -287,10 +290,8 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
   }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
   const state = await loadSyncState();
-  const now = new Date().toISOString();
   await saveSyncState({
     ...state,
-    lastSyncAt: now,
     pendingSync: {
       id: crypto.randomUUID(),
       startedAt,
@@ -361,15 +362,12 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
 
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
 
-  const now = new Date().toISOString();
   const retainedPages = previous.pages.filter((page) => !pageStats.has(page.url));
   const nextPages = [...pageStats.values(), ...retainedPages]
     .sort((left, right) => right.productCount - left.productCount || Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt))
     .slice(0, MAX_AUTO_PAGES);
   await saveSyncState({
     ...previous,
-    lastSyncAt: now,
-    lastFullSyncAt: fullSync ? now : previous.lastFullSyncAt,
     pages: nextPages,
     pendingSync: {
       id: crypto.randomUUID(),
