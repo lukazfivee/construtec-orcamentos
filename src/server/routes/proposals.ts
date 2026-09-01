@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from '../services/database';
-import { attributeAuditEvent } from '../services/auditAttribution';
+import {
+  attributeAuditEvent,
+  attributeCreatedProposalItemAudit,
+  attributeDuplicatedProposalItemAudit,
+} from '../services/auditAttribution';
 import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
   addProductToProposal,
@@ -224,6 +228,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = addItemSchema.parse(request.body);
       await addProductToProposal(database, proposalId, input.productId, input.quantity);
+      await attributeCreatedProposalItemAudit(database, actor(response).id, proposalId, input.productId);
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -254,6 +259,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const itemId = idSchema.parse(request.params.itemId);
       await duplicateProposalItem(database, proposalId, itemId);
+      await attributeDuplicatedProposalItemAudit(database, actor(response).id, proposalId, itemId);
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
