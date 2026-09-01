@@ -68,6 +68,14 @@ const hasAuthenticatedAccountMarker = (html: string) => (
   /(?:href|action)=["'][^"']*(?:logout|sair)[^"']*["']|\b(?:sair|encerrar sess[aã]o|minha conta|meus pedidos)\b/i.test(html)
 );
 
+const isLoginPage = (page: { html: string; finalUrl: string }) => (
+  isExsatLoginUrl(page.finalUrl) || looksLikeLoginHtml(page.html)
+);
+
+const assertCatalogSession = (page: { html: string; finalUrl: string }) => {
+  if (isLoginPage(page)) throw new Error('EXSAT_LOGIN_REQUIRED');
+};
+
 const isHistoryEntry = (entry: unknown): entry is ExsatSyncHistoryEntry => {
   if (!entry || typeof entry !== 'object') return false;
   const value = entry as Partial<ExsatSyncHistoryEntry>;
@@ -164,6 +172,7 @@ const responseRenderedHtml = async (url: string) => {
 
 const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
   const raw = await responseHtml(url);
+  assertCatalogSession(raw);
   try {
     return { ...raw, items: parseExsatProductsHtml(raw.html, includeMissingPrice) };
   } catch (error) {
@@ -171,6 +180,7 @@ const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise
   }
 
   const rendered = await responseRenderedHtml(url);
+  assertCatalogSession(rendered);
   return { ...rendered, items: parseExsatProductsHtml(rendered.html, includeMissingPrice) };
 };
 
@@ -199,15 +209,13 @@ const discoverCatalogLinks = (html: string, baseUrl: string) => {
 };
 
 const isAuthenticatedResponse = (page: { html: string; finalUrl: string }) => (
-  !isExsatLoginUrl(page.finalUrl)
-  && !looksLikeLoginHtml(page.html)
-  && hasAuthenticatedAccountMarker(page.html)
+  !isLoginPage(page) && hasAuthenticatedAccountMarker(page.html)
 );
 
 export const exsatConnectionStatus = async () => {
   try {
     const login = await responseHtml(LOGIN_URL);
-    if (!isExsatLoginUrl(login.finalUrl) && !looksLikeLoginHtml(login.html)) {
+    if (!isLoginPage(login)) {
       return { connected: true };
     }
 
@@ -258,14 +266,17 @@ export const openExsatLogin = async () => {
 export const disconnectExsat = async () => {
   await exsatSession().clearStorageData({ storages: ['cookies', 'localstorage'] });
   await exsatSession().clearCache();
+  const state = await loadSyncState();
+  if (state.pendingSync) await saveSyncState({ ...state, pendingSync: undefined });
   return { connected: false };
 };
 
 export const previewAuthenticatedExsat = async (rawUrl: string): Promise<{ items: CatalogImportItem[]; connected: boolean }> => {
   const url = validateExsatUrl(rawUrl);
   const status = await exsatConnectionStatus();
+  if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
   const page = await loadCatalogPage(url.toString(), false);
-  return { items: page.items, connected: status.connected };
+  return { items: page.items, connected: true };
 };
 
 export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise<ExsatBatchPreview> => {
@@ -284,7 +295,8 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
         if (items.has(item.code.toLowerCase())) ignored += 1;
         items.set(item.code.toLowerCase(), item);
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
       failedUrls.push(url);
     }
   }
@@ -355,7 +367,8 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
           queued.add(link);
         }
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
       failedUrls.push(url);
     }
   }
