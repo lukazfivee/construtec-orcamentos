@@ -8,6 +8,7 @@ import {
   Save,
   Settings,
   ShieldCheck,
+  Upload,
   UserPlus,
   Users,
 } from 'lucide-react';
@@ -52,6 +53,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
   const [saving, setSaving] = useState(false);
   const [userPending, setUserPending] = useState(false);
   const [backupPending, setBackupPending] = useState(false);
+  const [restorePending, setRestorePending] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -155,7 +157,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
   };
 
   const createBackup = async () => {
-    if (backupPending || !isAdmin) return;
+    if (backupPending || restorePending || !isAdmin) return;
     if (!window.construtec?.saveBackup) {
       onError('O recurso de backup só está disponível no aplicativo desktop.');
       return;
@@ -171,6 +173,19 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
       onError(error instanceof Error ? error.message : 'Não foi possível gerar o backup local.');
     } finally {
       setBackupPending(false);
+    }
+  };
+
+  const restoreBackup = async () => {
+    if (restorePending || backupPending || !isAdmin) return;
+    setRestorePending(true);
+    try {
+      const result = await systemApi.restoreBackup();
+      if (!result.canceled && !result.restarting) onNotice('Backup validado.');
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Não foi possível restaurar o backup local.');
+    } finally {
+      setRestorePending(false);
     }
   };
 
@@ -249,14 +264,25 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
                 <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e4e6ea' }}><span style={{ color: '#697386', display: 'block', fontSize: '10px' }}>Modo de Operação</span><b style={{ color: '#085ce5', fontSize: '13px' }}>Offline Local-First</b></div>
               </div>
               {isAdmin && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #e4e6ea' }}>
-                  <div>
-                    <b style={{ display: 'block', color: '#172033', fontSize: '11px' }}>Backup do banco local</b>
-                    <span style={{ color: '#697386', fontSize: '9px' }}>Gera um tar.gz consistente pelo mecanismo oficial do PGlite. O arquivo pode ser guardado fora deste computador.</span>
+                <div style={{ display: 'grid', gap: '10px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #e4e6ea' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                    <div>
+                      <b style={{ display: 'block', color: '#172033', fontSize: '11px' }}>Backup do banco local</b>
+                      <span style={{ color: '#697386', fontSize: '9px' }}>Gera um tar.gz consistente pelo mecanismo oficial do PGlite. O arquivo pode ser guardado fora deste computador.</span>
+                    </div>
+                    <button type="button" onClick={() => void createBackup()} disabled={backupPending || restorePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: backupPending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
+                      <Download size={14} /> {backupPending ? 'Gerando…' : 'Criar backup'}
+                    </button>
                   </div>
-                  <button type="button" onClick={() => void createBackup()} disabled={backupPending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: backupPending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
-                    <Download size={14} /> {backupPending ? 'Gerando…' : 'Criar backup'}
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', paddingTop: '10px', borderTop: '1px solid #edf0f4' }}>
+                    <div>
+                      <b style={{ display: 'block', color: '#172033', fontSize: '11px' }}>Restaurar banco local</b>
+                      <span style={{ color: '#697386', fontSize: '9px' }}>Valida o backup antes da troca, cria uma cópia de emergência do banco atual e reinicia o aplicativo.</span>
+                    </div>
+                    <button type="button" onClick={() => void restoreBackup()} disabled={backupPending || restorePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: restorePending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
+                      <Upload size={14} /> {restorePending ? 'Validando…' : 'Restaurar backup'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
