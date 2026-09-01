@@ -1,6 +1,9 @@
 import type {
   ApiErrorPayload,
   AppSettings,
+  AuthSession,
+  AuthSetupStatus,
+  AuthUser,
   CatalogImportItem,
   CatalogImportPreview,
   CatalogProduct,
@@ -18,6 +21,11 @@ import type {
 } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
+let authSessionToken = '';
+
+export const setAuthSessionToken = (token: string | null) => {
+  authSessionToken = token ?? '';
+};
 
 const getRuntime = async () => {
   runtimePromise ??= window.construtec?.runtime().then((runtime) => {
@@ -33,6 +41,7 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
     ...init,
     headers: {
       Authorization: `Bearer ${apiToken}`,
+      ...(authSessionToken ? { 'X-Construtec-Session': authSessionToken } : {}),
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
       ...init?.headers,
     },
@@ -42,6 +51,17 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
     throw new Error(payload.error);
   }
   return response.json() as Promise<T>;
+};
+
+export const authApi = {
+  setupStatus: () => request<AuthSetupStatus>('/api/auth/setup-status'),
+  setup: (input: { name: string; email: string; password: string }) => request<AuthSession>(
+    '/api/auth/setup', { method: 'POST', body: JSON.stringify(input) },
+  ),
+  login: (input: { email: string; password: string }) => request<AuthSession>(
+    '/api/auth/login', { method: 'POST', body: JSON.stringify(input) },
+  ),
+  me: () => request<{ user: AuthUser }>('/api/auth/me'),
 };
 
 export const proposalApi = {
@@ -175,4 +195,3 @@ export const settingsApi = {
 export const dashboardApi = {
   get: () => request<{ summary: DashboardMetrics }>('/api/dashboard'),
 };
-

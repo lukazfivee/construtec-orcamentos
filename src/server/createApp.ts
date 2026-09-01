@@ -1,14 +1,21 @@
 import express from 'express';
 import { ZodError } from 'zod';
+import { createAuthRouter } from './routes/auth';
 import { createCatalogRouter } from './routes/catalog';
 import { createClientsRouter } from './routes/clients';
 import { createDashboardRouter } from './routes/dashboard';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
 import { createSettingsRouter } from './routes/settings';
+import { verifyUserSession } from './services/auth';
 import type { LocalDatabase } from './services/database';
 
-export const createApp = (database: LocalDatabase, apiToken: string) => {
+const getSessionToken = (request: express.Request) => {
+  const value = request.headers['x-construtec-session'];
+  return typeof value === 'string' ? value : '';
+};
+
+export const createApp = (database: LocalDatabase, apiToken: string, sessionSecret: string) => {
   const api = express();
 
   api.disable('x-powered-by');
@@ -23,7 +30,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.setHeader('Access-Control-Allow-Origin', origin);
       response.setHeader('Vary', 'Origin');
     }
-    response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Construtec-Session');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
     if (request.method === 'OPTIONS') {
       response.sendStatus(204);
@@ -44,6 +51,24 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     const result = await database.query<{ now: string }>('SELECT now()::text AS now');
     response.json({ ok: true, storage: 'local', databaseTime: result.rows[0]?.now });
   });
+  api.use('/api/auth', createAuthRouter(database, sessionSecret));
+
+  api.use(async (request, response, next) => {
+    const user = await verifyUserSession(database, sessionSecret, getSessionToken(request));
+    if (!user) {
+      response.status(401).json({ error: 'Sessão de usuário inválida ou expirada.' });
+      return;
+    }
+    if (user.role === 'viewer' && request.method !== 'GET') {
+      response.status(403).json({ error: 'Seu perfil possui acesso somente para consulta.' });
+      return;
+    }
+    if (request.path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
+      response.status(403).json({ error: 'Apenas administradores podem alterar as configurações.' });
+      return;
+    }
+    next();
+  });
 
   api.use('/api/catalog', createCatalogRouter(database));
   api.use('/api/clients', createClientsRouter(database));
@@ -56,6 +81,14 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     void _next;
     if (error instanceof ZodError) {
       response.status(400).json({ error: 'Dados inválidos.', details: error.flatten() });
+      return;
+    }
+    if (error instanceof Error && error.message === 'AUTH_INVALID_CREDENTIALS') {
+      response.status(401).json({ error: 'E-mail ou senha inválidos.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'AUTH_SETUP_COMPLETE') {
+      response.status(409).json({ error: 'O administrador inicial já foi configurado.' });
       return;
     }
     if (error instanceof Error && error.message.endsWith('_NOT_FOUND')) {
