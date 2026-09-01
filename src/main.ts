@@ -1,8 +1,9 @@
 import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { startApiServer, type ApiRuntime } from './server/startApiServer';
+import { getDatabasePath, restoreDatabaseFromBackup, validateDatabaseBackup } from './server/services/database';
 import type { ProposalDetail } from './shared/contracts';
 import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
 import { selectCatalogImport } from './main/catalogImport';
@@ -68,8 +69,9 @@ const createWindow = async () => {
 };
 
 app.whenReady().then(async () => {
+  const userDataPath = app.getPath('userData');
   const packagedPGlitePath = app.isPackaged ? path.join(process.resourcesPath, 'pglite') : undefined;
-  apiRuntime = await startApiServer(app.getPath('userData'), packagedPGlitePath);
+  apiRuntime = await startApiServer(userDataPath, packagedPGlitePath);
 
   ipcMain.handle('app:runtime', () => ({
     apiUrl: apiRuntime?.url,
@@ -118,6 +120,68 @@ app.whenReady().then(async () => {
     if (selection.canceled || !selection.filePath) return { canceled: true };
     await writeFile(selection.filePath, Buffer.from(bytes));
     return { canceled: false, filePath: selection.filePath };
+  });
+
+  ipcMain.handle('backup:restore', async (_event, sessionToken: string) => {
+    if (!apiRuntime || !sessionToken || !(await apiRuntime.isAdminSession(sessionToken))) {
+      throw new Error('Apenas administradores podem restaurar backups.');
+    }
+
+    const selection = await dialog.showOpenDialog({
+      title: 'Selecionar backup do Construtec Orçamentos',
+      defaultPath: app.getPath('documents'),
+      properties: ['openFile'],
+      filters: [{ name: 'Backup PGlite', extensions: ['gz'] }],
+    });
+    if (selection.canceled || !selection.filePaths[0]) return { canceled: true, restarting: false };
+
+    const backupPath = selection.filePaths[0];
+    const backupBytes = Uint8Array.from(await readFile(backupPath));
+    const metadata = await validateDatabaseBackup(backupBytes, packagedPGlitePath);
+    const confirmation = await dialog.showMessageBox({
+      type: 'warning',
+      title: 'Restaurar backup local',
+      message: 'O banco local atual será substituído e o aplicativo será reiniciado.',
+      detail: `Backup validado. Esquema ${metadata.schemaVersion}; ${metadata.proposals} proposta(s); ${metadata.users} usuário(s). Antes da troca, uma cópia de emergência do banco atual será salva automaticamente.`,
+      buttons: ['Cancelar', 'Restaurar e reiniciar'],
+      defaultId: 0,
+      cancelId: 0,
+      noLink: true,
+    });
+    if (confirmation.response !== 1) return { canceled: true, restarting: false };
+
+    const backupsDirectory = path.join(userDataPath, 'backups');
+    await mkdir(backupsDirectory, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const emergencyBackupPath = path.join(backupsDirectory, `pre-restore-${timestamp}.tar.gz`);
+    const emergencyBackup = await apiRuntime.backup();
+    await writeFile(emergencyBackupPath, Buffer.from(emergencyBackup));
+
+    const databasePath = getDatabasePath(userDataPath);
+    const rollbackPath = path.join(path.dirname(databasePath), `postgres-rollback-${Date.now()}`);
+    await apiRuntime.close();
+    apiRuntime = undefined;
+
+    try {
+      await rename(databasePath, rollbackPath);
+      try {
+        await restoreDatabaseFromBackup(userDataPath, backupBytes, packagedPGlitePath);
+      } catch (error) {
+        await rm(databasePath, { recursive: true, force: true });
+        await rename(rollbackPath, databasePath);
+        throw error;
+      }
+      await rm(rollbackPath, { recursive: true, force: true });
+      app.relaunch();
+      app.exit(0);
+      return { canceled: false, restarting: true, emergencyBackupPath };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      dialog.showErrorBox('Restauração não concluída', `O banco anterior foi preservado.\n\n${message}`);
+      app.relaunch();
+      app.exit(1);
+      return { canceled: false, restarting: true, emergencyBackupPath };
+    }
   });
 
   ipcMain.handle('catalog:select-import', async (_event, kind: 'table' | 'image') => {
