@@ -60,15 +60,6 @@ const isExsatLoginUrl = (rawUrl: string) => {
   }
 };
 
-const isExsatAuthenticatedUrl = (rawUrl: string) => {
-  try {
-    const url = new URL(rawUrl);
-    return url.hostname === 'exsat.com.br' && !isExsatLoginUrl(rawUrl);
-  } catch {
-    return false;
-  }
-};
-
 const looksLikeLoginHtml = (html: string) => (
   /Login do Revendedor|name=["']?(?:senha|password)|type=["']password/i.test(html)
 );
@@ -76,15 +67,6 @@ const looksLikeLoginHtml = (html: string) => (
 const hasAuthenticatedAccountMarker = (html: string) => (
   /(?:href|action)=["'][^"']*(?:logout|sair)[^"']*["']|\b(?:sair|encerrar sess[aã]o|minha conta|meus pedidos)\b/i.test(html)
 );
-
-const hasAuthenticationCookie = async () => {
-  try {
-    const cookies = await exsatSession().cookies.get({ url: START_URL });
-    return cookies.some((cookie) => /logged[_-]?in|auth|token|jwt|cliente|login|session/i.test(cookie.name) && Boolean(cookie.value));
-  } catch {
-    return false;
-  }
-};
 
 const isHistoryEntry = (entry: unknown): entry is ExsatSyncHistoryEntry => {
   if (!entry || typeof entry !== 'object') return false;
@@ -213,17 +195,24 @@ const discoverCatalogLinks = (html: string, baseUrl: string) => {
   return [...links];
 };
 
+const isAuthenticatedResponse = (page: { html: string; finalUrl: string }) => (
+  !isExsatLoginUrl(page.finalUrl)
+  && !looksLikeLoginHtml(page.html)
+  && hasAuthenticatedAccountMarker(page.html)
+);
+
 export const exsatConnectionStatus = async () => {
   try {
-    const { html, finalUrl } = await responseHtml(LOGIN_URL);
-    if (!isExsatLoginUrl(finalUrl) && !looksLikeLoginHtml(html)) return { connected: true };
-    if (!looksLikeLoginHtml(html) && await hasAuthenticationCookie()) return { connected: true };
-
-    const home = await responseHtml(START_URL);
-    if (!isExsatLoginUrl(home.finalUrl) && hasAuthenticatedAccountMarker(home.html) && await hasAuthenticationCookie()) {
+    const login = await responseHtml(LOGIN_URL);
+    if (!isExsatLoginUrl(login.finalUrl) && !looksLikeLoginHtml(login.html)) {
       return { connected: true };
     }
-    return { connected: false };
+
+    const home = await responseHtml(START_URL);
+    if (isAuthenticatedResponse(home)) return { connected: true };
+
+    const renderedHome = await responseRenderedHtml(START_URL);
+    return { connected: isAuthenticatedResponse(renderedHome) };
   } catch {
     return { connected: false };
   }
@@ -253,22 +242,11 @@ export const openExsatLogin = async () => {
     },
   });
   loginWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-
-  let confirmedByNavigation = false;
-  const noteNavigation = (_event: Electron.Event, url: string) => {
-    if (isExsatAuthenticatedUrl(url)) confirmedByNavigation = true;
-  };
-  loginWindow.webContents.on('did-navigate', noteNavigation);
-  loginWindow.webContents.on('did-navigate-in-page', noteNavigation);
   await loginWindow.loadURL(LOGIN_URL);
 
   return new Promise<{ connected: boolean }>((resolve) => {
     loginWindow?.once('closed', () => {
       loginWindow = undefined;
-      if (confirmedByNavigation) {
-        resolve({ connected: true });
-        return;
-      }
       void exsatConnectionStatus().then(resolve);
     });
   });
