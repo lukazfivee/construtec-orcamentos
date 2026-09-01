@@ -13,6 +13,7 @@ declare global {
       }>;
       previewProposal: (proposal: ProposalDetail) => Promise<{ opened: boolean }>;
       exportProposal: (proposal: ProposalDetail) => Promise<{ canceled: boolean; files: string[] }>;
+      saveBackup: (bytes: Uint8Array, suggestedName: string) => Promise<{ canceled: boolean; filePath?: string }>;
       selectCatalogImport: (kind: 'table' | 'image') => Promise<CatalogImportFile>;
       exsatStatus: () => Promise<{ connected: boolean }>;
       exsatLogin: () => Promise<{ connected: boolean }>;
