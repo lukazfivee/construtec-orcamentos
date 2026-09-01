@@ -164,7 +164,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
   router.post('/:proposalId/labor', async (request, response, next) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
-      await createProposalLaborItem(database, proposalId, laborSchema.parse(request.body));
+      await createProposalLaborItem(database, proposalId, laborSchema.parse(request.body), actor(response).id);
       const items = await listProposalLaborItems(database, proposalId);
       response.status(201).json({ items });
     } catch (error) { next(error); }
@@ -174,7 +174,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const itemId = idSchema.parse(request.params.itemId);
-      await updateProposalLaborItem(database, proposalId, itemId, laborSchema.parse(request.body));
+      await updateProposalLaborItem(database, proposalId, itemId, laborSchema.parse(request.body), actor(response).id);
       response.json({ items: await listProposalLaborItems(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -183,7 +183,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const itemId = idSchema.parse(request.params.itemId);
-      await removeProposalLaborItem(database, proposalId, itemId);
+      await removeProposalLaborItem(database, proposalId, itemId, actor(response).id);
       response.json({ items: await listProposalLaborItems(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -192,7 +192,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = standardHoursSchema.parse(request.body);
-      await updateProposalStandardMonthlyHours(database, proposalId, input.standardMonthlyHours);
+      await updateProposalStandardMonthlyHours(database, proposalId, input.standardMonthlyHours, actor(response).id);
       response.json({ standardMonthlyHours: input.standardMonthlyHours });
     } catch (error) { next(error); }
   });
