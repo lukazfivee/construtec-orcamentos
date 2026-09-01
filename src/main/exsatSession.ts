@@ -76,6 +76,15 @@ const assertCatalogSession = (page: { html: string; finalUrl: string }) => {
   if (isLoginPage(page)) throw new Error('EXSAT_LOGIN_REQUIRED');
 };
 
+const parseCatalogItems = (html: string, includeMissingPrice: boolean) => {
+  try {
+    return parseExsatProductsHtml(html, includeMissingPrice);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS') return [];
+    throw error;
+  }
+};
+
 const isHistoryEntry = (entry: unknown): entry is ExsatSyncHistoryEntry => {
   if (!entry || typeof entry !== 'object') return false;
   const value = entry as Partial<ExsatSyncHistoryEntry>;
@@ -173,15 +182,21 @@ const responseRenderedHtml = async (url: string) => {
 const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
   const raw = await responseHtml(url);
   assertCatalogSession(raw);
-  try {
-    return { ...raw, items: parseExsatProductsHtml(raw.html, includeMissingPrice) };
-  } catch (error) {
-    if (!(error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS')) throw error;
-  }
+  const rawItems = parseCatalogItems(raw.html, includeMissingPrice);
+  if (rawItems.length > 0) return { ...raw, items: rawItems };
 
   const rendered = await responseRenderedHtml(url);
   assertCatalogSession(rendered);
-  return { ...rendered, items: parseExsatProductsHtml(rendered.html, includeMissingPrice) };
+  return { ...rendered, items: parseCatalogItems(rendered.html, includeMissingPrice) };
+};
+
+const loadCatalogPageWithRetry = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
+  try {
+    return await loadCatalogPage(url, includeMissingPrice);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
+    return loadCatalogPage(url, includeMissingPrice);
+  }
 };
 
 const isCatalogCandidate = (url: URL) => {
@@ -275,7 +290,8 @@ export const previewAuthenticatedExsat = async (rawUrl: string): Promise<{ items
   const url = validateExsatUrl(rawUrl);
   const status = await exsatConnectionStatus();
   if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
-  const page = await loadCatalogPage(url.toString(), false);
+  const page = await loadCatalogPageWithRetry(url.toString(), false);
+  if (page.items.length === 0) throw new Error('EXSAT_NO_PRODUCTS');
   return { items: page.items, connected: true };
 };
 
@@ -290,7 +306,7 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
   let ignored = 0;
   for (const url of urls) {
     try {
-      const page = await loadCatalogPage(url, true);
+      const page = await loadCatalogPageWithRetry(url, true);
       for (const item of page.items) {
         if (items.has(item.code.toLowerCase())) ignored += 1;
         items.set(item.code.toLowerCase(), item);
@@ -352,7 +368,7 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     if (!url || visited.has(url)) continue;
     visited.add(url);
     try {
-      const page = await loadCatalogPage(url, true);
+      const page = await loadCatalogPageWithRetry(url, true);
       const final = validateExsatUrl(page.finalUrl).toString();
       const productCount = page.items.length;
       for (const item of page.items) {
