@@ -2,7 +2,7 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-09-01 13:10 BRT`
+Última atualização deste rastro: `2026-09-01 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente do estado atual do projeto.
 
@@ -57,86 +57,97 @@ Propostas:
 
 Autenticação e auditoria:
 
-- primeiro administrador configurável em instalações novas e existentes;
+- primeiro administrador configurável;
 - senhas com bcrypt;
 - sessão JWT efêmera por usuário;
 - perfis `admin`, `commercial` e `viewer`;
 - gestão de usuários em Configurações;
-- usuário `viewer` somente leitura;
-- alterações de Configurações e gestão de usuários restritas a `admin`;
-- criação/revisão/clone de propostas usam o usuário autenticado;
+- viewer somente leitura;
+- alterações sensíveis restritas a admin;
 - `audit_events.user_id` preenchido nas principais mutações de propostas, itens, BDI, contexto, mão de obra, catálogo, clientes, obras e importação em lote.
 
 Backup e restauração:
 
-- backup local disponível somente para administrador;
+- backup local somente para administrador;
 - usa `PGlite.dumpDataDir('gzip')` e gera `.tar.gz` consistente;
 - restauração valida o arquivo em PGlite temporário antes de tocar no banco atual;
-- confirmação mostra versão de esquema, propostas e usuários encontrados;
-- backup de emergência do banco atual é criado automaticamente antes da troca;
-- API/PGlite são fechados antes da substituição do data directory;
-- banco anterior é movido para diretório de rollback;
-- em falha, o banco parcial é removido e o banco anterior é restaurado;
-- app reinicia após sucesso ou rollback;
-- IPC de restauração também valida que a sessão atual pertence a administrador ativo.
+- cria backup de emergência e diretório de rollback;
+- fecha API/PGlite antes da substituição;
+- em falha restaura o banco anterior;
+- reinicia o app após sucesso ou rollback;
+- IPC de restauração confirma administrador ativo.
 
-Exsat:
+## Exsat — estado atual
 
-- login abre o site real em `BrowserWindow` isolado com partição `persist:construtec-exsat`;
-- senha não é armazenada pelo aplicativo;
-- importação manual, em lote e varredura automática/incremental já existem;
-- histórico básico de sincronização é persistido em `exsat-sync-state.json`;
-- correção mais recente removeu a dependência do nome do cookie para detectar login;
-- status agora usa redirecionamento real do endpoint de login e marcadores de conta autenticada (`logout`, `sair`, `minha conta`, `meus pedidos`), com página renderizada como fallback;
-- ao fechar a janela de login, o estado é sempre reconfirmado, evitando falso positivo por simples navegação.
+- login abre o site real em `BrowserWindow` isolado com `persist:construtec-exsat`;
+- senha não é armazenada pelo app;
+- importação manual, em lote e varredura automática/incremental existem;
+- histórico de sincronização persiste em `exsat-sync-state.json`;
+- detecção de login não depende mais do nome do cookie;
+- ao fechar a janela de login, a sessão é reconfirmada de verdade;
+- `lastSyncAt` e `lastFullSyncAt` só avançam depois da importação realmente confirmada, nunca apenas ao carregar uma prévia;
+- desconectar limpa eventual `pendingSync`;
+- se a sessão expirar durante a leitura de qualquer página, a sincronização interrompe com `EXSAT_LOGIN_REQUIRED` em vez de registrar falha parcial enganosa;
+- páginas válidas sem produtos são tratadas como páginas vazias e ainda podem contribuir com links para descoberta do catálogo;
+- páginas com erro real recebem uma segunda tentativa automática antes de entrar em `failedUrls`;
+- páginas vazias não contam mais como falha;
+- snapshots de propostas existentes continuam intocados por qualquer atualização do catálogo.
 
 ## Últimos avanços
 
 ```text
-40aa4b0 docs: document local backup and restore
-88431f2 merge PR #62 — feat: create consistent local database backups
-9284df7 merge PR #63 — feat: restore local database safely
-af45bc6 merge PR #64 — fix: make Exsat login detection reliable
+50d5c3d merge PR #65 — fix: record Exsat sync only after confirmed import
+59a3c80 merge PR #66 — fix: stop Exsat sync when authenticated session expires
+d4abf12 merge PR #67 — fix: retry Exsat pages and tolerate empty categories
 ```
 
-PRs relevantes:
+Também concluídos anteriormente:
 
-- `#62` backup local consistente;
-- `#63` restauração local segura;
-- `#64` detecção confiável de sessão Exsat.
+```text
+88431f2 merge PR #62 — backup local consistente
+9284df7 merge PR #63 — restauração local segura
+af45bc6 merge PR #64 — detecção confiável de sessão Exsat
+```
 
 ## Validação recente
 
-PR #63 — restauração:
-
-- `npm run verify`: sucesso no CI;
+PR #65:
+- segurança: sucesso;
+- `npm run verify`: sucesso;
 - auditoria de produção: sucesso;
-- auditoria de segurança: sucesso;
 - instalador Windows x64: sucesso;
-- workflow: `33528286833`.
+- workflow Windows: `33530617086`.
 
-PR #64 — Exsat:
-
-- `npm run verify`: sucesso no CI;
+PR #66:
+- segurança: sucesso;
+- `npm run verify`: sucesso;
 - auditoria de produção: sucesso;
-- auditoria de segurança: sucesso;
 - instalador Windows x64: sucesso;
-- workflow: `33529339851`.
+- workflow Windows: `33532241807`.
 
-Não houve nova release versionada nesses merges porque os commits não usaram `[release]`.
+PR #67:
+- segurança: sucesso;
+- `npm run verify`: sucesso;
+- auditoria de produção: sucesso;
+- instalador Windows x64: sucesso;
+- workflow Windows: `33532717310`.
+
+Nenhum desses merges usou `[release]`; não tratar como nova release versionada.
 
 ## Próxima rota de desenvolvimento
 
-1. Testar em instalação Windows o fluxo real da Exsat: abrir login, autenticar, fechar janela e confirmar `Conta conectada` sem refazer login.
-2. Fortalecer feedback de sincronização Exsat na interface: estado conectado/desconectado, última sincronização, modo full/incremental e falhas por página.
-3. Revisar a sincronização incremental para evitar varreduras desnecessárias e manter catálogo atualizado sem alterar snapshots de propostas existentes.
-4. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real disponível; não inventar endpoint, credencial ou esquema externo.
-5. Quando houver um bloco funcional aprovado para distribuição, gerar commit com `[release]`, confirmar release versionada e disponibilizar o EXE direto.
+1. Melhorar feedback visual da Exsat no diálogo de importação: `Verificando sessão`, `Conta conectada`, `Prévia carregada`, `Aguardando confirmação`, `Sincronização concluída` e sessão expirada.
+2. Testar em instalação Windows com a conta autorizada: login real, fechar janela, atualização automática, sessão expirada e retry de página.
+3. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
+4. Fazer pente-fino de duplicidades, itens sem preço, códigos conflitantes e atualização de centenas de itens sem tocar em propostas históricas.
+5. Validar ciclo completo Catálogo → Kit → Proposta → Mão de obra → BDI → Revisão → PDF/Word.
+6. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real; não inventar endpoint, credencial ou esquema.
+7. Depois de um bloco funcional aprovado, criar commit com `[release]`, confirmar release versionada e disponibilizar `Construtec-Orcamentos-Setup.exe` diretamente.
 
 ## Bloqueios atuais
 
-- Integração com Centro de Custos V3 depende de contrato/API real ainda não presente neste repositório.
-- Validação final do login Exsat exige interação real com a conta autorizada no Windows.
+- Validação real da Exsat exige interação com a conta autorizada no Windows.
+- Integração com Centro de Custos V3 depende de contrato/API real ainda não presente no repositório.
 - Nunca commitar credenciais, cookies, tokens, `.env` ou segredos.
 
 ## Convenções de release
