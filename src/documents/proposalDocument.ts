@@ -92,6 +92,9 @@ const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100)
 
 const documentTotal = (proposal: ProposalDetail) => proposal.totals.finalValue ?? proposal.totals.sale;
 
+const commercialMaterialsTotal = (proposal: ProposalDetail) =>
+  roundMoney(proposal.items.reduce((total, item) => total + item.totalSale, 0));
+
 const commercialLaborTotal = (proposal: ProposalDetail) => {
   const laborCost = proposal.totals.labor ?? 0;
   return laborCost > 0 ? roundMoney(laborCost * proposal.bdiMultiplier) : 0;
@@ -114,6 +117,7 @@ const groupItemsByCategory = (proposal: ProposalDetail) => {
 export const buildProposalHtml = (proposal: ProposalDetail, settings?: AppSettings) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
   const conditions = parseCommercialConditions(proposal.scope);
+  const materialsTotal = commercialMaterialsTotal(proposal);
   const laborTotal = commercialLaborTotal(proposal);
   const total = documentTotal(proposal);
   const grouped = groupItemsByCategory(proposal);
@@ -173,7 +177,6 @@ export const buildProposalHtml = (proposal: ProposalDetail, settings?: AppSettin
     body { margin: 0; color: #172033; font: 10.5pt "Segoe UI", Arial, sans-serif; }
     header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 9mm; border-bottom: 2px solid #085ce5; }
     .brand { color: #122036; font-size: 20pt; font-weight: 800; letter-spacing: -.4px; }
-    .brand span { color: #085ce5; }
     .tagline { margin-top: 2mm; color: #697386; font-size: 8.5pt; }
     .doc-id { text-align: right; }
     .doc-id b { display: block; color: #122036; font-size: 12pt; }
@@ -222,10 +225,8 @@ export const buildProposalHtml = (proposal: ProposalDetail, settings?: AppSettin
     <h2>Composição da proposta</h2>
     <table><colgroup><col style="width:6%"><col style="width:42%"><col style="width:8%"><col style="width:10%"><col style="width:16%"><col style="width:18%"></colgroup><thead><tr><th class="center">Item</th><th>Descrição</th><th class="center">Un.</th><th class="number">Qtd.</th><th class="number">Valor unit.</th><th class="number">Valor total</th></tr></thead><tbody>${tableRows}</tbody></table>
     <div class="breakdown">
-      <div><span>Total de Materiais</span><strong>${money.format(proposal.totals.materials ?? 0)}</strong></div>
-      <div><span>Total de Mão de Obra</span><strong>${money.format(proposal.totals.labor ?? 0)}</strong></div>
-      <div><span>Custo Base</span><strong>${money.format(proposal.totals.baseCost ?? 0)}</strong></div>
-      <div><span>BDI / acréscimos</span><strong>${money.format(proposal.totals.additions ?? 0)}</strong></div>
+      <div><span>Total de Materiais</span><strong>${money.format(materialsTotal)}</strong></div>
+      <div><span>Total de Mão de Obra</span><strong>${money.format(laborTotal)}</strong></div>
     </div>
     <div class="total"><span>VALOR TOTAL</span><strong>${money.format(total)}</strong></div>
     <h2>Condições comerciais</h2><section class="conditions">${conditionRows}</section>
@@ -250,6 +251,7 @@ const cell = (text: string, width: number, options: { bold?: boolean; align?: ty
 export const buildProposalDocx = async (proposal: ProposalDetail, settings?: AppSettings) => {
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
   const conditions = parseCommercialConditions(proposal.scope);
+  const materialsTotal = commercialMaterialsTotal(proposal);
   const laborTotal = commercialLaborTotal(proposal);
   const total = documentTotal(proposal);
   const conditionParagraph = (label: string, value: string) => new Paragraph({ children: [new TextRun({ text: `${label}: `, bold: true }), new TextRun(value || 'A definir')] });
@@ -295,8 +297,7 @@ export const buildProposalDocx = async (proposal: ProposalDetail, settings?: App
   }
   const laborRows: TableRow[] = [];
   if (laborTotal > 0) {
-    const laborCategoryTotal = laborTotal;
-    groupedRows.push(new TableRow({ children: [categoryHeaderCell('Mão de obra', laborCategoryTotal)] }));
+    groupedRows.push(new TableRow({ children: [categoryHeaderCell('Mão de obra', laborTotal)] }));
     docxIndex += 1;
     laborRows.push(new TableRow({ children: [
       cell(String(docxIndex), 650, { align: AlignmentType.CENTER }),
@@ -343,8 +344,7 @@ export const buildProposalDocx = async (proposal: ProposalDetail, settings?: App
           width: { size: 8500, type: WidthType.DXA },
           columnWidths: [4250, 4250],
           rows: [
-            new TableRow({ children: [cell(`Total de Materiais\n${money.format(proposal.totals.materials ?? 0)}`, 4250, { fill: LIGHT_BLUE }), cell(`Total de Mão de Obra\n${money.format(proposal.totals.labor ?? 0)}`, 4250, { fill: LIGHT_BLUE })] }),
-            new TableRow({ children: [cell(`Custo Base\n${money.format(proposal.totals.baseCost ?? 0)}`, 4250, { fill: LIGHT_BLUE }), cell(`BDI / acréscimos\n${money.format(proposal.totals.additions ?? 0)}`, 4250, { fill: LIGHT_BLUE })] }),
+            new TableRow({ children: [cell(`Total de Materiais\n${money.format(materialsTotal)}`, 4250, { fill: LIGHT_BLUE }), cell(`Total de Mão de Obra\n${money.format(laborTotal)}`, 4250, { fill: LIGHT_BLUE })] }),
           ],
         }),
         new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 220, after: 260 }, shading: { fill: BLUE, type: ShadingType.CLEAR }, children: [new TextRun({ text: `VALOR TOTAL   ${money.format(total)}`, bold: true, color: WHITE, size: 28, font: 'Arial' })] }),
