@@ -25,5 +25,5 @@ export const attributeAuditEvent = async (
     RETURNING event.id
   `, [entityType, entityId, action, userId]);
 
-  if (!result.rows[0]) throw new Error('AUDIT_EVENT_NOT_FOUND');
+  return Boolean(result.rows[0]);
 };
