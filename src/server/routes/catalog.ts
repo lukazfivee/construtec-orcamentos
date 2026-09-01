@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import { createCatalogProduct, importCatalogProducts, listCatalogProducts, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
-import { attributeAuditEvent } from '../services/auditAttribution';
+import { attributeAuditEvent, attributeCatalogBatchAudit } from '../services/auditAttribution';
 import type { LocalDatabase } from '../services/database';
 import { searchCatalog } from '../services/proposals';
 
@@ -30,6 +30,11 @@ const actor = (response: { locals: { authUser?: AuthUser } }) => {
   if (!user) throw new Error('AUTH_INVALID_CREDENTIALS');
   return user;
 };
+
+const isValidImportedItem = (item: z.infer<typeof productSchema>) => (
+  !item.source.trim().toUpperCase().startsWith('EXSAT')
+  || (Number.isFinite(item.currentCost) && item.currentCost > 0)
+);
 
 export const createCatalogRouter = (database: LocalDatabase) => {
   const router = Router();
@@ -78,6 +83,8 @@ export const createCatalogRouter = (database: LocalDatabase) => {
     try {
       const input = importSchema.parse(request.body);
       const result = await importCatalogProducts(database, input.items);
+      const codes = input.items.filter(isValidImportedItem).map((item) => item.code);
+      await attributeCatalogBatchAudit(database, actor(response).id, codes, result);
       response.status(201).json({ ...result, products: await listCatalogProducts(database) });
     } catch (error) { next(error); }
   });
