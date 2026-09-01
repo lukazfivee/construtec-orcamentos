@@ -12,7 +12,8 @@ export type ApiRuntime = {
 export const startApiServer = async (userDataPath: string, packagedModulePath?: string): Promise<ApiRuntime> => {
   const database = await createDatabase(userDataPath, packagedModulePath);
   const token = randomUUID();
-  const api = createApp(database, token);
+  const sessionSecret = `${randomUUID()}${randomUUID()}`;
+  const api = createApp(database, token, sessionSecret);
 
   const server = await new Promise<Server>((resolve, reject) => {
     const instance = api.listen(0, '127.0.0.1', () => resolve(instance));
