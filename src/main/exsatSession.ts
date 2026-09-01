@@ -207,6 +207,7 @@ const isCatalogCandidate = (url: URL) => {
   const pathName = url.pathname.toLowerCase();
   const query = url.search.toLowerCase();
   if (/login|logout|minha-conta|carrinho|checkout|pedido|contato|politica|termos/.test(pathName)) return false;
+  if (/\/produtos?\/(?:detalhes?|detail)\//.test(pathName)) return false;
   if (url.hash) url.hash = '';
   return /produto|categoria|departamento|marca|busca|pesquisa|shop|loja|catalog/.test(pathName)
     || /page|paged|pagina|s=|search|orderby|product_cat/.test(query)
@@ -356,9 +357,7 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     .slice()
     .sort((left, right) => right.productCount - left.productCount || Date.parse(right.lastSeenAt) - Date.parse(left.lastSeenAt))
     .map((page) => page.url);
-  const seeds = fullSync
-    ? [...CATALOG_SEEDS, START_URL, ...priorityPages]
-    : [...priorityPages, ...CATALOG_SEEDS, START_URL];
+  const seeds = [START_URL, ...CATALOG_SEEDS, ...priorityPages];
   const queue = [...new Set(seeds)].slice(0, pageLimit);
   const queued = new Set(queue);
   const visited = new Set<string>();
@@ -393,7 +392,10 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     }
   }
 
-  if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
+  if (items.size === 0) {
+    if (previous.pendingSync) await saveSyncState({ ...previous, pendingSync: undefined });
+    throw new Error('EXSAT_NO_PRODUCTS');
+  }
 
   const retainedPages = previous.pages.filter((page) => !pageStats.has(page.url));
   const nextPages = [...pageStats.values(), ...retainedPages]
