@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import type { AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from '../services/database';
+import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
   addProductToProposal,
   cloneProposal,
@@ -78,6 +80,12 @@ const cloneProposalSchema = z.object({
   scope: z.string().trim().min(3).max(1200).optional(),
 }).optional();
 
+const actor = (response: { locals: { authUser?: AuthUser } }) => {
+  const user = response.locals.authUser;
+  if (!user) throw new Error('AUTH_INVALID_CREDENTIALS');
+  return user;
+};
+
 export const createProposalsRouter = (database: LocalDatabase) => {
   const router = Router();
 
@@ -100,6 +108,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
   router.post('/', async (request, response, next) => {
     try {
       const proposalId = await createProposal(database, createProposalSchema.parse(request.body));
+      await attributeProposalCreation(database, proposalId, actor(response).id, 'created');
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -109,6 +118,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = cloneProposalSchema.parse(request.body);
       const newProposalId = await cloneProposal(database, proposalId, input);
+      await attributeProposalCreation(database, newProposalId, actor(response).id, 'cloned');
       response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) { next(error); }
   });
@@ -201,6 +211,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const newProposalId = await createProposalRevision(database, proposalId);
+      await attributeProposalCreation(database, newProposalId, actor(response).id, 'revision_created');
       await copyProposalLabor(database, proposalId, newProposalId);
       response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) { next(error); }
