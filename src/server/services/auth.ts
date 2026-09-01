@@ -58,13 +58,13 @@ export const setupFirstAdmin = async (
   const userId = randomUUID();
   const passwordHash = await hash(input.password, 12);
   const user = await database.transaction(async (transaction) => {
-    const existing = await transaction.query<{ count: string }>(`
-      SELECT count(*)::text AS count
+    const existing = await transaction.query<{ id: string }>(`
+      SELECT id
       FROM users
       WHERE active = true AND lower(email) <> lower($1)
       FOR UPDATE
     `, [DEMO_EMAIL]);
-    if (Number(existing.rows[0]?.count ?? 0) > 0) throw new Error('AUTH_SETUP_COMPLETE');
+    if (existing.rows.length > 0) throw new Error('AUTH_SETUP_COMPLETE');
 
     await transaction.query('UPDATE users SET active = false, updated_at = now() WHERE lower(email) = lower($1)', [DEMO_EMAIL]);
     const inserted = await transaction.query<UserRow>(`
