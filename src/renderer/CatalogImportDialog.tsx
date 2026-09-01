@@ -317,13 +317,27 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
     if (window.construtec?.exsatSyncInfo) setSyncInfo(await window.construtec.exsatSyncInfo());
   };
 
+  const handleExsatError = (error: unknown, fallback: string) => {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('EXSAT_LOGIN_REQUIRED')) {
+      setExsatConnected(false);
+      setRows([]);
+      setSourceName('');
+      setBatchInfo('');
+      void window.construtec?.exsatLogout?.();
+      onError('Sua sessão da Exsat expirou. Entre novamente para continuar.');
+      return;
+    }
+    onError(message || fallback);
+  };
+
   const loadExsat = async () => {
     setLoading(true);
     try {
       const urls = exsatUrls.split(/\r?\n|;/).map((url) => url.trim()).filter(Boolean);
       if (!window.construtec?.previewExsatBatch) throw new Error('A atualização em lote da Exsat requer o aplicativo desktop atualizado.');
       await applyExsatPreview(await window.construtec.previewExsatBatch(urls), false);
-    } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível consultar a Exsat.'); }
+    } catch (error) { handleExsatError(error, 'Não foi possível consultar a Exsat.'); }
     finally { setLoading(false); }
   };
 
@@ -332,7 +346,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
     try {
       if (!window.construtec?.previewExsatAuto) throw new Error('A atualização automática da Exsat requer o aplicativo desktop atualizado.');
       await applyExsatPreview(await window.construtec.previewExsatAuto(), true);
-    } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível varrer o catálogo da Exsat.'); }
+    } catch (error) { handleExsatError(error, 'Não foi possível varrer o catálogo da Exsat.'); }
     finally { setLoading(false); }
   };
 
