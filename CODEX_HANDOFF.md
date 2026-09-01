@@ -85,20 +85,23 @@ Backup e restauração:
 - histórico de sincronização persiste em `exsat-sync-state.json`;
 - detecção de login não depende mais do nome do cookie;
 - ao fechar a janela de login, a sessão é reconfirmada de verdade;
-- `lastSyncAt` e `lastFullSyncAt` só avançam depois da importação realmente confirmada, nunca apenas ao carregar uma prévia;
+- `lastSyncAt` e `lastFullSyncAt` só avançam depois da importação realmente confirmada;
 - desconectar limpa eventual `pendingSync`;
-- se a sessão expirar durante a leitura de qualquer página, a sincronização interrompe com `EXSAT_LOGIN_REQUIRED` em vez de registrar falha parcial enganosa;
-- páginas válidas sem produtos são tratadas como páginas vazias e ainda podem contribuir com links para descoberta do catálogo;
+- sessão expirada durante a leitura interrompe com `EXSAT_LOGIN_REQUIRED`;
+- páginas válidas sem produtos não contam como falha e ainda podem contribuir com links;
 - páginas com erro real recebem uma segunda tentativa automática antes de entrar em `failedUrls`;
-- páginas vazias não contam mais como falha;
+- o diálogo agora destaca melhor conexão, processamento, prévia pronta e confirmação pendente;
+- quando `EXSAT_LOGIN_REQUIRED` chega ao renderer, a interface muda imediatamente para desconectada, limpa a prévia/fonte pendente, encerra o estado local da sessão e pede novo login;
 - snapshots de propostas existentes continuam intocados por qualquer atualização do catálogo.
 
 ## Últimos avanços
 
 ```text
-50d5c3d merge PR #65 — fix: record Exsat sync only after confirmed import
-59a3c80 merge PR #66 — fix: stop Exsat sync when authenticated session expires
-d4abf12 merge PR #67 — fix: retry Exsat pages and tolerate empty categories
+50d5c3d merge PR #65 — record Exsat sync only after confirmed import
+59a3c80 merge PR #66 — stop Exsat sync when authenticated session expires
+d4abf12 merge PR #67 — retry Exsat pages and tolerate empty categories
+00c4b97 merge PR #68 — clarify Exsat synchronization states
+58015f4 merge PR #69 — reset Exsat UI when session expires
 ```
 
 Também concluídos anteriormente:
@@ -111,34 +114,27 @@ af45bc6 merge PR #64 — detecção confiável de sessão Exsat
 
 ## Validação recente
 
-PR #65:
+PR #68:
 - segurança: sucesso;
 - `npm run verify`: sucesso;
 - auditoria de produção: sucesso;
 - instalador Windows x64: sucesso;
-- workflow Windows: `33530617086`.
+- workflow Windows: `33534816923`.
 
-PR #66:
+PR #69:
 - segurança: sucesso;
 - `npm run verify`: sucesso;
 - auditoria de produção: sucesso;
 - instalador Windows x64: sucesso;
-- workflow Windows: `33532241807`.
-
-PR #67:
-- segurança: sucesso;
-- `npm run verify`: sucesso;
-- auditoria de produção: sucesso;
-- instalador Windows x64: sucesso;
-- workflow Windows: `33532717310`.
+- workflow Windows: `33541223624`.
 
 Nenhum desses merges usou `[release]`; não tratar como nova release versionada.
 
 ## Próxima rota de desenvolvimento
 
-1. Melhorar feedback visual da Exsat no diálogo de importação: `Verificando sessão`, `Conta conectada`, `Prévia carregada`, `Aguardando confirmação`, `Sincronização concluída` e sessão expirada.
-2. Testar em instalação Windows com a conta autorizada: login real, fechar janela, atualização automática, sessão expirada e retry de página.
-3. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
+1. Testar em instalação Windows com a conta autorizada: login real, fechar janela, atualização automática, confirmação de importação, sessão expirada e relogin.
+2. Se o teste real estiver correto, considerar a frente Exsat estabilizada por enquanto.
+3. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, modelo, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
 4. Fazer pente-fino de duplicidades, itens sem preço, códigos conflitantes e atualização de centenas de itens sem tocar em propostas históricas.
 5. Validar ciclo completo Catálogo → Kit → Proposta → Mão de obra → BDI → Revisão → PDF/Word.
 6. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real; não inventar endpoint, credencial ou esquema.
