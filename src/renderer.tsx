@@ -28,10 +28,11 @@
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './renderer/App';
+import { AuthGate } from './renderer/AuthGate';
 import '@fontsource-variable/ibm-plex-sans';
 import './index.css';
 import './impeccable-audit.css';
+import './auth.css';
 
 const rootElement = document.getElementById('root');
 
@@ -39,6 +40,6 @@ if (!rootElement) throw new Error('Elemento raiz do renderer não encontrado.');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <AuthGate />
   </StrictMode>,
 );
