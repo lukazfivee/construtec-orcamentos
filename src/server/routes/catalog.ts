@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import type { AuthUser } from '../../shared/contracts';
+import { createCatalogProduct, importCatalogProducts, listCatalogProducts, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
+import { attributeAuditEvent } from '../services/auditAttribution';
 import type { LocalDatabase } from '../services/database';
 import { searchCatalog } from '../services/proposals';
-import { createCatalogProduct, importCatalogProducts, listCatalogProducts, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
 
 const searchSchema = z.object({
   q: z.string().trim().max(120).default(''),
@@ -22,6 +24,12 @@ const productSchema = z.object({
 });
 const importSchema = z.object({ items: z.array(productSchema).min(1).max(500) });
 const exsatSchema = z.object({ url: z.url().max(2000) });
+
+const actor = (response: { locals: { authUser?: AuthUser } }) => {
+  const user = response.locals.authUser;
+  if (!user) throw new Error('AUTH_INVALID_CREDENTIALS');
+  return user;
+};
 
 export const createCatalogRouter = (database: LocalDatabase) => {
   const router = Router();
@@ -45,6 +53,7 @@ export const createCatalogRouter = (database: LocalDatabase) => {
   router.post('/', async (request, response, next) => {
     try {
       const productId = await createCatalogProduct(database, productSchema.parse(request.body));
+      await attributeAuditEvent(database, actor(response).id, 'product', productId, 'created');
       response.status(201).json({ productId, products: await listCatalogProducts(database) });
     } catch (error) { next(error); }
   });
@@ -53,6 +62,7 @@ export const createCatalogRouter = (database: LocalDatabase) => {
     try {
       const productId = idSchema.parse(request.params.productId);
       await updateCatalogProduct(database, productId, productSchema.parse(request.body));
+      await attributeAuditEvent(database, actor(response).id, 'product', productId, 'updated');
       response.json({ products: await listCatalogProducts(database) });
     } catch (error) { next(error); }
   });
