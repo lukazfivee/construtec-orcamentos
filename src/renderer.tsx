@@ -33,6 +33,7 @@ import '@fontsource-variable/ibm-plex-sans';
 import './index.css';
 import './impeccable-audit.css';
 import './auth.css';
+import './exsat-feedback.css';
 
 const rootElement = document.getElementById('root');
 
