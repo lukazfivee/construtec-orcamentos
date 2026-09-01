@@ -158,6 +158,10 @@
   border-radius: 6px;
 }
 
+body:has(.auth-session-chip) .top-actions .profile {
+  visibility: hidden;
+}
+
 .auth-session-avatar {
   display: grid;
   place-items: center;
