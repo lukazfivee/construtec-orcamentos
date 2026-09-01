@@ -180,10 +180,14 @@ const responseRenderedHtml = async (url: string) => {
 };
 
 const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
-  const raw = await responseHtml(url);
-  assertCatalogSession(raw);
-  const rawItems = parseCatalogItems(raw.html, includeMissingPrice);
-  if (rawItems.length > 0) return { ...raw, items: rawItems };
+  try {
+    const raw = await responseHtml(url);
+    assertCatalogSession(raw);
+    const rawItems = parseCatalogItems(raw.html, includeMissingPrice);
+    if (rawItems.length > 0) return { ...raw, items: rawItems };
+  } catch (error) {
+    if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
+  }
 
   const rendered = await responseRenderedHtml(url);
   assertCatalogSession(rendered);
