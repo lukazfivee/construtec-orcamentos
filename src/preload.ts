@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('construtec', {
   previewProposal: (proposal: unknown) => ipcRenderer.invoke('documents:preview', proposal),
   exportProposal: (proposal: unknown) => ipcRenderer.invoke('documents:export', proposal),
   saveBackup: (bytes: Uint8Array, suggestedName: string) => ipcRenderer.invoke('backup:save', bytes, suggestedName),
+  restoreBackup: (sessionToken: string) => ipcRenderer.invoke('backup:restore', sessionToken),
   selectCatalogImport: (kind: 'table' | 'image') => ipcRenderer.invoke('catalog:select-import', kind),
   exsatStatus: () => ipcRenderer.invoke('exsat:status'),
   exsatLogin: () => ipcRenderer.invoke('exsat:login'),
