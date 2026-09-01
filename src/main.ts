@@ -107,6 +107,19 @@ app.whenReady().then(async () => {
     return { canceled: false, files: [pdfPath, docxPath] };
   });
 
+  ipcMain.handle('backup:save', async (_event, bytes: Uint8Array, suggestedName: string) => {
+    const safeName = path.basename(suggestedName || 'Construtec-Orcamentos-backup.tar.gz');
+    const selection = await dialog.showSaveDialog({
+      title: 'Salvar backup do Construtec Orçamentos',
+      defaultPath: path.join(app.getPath('documents'), safeName),
+      buttonLabel: 'Salvar backup',
+      filters: [{ name: 'Backup PGlite', extensions: ['gz'] }],
+    });
+    if (selection.canceled || !selection.filePath) return { canceled: true };
+    await writeFile(selection.filePath, Buffer.from(bytes));
+    return { canceled: false, filePath: selection.filePath };
+  });
+
   ipcMain.handle('catalog:select-import', async (_event, kind: 'table' | 'image') => {
     const result = await selectCatalogImport(kind);
     return normalizeCatalogImportFile(result);
