@@ -7,6 +7,7 @@ import { createDashboardRouter } from './routes/dashboard';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
 import { createSettingsRouter } from './routes/settings';
+import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
 import type { LocalDatabase } from './services/database';
@@ -69,6 +70,10 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       response.status(403).json({ error: 'Apenas administradores podem gerenciar usuários.' });
       return;
     }
+    if (request.path.startsWith('/api/system') && user.role !== 'admin') {
+      response.status(403).json({ error: 'Apenas administradores podem executar operações de backup e restauração.' });
+      return;
+    }
     if (request.path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem alterar as configurações.' });
       return;
@@ -82,6 +87,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));
   api.use('/api/users', createUsersRouter(database));
+  api.use('/api/system', createSystemRouter(database));
   api.use('/api/dashboard', createDashboardRouter(database));
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {

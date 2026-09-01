@@ -37,14 +37,18 @@ const getRuntime = async () => {
   return runtimePromise;
 };
 
+const requestHeaders = (apiToken: string, hasBody = false) => ({
+  Authorization: `Bearer ${apiToken}`,
+  ...(authSessionToken ? { 'X-Construtec-Session': authSessionToken } : {}),
+  ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+});
+
 const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const { apiUrl, apiToken } = await getRuntime();
   const response = await fetch(`${apiUrl}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${apiToken}`,
-      ...(authSessionToken ? { 'X-Construtec-Session': authSessionToken } : {}),
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...requestHeaders(apiToken, Boolean(init?.body)),
       ...init?.headers,
     },
   });
@@ -53,6 +57,16 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
     throw new Error(payload.error);
   }
   return response.json() as Promise<T>;
+};
+
+const requestBinary = async (path: string): Promise<Uint8Array> => {
+  const { apiUrl, apiToken } = await getRuntime();
+  const response = await fetch(`${apiUrl}${path}`, { headers: requestHeaders(apiToken) });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({ error: 'Resposta inválida da API local.' })) as ApiErrorPayload;
+    throw new Error(payload.error);
+  }
+  return new Uint8Array(await response.arrayBuffer());
 };
 
 export const authApi = {
@@ -205,6 +219,10 @@ export const usersApi = {
   resetPassword: (userId: string, password: string) => request<{ success: boolean }>(`/api/users/${userId}/password`, {
     method: 'POST', body: JSON.stringify({ password }),
   }),
+};
+
+export const systemApi = {
+  createBackup: () => requestBinary('/api/system/backup'),
 };
 
 export const dashboardApi = {
