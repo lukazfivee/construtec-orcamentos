@@ -15,6 +15,11 @@ type LaborRow = {
   planned_hours: string;
 };
 
+const laborSnapshot = (input: ProposalLaborInput) => ({
+  ...input,
+  ...calculateLaborItem(input),
+});
+
 const mapLaborItem = (row: LaborRow): ProposalLaborItem => {
   const input = {
     professionalCount: Number(row.professional_count),
@@ -82,7 +87,7 @@ export const createProposalLaborItem = async (
 ) => {
   await database.transaction(async (transaction) => {
     await assertEditable(transaction, proposalId);
-    calculateLaborItem(input);
+    const after = laborSnapshot(input);
     const next = await transaction.query<{ position: number }>(
       'SELECT COALESCE(max(position), 0) + 1 AS position FROM proposal_labor_items WHERE proposal_id = $1', [proposalId],
     );
@@ -99,7 +104,7 @@ export const createProposalLaborItem = async (
     await transaction.query(`
       INSERT INTO audit_events (id, user_id, entity_type, entity_id, action, after_data)
       VALUES ($1, $2, 'proposal_labor_item', $3, 'created', $4::jsonb)
-    `, [randomUUID(), userId, itemId, JSON.stringify({ proposalId, ...input })]);
+    `, [randomUUID(), userId, itemId, JSON.stringify({ proposalId, ...after })]);
   });
 };
 
@@ -112,7 +117,7 @@ export const updateProposalLaborItem = async (
 ) => {
   await database.transaction(async (transaction) => {
     await assertEditable(transaction, proposalId);
-    calculateLaborItem(input);
+    const after = laborSnapshot(input);
     const before = await selectLaborItemForUpdate(transaction, proposalId, itemId);
     const result = await transaction.query(`
       UPDATE proposal_labor_items
@@ -128,7 +133,7 @@ export const updateProposalLaborItem = async (
     await transaction.query(`
       INSERT INTO audit_events (id, user_id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, $2, 'proposal_labor_item', $3, 'updated', $4::jsonb, $5::jsonb)
-    `, [randomUUID(), userId, itemId, JSON.stringify(before), JSON.stringify({ proposalId, ...input })]);
+    `, [randomUUID(), userId, itemId, JSON.stringify({ proposalId, ...before }), JSON.stringify({ proposalId, ...after })]);
   });
 };
 
