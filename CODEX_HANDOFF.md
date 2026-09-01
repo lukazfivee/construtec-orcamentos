@@ -85,14 +85,40 @@ Backup e restauração:
 - histórico de sincronização persiste em `exsat-sync-state.json`;
 - detecção de login não depende mais do nome do cookie;
 - ao fechar a janela de login, a sessão é reconfirmada de verdade;
-- `lastSyncAt` e `lastFullSyncAt` só avançam depois da importação realmente confirmada;
+- `lastSyncAt` e `lastFullSyncAt` devem avançar somente depois da importação realmente confirmada;
 - desconectar limpa eventual `pendingSync`;
 - sessão expirada durante a leitura interrompe com `EXSAT_LOGIN_REQUIRED`;
 - páginas válidas sem produtos não contam como falha e ainda podem contribuir com links;
 - páginas com erro real recebem uma segunda tentativa automática antes de entrar em `failedUrls`;
-- o diálogo agora destaca melhor conexão, processamento, prévia pronta e confirmação pendente;
+- quando o fetch HTTP direto falha, o app tenta a mesma URL em `BrowserWindow` autenticada antes de considerar a página indisponível;
 - quando `EXSAT_LOGIN_REQUIRED` chega ao renderer, a interface muda imediatamente para desconectada, limpa a prévia/fonte pendente, encerra o estado local da sessão e pede novo login;
+- a fila automática agora deve priorizar home + categorias atuais antes das páginas históricas salvas;
+- páginas de detalhe `/produtos/detalhes/` não devem consumir o limite do crawler automático;
+- se uma varredura terminar sem produtos, `pendingSync` anterior deve ser descartado;
+- o falso rótulo CSS “Prévia carregada · aguardando confirmação” foi removido porque aparecia durante `Processando...` e até com 0 linhas;
 - snapshots de propostas existentes continuam intocados por qualquer atualização do catálogo.
+
+## Teste real Exsat no Windows — estado mais recente
+
+Fluxo testado pelo usuário com conta real autorizada:
+
+1. login e reconhecimento da conta: funcionando;
+2. sessão mostrada como `Conta conectada`: funcionando;
+3. prévia do catálogo: funciona parcialmente;
+4. varredura automática ainda está em validação.
+
+Resultado observado antes do PR #71, usando a correção do PR #70:
+
+```text
+43 linhas encontradas
+23 para importar
+1 página lida
+23 páginas não puderam ser lidas
+```
+
+Não importar esse lote parcial ainda. O usuário foi orientado a não confirmar os itens enquanto a cobertura da varredura não estiver correta.
+
+A causa seguinte identificada foi a ordem da fila incremental: páginas históricas salvas podiam ocupar as 24 posições antes de home/categorias atuais, impedindo descoberta nova. O PR #71 corrige essa prioridade e precisa de novo teste real no Windows.
 
 ## Últimos avanços
 
@@ -102,6 +128,8 @@ Backup e restauração:
 d4abf12 merge PR #67 — retry Exsat pages and tolerate empty categories
 00c4b97 merge PR #68 — clarify Exsat synchronization states
 58015f4 merge PR #69 — reset Exsat UI when session expires
+2ac20fb merge PR #70 — fall back to rendered Exsat catalog pages
+9dccf3d merge PR #71 — refresh Exsat crawl before saved pages
 ```
 
 Também concluídos anteriormente:
@@ -114,35 +142,43 @@ af45bc6 merge PR #64 — detecção confiável de sessão Exsat
 
 ## Validação recente
 
-PR #68:
+PR #70:
 - segurança: sucesso;
 - `npm run verify`: sucesso;
 - auditoria de produção: sucesso;
 - instalador Windows x64: sucesso;
-- workflow Windows: `33534816923`.
+- workflow Windows: `33543140902`;
+- teste real ainda mostrou `1 página lida / 23 falhas`, então o problema não foi considerado encerrado.
 
-PR #69:
+PR #71:
 - segurança: sucesso;
 - `npm run verify`: sucesso;
 - auditoria de produção: sucesso;
 - instalador Windows x64: sucesso;
-- workflow Windows: `33541223624`.
+- workflow Windows: `33547329057`;
+- artefato CI: `9816099655` (`Construtec-Orcamentos-Setup`);
+- merge no `main`: `9dccf3d67b99502dd890f2c607881a58a3924d4c`;
+- teste real pós-#71: pendente.
 
 Nenhum desses merges usou `[release]`; não tratar como nova release versionada.
 
 ## Próxima rota de desenvolvimento
 
-1. Testar em instalação Windows com a conta autorizada: login real, fechar janela, atualização automática, confirmação de importação, sessão expirada e relogin.
-2. Se o teste real estiver correto, considerar a frente Exsat estabilizada por enquanto.
-3. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, modelo, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
-4. Fazer pente-fino de duplicidades, itens sem preço, códigos conflitantes e atualização de centenas de itens sem tocar em propostas históricas.
-5. Validar ciclo completo Catálogo → Kit → Proposta → Mão de obra → BDI → Revisão → PDF/Word.
-6. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real; não inventar endpoint, credencial ou esquema.
-7. Depois de um bloco funcional aprovado, criar commit com `[release]`, confirmar release versionada e disponibilizar `Construtec-Orcamentos-Setup.exe` diretamente.
+1. Repetir imediatamente o teste real da Exsat no Windows usando o instalador do PR #71.
+2. Verificar principalmente `páginas lidas`, `páginas com falha`, `itens encontrados` e se home/categorias atuais passaram a ser percorridas.
+3. Não confirmar importação enquanto a varredura continuar claramente parcial.
+4. Confirmar também que `lastSyncAt` não avança por mera prévia/varredura cancelada ou sem importação efetiva.
+5. Quando a cobertura real estiver correta, testar confirmação de importação, histórico, sessão expirada e relogin.
+6. Se o teste real estiver correto, considerar a frente Exsat estabilizada por enquanto.
+7. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, modelo, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
+8. Fazer pente-fino de duplicidades, itens sem preço, códigos conflitantes e atualização de centenas de itens sem tocar em propostas históricas.
+9. Validar ciclo completo Catálogo → Kit → Proposta → Mão de obra → BDI → Revisão → PDF/Word.
+10. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real; não inventar endpoint, credencial ou esquema.
+11. Depois de um bloco funcional aprovado, criar commit com `[release]`, confirmar release versionada e disponibilizar `Construtec-Orcamentos-Setup.exe` diretamente.
 
 ## Bloqueios atuais
 
-- Validação real da Exsat exige interação com a conta autorizada no Windows.
+- Validação final da Exsat exige interação com a conta autorizada no Windows.
 - Integração com Centro de Custos V3 depende de contrato/API real ainda não presente no repositório.
 - Nunca commitar credenciais, cookies, tokens, `.env` ou segredos.
 
