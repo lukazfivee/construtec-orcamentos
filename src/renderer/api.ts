@@ -223,6 +223,11 @@ export const usersApi = {
 
 export const systemApi = {
   createBackup: () => requestBinary('/api/system/backup'),
+  restoreBackup: () => {
+    if (!authSessionToken) return Promise.reject(new Error('Sua sessão de usuário expirou.'));
+    if (!window.construtec?.restoreBackup) return Promise.reject(new Error('A restauração só pode ser executada pelo aplicativo desktop.'));
+    return window.construtec.restoreBackup(authSessionToken);
+  },
 };
 
 export const dashboardApi = {
