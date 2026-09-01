@@ -18,7 +18,9 @@ O catálogo possui cadastro e edição de materiais e serviços, incluindo códi
 
 Lotes de itens podem ser revisados e importados por colagem manual, planilhas XLSX/CSV/TSV, imagens lidas pelo OCR nativo do Windows ou páginas da Exsat. O leitor de imagens reconhece também o modelo de orçamento da Exsat, usando `Fab.` como código do produto e `Vl. Líq.` como custo unitário. O login da Exsat acontece diretamente no site, em uma sessão isolada e persistente, permitindo consultar também os preços da conta sem armazenar a senha no aplicativo. Códigos repetidos atualizam o catálogo, sem alterar propostas já emitidas.
 
-Autenticação completa e integrações externas entram nas próximas fases.
+A autenticação local individual está implementada com configuração do primeiro administrador, hash bcrypt de senhas, sessões JWT efêmeras, perfis `admin`, `commercial` e `viewer`, gestão de usuários e logout. As principais mutações de propostas, mão de obra, catálogo, clientes e obras registram o usuário autenticado em `audit_events`, mantendo rastreabilidade sem expor o banco nem depender de nuvem.
+
+A próxima etapa de segurança é implementar backup e restauração controlados do banco local. Integrações externas adicionais permanecem opcionais e não alteram o princípio local-first.
 
 ## Executar localmente
 
