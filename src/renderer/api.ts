@@ -1,6 +1,7 @@
 import type {
   ApiErrorPayload,
   AppSettings,
+  AuthRole,
   AuthSession,
   AuthSetupStatus,
   AuthUser,
@@ -18,6 +19,7 @@ import type {
   ProposalLine,
   ProposalRevisionSummary,
   ProposalSummary,
+  UserRecord,
 } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
@@ -189,6 +191,19 @@ export const settingsApi = {
   update: (input: Partial<AppSettings>) => request<{ settings: AppSettings }>('/api/settings', {
     method: 'PATCH',
     body: JSON.stringify(input),
+  }),
+};
+
+export const usersApi = {
+  list: () => request<{ users: UserRecord[] }>('/api/users'),
+  create: (input: { name: string; email: string; password: string; role: AuthRole }) => request<{ user: UserRecord; users: UserRecord[] }>('/api/users', {
+    method: 'POST', body: JSON.stringify(input),
+  }),
+  update: (userId: string, input: { name: string; email: string; role: AuthRole; active: boolean }) => request<{ user: UserRecord; users: UserRecord[] }>(`/api/users/${userId}`, {
+    method: 'PATCH', body: JSON.stringify(input),
+  }),
+  resetPassword: (userId: string, password: string) => request<{ success: boolean }>(`/api/users/${userId}/password`, {
+    method: 'POST', body: JSON.stringify({ password }),
   }),
 };
 
