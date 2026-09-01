@@ -55,7 +55,6 @@ export const setupFirstAdmin = async (
   secret: string,
   input: { name: string; email: string; password: string },
 ): Promise<AuthSession> => {
-  const userId = randomUUID();
   const passwordHash = await hash(input.password, 12);
   const user = await database.transaction(async (transaction) => {
     const existing = await transaction.query<{ id: string }>(`
@@ -66,13 +65,24 @@ export const setupFirstAdmin = async (
     `, [DEMO_EMAIL]);
     if (existing.rows.length > 0) throw new Error('AUTH_SETUP_COMPLETE');
 
-    await transaction.query('UPDATE users SET active = false, updated_at = now() WHERE lower(email) = lower($1)', [DEMO_EMAIL]);
-    const inserted = await transaction.query<UserRow>(`
-      INSERT INTO users (id, name, email, password_hash, role, active)
-      VALUES ($1, $2, lower($3), $4, 'admin', true)
-      RETURNING id, name, email, password_hash, role, active
-    `, [userId, input.name.trim(), input.email.trim(), passwordHash]);
-    return toAuthUser(inserted.rows[0]);
+    const demo = await transaction.query<{ id: string }>(`
+      SELECT id FROM users WHERE lower(email) = lower($1) LIMIT 1 FOR UPDATE
+    `, [DEMO_EMAIL]);
+
+    const saved = demo.rows[0]
+      ? await transaction.query<UserRow>(`
+          UPDATE users
+          SET name = $2, email = lower($3), password_hash = $4, role = 'admin', active = true, updated_at = now()
+          WHERE id = $1
+          RETURNING id, name, email, password_hash, role, active
+        `, [demo.rows[0].id, input.name.trim(), input.email.trim(), passwordHash])
+      : await transaction.query<UserRow>(`
+          INSERT INTO users (id, name, email, password_hash, role, active)
+          VALUES ($1, $2, lower($3), $4, 'admin', true)
+          RETURNING id, name, email, password_hash, role, active
+        `, [randomUUID(), input.name.trim(), input.email.trim(), passwordHash]);
+
+    return toAuthUser(saved.rows[0]);
   });
   return createSession(user, secret);
 };
