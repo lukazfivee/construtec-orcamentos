@@ -7,6 +7,7 @@ import { createDashboardRouter } from './routes/dashboard';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
 import { createSettingsRouter } from './routes/settings';
+import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
 import type { LocalDatabase } from './services/database';
 
@@ -59,8 +60,13 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       response.status(401).json({ error: 'Sessão de usuário inválida ou expirada.' });
       return;
     }
+    response.locals.authUser = user;
     if (user.role === 'viewer' && request.method !== 'GET') {
       response.status(403).json({ error: 'Seu perfil possui acesso somente para consulta.' });
+      return;
+    }
+    if (request.path.startsWith('/api/users') && user.role !== 'admin') {
+      response.status(403).json({ error: 'Apenas administradores podem gerenciar usuários.' });
       return;
     }
     if (request.path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
@@ -75,6 +81,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));
+  api.use('/api/users', createUsersRouter(database));
   api.use('/api/dashboard', createDashboardRouter(database));
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
@@ -89,6 +96,18 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     }
     if (error instanceof Error && error.message === 'AUTH_SETUP_COMPLETE') {
       response.status(409).json({ error: 'O administrador inicial já foi configurado.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'USER_EMAIL_DUPLICATE') {
+      response.status(409).json({ error: 'Já existe um usuário com esse e-mail.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'USER_SELF_LOCKOUT') {
+      response.status(409).json({ error: 'Você não pode desativar ou remover o perfil administrativo da própria conta.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'USER_LAST_ADMIN') {
+      response.status(409).json({ error: 'É necessário manter pelo menos um administrador ativo.' });
       return;
     }
     if (error instanceof Error && error.message.endsWith('_NOT_FOUND')) {
