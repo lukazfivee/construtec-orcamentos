@@ -88,6 +88,11 @@ export type ProposalRevisionSummary = { id: string; number: string; revision: nu
 export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string };
 export type ApiErrorPayload = { error: string; details?: unknown };
 
+export type AuthRole = 'admin' | 'commercial' | 'viewer';
+export type AuthUser = { id: string; name: string; email: string; role: AuthRole };
+export type AuthSession = { token: string; user: AuthUser };
+export type AuthSetupStatus = { requiresSetup: boolean };
+
 export type KitItemSummary = {
   id: string;
   productId: string;
@@ -147,4 +152,3 @@ export type DashboardMetrics = {
   totalKitsCount: number;
   recentProposals: ProposalSummary[];
 };
-
