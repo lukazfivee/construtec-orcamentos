@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from '../services/database';
+import { attributeAuditEvent } from '../services/auditAttribution';
 import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
   addProductToProposal,
@@ -137,6 +138,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const { status } = statusSchema.parse(request.body);
       const proposal = await updateProposalStatus(database, proposalId, status);
+      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'status_updated');
       response.json({ proposal });
     } catch (error) { next(error); }
   });
@@ -231,6 +233,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = removeItemsSchema.parse(request.body);
       await removeProposalItems(database, proposalId, input.itemIds);
+      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'items_removed');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -241,6 +244,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const itemId = idSchema.parse(request.params.itemId);
       const input = updateItemSchema.parse(request.body);
       await updateProposalItem(database, proposalId, itemId, input);
+      await attributeAuditEvent(database, actor(response).id, 'proposal_item', itemId, 'updated');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -260,6 +264,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const itemId = idSchema.parse(request.params.itemId);
       const input = moveItemSchema.parse(request.body);
       await moveProposalItem(database, proposalId, itemId, input.direction);
+      await attributeAuditEvent(database, actor(response).id, 'proposal_item', itemId, 'moved');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -269,6 +274,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = updateBdiSchema.parse(request.body);
       await updateProposalBdi(database, proposalId, input.bdiMultiplier);
+      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'bdi_updated');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -278,6 +284,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = updateDetailsSchema.parse(request.body);
       await updateProposalDetails(database, proposalId, input);
+      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'details_updated');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
@@ -287,6 +294,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = updateContextSchema.parse(request.body);
       await updateProposalContext(database, proposalId, input.clientId, input.workId);
+      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'context_updated');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });
