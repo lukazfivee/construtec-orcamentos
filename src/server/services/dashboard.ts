@@ -19,11 +19,11 @@ export const getDashboardSummary = async (database: LocalDatabase): Promise<Dash
       WITH current_proposals AS (
         SELECT p.id, p.status, p.bdi_multiplier,
           COALESCE((
-            COALESCE((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 0)
-            + COALESCE((SELECT SUM(
+            COALESCE(ROUND((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 2), 0)
+            + COALESCE(ROUND((SELECT SUM(
                 pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
                 / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
-              ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 0)
+              ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 2), 0)
           ) * p.bdi_multiplier, 0) AS total_val
         FROM proposals p
         WHERE NOT EXISTS (
