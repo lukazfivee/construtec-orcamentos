@@ -687,10 +687,10 @@ export function App() {
           <Search size={17} /><span>{activeNav === 'Propostas' ? 'Buscar no catálogo' : 'Busca disponível em Propostas'}</span>{activeNav === 'Propostas' && <kbd>Ctrl+K</kbd>}
         </button>
         <div className="top-actions">
-          <button className="icon-button" aria-label="Notificações" type="button" disabled title="Notificações serão implementadas em uma próxima etapa."><Bell size={18} /></button>
-          <button className="icon-button" aria-label="Ajuda" type="button" disabled title="A central de ajuda será implementada em uma próxima etapa."><HelpCircle size={18} /></button>
+          <button className="icon-button" aria-label="Notificações (indisponível)" aria-disabled="true" type="button" disabled title="Notificações serão implementadas em uma próxima etapa."><Bell size={18} /></button>
+          <button className="icon-button" aria-label="Ajuda (indisponível)" aria-disabled="true" type="button" disabled title="A central de ajuda será implementada em uma próxima etapa."><HelpCircle size={18} /></button>
           <span className="divider" />
-          <button className="profile" type="button" disabled title="Gestão de perfil será implementada em uma próxima etapa."><span>MR</span><b>Marcos Ribeiro</b><ChevronDown size={14} /></button>
+          <button className="profile" aria-disabled="true" type="button" disabled title="Gestão de perfil será implementada em uma próxima etapa."><span>MR</span><b>Marcos Ribeiro</b><ChevronDown size={14} /></button>
         </div>
       </header>
 
@@ -805,10 +805,10 @@ export function App() {
             <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void moveSelectedItem('up')}><ChevronUp size={14} /> Mover</button>
             <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void moveSelectedItem('down')}><ChevronDown size={14} /> Mover</button>
             <span className="toolbar-space" />
-            <button type="button" disabled title="Importação será implementada em uma próxima etapa.">Importar <ChevronDown size={14} /></button>
-            <button className="icon-button" aria-label="Configurar colunas" type="button" disabled><SlidersHorizontal size={18} /></button>
-            <button className="icon-button" aria-label="Filtrar itens" type="button" disabled><Filter size={18} /></button>
-            <button className="icon-button" aria-label="Configurações da tabela" type="button" disabled><Settings size={18} /></button>
+            <button type="button" aria-disabled="true" disabled title="Importação será implementada em uma próxima etapa.">Importar <ChevronDown size={14} /></button>
+            <button className="icon-button" aria-label="Configurar colunas (indisponível)" aria-disabled="true" type="button" disabled title="Configuração de colunas será implementada em uma próxima etapa."><SlidersHorizontal size={18} /></button>
+            <button className="icon-button" aria-label="Filtrar itens (indisponível)" aria-disabled="true" type="button" disabled title="Filtro de itens será implementado em uma próxima etapa."><Filter size={18} /></button>
+            <button className="icon-button" aria-label="Configurações da tabela (indisponível)" aria-disabled="true" type="button" disabled title="Configurações da tabela serão implementadas em uma próxima etapa."><Settings size={18} /></button>
           </div>
 
           <div className="table-region">

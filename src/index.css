@@ -21,6 +21,21 @@
   --focus: #2f7cf4;
   --ink-secondary: #465268;
   --shadow-sm: 0 1px 3px rgba(18, 32, 54, .05);
+  --status-draft-text: #8a4e00;
+  --status-draft-bg: #fef3e6;
+  --status-draft-border: #f1d693;
+  --status-review-text: #1a4da1;
+  --status-review-bg: #eff5ff;
+  --status-review-border: #b8d1fb;
+  --status-sent-text: #55278c;
+  --status-sent-bg: #f4ecfc;
+  --status-sent-border: #dec3f5;
+  --status-approved-text: #176d39;
+  --status-approved-bg: #f0f9f2;
+  --status-approved-border: #94d3a8;
+  --status-rejected-text: #9e2323;
+  --status-rejected-bg: #fdeeee;
+  --status-rejected-border: #f9bebe;
 }
 
 * { box-sizing: border-box; }
@@ -31,7 +46,7 @@ body { background: var(--surface); }
 
 button, input { font: inherit; }
 button { color: inherit; }
-button:disabled { cursor: not-allowed !important; opacity: .52; }
+button:disabled { cursor: not-allowed !important; opacity: .45; color: var(--muted); }
 input:disabled { cursor: default; color: var(--muted); background: var(--surface-subtle); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 ::selection { color: #fff; background: #145fd0; }
@@ -106,8 +121,13 @@ kbd {
 .icon-button { display: inline-grid !important; place-items: center; width: 34px; min-width: 34px; height: 32px; padding: 0 !important; background: transparent; border: 1px solid transparent; border-radius: 5px; cursor: pointer; }
 .top-actions .icon-button { color: #e5eaf0; }
 .top-actions .icon-button:hover { background: #233147; }
+.top-actions .icon-button:disabled { color: #7a8594; background: transparent; cursor: not-allowed; }
+.top-actions .icon-button:disabled:hover { background: rgba(35, 49, 71, 0.5); }
 .divider { width: 1px; height: 23px; margin: 0 7px; background: #435066; }
-.profile { display: flex; align-items: center; gap: 8px; padding: 0; color: #f5f7fa; background: transparent; border: 0; cursor: pointer; white-space: nowrap; }
+.profile { display: flex; align-items: center; gap: 8px; padding: 0 8px; color: #f5f7fa; background: transparent; border: 0; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+.profile:hover { background: #233147; }
+.profile:disabled { color: #7a8594; cursor: not-allowed; }
+.profile:disabled:hover { background: rgba(35, 49, 71, 0.5); }
 .profile > span { display: grid; place-items: center; width: 29px; height: 29px; font-size: 11px; font-weight: 700; background: #445169; border-radius: 50%; }
 .profile b { font-size: 12px; font-weight: 500; }
 
@@ -144,6 +164,7 @@ kbd {
 .new-proposal-dialog label b { color: #bd2f2f; }
 .new-proposal-dialog input, .new-proposal-dialog select { width: 100%; height: 38px; padding: 0 10px; color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 5px; outline: none; }
 .new-proposal-dialog input:focus, .new-proposal-dialog select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
+.new-proposal-dialog input:disabled, .new-proposal-dialog select:disabled { background: #f5f6f8; color: var(--muted); cursor: not-allowed; }
 .dialog-warning { padding: 10px 12px; color: var(--amber); background: var(--amber-soft); border: 1px solid #f1d693; border-radius: 5px; font-size: 10px; }
 .new-proposal-dialog form > footer { display: flex; justify-content: flex-end; gap: 9px; margin: 5px -20px -20px; padding: 14px 20px; background: var(--surface-subtle); border-top: 1px solid var(--line); border-radius: 0 0 8px 8px; }
 .new-proposal-dialog form > footer button { height: 36px; padding: 0 15px; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
@@ -169,9 +190,11 @@ kbd {
 .toolbar { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 9px 16px; border-bottom: 1px solid var(--line); }
 .toolbar button, .actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 34px; padding: 0 13px; font-size: 12px; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
 .toolbar button:hover, .actions button:hover { background: #f7f9fb; border-color: #aeb8c6; }
+.toolbar button:disabled, .actions button:disabled { background: #f5f6f8; border-color: #e4e6ea; color: var(--muted); cursor: not-allowed; }
 .toolbar-space { flex: 1; }
 .primary { color: #fff !important; background: var(--blue) !important; border-color: var(--blue) !important; font-weight: 650; }
 .primary:hover { background: #064ebf !important; }
+.primary:disabled { background: #94a8b8 !important; border-color: #94a8b8 !important; cursor: not-allowed; }
 .toolbar .compact { padding-left: 12px; }
 
 .table-region { min-width: 0; min-height: 0; overflow: auto; }
@@ -735,33 +758,33 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 }
 
 .status-draft {
-  color: #8a4e00;
-  background: var(--amber-soft);
-  border: 1px solid #f1d693;
+  color: var(--status-draft-text);
+  background: var(--status-draft-bg);
+  border: 1px solid var(--status-draft-border);
 }
 
 .status-review {
-  color: #1a4da1;
-  background: var(--blue-soft);
-  border: 1px solid #b8d1fb;
+  color: var(--status-review-text);
+  background: var(--status-review-bg);
+  border: 1px solid var(--status-review-border);
 }
 
 .status-sent {
-  color: #55278c;
-  background: #f4ecfc;
-  border: 1px solid #dec3f5;
+  color: var(--status-sent-text);
+  background: var(--status-sent-bg);
+  border: 1px solid var(--status-sent-border);
 }
 
 .status-approved {
-  color: #176d39;
-  background: var(--green-soft);
-  border: 1px solid #94d3a8;
+  color: var(--status-approved-text);
+  background: var(--status-approved-bg);
+  border: 1px solid var(--status-approved-border);
 }
 
 .status-rejected {
-  color: #9e2323;
-  background: #fdeeee;
-  border: 1px solid #f9bebe;
+  color: var(--status-rejected-text);
+  background: var(--status-rejected-bg);
+  border: 1px solid var(--status-rejected-border);
 }
 
 .open-proposal-btn {
@@ -1239,6 +1262,13 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
   .meta-field { padding-inline: 16px; }
   .catalog-popover { left: 120px; }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1024px) {
+  .app-shell { grid-template-columns: 80px minmax(0, 1fr); }
+  .workspace { grid-template-columns: minmax(600px, 1fr) 240px; }
+  .sidebar nav button { height: 68px; }
+  .proposal-tabs button { min-width: 140px; padding: 0 16px; gap: 12px; }
 }
 
 @media (max-height: 800px) {

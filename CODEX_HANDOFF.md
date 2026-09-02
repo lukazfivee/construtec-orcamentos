@@ -2,9 +2,18 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 Branch principal: `main`
-Última atualização deste rastro: `2026-09-01 BRT`
+Última atualização deste rastro: `2026-09-02 BRT`
 
 Este arquivo existe para outra IA, editor ou operador continuar exatamente do estado atual do projeto.
+
+## PR #72 — integração visual limpa
+
+- Branch da PR reconstruída sobre `origin/main` para evitar importar 219 mil linhas de ferramentas Impeccable ao histórico.
+- Mantidas somente melhorias em `DESIGN.md`, `src/index.css`, `src/renderer/App.tsx` e `src/renderer/NewProposalDialog.tsx`.
+- Melhorias: associação explícita de labels, estados indisponíveis mais claros, tokens semânticos de status e ajuste responsivo até 1024 px.
+- Nenhuma skill, hook, agente ou dependência Impeccable faz parte da árvore final.
+- Validação local: `npm run verify` aprovado; auditoria de padrões sensíveis será confirmada novamente no CI.
+- Próximo passo: aguardar CI verde da PR #72 antes do merge.
 
 ## Como continuar
 
