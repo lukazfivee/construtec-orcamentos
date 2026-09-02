@@ -336,6 +336,7 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 
 .import-overlay { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(16, 24, 40, .48); backdrop-filter: blur(2px); }
 .import-dialog { display: grid; grid-template-rows: auto auto auto auto minmax(180px, 1fr) auto; width: min(1220px, 96vw); height: min(820px, 92vh); overflow: hidden; background: #fff; border: 1px solid #c7cfdb; border-radius: 10px; box-shadow: 0 24px 70px rgba(10, 24, 48, .28); }
+.import-dialog.has-preview { grid-template-rows: auto auto auto auto auto minmax(180px, 1fr) auto; }
 .import-dialog > header { display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 0 20px; border-bottom: 1px solid var(--line); }
 .import-dialog > header > span { display: flex; align-items: center; gap: 11px; }
 .import-dialog > header svg { color: var(--blue); }
@@ -360,16 +361,43 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
 .exsat-session { display: flex; min-width: 150px; flex-direction: column; align-items: flex-start; gap: 5px; color: #8a4b09; font-size: 10px; }
 .exsat-session.connected { color: #14713c; }
 .exsat-session button { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 8px; color: inherit; background: #fff; }
+.exsat-source { display: block; min-height: 0; padding: 12px; }
+.exsat-overview { display: grid; grid-template-columns: 210px 300px minmax(320px, 1fr); align-items: stretch; gap: 12px; }
+.exsat-overview .exsat-session { justify-content: center; min-width: 0; padding: 10px 12px; background: #fff8e9; border: 1px solid #efd18b; border-radius: 6px; font-weight: 700; }
+.exsat-overview .exsat-session.connected { background: #f1faf5; border-color: #b8dfc7; }
+.exsat-overview .exsat-session button { font-weight: 400; }
+.exsat-sync-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 12px; padding: 8px 12px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.exsat-sync-dates span { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 10px; }
+.exsat-sync-dates b { color: #465269; }
+.exsat-auto-action { display: grid; grid-template-columns: minmax(180px, 230px) minmax(0, 1fr); align-items: center; gap: 12px; }
+.exsat-auto-action > button { width: 100%; color: #fff; font-weight: 700; }
+.exsat-auto-action small { line-height: 1.45; }
+.exsat-tools { display: flex; gap: 12px; margin-top: 10px; }
+.exsat-tools details { min-width: 0; flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.exsat-tools summary { padding: 9px 11px; color: #354157; cursor: pointer; font-size: 10px; font-weight: 600; }
+.exsat-tools details > div, .exsat-tools details > label { margin: 0 11px 10px; }
+.exsat-tools details > button { margin: 0 11px 10px; }
+.exsat-tools details p { padding: 5px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 9px; line-height: 1.4; }
+.exsat-tools textarea { width: 100%; height: 64px; padding: 8px; resize: vertical; border: 1px solid var(--line-strong); border-radius: 5px; font: 10px/1.4 ui-monospace, monospace; }
 .import-summary { display: flex; align-items: center; gap: 18px; min-height: 42px; padding: 0 18px; color: #556176; background: #f8fafc; border-bottom: 1px solid var(--line); font-size: 10px; }
 .import-summary span:nth-child(2) { flex: 1; text-align: right; }
 .import-summary button { display: inline-flex; align-items: center; gap: 5px; height: 27px; padding: 0 9px; color: var(--blue); background: #fff; border: 1px solid #9bbff3; border-radius: 5px; cursor: pointer; }
+.exsat-preview-summary { border-left: 4px solid var(--blue); }
+.exsat-preview-summary.has-warning { color: #754300; background: #fff8e9; border-left-color: #d58a00; }
+.exsat-preview-summary.has-warning span:nth-child(2) { font-weight: 700; }
 .import-table { min-height: 0; overflow: auto; }
 .import-table table { min-width: 1070px; table-layout: fixed; }
+.import-table thead { position: sticky; z-index: 1; top: 0; background: #f8fafc; box-shadow: 0 1px 0 var(--line); }
 .import-table th { padding: 0 5px; }
 .import-table td { height: 38px; padding: 3px; }
 .import-table td input { width: 100%; height: 29px; padding: 0 6px; border: 1px solid transparent; border-radius: 4px; outline: none; }
 .import-table td input:focus { background: #fff; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .1); }
 .import-table tr.invalid td { background: #fff8e9; }
+.import-status { display: inline-flex; align-items: center; min-height: 22px; padding: 2px 8px; border-radius: 999px; font-size: 9px; line-height: 1.2; white-space: nowrap; }
+.import-status.status-new { color: #126638; background: #e8f7ee; }
+.import-status.status-updated, .import-status.status-edited { color: #0b56b3; background: #eaf3ff; }
+.import-status.status-unchanged { color: #536174; background: #edf1f5; }
+.import-status.status-no_price { color: #855000; background: #fff0ca; }
 .import-table td:last-child, .import-table th:last-child { width: 40px; }
 .import-table td:last-child button { display: grid; place-items: center; width: 28px; height: 28px; color: #a32b2b; background: transparent; border: 0; cursor: pointer; }
 .import-table > p { padding: 56px 20px; color: var(--muted); text-align: center; font-size: 11px; }
@@ -1269,6 +1297,8 @@ tfoot td { position: sticky; bottom: 0; height: 45px; font-weight: 700; backgrou
   .workspace { grid-template-columns: minmax(600px, 1fr) 240px; }
   .sidebar nav button { height: 68px; }
   .proposal-tabs button { min-width: 140px; padding: 0 16px; gap: 12px; }
+  .exsat-overview { grid-template-columns: 190px minmax(0, 1fr); }
+  .exsat-auto-action { grid-column: 1 / -1; }
 }
 
 @media (max-height: 800px) {
