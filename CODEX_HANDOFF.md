@@ -6,7 +6,7 @@ Branch: `codex/exsat-import-layout`
 
 Atualização: `2026-09-02 BRT`
 
-Base sincronizada: `e2330cb726e09a535d6c50c78d25d5e4423b86e7`
+Base sincronizada: `a4ed0597603b1d6f9b514f86db1155a7f8d6a940`
 
 ## Retomada
 
@@ -26,6 +26,8 @@ Arquitetura detalhada está em `PRODUCT.md`, `README.md` e, para mudanças subst
 - PR #72 integrada em `7623bdc`: auditoria visual geral.
 - PR #73 integrada em `9f03029`: arredondamento de resumos.
 - PR #74 integrada em `e2330cb`: regras/contexto e skill `agent-md-refactor`.
+- PR #76 integrada em `a4ed059`: skill `prompt-master`.
+- PR #75 aberta: layout do modal Exsat.
 
 ## Exsat — teste real pós-PR #71
 
@@ -40,7 +42,7 @@ Login, reconhecimento da conta e parser funcionam. Cobertura continua inválida:
 
 Não confirmar esse lote parcial. Próximo diagnóstico deve expor `URL + etapa + código técnico + mensagem segura`, separando HTTP, navegação Electron, redirect/login, timeout e URL inválida.
 
-## Branch atual — layout do modal Exsat
+## PR #75 — layout do modal Exsat
 
 - Corrige grade dinâmica que deixava grande espaço vazio quando a prévia existia.
 - Agrupa conexão, datas e atualização automática.
@@ -49,28 +51,20 @@ Não confirmar esse lote parcial. Próximo diagnóstico deve expor `URL + etapa 
 - Adiciona ajuste responsivo até 1024 px.
 - Não altera crawler, importação, banco, PDF/Word ou dependências.
 
-## Limpeza global recuperável
-
-```text
-819 skills movidas de C:\Users\Suporte\.codex\skills
-backup: C:\Users\Suporte\.codex\skills-archive\20260901-222407-token-cleanup
-mantidas: .system e caveman
-```
-
 ## Validação
 
-- PRs #73 e #74: `npm run verify`, segurança, dependências e instalador Windows aprovados; assinatura ignorada por falta de certificado.
-- Branch atual: `npm run verify` e `git diff --check` aprovados antes do isolamento; CI deve repetir após push.
-- Validação visual real ainda pendente em 1920×1080 e 1366×768.
+- PRs #73, #74 e #76: checks completos aprovados; assinatura ignorada por falta de certificado.
+- PR #75: checks completos aprovados antes da atualização com `main`; CI deve repetir após push.
+- Validação visual real da PR #75 ainda pendente em 1920×1080 e 1366×768.
 - Stash `codex-preserve-before-ui-ff-20260902` mantido como cópia de segurança.
 
 ## Próximo passo
 
-1. Abrir PR desta branch e aguardar CI.
+1. Aguardar novo CI da PR #75.
 2. Validar modal Exsat em 1920×1080 e 1366×768 antes do merge.
-3. Isolar `prompt-master` em PR própria.
-4. Implementar diagnóstico estruturado das falhas Exsat.
-5. Bloquear confirmação de varredura automática claramente parcial.
+3. Implementar diagnóstico estruturado das falhas Exsat.
+4. Bloquear confirmação de varredura automática claramente parcial.
+5. Criar testes críticos de cálculos, snapshots e exportações.
 
 ## Bloqueios
 
