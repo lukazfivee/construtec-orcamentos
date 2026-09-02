@@ -146,11 +146,11 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name,
       p.status, count(i.id)::text AS item_count,
       COALESCE(ROUND((
-        COALESCE((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 0)
-        + COALESCE((SELECT SUM(
+        COALESCE(ROUND((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 2), 0)
+        + COALESCE(ROUND((SELECT SUM(
             pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
             / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
-          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 0)
+          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 2), 0)
       ) * p.bdi_multiplier, 2), 0)::text AS total_sale,
       p.updated_at::text
     FROM proposals p
@@ -614,11 +614,11 @@ export const listProposalHistory = async (database: LocalDatabase, proposalId: s
     SELECT p.id, p.proposal_number, p.revision, p.status,
       count(i.id)::text AS item_count,
       COALESCE(ROUND((
-        COALESCE((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 0)
-        + COALESCE((SELECT SUM(
+        COALESCE(ROUND((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 2), 0)
+        + COALESCE(ROUND((SELECT SUM(
             pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
             / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
-          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 0)
+          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 2), 0)
       ) * p.bdi_multiplier, 2), 0)::text AS total_sale,
       u.name AS responsible_name, p.updated_at::text,
       p.revision = max(p.revision) OVER (PARTITION BY p.proposal_number) AS is_latest
