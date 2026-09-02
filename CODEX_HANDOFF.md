@@ -92,7 +92,7 @@ Backup e restauração:
 - páginas com erro real recebem uma segunda tentativa automática antes de entrar em `failedUrls`;
 - quando o fetch HTTP direto falha, o app tenta a mesma URL em `BrowserWindow` autenticada antes de considerar a página indisponível;
 - quando `EXSAT_LOGIN_REQUIRED` chega ao renderer, a interface muda imediatamente para desconectada, limpa a prévia/fonte pendente, encerra o estado local da sessão e pede novo login;
-- a fila automática agora deve priorizar home + categorias atuais antes das páginas históricas salvas;
+- a fila automática agora prioriza home + categorias atuais antes das páginas históricas salvas;
 - páginas de detalhe `/produtos/detalhes/` não devem consumir o limite do crawler automático;
 - se uma varredura terminar sem produtos, `pendingSync` anterior deve ser descartado;
 - o falso rótulo CSS “Prévia carregada · aguardando confirmação” foi removido porque aparecia durante `Processando...` e até com 0 linhas;
@@ -104,21 +104,30 @@ Fluxo testado pelo usuário com conta real autorizada:
 
 1. login e reconhecimento da conta: funcionando;
 2. sessão mostrada como `Conta conectada`: funcionando;
-3. prévia do catálogo: funciona parcialmente;
-4. varredura automática ainda está em validação.
+3. parser de produtos: funcionando em pelo menos uma página real;
+4. varredura automática: ainda com falha grave de cobertura.
 
-Resultado observado antes do PR #71, usando a correção do PR #70:
+Resultado real após o PR #71:
 
 ```text
-43 linhas encontradas
-23 para importar
+44 linhas encontradas
+29 para importar
 1 página lida
 23 páginas não puderam ser lidas
 ```
 
-Não importar esse lote parcial ainda. O usuário foi orientado a não confirmar os itens enquanto a cobertura da varredura não estiver correta.
+Exemplo real extraído corretamente no teste:
 
-A causa seguinte identificada foi a ordem da fila incremental: páginas históricas salvas podiam ocupar as 24 posições antes de home/categorias atuais, impedindo descoberta nova. O PR #71 corrige essa prioridade e precisa de novo teste real no Windows.
+```text
+Código: 4521010
+Descrição: Porteiro Residencial IPR 8010
+Custo: 203,85
+Fonte: EXSAT
+```
+
+Conclusão: o PR #71 não resolveu a causa principal da navegação. O parser consegue interpretar produtos da página que abre, mas 23 de 24 páginas continuam falhando no carregamento. Não confirmar esse lote parcial ainda.
+
+Próximo diagnóstico deve expor `URL + motivo real da falha` para cada página, distinguindo erro HTTP, erro de navegação Electron, redirect/login, timeout ou URL inválida. Enquanto a cobertura estiver em 1/24, a interface não deve tratar o lote como sincronização confiável.
 
 ## Últimos avanços
 
@@ -158,29 +167,30 @@ PR #71:
 - workflow Windows: `33547329057`;
 - artefato CI: `9816099655` (`Construtec-Orcamentos-Setup`);
 - merge no `main`: `9dccf3d67b99502dd890f2c607881a58a3924d4c`;
-- teste real pós-#71: pendente.
+- teste real pós-#71: falhou na cobertura, com `1 página lida / 23 falhas`.
 
 Nenhum desses merges usou `[release]`; não tratar como nova release versionada.
 
 ## Próxima rota de desenvolvimento
 
-1. Repetir imediatamente o teste real da Exsat no Windows usando o instalador do PR #71.
-2. Verificar principalmente `páginas lidas`, `páginas com falha`, `itens encontrados` e se home/categorias atuais passaram a ser percorridas.
-3. Não confirmar importação enquanto a varredura continuar claramente parcial.
-4. Confirmar também que `lastSyncAt` não avança por mera prévia/varredura cancelada ou sem importação efetiva.
-5. Quando a cobertura real estiver correta, testar confirmação de importação, histórico, sessão expirada e relogin.
-6. Se o teste real estiver correto, considerar a frente Exsat estabilizada por enquanto.
-7. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, modelo, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
-8. Fazer pente-fino de duplicidades, itens sem preço, códigos conflitantes e atualização de centenas de itens sem tocar em propostas históricas.
-9. Validar ciclo completo Catálogo → Kit → Proposta → Mão de obra → BDI → Revisão → PDF/Word.
-10. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real; não inventar endpoint, credencial ou esquema.
-11. Depois de um bloco funcional aprovado, criar commit com `[release]`, confirmar release versionada e disponibilizar `Construtec-Orcamentos-Setup.exe` diretamente.
+1. Instrumentar a varredura Exsat para registrar e mostrar `URL + motivo técnico` de cada falha.
+2. Impedir que uma varredura claramente parcial seja oferecida como importação confiável.
+3. Corrigir a causa real das 23 falhas com base no diagnóstico do Windows.
+4. Repetir o teste real e exigir cobertura significativamente maior que `1/24` antes de liberar confirmação.
+5. Confirmar que `lastSyncAt` não avança por mera prévia/varredura cancelada ou sem importação efetiva.
+6. Quando a cobertura real estiver correta, testar confirmação de importação, histórico, sessão expirada e relogin.
+7. Se o teste real estiver correto, considerar a frente Exsat estabilizada por enquanto.
+8. Voltar para a importação universal de catálogo por imagem/PDF de qualquer fornecedor, reforçando código, descrição, fabricante, modelo, unidade/quantidade, preço e fornecedor sem depender de layout fixo.
+9. Fazer pente-fino de duplicidades, itens sem preço, códigos conflitantes e atualização de centenas de itens sem tocar em propostas históricas.
+10. Validar ciclo completo Catálogo → Kit → Proposta → Mão de obra → BDI → Revisão → PDF/Word.
+11. Só iniciar integração com Centro de Custos Construtec V3 quando houver contrato/API real; não inventar endpoint, credencial ou esquema.
+12. Depois de um bloco funcional aprovado, criar commit com `[release]`, confirmar release versionada e disponibilizar `Construtec-Orcamentos-Setup.exe` diretamente.
 
 ## Bloqueios atuais
 
-- Validação final da Exsat exige interação com a conta autorizada no Windows.
-- Integração com Centro de Custos V3 depende de contrato/API real ainda não presente no repositório.
-- Nunca commitar credenciais, cookies, tokens, `.env` ou segredos.
+- diagnóstico final da Exsat depende do comportamento real do site dentro do Electron no Windows;
+- integração com Centro de Custos V3 depende de contrato/API real ainda não presente no repositório;
+- nunca commitar credenciais, cookies, tokens, `.env` ou segredos.
 
 ## Convenções de release
 
