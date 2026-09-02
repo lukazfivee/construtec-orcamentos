@@ -12,8 +12,17 @@ Este arquivo existe para outra IA, editor ou operador continuar exatamente do es
 - Mantidas somente melhorias em `DESIGN.md`, `src/index.css`, `src/renderer/App.tsx` e `src/renderer/NewProposalDialog.tsx`.
 - Melhorias: associação explícita de labels, estados indisponíveis mais claros, tokens semânticos de status e ajuste responsivo até 1024 px.
 - Nenhuma skill, hook, agente ou dependência Impeccable faz parte da árvore final.
-- Validação local: `npm run verify` aprovado; auditoria de padrões sensíveis será confirmada novamente no CI.
-- Próximo passo: aguardar CI verde da PR #72 antes do merge.
+- Commit `7623bdc` integrado à `main`; validação local e CI aprovados.
+- Não houve release versionada porque o commit não contém `[release]`.
+
+## Arredondamento dos resumos — branch atual
+
+- Branch: `codex/proposal-summary-rounding`.
+- Commit funcional: `98f4944 fix: align proposal summary rounding`.
+- `src/server/services/dashboard.ts` arredonda materiais e mão de obra antes de aplicar o BDI nos KPIs.
+- `src/server/services/proposals.ts` usa a mesma regra na listagem atual e no histórico.
+- Detalhes da proposta e PDF/Word não foram alterados; dados comerciais internos permanecem restritos à interface.
+- Validação: executar `npm run verify` e CI antes do merge.
 
 ## Como continuar
 
