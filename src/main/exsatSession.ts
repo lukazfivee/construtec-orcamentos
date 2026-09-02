@@ -1,7 +1,7 @@
 import { app, BrowserWindow, session } from 'electron';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { CatalogImportItem, ExsatBatchPreview, ExsatSyncHistoryEntry, ExsatSyncInfo } from '../shared/contracts';
+import type { CatalogImportItem, ExsatBatchPreview, ExsatPageFailure, ExsatSyncHistoryEntry, ExsatSyncInfo } from '../shared/contracts';
 import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
 const LOGIN_URL = 'https://exsat.com.br/central-cliente/login/';
@@ -48,6 +48,54 @@ type ExsatCatalogPage = {
   items: CatalogImportItem[];
 };
 
+class ExsatPageLoadError extends Error {
+  constructor(
+    readonly stage: ExsatPageFailure['stage'],
+    readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ExsatPageLoadError';
+  }
+}
+
+const technicalCode = (error: unknown, fallback: string) => {
+  const message = error instanceof Error ? error.message : '';
+  return message.match(/\b(?:EXSAT|ERR)_[A-Z0-9_]+\b/)?.[0] ?? fallback;
+};
+
+const safeTechnicalMessage = (error: unknown, fallback: string) => {
+  const message = error instanceof Error ? error.message : fallback;
+  return message.replace(/https?:\/\/\S+/gi, '[URL]').replace(/\s+/g, ' ').trim().slice(0, 180) || fallback;
+};
+
+const safeFailureUrl = (rawUrl: string) => {
+  try {
+    const url = new URL(rawUrl);
+    url.username = '';
+    url.password = '';
+    for (const key of [...url.searchParams.keys()]) {
+      if (/token|secret|password|senha|session|auth|key/i.test(key)) url.searchParams.set(key, '[redacted]');
+    }
+    return url.toString().slice(0, 500);
+  } catch {
+    return rawUrl.replace(/\s+/g, ' ').trim().slice(0, 500);
+  }
+};
+
+const pageFailure = (url: string, error: unknown): ExsatPageFailure => {
+  if (error instanceof ExsatPageLoadError) {
+    return { url: safeFailureUrl(url), stage: error.stage, code: error.code, message: safeTechnicalMessage(error, 'Falha ao carregar a página.') };
+  }
+  const code = technicalCode(error, 'EXSAT_UNKNOWN');
+  return {
+    url: safeFailureUrl(url),
+    stage: code === 'EXSAT_URL_INVALID' ? 'validation' : 'unknown',
+    code,
+    message: safeTechnicalMessage(error, 'Falha desconhecida ao carregar a página.'),
+  };
+};
+
 const exsatSession = () => session.fromPartition(PARTITION);
 const syncStatePath = () => path.join(app.getPath('userData'), 'exsat-sync-state.json');
 
@@ -81,7 +129,11 @@ const parseCatalogItems = (html: string, includeMissingPrice: boolean) => {
     return parseExsatProductsHtml(html, includeMissingPrice);
   } catch (error) {
     if (error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS') return [];
-    throw error;
+    throw new ExsatPageLoadError(
+      'parser',
+      technicalCode(error, 'EXSAT_PARSE_FAILED'),
+      safeTechnicalMessage(error, 'Falha ao interpretar os produtos da página.'),
+    );
   }
 };
 
@@ -147,14 +199,25 @@ export const recordExsatSyncResult = async (result: { created: number; updated: 
 };
 
 const responseHtml = async (url: string) => {
-  const response = await exsatSession().fetch(url, {
-    redirect: 'follow',
-    credentials: 'include',
-  });
-  if (!response.ok) throw new Error('EXSAT_UNAVAILABLE');
-  const html = await response.text();
-  if (html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
-  return { html, finalUrl: response.url };
+  try {
+    const response = await exsatSession().fetch(url, {
+      redirect: 'follow',
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      throw new ExsatPageLoadError('http', `EXSAT_HTTP_${response.status}`, `HTTP ${response.status} ${response.statusText}`.trim());
+    }
+    const html = await response.text();
+    if (html.length > 8_000_000) throw new ExsatPageLoadError('http', 'EXSAT_RESPONSE_TOO_LARGE', 'Resposta HTTP maior que 8 MB.');
+    return { html, finalUrl: response.url };
+  } catch (error) {
+    if (error instanceof ExsatPageLoadError) throw error;
+    throw new ExsatPageLoadError(
+      'http',
+      technicalCode(error, 'EXSAT_HTTP_FAILED'),
+      safeTechnicalMessage(error, 'Falha na requisição HTTP.'),
+    );
+  }
 };
 
 const responseRenderedHtml = async (url: string) => {
@@ -169,17 +232,28 @@ const responseRenderedHtml = async (url: string) => {
   });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   try {
-    await window.loadURL(url);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    const html = await window.webContents.executeJavaScript('document.documentElement.outerHTML', true) as string;
-    if (!html || html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
-    return { html, finalUrl: window.webContents.getURL() };
+    try {
+      await window.loadURL(url);
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const html = await window.webContents.executeJavaScript('document.documentElement.outerHTML', true) as string;
+      if (!html) throw new ExsatPageLoadError('electron', 'EXSAT_RENDER_EMPTY', 'A página renderizada não retornou HTML.');
+      if (html.length > 8_000_000) throw new ExsatPageLoadError('electron', 'EXSAT_RENDER_TOO_LARGE', 'Página renderizada maior que 8 MB.');
+      return { html, finalUrl: window.webContents.getURL() };
+    } catch (error) {
+      if (error instanceof ExsatPageLoadError) throw error;
+      throw new ExsatPageLoadError(
+        'electron',
+        technicalCode(error, 'EXSAT_ELECTRON_FAILED'),
+        safeTechnicalMessage(error, 'Falha na navegação Electron.'),
+      );
+    }
   } finally {
     if (!window.isDestroyed()) window.destroy();
   }
 };
 
 const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
+  let directFailure: ExsatPageFailure | undefined;
   try {
     const raw = await responseHtml(url);
     assertCatalogSession(raw);
@@ -187,11 +261,23 @@ const loadCatalogPage = async (url: string, includeMissingPrice = true): Promise
     if (rawItems.length > 0) return { ...raw, items: rawItems };
   } catch (error) {
     if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
+    directFailure = pageFailure(url, error);
   }
 
-  const rendered = await responseRenderedHtml(url);
-  assertCatalogSession(rendered);
-  return { ...rendered, items: parseCatalogItems(rendered.html, includeMissingPrice) };
+  try {
+    const rendered = await responseRenderedHtml(url);
+    assertCatalogSession(rendered);
+    return { ...rendered, items: parseCatalogItems(rendered.html, includeMissingPrice) };
+  } catch (error) {
+    if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
+    if (!directFailure) throw error;
+    const renderedFailure = pageFailure(url, error);
+    throw new ExsatPageLoadError(
+      renderedFailure.stage,
+      renderedFailure.code,
+      `Direto ${directFailure.stage}/${directFailure.code}: ${directFailure.message}; fallback ${renderedFailure.stage}/${renderedFailure.code}: ${renderedFailure.message}`.slice(0, 180),
+    );
+  }
 };
 
 const loadCatalogPageWithRetry = async (url: string, includeMissingPrice = true): Promise<ExsatCatalogPage> => {
@@ -304,12 +390,19 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
   const status = await exsatConnectionStatus();
   if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
   const startedAt = new Date().toISOString();
-  const urls = [...new Set(rawUrls.map((value) => value.trim()).filter(Boolean).map((value) => validateExsatUrl(value).toString()))].slice(0, 30);
+  const urls = [...new Set(rawUrls.map((value) => value.trim()).filter(Boolean))].slice(0, 30);
   if (urls.length === 0) throw new Error('EXSAT_URL_INVALID');
   const items = new Map<string, CatalogImportItem>();
-  const failedUrls: string[] = [];
+  const failures: ExsatPageFailure[] = [];
   let ignored = 0;
-  for (const url of urls) {
+  for (const rawUrl of urls) {
+    let url: string;
+    try {
+      url = validateExsatUrl(rawUrl).toString();
+    } catch {
+      failures.push(pageFailure(rawUrl, new ExsatPageLoadError('validation', 'EXSAT_URL_INVALID', 'Endereço Exsat inválido.')));
+      continue;
+    }
     try {
       const page = await loadCatalogPageWithRetry(url, true);
       for (const item of page.items) {
@@ -318,7 +411,7 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
       }
     } catch (error) {
       if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
-      failedUrls.push(url);
+      failures.push(pageFailure(url, error));
     }
   }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
@@ -329,18 +422,18 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
       id: crypto.randomUUID(),
       startedAt,
       mode: 'manual',
-      pagesRead: urls.length - failedUrls.length,
+      pagesRead: urls.length - failures.length,
       itemsFound: items.size,
       ignored,
-      failedPages: failedUrls.length,
+      failedPages: failures.length,
     },
   });
   return {
     items: [...items.values()].slice(0, 500),
     connected: true,
-    sourceCount: urls.length - failedUrls.length,
+    sourceCount: urls.length - failures.length,
     ignored,
-    failedUrls,
+    failures,
   };
 };
 
@@ -362,7 +455,7 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
   const queued = new Set(queue);
   const visited = new Set<string>();
   const items = new Map<string, CatalogImportItem>();
-  const failedUrls: string[] = [];
+  const failures: ExsatPageFailure[] = [];
   const pageStats = new Map<string, ExsatSyncPage>();
   let ignored = 0;
 
@@ -388,7 +481,7 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
       }
     } catch (error) {
       if (error instanceof Error && error.message === 'EXSAT_LOGIN_REQUIRED') throw error;
-      failedUrls.push(url);
+      failures.push(pageFailure(url, error));
     }
   }
 
@@ -408,18 +501,18 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
       id: crypto.randomUUID(),
       startedAt,
       mode: fullSync ? 'full' : 'incremental',
-      pagesRead: visited.size - failedUrls.length,
+      pagesRead: visited.size - failures.length,
       itemsFound: items.size,
       ignored,
-      failedPages: failedUrls.length,
+      failedPages: failures.length,
     },
   });
 
   return {
     items: [...items.values()].slice(0, MAX_AUTO_ITEMS),
     connected: true,
-    sourceCount: visited.size - failedUrls.length,
+    sourceCount: visited.size - failures.length,
     ignored,
-    failedUrls,
+    failures,
   };
 };
