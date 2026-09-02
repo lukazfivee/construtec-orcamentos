@@ -2,11 +2,11 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 
-Branch: `codex/exsat-failure-details`
+Branch de entrega: `codex/exsat-failure-details` (PR #77)
 
 Atualização: `2026-09-02 20:47 BRT`
 
-Base sincronizada: `a4ed0597603b1d6f9b514f86db1155a7f8d6a940`
+Base da PR: `a4ed0597603b1d6f9b514f86db1155a7f8d6a940`
 
 ## Retomada
 
@@ -28,6 +28,7 @@ Arquitetura detalhada está em `PRODUCT.md`, `README.md` e, para mudanças subst
 - PR #74 integrada em `e2330cb`: regras/contexto e skill `agent-md-refactor`.
 - PR #76 integrada em `a4ed059`: skill `prompt-master`.
 - PR #75 aberta: layout do modal Exsat; merge depende de validação visual real.
+- PR #77 entrega o diagnóstico estruturado Exsat; checks aprovados antes do merge.
 
 ## Exsat — teste real pós-PR #71
 
@@ -53,16 +54,16 @@ Não confirmar esse lote parcial. Próximo diagnóstico deve expor `URL + etapa 
 ## Validação
 
 - PRs #73, #74 e #76: checks completos aprovados e integradas.
-- Branch atual: `npm run verify` e `git diff --check` aprovados.
+- PR #77: `npm run verify`, `git diff --check` e checks do GitHub aprovados; publicação ignorada porque não é release.
 - Stash `codex-preserve-before-ui-ff-20260902` mantido como cópia de segurança.
 
 ## Próximo passo
 
-1. Integrar a PR do diagnóstico após CI verde.
-2. Rodar teste real da Exsat no Electron/Windows e registrar os códigos por página.
-3. Corrigir a causa de maior cobertura com base nos diagnósticos reais.
-4. Validar visualmente a PR #75 em 1920×1080 e 1366×768, atualizá-la sobre a `main` e integrar.
-5. Bloquear confirmação de varredura automática claramente parcial.
+1. Rodar teste real da Exsat no Electron/Windows e registrar os códigos por página.
+2. Corrigir a causa de maior cobertura com base nos diagnósticos reais.
+3. Validar visualmente a PR #75 em 1920×1080 e 1366×768, atualizá-la sobre a `main` e integrar.
+4. Bloquear confirmação de varredura automática claramente parcial.
+5. Criar testes críticos de cálculos, snapshots e exportações.
 
 ## Bloqueios
 
