@@ -1,109 +1,51 @@
 ---
-description: Production engineering guardrails for AI-assisted changes in Construtec Orçamentos
+description: Guardrails de arquitetura, segurança e release para mudanças no app Construtec
 globs:
-  - "**/*"
-alwaysApply: true
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
+  - "electron/**/*.ts"
+  - "cloudflare/**/*.ts"
+  - ".github/workflows/*.yml"
+alwaysApply: false
 ---
 
-# AI architecture rule — Construtec Orçamentos
+# Guardrails de arquitetura
 
-This repository is a local-first Electron desktop app for construction estimates. Build robust, scalable, secure, production-ready software. Avoid superficial vibe coding: implement the smallest correct solution, fix root causes, and preserve a simple product flow.
+Aplique somente camadas tocadas pela mudança. Não produza checklist de camadas irrelevantes.
 
-Follow `AGENTS.md`, `SECURITY.md`, and this rule together.
+## Dados e produto
 
-## Pre-flight check
+- Preserve arquitetura Electron local-first e integridade do PGlite.
+- Não introduza RLS, multi-tenant ou dependência de nuvem sem backend compartilhado real.
+- Migrações devem ser compatíveis, recuperáveis e testadas.
+- Snapshots e revisões históricas de propostas não podem mudar por atualização de catálogo.
 
-On any substantial feature request, code generation, PR review, or refactor, briefly analyze the request against the relevant layers below before finalizing code. Keep it short and practical; skip layers that are not touched.
+## Segurança e documentos
 
-Use this shape when useful:
+- Valide entradas em limites de confiança e evite SQL injection, XSS, path traversal e arquivos inseguros.
+- Mantenha autenticação, sessão e RBAC nas rotas privadas existentes.
+- Nunca exponha segredos ou detalhes internos em logs e mensagens ao usuário.
+- PDF/Word do cliente nunca deve conter BDI detalhado, salários, custos-base, margens ou parâmetros internos.
 
-```text
-pre_flight_check:
-- Frontend: ...
-- Data/API/Security: ...
-- CI/Release: ...
-```
+## APIs e serviços externos
 
-## Mandatory layers
+- Use timeout, erro explícito e fallback seguro.
+- Falha externa não pode corromper estado local nem bloquear funções offline principais.
+- Não invente endpoint, contrato, credencial ou esquema ausente.
 
-### 1. Frontend
+## Desempenho e observabilidade
 
-- Ensure production build readiness.
-- Never expose secrets, API keys, tokens, signing credentials, or internal commercial parameters in the frontend.
-- Disable or avoid sensitive source maps in distributable builds.
-- Keep sensitive/heavy business logic outside the UI when a local API/backend boundary is appropriate.
+- Evite consultas, recálculos e chamadas externas redundantes.
+- Registre eventos acionáveis sem dados de cliente, preços internos ou segredos.
+- Nunca engula erros silenciosamente.
 
-### 2. Database and local data
+## CI e release
 
-- Preserve local-first behavior and data integrity.
-- The current app uses local/offline storage; do not force remote-database patterns into PGlite.
-- If shared/remote tables are introduced, enforce Row Level Security, strict policies, and tenant/user isolation.
-- Treat migrations as production changes: compatible, recoverable, and tested.
+- Mantenha commits pequenos e Conventional Commits.
+- Rode `npm run verify` para mudança de código.
+- Use `[release]` somente quando precisar publicar release versionada.
+- Instalador esperado: `.github/workflows/build-windows-installer.yml`.
 
-### 3. Auth and routing
+## Pre-flight curto
 
-- Require secure session management and token validation for private or remote routes.
-- Apply RBAC/permissions to private routes when multi-user or cloud access exists.
-- Keep desktop-only routes scoped to local trust assumptions.
-
-### 4. Versioning and CI/CD
-
-- Use Conventional Commits.
-- Keep changes atomic and reviewable.
-- Maintain CI/CD readiness, minimal workflow permissions, and safe rollback paths.
-
-### 5. APIs and third-party services
-
-- Modularize API integrations.
-- Use explicit timeouts, typed/validated responses where practical, and clear error handling.
-- Isolate third-party services and preserve app consistency if they fail.
-
-### 6. Hosting and environment
-
-- Use environment variables for runtime/deployment configuration.
-- Never hardcode secrets.
-- Keep cloud services deploy-ready while preserving offline desktop operation for core workflows.
-
-### 7. Security
-
-- Validate and sanitize all inputs crossing trust boundaries.
-- Prevent SQL injection, XSS, path traversal, unsafe file handling, and secret leakage.
-- Hide internal infrastructure details from public endpoints and user-facing errors.
-- Preserve business confidentiality: BDI, salaries, costs, margins, and internal parameters must not leak into customer exports.
-
-### 8. Rate limiting
-
-- Add rate limiting and abuse protection to public/auth endpoints and costly services such as OCR.
-- Use frontend debouncing/throttling for repeated expensive user actions.
-
-### 9. Caching and performance
-
-- Cache infrequently changing data when safe.
-- Optimize queries and avoid redundant server-side or local recalculation.
-- Keep editing, totals, and export flows responsive.
-
-### 10. Scale
-
-- Keep cloud/service code stateless for horizontal scaling.
-- Avoid coupling remote workers to local desktop state.
-
-### 11. Observability
-
-- Use structured, non-sensitive logging for key events.
-- Never swallow errors silently.
-- Add global error tracking only if it does not expose customer data, pricing data, or secrets.
-
-## Product-specific guardrails
-
-- Customer-facing PDF/Word exports must not reveal internal costs, BDI details, salaries, margins, or private calculation parameters.
-- OCR must degrade safely: if remote OCR is not configured or fails, use the safe local fallback path.
-- Installer/release changes must keep Windows build reproducible and signed when signing secrets are available.
-
-## Continuity trail
-
-Before stopping after meaningful progress, update the durable project trail.
-
-- Update `CODEX_HANDOFF.md` with date/time BRT, commit, what changed, validation, next step, and blockers.
-- Keep `OPENCODE.md` aligned when the continuation workflow changes.
-- The trail must be concrete enough for Codex, OpenCode, Cursor, or another IA to continue without the original conversation.
-- Do not write secrets, passwords, tokens, API keys, signed temporary URLs, customer-sensitive data, or private commercial details into the trail.
+Antes de mudança substancial, registre apenas riscos relevantes em `Frontend`, `Dados/API/Segurança` e `CI/Release`.
