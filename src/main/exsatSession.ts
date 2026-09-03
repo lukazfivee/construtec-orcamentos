@@ -209,7 +209,8 @@ const responseHtml = async (url: string) => {
     }
     const html = await response.text();
     if (html.length > 8_000_000) throw new ExsatPageLoadError('http', 'EXSAT_RESPONSE_TOO_LARGE', 'Resposta HTTP maior que 8 MB.');
-    return { html, finalUrl: response.url };
+    // Electron documents Response.url as unreliable for session.fetch().
+    return { html, finalUrl: url };
   } catch (error) {
     if (error instanceof ExsatPageLoadError) throw error;
     throw new ExsatPageLoadError(

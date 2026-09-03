@@ -2,11 +2,11 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 
-Branch de entrega: `codex/exsat-failure-details` (PR #77)
+Branch de entrega: `codex/exsat-response-url-fallback`
 
-Atualização: `2026-09-02 20:47 BRT`
+Atualização: `2026-09-02 21:07 BRT`
 
-Base da PR: `a4ed0597603b1d6f9b514f86db1155a7f8d6a940`
+Base da branch: `a617076db63ccd4024708c589febdefcc73b5f7e`
 
 ## Retomada
 
@@ -28,46 +28,46 @@ Arquitetura detalhada está em `PRODUCT.md`, `README.md` e, para mudanças subst
 - PR #74 integrada em `e2330cb`: regras/contexto e skill `agent-md-refactor`.
 - PR #76 integrada em `a4ed059`: skill `prompt-master`.
 - PR #75 aberta: layout do modal Exsat; merge depende de validação visual real.
-- PR #77 entrega o diagnóstico estruturado Exsat; checks aprovados antes do merge.
+- PR #77 integrada em `a617076`: diagnóstico estruturado Exsat.
 
-## Exsat — teste real pós-PR #71
+## Exsat — teste real pós-PR #77
 
-Login, reconhecimento da conta e parser funcionam. Cobertura continua inválida:
+O diagnóstico mostrou 23 falhas `EXSAT_UNKNOWN / Invalid URL` em endereços Exsat válidos. A causa é o uso de `Response.url` de `session.fetch()`, documentado pelo Electron como incorreto. Usar a URL solicitada corrigiu a varredura real:
 
 ```text
-44 linhas encontradas
-29 para importar
-1 página lida
-23 páginas não puderam ser lidas
+500 linhas encontradas
+272 para importar
+6 páginas lidas
+0 páginas com falha
+32 duplicados consolidados
 ```
 
-Não confirmar esse lote parcial. Próximo diagnóstico deve expor `URL + etapa + código técnico + mensagem segura`, separando HTTP, navegação Electron, redirect/login, timeout e URL inválida.
+O limite de 500 itens encerrou a varredura após 6 páginas, como previsto. Não confirmar ainda: a prévia exibiu texto corrompido, por exemplo `C�mera`.
 
-## Branch atual — diagnóstico Exsat
+## Branch atual — URL da resposta Exsat
 
-- Cada página que falha retorna URL, etapa (`http`, `electron`, `parser`, `validation` ou `unknown`), código técnico e mensagem segura.
-- O erro final preserva os motivos da tentativa HTTP direta e do fallback renderizado no Electron.
-- O modal mostra os diagnósticos em uma lista expansível, sem alterar a confirmação do lote.
-- Limites, fila, parser, persistência do catálogo e documentos do cliente permanecem sem mudança funcional.
-- Arquivos: `src/shared/contracts.ts`, `src/main/exsatSession.ts`, `src/renderer/CatalogImportDialog.tsx` e `src/index.css`.
+- `responseHtml()` usa a URL validada solicitada como `finalUrl`.
+- Mudança funcional de uma linha em `src/main/exsatSession.ts`; sem alterar parser, limites ou dados.
+- Resultado confirmado no Electron/Windows com sessão Exsat real.
 
 ## Validação
 
 - PRs #73, #74 e #76: checks completos aprovados e integradas.
 - PR #77: `npm run verify`, `git diff --check` e checks do GitHub aprovados; publicação ignorada porque não é release.
+- Branch atual: `npm run verify`, `git diff --check` e teste funcional real aprovados.
 - Stash `codex-preserve-before-ui-ff-20260902` mantido como cópia de segurança.
 
 ## Próximo passo
 
-1. Rodar teste real da Exsat no Electron/Windows e registrar os códigos por página.
-2. Corrigir a causa de maior cobertura com base nos diagnósticos reais.
+1. Integrar a correção de `Response.url` após CI verde.
+2. Diagnosticar e corrigir a codificação de descrições Exsat antes de permitir a importação real.
 3. Validar visualmente a PR #75 em 1920×1080 e 1366×768, atualizá-la sobre a `main` e integrar.
 4. Bloquear confirmação de varredura automática claramente parcial.
 5. Criar testes críticos de cálculos, snapshots e exportações.
 
 ## Bloqueios
 
-- Diagnóstico final da Exsat depende do comportamento real do site dentro do Electron no Windows.
+- Importação Exsat bloqueada operacionalmente até corrigir textos com caractere de substituição `�`.
 - Centro de Custos V3 depende de contrato/API real ainda ausente.
 - Nunca registrar ou commitar credenciais, cookies, tokens, `.env` ou segredos.
 
