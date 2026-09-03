@@ -4,9 +4,9 @@ Repositório: `lukazfivee/construtec-orcamentos`
 
 Branch de entrega: `codex/exsat-import-layout`
 
-Atualização: `2026-09-03 10:28 BRT`
+Atualização: `2026-09-03 10:37 BRT`
 
-Base integrada localmente: `27a0a124530ffb0b4041d9d58e2ae53753cf8a96`
+Base sincronizada: `13dd47bab91d4cec26ba1f41b8fe00e2f24e3a91`
 
 ## Retomada
 
@@ -26,8 +26,8 @@ Arquitetura detalhada está em `PRODUCT.md`, `README.md` e, para mudanças subst
 - PR #75 aberta: layout do modal Exsat; merge depende de validação visual real.
 - PR #77 integrada em `a617076`: diagnóstico estruturado de falhas Exsat.
 - PR #78 integrada em `0dccb60`: preservação da URL solicitada após `session.fetch()`.
-- Commit local `27a0a12`: leitura da resposta Exsat conforme charset para evitar mojibake.
-- Conflitos entre PR #75 e `main` foram resolvidos preservando layout, diagnóstico por página e correções Exsat.
+- PR #79 integrada em `13dd47b`: leitura da resposta Exsat conforme charset para evitar mojibake.
+- PR #75 foi atualizada sobre `origin/main`; conflitos foram resolvidos preservando layout, diagnóstico por página e correções Exsat.
 
 ## Exsat — teste real
 
@@ -56,13 +56,15 @@ Descrições foram exibidas corretamente após a correção de charset, incluind
 
 - `npm run verify`: aprovado após resolução dos conflitos.
 - `git diff --check`: aprovado.
+- CI da PR #75 em `ab01c84`: auditoria e build do Windows aprovados.
+- CI da PR #79 em `27a0a12`: auditoria e build do Windows aprovados antes da integração.
 - Validação visual em 1920×1080 e 1366×768 ainda pendente.
 - Ambiente atual expõe somente 1280×720 e nenhum navegador controlável, portanto não permite concluir as duas resoluções exigidas.
 - Stash `codex-preserve-before-ui-ff-20260902` mantido como cópia de segurança.
 
 ## Próximo passo
 
-1. Concluir o merge local, publicar `codex/exsat-import-layout` e aguardar CI.
+1. Publicar a atualização final de `codex/exsat-import-layout` e confirmar o novo CI.
 2. Validar visualmente a PR #75 em 1920×1080 e 1366×768.
 3. Integrar a PR #75 somente após CI e validação visual.
 4. Bloquear confirmação de varredura automática claramente parcial.
