@@ -16,7 +16,13 @@ export type CatalogImportItem = Omit<CatalogProduct, 'id' | 'updatedAt'>;
 export type CatalogImportStatus = 'new' | 'updated' | 'unchanged' | 'no_price';
 export type CatalogImportPreviewItem = CatalogImportItem & { status: CatalogImportStatus };
 export type CatalogImportPreview = { items: CatalogImportPreviewItem[]; summary: { new: number; updated: number; unchanged: number; noPrice: number } };
-export type ExsatBatchPreview = { items: CatalogImportItem[]; connected: boolean; sourceCount: number; ignored: number; failedUrls: string[] };
+export type ExsatPageFailure = {
+  url: string;
+  stage: 'http' | 'electron' | 'parser' | 'validation' | 'unknown';
+  code: string;
+  message: string;
+};
+export type ExsatBatchPreview = { items: CatalogImportItem[]; connected: boolean; sourceCount: number; ignored: number; failures: ExsatPageFailure[] };
 export type ExsatSyncHistoryEntry = { id: string; startedAt: string; completedAt: string; mode: 'full' | 'incremental' | 'manual'; pagesRead: number; itemsFound: number; created: number; updated: number; ignored: number; failedPages: number };
 export type ExsatSyncInfo = { lastSyncAt?: string; lastFullSyncAt?: string; history: ExsatSyncHistoryEntry[] };
 export type CatalogImportFile = { canceled: boolean; kind?: 'table' | 'image'; name?: string; text?: string; ocrEngine?: 'cloudflare' | 'windows' };

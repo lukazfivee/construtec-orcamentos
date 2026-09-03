@@ -2,73 +2,75 @@
 
 Repositório: `lukazfivee/construtec-orcamentos`
 
-Branch: `codex/exsat-import-layout`
+Branch de entrega: `codex/exsat-import-layout`
 
-Atualização: `2026-09-02 BRT`
+Atualização: `2026-09-03 10:28 BRT`
 
-Base sincronizada: `a4ed0597603b1d6f9b514f86db1155a7f8d6a940`
+Base integrada localmente: `27a0a124530ffb0b4041d9d58e2ae53753cf8a96`
 
 ## Retomada
 
 1. Leia `AGENTS.md`.
 2. Rode `git status --short --branch`; preserve mudanças locais.
-3. Atualize `main` somente por fast-forward de `origin/main`.
-4. Leia este arquivo e siga `Próximo passo`.
+3. Atualize referências com `git fetch origin --prune`.
+4. Atualize `main` somente por fast-forward de `origin/main`.
+5. Leia este arquivo e siga `Próximo passo`.
 
 Arquitetura detalhada está em `PRODUCT.md`, `README.md` e, para mudanças substanciais, `.cursor/rules/ai-architecture.mdc`.
 
 ## Estado atual
 
 - App Electron local-first com React, TypeScript, API Express local e PGlite.
-- Propostas, revisões, catálogo, clientes, obras, kits, mão de obra, BDI, autenticação/RBAC, auditoria, backup/restauração e PDF/Word estão implementados.
 - PDF/Word mostram somente valores comerciais finais; nunca custos-base, salários, BDI detalhado ou margem.
 - Snapshots e revisões históricas permanecem imutáveis após atualização de catálogo.
-- PR #72 integrada em `7623bdc`: auditoria visual geral.
-- PR #73 integrada em `9f03029`: arredondamento de resumos.
-- PR #74 integrada em `e2330cb`: regras/contexto e skill `agent-md-refactor`.
-- PR #76 integrada em `a4ed059`: skill `prompt-master`.
-- PR #75 aberta: layout do modal Exsat.
+- PR #75 aberta: layout do modal Exsat; merge depende de validação visual real.
+- PR #77 integrada em `a617076`: diagnóstico estruturado de falhas Exsat.
+- PR #78 integrada em `0dccb60`: preservação da URL solicitada após `session.fetch()`.
+- Commit local `27a0a12`: leitura da resposta Exsat conforme charset para evitar mojibake.
+- Conflitos entre PR #75 e `main` foram resolvidos preservando layout, diagnóstico por página e correções Exsat.
 
-## Exsat — teste real pós-PR #71
+## Exsat — teste real
 
-Login, reconhecimento da conta e parser funcionam. Cobertura continua inválida:
+Resultado confirmado no Electron/Windows com sessão Exsat real:
 
 ```text
-44 linhas encontradas
-29 para importar
-1 página lida
-23 páginas não puderam ser lidas
+500 linhas encontradas
+272 para importar
+6 páginas lidas
+0 páginas com falha
+32 duplicados consolidados
 ```
 
-Não confirmar esse lote parcial. Próximo diagnóstico deve expor `URL + etapa + código técnico + mensagem segura`, separando HTTP, navegação Electron, redirect/login, timeout e URL inválida.
+Descrições foram exibidas corretamente após a correção de charset, incluindo `Câmara`.
 
-## PR #75 — layout do modal Exsat
+## Branch atual — modal Exsat
 
-- Corrige grade dinâmica que deixava grande espaço vazio quando a prévia existia.
-- Agrupa conexão, datas e atualização automática.
-- Destaca falhas de páginas em amarelo.
-- Mantém cabeçalho da tabela fixo e exibe situações como badges.
-- Adiciona ajuste responsivo até 1024 px.
-- Não altera crawler, importação, banco, PDF/Word ou dependências.
+- Agrupa conexão, datas de sincronização e ação automática.
+- Mantém cabeçalho da tabela fixo e mostra situações como badges.
+- Exibe diagnóstico estruturado quando páginas falham.
+- Preserva aviso visual amarelo somente quando existem falhas.
+- Mantém ajuste responsivo até 1024 px.
+- Não altera banco, importação final, PDF/Word ou dependências.
 
 ## Validação
 
-- PRs #73, #74 e #76: checks completos aprovados; assinatura ignorada por falta de certificado.
-- PR #75: checks completos aprovados antes da atualização com `main`; CI deve repetir após push.
-- Validação visual real da PR #75 ainda pendente em 1920×1080 e 1366×768.
+- `npm run verify`: aprovado após resolução dos conflitos.
+- `git diff --check`: aprovado.
+- Validação visual em 1920×1080 e 1366×768 ainda pendente.
+- Ambiente atual expõe somente 1280×720 e nenhum navegador controlável, portanto não permite concluir as duas resoluções exigidas.
 - Stash `codex-preserve-before-ui-ff-20260902` mantido como cópia de segurança.
 
 ## Próximo passo
 
-1. Aguardar novo CI da PR #75.
-2. Validar modal Exsat em 1920×1080 e 1366×768 antes do merge.
-3. Implementar diagnóstico estruturado das falhas Exsat.
+1. Concluir o merge local, publicar `codex/exsat-import-layout` e aguardar CI.
+2. Validar visualmente a PR #75 em 1920×1080 e 1366×768.
+3. Integrar a PR #75 somente após CI e validação visual.
 4. Bloquear confirmação de varredura automática claramente parcial.
 5. Criar testes críticos de cálculos, snapshots e exportações.
 
 ## Bloqueios
 
-- Diagnóstico final da Exsat depende do comportamento real do site dentro do Electron no Windows.
+- Validação visual exigida pela PR #75 depende de ambiente com 1920×1080 e 1366×768.
 - Centro de Custos V3 depende de contrato/API real ainda ausente.
 - Nunca registrar ou commitar credenciais, cookies, tokens, `.env` ou segredos.
 
