@@ -4,7 +4,7 @@ Repositório: `lukazfivee/construtec-orcamentos`
 
 Branch de entrega: `codex/exsat-import-layout`
 
-Atualização: `2026-09-03 10:37 BRT`
+Atualização: `2026-09-03 10:41 BRT`
 
 Base sincronizada: `13dd47bab91d4cec26ba1f41b8fe00e2f24e3a91`
 
@@ -56,7 +56,7 @@ Descrições foram exibidas corretamente após a correção de charset, incluind
 
 - `npm run verify`: aprovado após resolução dos conflitos.
 - `git diff --check`: aprovado.
-- CI da PR #75 em `ab01c84`: auditoria e build do Windows aprovados.
+- CI da PR #75 em `67e93e4`: auditoria e build do Windows aprovados; assinatura/publicação ignorada por não ser release.
 - CI da PR #79 em `27a0a12`: auditoria e build do Windows aprovados antes da integração.
 - Validação visual em 1920×1080 e 1366×768 ainda pendente.
 - Ambiente atual expõe somente 1280×720 e nenhum navegador controlável, portanto não permite concluir as duas resoluções exigidas.
@@ -64,11 +64,10 @@ Descrições foram exibidas corretamente após a correção de charset, incluind
 
 ## Próximo passo
 
-1. Publicar a atualização final de `codex/exsat-import-layout` e confirmar o novo CI.
-2. Validar visualmente a PR #75 em 1920×1080 e 1366×768.
-3. Integrar a PR #75 somente após CI e validação visual.
-4. Bloquear confirmação de varredura automática claramente parcial.
-5. Criar testes críticos de cálculos, snapshots e exportações.
+1. Validar visualmente a PR #75 em 1920×1080 e 1366×768.
+2. Integrar a PR #75 somente após a validação visual.
+3. Bloquear confirmação de varredura automática claramente parcial.
+4. Criar testes críticos de cálculos, snapshots e exportações.
 
 ## Bloqueios
 
