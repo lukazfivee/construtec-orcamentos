@@ -207,8 +207,10 @@ const responseHtml = async (url: string) => {
     if (!response.ok) {
       throw new ExsatPageLoadError('http', `EXSAT_HTTP_${response.status}`, `HTTP ${response.status} ${response.statusText}`.trim());
     }
-    const html = await response.text();
-    if (html.length > 8_000_000) throw new ExsatPageLoadError('http', 'EXSAT_RESPONSE_TOO_LARGE', 'Resposta HTTP maior que 8 MB.');
+    const body = await response.arrayBuffer();
+    if (body.byteLength > 8_000_000) throw new ExsatPageLoadError('http', 'EXSAT_RESPONSE_TOO_LARGE', 'Resposta HTTP maior que 8 MB.');
+    const charset = response.headers.get('content-type')?.match(/charset\s*=\s*["']?([^;"'\s]+)/i)?.[1]?.toLowerCase();
+    const html = new TextDecoder(charset === 'iso-8859-1' ? 'windows-1252' : 'utf-8').decode(body);
     // Electron documents Response.url as unreliable for session.fetch().
     return { html, finalUrl: url };
   } catch (error) {
