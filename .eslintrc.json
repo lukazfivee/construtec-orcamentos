@@ -21,6 +21,7 @@
   "rules": {
     "@typescript-eslint/consistent-type-imports": "error",
     "import/no-unresolved": ["error", { "ignore": ["^@electric-sql/pglite/nodefs$"] }],
-    "import/order": ["error", { "newlines-between": "never" }]
+    "import/order": ["error", { "newlines-between": "never" }],
+    "max-lines": ["warn", { "max": 350, "skipBlankLines": false, "skipComments": false }]
   }
 }
