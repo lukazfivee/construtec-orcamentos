@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Bell,
   Box,
-  ChevronDown,
   ChevronLeft,
   FileText,
   Grid2X2,
-  HelpCircle,
   Layers3,
-  Search,
   Settings,
   Users,
 } from 'lucide-react';
-import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+import type { AuthUser, ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { kitsApi, proposalApi } from './api';
+import { AppTopbar } from './AppTopbar';
 import { CatalogWorkspace } from './CatalogWorkspace';
 import { ClientsWorkspace } from './ClientsWorkspace';
 import { HomeWorkspace } from './HomeWorkspace';
@@ -22,8 +19,6 @@ import { NewProposalDialog } from './NewProposalDialog';
 import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
-
-const brandLogo = new URL('../assets/logo-branca.png', import.meta.url).href;
 
 const navItems = [
   { label: 'Início', icon: Grid2X2 },
@@ -34,7 +29,12 @@ const navItems = [
   { label: 'Configurações', icon: Settings },
 ];
 
-export function App() {
+export interface AppProps {
+  user?: AuthUser | null;
+  onLogout?: () => void;
+}
+
+export function App({ user, onLogout }: AppProps = {}) {
   const [activeNav, setActiveNav] = useState<'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações'>('Início');
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [notice, setNotice] = useState('');
@@ -111,7 +111,11 @@ export function App() {
     setDocumentPending(true);
     setError('');
     try {
-      await window.construtec?.previewProposal(proposal);
+      if (window.construtec?.previewProposal) {
+        await window.construtec.previewProposal(proposal);
+      } else {
+        window.print();
+      }
       showNotice('Pré-visualização da proposta aberta.');
     } catch (documentError) {
       setError(documentError instanceof Error ? documentError.message : 'Não foi possível abrir a pré-visualização.');
@@ -125,8 +129,13 @@ export function App() {
     setDocumentPending(true);
     setError('');
     try {
-      await window.construtec?.exportProposal(proposal);
-      showNotice('Proposta gerada em PDF e Word com sucesso.');
+      if (window.construtec?.exportProposal) {
+        await window.construtec.exportProposal(proposal);
+        showNotice('Proposta gerada em PDF e Word com sucesso.');
+      } else {
+        window.print();
+        showNotice('Use a opção "Salvar como PDF" do navegador.');
+      }
     } catch (documentError) {
       setError(documentError instanceof Error ? documentError.message : 'Não foi possível gerar os documentos.');
     } finally {
@@ -165,37 +174,14 @@ export function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="brand">
-          <img src={brandLogo} alt="" />
-          <span>Orçamentos</span>
-        </div>
-        <div className="local-state">
-          <span aria-hidden="true" /> Offline{' '}
-          <button type="button" onClick={() => showNotice('Os dados desta versão ficam armazenados localmente neste computador.')}>
-            Dados locais <ChevronDown size={14} />
-          </button>
-        </div>
-        <button className="global-search" type="button" disabled={activeNav !== 'Propostas'} onClick={() => setCatalogOpen(true)}>
-          <Search size={17} />
-          <span>{activeNav === 'Propostas' ? 'Buscar no catálogo' : 'Busca disponível em Propostas'}</span>
-          {activeNav === 'Propostas' && <kbd>Ctrl+K</kbd>}
-        </button>
-        <div className="top-actions">
-          <button className="icon-button" aria-label="Notificações (indisponível)" aria-disabled="true" type="button" disabled title="Notificações serão implementadas em uma próxima etapa.">
-            <Bell size={18} />
-          </button>
-          <button className="icon-button" aria-label="Ajuda (indisponível)" aria-disabled="true" type="button" disabled title="A central de ajuda será implementada em uma próxima etapa.">
-            <HelpCircle size={18} />
-          </button>
-          <span className="divider" />
-          <button className="profile" aria-disabled="true" type="button" disabled title="Gestão de perfil será implementada em uma próxima etapa.">
-            <span>MR</span>
-            <b>Marcos Ribeiro</b>
-            <ChevronDown size={14} />
-          </button>
-        </div>
-      </header>
+      <AppTopbar
+        user={user}
+        activeNav={activeNav}
+        proposal={proposal}
+        onOpenCatalog={() => setCatalogOpen(true)}
+        onLogout={onLogout}
+        showNotice={showNotice}
+      />
 
       <aside className="sidebar" aria-label="Navegação principal">
         <nav>

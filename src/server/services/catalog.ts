@@ -192,6 +192,8 @@ const parsePrice = (value?: string) => {
   return Number.isFinite(price) ? price : 0;
 };
 
+const totalPrice = (values: string[]) => Math.max(0, ...values.map(parsePrice));
+
 const isAdministrativeExsatText = (description: string) => (
   /\b(?:cliente|construtora|construtec|engenharia|ltda|cnpj|cpf|endere[cç]o|or[cç]amento|vendedor|comprador|representante|telefone|email|carrinho|categoria)\b/i.test(description)
 );
@@ -200,6 +202,15 @@ export const parseExsatProductsHtml = (html: string, includeMissingPrice = false
   if (html.length > 8_000_000) throw new Error('EXSAT_UNAVAILABLE');
   const category = decodeHtml(html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? '') || 'Exsat';
   const items = new Map<string, CatalogImportItem>();
+  for (const match of html.matchAll(/\{\s*["']id["']\s*:\s*["']([A-Za-z0-9_-]{3,60})["']\s*,\s*["']name["']\s*:\s*["']([^"']+)["']\s*,\s*["']brand["']\s*:\s*["']([^"']*)["']\s*,\s*["']category["']\s*:\s*["']([^"']*)["'][\s\S]*?["']price["']\s*:\s*["']([\d.]+)["']/gi)) {
+    const [, code, description, manufacturer, itemCategory, price] = match;
+    const currentCost = parsePrice(price);
+    if (!description || currentCost <= 0 && !includeMissingPrice) continue;
+    items.set(code.toUpperCase(), {
+      code: code.toUpperCase(), manufacturer: manufacturer || null, model: null, description: decodeHtml(description),
+      category: decodeHtml(itemCategory) || category, unit: 'un', currentCost, source: 'EXSAT', active: true,
+    });
+  }
   for (const match of html.matchAll(/C[oó]digo\s*:\s*(?:<[^>]+>\s*)*([A-Za-z0-9_-]{3,60})/gi)) {
     const code = match[1].toUpperCase();
     const start = match.index ?? 0;
@@ -210,10 +221,9 @@ export const parseExsatProductsHtml = (html: string, includeMissingPrice = false
     const productLink = after.match(/<a\b[^>]*(?:product|produto)[^>]*>([\s\S]*?)<\/a>/i)?.[1];
     const description = decodeHtml(headingAfter ?? productLink ?? headingBefore ?? '');
     if (!description || /produto não encontrado/i.test(description) || isAdministrativeExsatText(description)) continue;
-    const priceText = after.match(/R\$\s*[\d.]+,\d{2}/i)?.[0];
-    const currentCost = parsePrice(priceText);
+    const currentCost = totalPrice(after.match(/R\$\s*[\d.]+,\d{2}/gi) ?? []);
     if (currentCost <= 0 && !includeMissingPrice) continue;
-    items.set(code, {
+    if (!items.has(code)) items.set(code, {
       code,
       manufacturer: /intelbras/i.test(description) ? 'Intelbras' : null,
       model: null,
@@ -262,12 +272,12 @@ export const parseExsatProductsHtml = (html: string, includeMissingPrice = false
     }
     if (!description) continue;
 
-    let currentCost = 0;
+    const prices: string[] = [];
     for (let offset = descriptionIndex + 1; offset < Math.min(lines.length, descriptionIndex + 7); offset += 1) {
       if (isCatalogCode(lines[offset])) break;
-      const prices = lines[offset].match(/R\$\s*[\d.]+,\d{2}/gi) ?? [];
-      if (prices.length > 0) currentCost = parsePrice(prices.at(-1));
+      prices.push(...(lines[offset].match(/R\$\s*[\d.]+,\d{2}/gi) ?? []));
     }
+    const currentCost = totalPrice(prices);
     if (currentCost <= 0 && !includeMissingPrice) continue;
 
     const previous = items.get(code);

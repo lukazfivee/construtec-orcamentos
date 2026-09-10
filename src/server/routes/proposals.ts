@@ -3,46 +3,41 @@ import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from '../services/database';
 import {
-  attributeAuditEvent,
-  attributeCreatedProposalItemAudit,
-  attributeDuplicatedProposalItemAudit,
+  attributeAuditEvent, attributeCreatedProposalItemAudit, attributeDuplicatedProposalItemAudit,
 } from '../services/auditAttribution';
 import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
-  addProductToProposal,
-  cloneProposal,
-  createProposal,
-  createProposalRevision,
-  deleteProposal,
-  duplicateProposalItem,
-  getCurrentProposal,
-  getProposalById,
-  listProposalHistory,
-  listCurrentProposals,
-  moveProposalItem,
-  removeProposalItems,
-  updateProposalBdi,
-  updateProposalContext,
-  updateProposalDetails,
-  updateProposalItem,
-  updateProposalStatus,
+  addProductToProposal, cloneProposal, createProposal, createProposalRevision, deleteProposal,
+  duplicateProposalItem, getCurrentProposal, getProposalById, listProposalHistory, listCurrentProposals,
+  moveProposalItem, removeProposalItems, updateProposalBdi, updateProposalContext,
+  updateProposalDetails, updateProposalItem, updateProposalStatus,
 } from '../services/proposals';
 import {
-  copyProposalLabor,
-  createProposalLaborItem,
-  getProposalStandardMonthlyHours,
-  listProposalLaborItems,
-  removeProposalLaborItem,
-  updateProposalLaborItem,
-  updateProposalStandardMonthlyHours,
+  createProposalLaborItem, getProposalStandardMonthlyHours, listProposalLaborItems,
+  removeProposalLaborItem, updateProposalLaborItem, updateProposalStandardMonthlyHours,
 } from '../services/proposalLabor';
+import { copyItemsFromProposal, importProposalItemsBatch } from '../services/proposalImport';
+import { exportProposalIntegration } from '../services/integration/proposalExport';
+import { syncProposalDirectly } from '../services/integration/proposalSync';
 
 const idSchema = z.string().uuid();
-const addItemSchema = z.object({
-  productId: z.string().uuid(),
-  quantity: z.number().positive().max(1_000_000).default(1),
-});
+const addItemSchema = z.object({ productId: z.string().uuid(), quantity: z.number().positive().max(1_000_000).default(1) });
 const removeItemsSchema = z.object({ itemIds: z.array(z.string().uuid()).min(1).max(500) });
+const batchImportSchema = z.object({
+  items: z.array(z.object({
+    code: z.string().trim().max(80).optional(),
+    description: z.string().trim().min(2).max(500),
+    category: z.string().trim().max(120).optional(),
+    unit: z.string().trim().max(20).optional(),
+    quantity: z.number().positive().max(1_000_000),
+    unitCost: z.number().nonnegative().max(100_000_000).optional(),
+    unitSale: z.number().nonnegative().max(100_000_000).optional(),
+  })).min(1).max(2000),
+});
+const copyProposalItemsSchema = z.object({
+  sourceProposalId: z.string().uuid(),
+  itemIds: z.array(z.string().uuid()).optional(),
+});
 const updateItemSchema = z.object({
   description: z.string().trim().min(2).max(240).optional(),
   category: z.string().trim().min(2).max(80).optional(),
@@ -122,8 +117,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = cloneProposalSchema.parse(request.body);
-      const newProposalId = await cloneProposal(database, proposalId, input);
-      await attributeProposalCreation(database, newProposalId, actor(response).id, 'cloned');
+      const newProposalId = await cloneProposal(database, proposalId, input, actor(response).id);
       response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) { next(error); }
   });
@@ -141,8 +135,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const { status } = statusSchema.parse(request.body);
-      const proposal = await updateProposalStatus(database, proposalId, status);
-      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'status_updated');
+      const proposal = await updateProposalStatus(database, proposalId, status, actor(response).id);
       response.json({ proposal });
     } catch (error) { next(error); }
   });
@@ -216,9 +209,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
   router.post('/:proposalId/revisions', async (request, response, next) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
-      const newProposalId = await createProposalRevision(database, proposalId);
-      await attributeProposalCreation(database, newProposalId, actor(response).id, 'revision_created');
-      await copyProposalLabor(database, proposalId, newProposalId);
+      const newProposalId = await createProposalRevision(database, proposalId, actor(response).id);
       response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) { next(error); }
   });
@@ -230,6 +221,24 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       await addProductToProposal(database, proposalId, input.productId, input.quantity);
       await attributeCreatedProposalItemAudit(database, actor(response).id, proposalId, input.productId);
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/items/import-batch', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const { items } = batchImportSchema.parse(request.body);
+      const proposal = await importProposalItemsBatch(database, proposalId, items, actor(response).id);
+      response.status(201).json({ proposal });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/items/copy-from-proposal', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const { sourceProposalId, itemIds } = copyProposalItemsSchema.parse(request.body);
+      const proposal = await copyItemsFromProposal(database, proposalId, sourceProposalId, itemIds, actor(response).id);
+      response.status(201).json({ proposal });
     } catch (error) { next(error); }
   });
 
@@ -302,6 +311,22 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       await updateProposalContext(database, proposalId, input.clientId, input.workId);
       await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'context_updated');
       response.json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/integration-export', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const result = await exportProposalIntegration(database, proposalId, actor(response).id);
+      response.json(result);
+    } catch (error) { next(error); }
+  });
+
+  router.post('/:proposalId/direct-sync', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const result = await syncProposalDirectly(database, proposalId, actor(response).id);
+      response.json(result);
     } catch (error) { next(error); }
   });
 

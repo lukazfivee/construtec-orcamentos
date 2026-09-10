@@ -137,7 +137,7 @@ export const createKit = async (database: LocalDatabase, input: KitInput): Promi
     `, [
       kitId,
       input.name.trim(),
-      input.description?.trim() || null,
+      input.description?.trim() ?? '',
       input.category?.trim() || 'Geral',
       input.active !== false,
     ]);
@@ -186,7 +186,7 @@ export const updateKit = async (database: LocalDatabase, id: string, input: KitI
     `, [
       id,
       input.name.trim(),
-      input.description?.trim() || null,
+      input.description?.trim() ?? '',
       input.category?.trim() || 'Geral',
       input.active !== false,
     ]);

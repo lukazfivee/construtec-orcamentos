@@ -135,10 +135,10 @@ export function ProposalKitsPanel({
           <div>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#122036', overflowWrap: 'anywhere' }}>
+                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#031f29', overflowWrap: 'anywhere' }}>
                   {selectedKitDetail.name}
                 </h2>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#697386', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#5d7480', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                   Categoria: <b>{selectedKitDetail.category}</b>
                   {selectedKitDetail.description ? ` • ${selectedKitDetail.description}` : ''}
                 </p>
@@ -146,8 +146,8 @@ export function ProposalKitsPanel({
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'right', minWidth: '120px' }}>
-                  <span style={{ display: 'block', fontSize: '10px', color: '#697386' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
-                  <strong style={{ fontSize: '16px', color: '#085ce5' }}>{money.format(estimatedSaleTotal)}</strong>
+                  <span style={{ display: 'block', fontSize: '10px', color: '#5d7480' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
+                  <strong style={{ fontSize: '16px', color: '#12a9d1' }}>{money.format(estimatedSaleTotal)}</strong>
                 </div>
                 <button
                   type="button"
@@ -204,7 +204,7 @@ export function ProposalKitsPanel({
               </table>
             </div>
 
-            <p style={{ marginTop: '12px', fontSize: '10px', color: '#697386' }}>
+            <p style={{ marginTop: '12px', fontSize: '10px', color: '#5d7480' }}>
               Ao inserir o kit, cada produto será adicionado como uma linha independente na proposta com seu snapshot de custo atual.
             </p>
           </div>

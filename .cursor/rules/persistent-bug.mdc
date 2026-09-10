@@ -1,0 +1,18 @@
+---
+description: Regra de raciocínio sequencial obrigatório em caso de bug persistente
+globs:
+alwaysApply: true
+---
+
+# Raciocínio Sequencial em Bugs Persistentes
+
+Quando um bug for persistente (usuário pedir para corrigir mais de 1 vez ou correção anterior falhar):
+
+1. **NÃO altere o código imediatamente.**
+2. **Ative a ferramenta `sequentialthinking`** (servidor `@modelcontextprotocol/server-sequential-thinking`).
+3. Siga o protocolo em `.agents/skills/sequential-thinking/SKILL.md`:
+   - Inicie com `thoughtNumber: 1` e hipótese do que falhou.
+   - Use `isRevision: true` e `revisesThought` para descartar premissas incorretas.
+   - Isole a causa raiz antes de propor a correção.
+   - Conclua com `nextThoughtNeeded: false` apenas após validação clara.
+4. Aplique a menor correção correta (`ponytail`) respeitando `MAX_LINES <= 350`.

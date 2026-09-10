@@ -4,6 +4,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type * as PGliteModule from '@electric-sql/pglite';
 import type * as NodeFsModule from '@electric-sql/pglite/nodefs';
+import { approvedProposalGuardsMigration } from '../migrations/008-approved-proposal-guards';
+import { proposalIntegrationMigration } from '../migrations/009-proposal-integration';
 import { initialMigration } from '../migrations/001-initial';
 import { clientsAndWorksMigration } from '../migrations/002-clients-works';
 import { catalogManagementMigration } from '../migrations/003-catalog-management';
@@ -103,6 +105,8 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     [5, proposalLaborMigration],
     [6, proposalItemCategoryMigration],
     [7, kitsAndSettingsMigration],
+    [8, approvedProposalGuardsMigration],
+    [9, proposalIntegrationMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {
@@ -118,8 +122,13 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     }
   }
 
-  // Self-heal: garante coluna snapshot_category mesmo se migration 6 foi marcada antes de aplicar corretamente
+  // Self-heal: garante coluna snapshot_category e que description em kits seja opcional
   await database.exec("ALTER TABLE proposal_items ADD COLUMN IF NOT EXISTS snapshot_category text NOT NULL DEFAULT 'Outros'");
+  try {
+    await database.exec('ALTER TABLE kits ALTER COLUMN description DROP NOT NULL');
+  } catch {
+    // Compatibilidade com bases antigas sem a tabela kits; migrações são verificadas antes.
+  }
 
   await ensureFirstRunData(database);
 

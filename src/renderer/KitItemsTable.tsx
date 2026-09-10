@@ -48,25 +48,61 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
       </div>
 
       {items.length > 0 ? (
-        <div style={{ border: '1px solid #e4e6ea', borderRadius: '6px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+        <div
+          className="kit-table-wrapper"
+          style={{
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            background: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+          }}
+        >
+          <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', fontSize: '11.5px', tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '16%' }} />
+              <col style={{ width: '34%' }} />
+              <col style={{ width: '7%' }} />
+              <col style={{ width: '13%' }} />
+              <col style={{ width: '11%' }} />
+              <col style={{ width: '12%' }} />
+              <col style={{ width: '7%' }} />
+            </colgroup>
             <thead style={{ background: '#f8f9fb' }}>
               <tr>
                 <th style={{ padding: '8px 10px', textAlign: 'left' }}>Código</th>
                 <th style={{ padding: '8px 10px', textAlign: 'left' }}>Descrição</th>
-                <th style={{ padding: '8px 10px', textAlign: 'center', width: '50px' }}>Un.</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right', width: '90px' }}>Custo un.</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right', width: '90px' }}>Qtd.</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right', width: '100px' }}>Total</th>
-                <th style={{ padding: '8px 10px', textAlign: 'center', width: '40px' }} aria-label="Ações"></th>
+                <th style={{ padding: '8px 8px', textAlign: 'center' }}>Un.</th>
+                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Custo un.</th>
+                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Qtd.</th>
+                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Total</th>
+                <th
+                  style={{
+                    padding: '8px 8px',
+                    textAlign: 'center',
+                    position: 'sticky',
+                    right: 0,
+                    background: '#f8f9fb',
+                    zIndex: 2,
+                    boxShadow: '-3px 0 6px -2px rgba(0,0,0,0.06)',
+                  }}
+                  aria-label="Ações"
+                >
+                  Ação
+                </th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.productId} style={{ borderTop: '1px solid #e4e6ea' }}>
-                  <td style={{ padding: '6px 10px' }}><b>{item.code}</b></td>
-                  <td style={{ padding: '6px 10px' }}>{item.description}</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'center' }}>{item.unit}</td>
+                <tr key={item.productId} className="kit-item-row" style={{ borderTop: '1px solid #e4e6ea' }}>
+                  <td style={{ padding: '6px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <b>{item.code}</b>
+                  </td>
+                  <td style={{ padding: '6px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.description}>
+                    {item.description}
+                  </td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center' }}>{item.unit}</td>
                   <td style={{ padding: '6px 10px', textAlign: 'right' }}>{money.format(item.currentCost)}</td>
                   <td style={{ padding: '6px 10px', textAlign: 'right' }}>
                     <input
@@ -88,16 +124,35 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                   <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>
                     {money.format(item.currentCost * item.quantity)}
                   </td>
-                  <td style={{ padding: '6px 10px', textAlign: 'center' }}>
+                  <td
+                    style={{
+                      padding: '6px 8px',
+                      textAlign: 'center',
+                      position: 'sticky',
+                      right: 0,
+                      background: '#fff',
+                      zIndex: 1,
+                      boxShadow: '-3px 0 6px -2px rgba(0,0,0,0.06)',
+                    }}
+                  >
                     <button
                       type="button"
+                      className="kit-item-remove-btn"
+                      title={`Excluir ${item.description} do kit`}
+                      aria-label={`Excluir ${item.description}`}
                       onClick={() => onRemoveItem(item.productId)}
                       style={{
-                        border: 0,
-                        background: 'transparent',
-                        color: '#a32b2b',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '28px',
+                        height: '28px',
+                        border: '1px solid #fca5a5',
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        borderRadius: '5px',
                         cursor: 'pointer',
-                        padding: '2px',
+                        transition: 'all 120ms ease',
                       }}
                     >
                       <Trash2 size={14} />

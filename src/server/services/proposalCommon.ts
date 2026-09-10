@@ -1,9 +1,10 @@
+import { roundDecimal } from '../../shared/decimal';
 import type { ProposalDetail } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 
 export type Queryable = Pick<LocalDatabase, 'query'>;
 
-export const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+export const roundMoney = (value: number) => roundDecimal(value);
 
 export const getLatestProposal = async (database: Queryable, proposalId: string) => {
   const result = await database.query<{

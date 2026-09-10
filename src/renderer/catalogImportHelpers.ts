@@ -208,7 +208,7 @@ export const parseStructuredTable = (text: string, source: string): Row[] | null
       }
       else if (field === 'active') partial.active = !/^(nao|não|0|false|inativo)$/i.test(value);
       else if (field === 'manufacturer' || field === 'model') partial[field] = value || null;
-      else partial[field] = value;
+      else if (field !== 'validationStatus') partial[field] = value;
     });
     return newRow(partial);
   }).filter((row) => row.code || row.description);

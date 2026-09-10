@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { LayoutList, Plus } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { proposalApi } from './api';
+import { CloneProposalDialog } from './CloneProposalDialog';
+import { ProposalExportDialog } from './ProposalExportDialog';
+import { ProposalShareDialog } from './ProposalShareDialog';
 import { ProposalCommercialConditionsPanel } from './ProposalCommercialConditionsPanel';
 import { ProposalHistoryPanel } from './ProposalHistoryPanel';
 import { ProposalItemsPanel } from './ProposalItemsPanel';
@@ -65,6 +68,9 @@ export function ProposalEditorWorkspace({
   const [mutationPending, setMutationPending] = useState(false);
   const [laborTotal, setLaborTotal] = useState(0);
   const [bdiDraft, setBdiDraft] = useState<string | null>(null);
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   const isEditable = Boolean(proposal.isLatest && (proposal.status === 'draft' || proposal.status === 'review'));
   const proposalLabel = `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}`;
@@ -116,21 +122,6 @@ export function ProposalEditorWorkspace({
     }
   };
 
-  const cloneCurrentProposal = async () => {
-    if (mutationPending) return;
-    setMutationPending(true);
-    setError('');
-    try {
-      const result = await proposalApi.clone(proposal.id);
-      showNotice(`Orçamento ${result.proposal.number} criado com sucesso a partir de ${proposal.number}.`);
-      await reloadProposalTabs();
-      await onOpenProposal(result.proposal.id);
-    } catch (cloneError) {
-      setError(cloneError instanceof Error ? cloneError.message : 'Não foi possível clonar a proposta.');
-    } finally {
-      setMutationPending(false);
-    }
-  };
 
   const deleteCurrentProposal = async () => {
     if (mutationPending) return;
@@ -290,10 +281,40 @@ export function ProposalEditorWorkspace({
         setBdiDraft={setBdiDraft}
         onUpdateBdi={() => void updateBdi()}
         onCreateRevision={onCreateRevision}
-        onCloneProposal={() => void cloneCurrentProposal()}
-        onPreviewProposal={onPreviewProposal}
-        onExportProposal={onExportProposal}
+        onCloneProposal={() => setCloneDialogOpen(true)}
+        onPreviewProposal={() => setExportDialogOpen(true)}
+        onExportProposal={() => setExportDialogOpen(true)}
+        onShareProposal={() => setShareDialogOpen(true)}
         onDeleteProposal={() => void deleteCurrentProposal()}
+      />
+
+      <CloneProposalDialog
+        open={cloneDialogOpen}
+        sourceProposal={proposal}
+        onClose={() => setCloneDialogOpen(false)}
+        onCloned={async (cloned) => {
+          showNotice(`Orçamento ${cloned.number} criado com sucesso a partir de ${proposal.number}.`);
+          await reloadProposalTabs();
+          await onOpenProposal(cloned.id);
+        }}
+        onError={setError}
+      />
+
+      <ProposalExportDialog
+        open={exportDialogOpen}
+        proposal={proposal}
+        onClose={() => setExportDialogOpen(false)}
+        onExportSuccess={(files) => {
+          showNotice(`Proposta ${proposal.number} exportada com sucesso! (${files.length} arquivo${files.length > 1 ? 's' : ''})`);
+        }}
+        onError={setError}
+      />
+
+      <ProposalShareDialog
+        open={shareDialogOpen}
+        proposal={proposal}
+        onClose={() => setShareDialogOpen(false)}
+        onNotice={showNotice}
       />
     </main>
   );

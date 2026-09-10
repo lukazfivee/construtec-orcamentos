@@ -8,6 +8,7 @@ const DEMO_EMAIL = 'marcos.demo@construtec.local';
 const JWT_ISSUER = 'construtec-orcamentos';
 const JWT_AUDIENCE = 'local-api';
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
+const REMEMBERED_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 type UserRow = {
   id: string;
@@ -25,13 +26,13 @@ const toAuthUser = (row: Pick<UserRow, 'id' | 'name' | 'email' | 'role'>): AuthU
   role: row.role,
 });
 
-const createSession = (user: AuthUser, secret: string): AuthSession => ({
+const createSession = (user: AuthUser, secret: string, rememberMe = false): AuthSession => ({
   token: sign(
     { name: user.name, email: user.email, role: user.role },
     secret,
     {
       algorithm: 'HS256',
-      expiresIn: SESSION_TTL_SECONDS,
+      expiresIn: rememberMe ? REMEMBERED_TTL_SECONDS : SESSION_TTL_SECONDS,
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
       subject: user.id,
@@ -53,7 +54,7 @@ export const getAuthSetupStatus = async (database: LocalDatabase): Promise<AuthS
 export const setupFirstAdmin = async (
   database: LocalDatabase,
   secret: string,
-  input: { name: string; email: string; password: string },
+  input: { name: string; email: string; password: string; rememberMe?: boolean },
 ): Promise<AuthSession> => {
   const passwordHash = await hash(input.password, 12);
   const user = await database.transaction(async (transaction) => {
@@ -84,7 +85,7 @@ export const setupFirstAdmin = async (
 
     return toAuthUser(saved.rows[0]);
   });
-  return createSession(user, secret);
+  return createSession(user, secret, Boolean(input.rememberMe));
 };
 
 export const loginUser = async (
@@ -92,6 +93,7 @@ export const loginUser = async (
   secret: string,
   email: string,
   password: string,
+  rememberMe = false,
 ): Promise<AuthSession> => {
   const result = await database.query<UserRow>(`
     SELECT id, name, email, password_hash, role, active
@@ -101,7 +103,7 @@ export const loginUser = async (
   `, [email.trim()]);
   const row = result.rows[0];
   if (!row || !(await compare(password, row.password_hash))) throw new Error('AUTH_INVALID_CREDENTIALS');
-  return createSession(toAuthUser(row), secret);
+  return createSession(toAuthUser(row), secret, rememberMe);
 };
 
 export const verifyUserSession = async (

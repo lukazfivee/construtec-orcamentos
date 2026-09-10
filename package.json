@@ -7,15 +7,18 @@
   "private": true,
   "scripts": {
     "start": "electron-forge start",
+    "dev": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:windows": "electron-forge make --platform=win32 --arch=x64",
+    "installer:windows": "node scripts/build-installer.mjs",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint",
+    "verify": "npm run typecheck && npm run lint && npm run test:critical",
     "security:audit": "npm audit --audit-level=high",
-    "security:audit:prod": "npm audit --omit=dev --audit-level=high"
+    "security:audit:prod": "npm audit --omit=dev --audit-level=high",
+    "test:critical": "node scripts/test-critical.mjs"
   },
   "keywords": [
     "electron",
@@ -46,7 +49,8 @@
     "eslint": "^8.57.1",
     "eslint-plugin-import": "^2.32.0",
     "typescript": "^5.9.2",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "esbuild": "0.28.2"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.10",

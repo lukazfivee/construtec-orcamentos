@@ -4,11 +4,13 @@
 
 ## Platform
 
-desktop
+Desktop (Windows) como foco inicial, com evolução planejada para:
+- **App Android**: instalação local/APK (via Capacitor ou PWA empacotado) para uso em campo com operação offline e sincronização.
+- **Acesso Web (iPhone / Safari)**: interface web responsiva compatível com Safari mobile (PWA), permitindo consulta rápida e elaboração remota via rede local ou servidor corporativo.
 
 ## Stack
 
-Electron Forge com Vite, React e TypeScript no renderer; Node.js e Express na camada de API; PGlite/PostgreSQL no armazenamento local; JWT para autenticação. Aplicação desktop Windows com arquitetura local-first e preparada para empacotamento futuro em outras plataformas.
+Electron Forge com Vite, React e TypeScript no renderer; Node.js e Express na camada de API; PGlite/PostgreSQL no armazenamento local; JWT para autenticação. Aplicação desktop Windows com arquitetura local-first desacoplada da casca Electron, pronta para compilação Web/PWA e empacotamento móvel.
 
 ## Users
 

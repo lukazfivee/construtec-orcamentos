@@ -44,3 +44,9 @@ createRoot(rootElement).render(
     <AuthGate />
   </StrictMode>,
 );
+
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !window.construtec) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}

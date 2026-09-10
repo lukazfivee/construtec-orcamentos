@@ -1,163 +1,159 @@
-import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
-import type { AppSettings, ProposalDetail } from '../shared/contracts';
-import {
-  commercialLaborTotal,
-  commercialMaterialsTotal,
-  date,
-  documentTitle,
-  documentTotal,
-  escapeHtml,
-  groupItemsByCategory,
-  money,
-  parseCommercialConditions,
-} from './proposalDocumentCommon';
+import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
+import { date, documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
+import { proposalLogoBase64, proposalPresentation } from './proposalPresentation';
 
 export { proposalFileBaseName } from './proposalDocumentCommon';
 export { buildProposalDocx } from './proposalDocx';
 
-const logoDataUri = () => {
-  const candidates = [
-    path.join(process.cwd(), 'src', 'assets', 'logo-preta.png'),
-    path.join(process.resourcesPath ?? '', 'assets', 'logo-preta.png'),
-  ];
-  const logoPath = candidates.find((candidate) => existsSync(candidate));
-  return logoPath ? `data:image/png;base64,${readFileSync(logoPath).toString('base64')}` : '';
+export const proposalPdfOptions = (
+  proposal: ProposalDetail,
+  settings?: AppSettings,
+  options?: ProposalExportOptions
+): Record<string, unknown> => {
+  const content = proposalPresentation(proposal, settings, options);
+  return {
+    format: 'A4',
+    printBackground: true,
+    preferCSSPageSize: true,
+    margins: { top: 14 / 25.4, bottom: 25 / 25.4, left: 14 / 25.4, right: 14 / 25.4 },
+    displayHeaderFooter: true,
+    headerTemplate: '<div></div>',
+    footerTemplate: `<div style="width:100%;box-sizing:border-box;margin:0;padding:0 14mm;font-size:7pt;font-family:Arial,Helvetica,sans-serif;color:#1e293b;line-height:1.4;">
+      <div style="width:100%;height:2px;background:#28539e;margin-bottom:2px;"></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:1px;font-size:8pt;color:#334155;">
+        <span>Pág. <span class="pageNumber"></span> / <span class="totalPages"></span></span>
+      </div>
+      <div style="font-weight:bold;color:#0f172a;font-size:7.5pt;margin-bottom:1px;letter-spacing:0.2px;">${escapeHtml(content.company)}</div>
+      <div style="color:#1e293b;margin-bottom:1px;"><b>Sede:</b> ${escapeHtml(content.address)} Contato: ${escapeHtml(content.phone)}</div>
+      <div style="color:#1e293b;"><b>E-mail:</b> ${escapeHtml(content.email)}</div>
+    </div>`,
+  };
 };
 
-export const buildProposalHtml = (proposal: ProposalDetail, settings?: AppSettings) => {
-  const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
-  const conditions = parseCommercialConditions(proposal.scope);
-  const materialsTotal = commercialMaterialsTotal(proposal);
-  const laborTotal = commercialLaborTotal(proposal);
-  const total = documentTotal(proposal);
-  const grouped = groupItemsByCategory(proposal);
-  let itemIndex = 0;
-  const categorySections = grouped.map(([category, items]) => {
-    const categoryTotal = items.reduce((sum, item) => sum + item.totalSale, 0);
-    const rows = items.map((item) => {
-      itemIndex += 1;
-      return `
-    <tr>
-      <td class="center">${itemIndex}</td>
-      <td><strong>${escapeHtml(item.code)}</strong><br><span>${escapeHtml(item.description)}</span></td>
-      <td class="center">${escapeHtml(item.unit)}</td>
-      <td class="number">${Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 }).format(item.quantity)}</td>
-      <td class="number">${money.format(item.unitSale)}</td>
-      <td class="number strong">${money.format(item.totalSale)}</td>
-    </tr>`;
-    }).join('');
-    return `
-    <tr class="category-row"><td colspan="6"><strong>${escapeHtml(category)}</strong> — ${money.format(categoryTotal)}</td></tr>
-    ${rows}`;
-  }).join('');
-  const laborSection = laborTotal > 0 ? `
-    <tr class="category-row"><td colspan="6"><strong>Mão de obra</strong> — ${money.format(laborTotal)}</td></tr>
-    <tr>
-      <td class="center">${itemIndex + 1}</td>
-      <td><strong>Mão de obra</strong><br><span>Serviços técnicos conforme escopo da proposta.</span></td>
-      <td class="center">vb</td>
-      <td class="number">1</td>
-      <td class="number">${money.format(laborTotal)}</td>
-      <td class="number strong">${money.format(laborTotal)}</td>
-    </tr>` : '';
-  const tableRows = (categorySections + laborSection) || '<tr><td colspan="6" class="center">Nenhum item incluído nesta revisão.</td></tr>';
-  const conditionCards: Array<[string, string]> = [
-    ['Validade da proposta', validUntil],
-    ['Prazo de execução', conditions.executionTerm || 'A definir'],
-    ['Forma de pagamento', conditions.paymentTerms || 'A definir'],
-    ['Garantia', conditions.warranty || 'A definir'],
-    ['Valores', 'Expressos em reais (BRL).'],
-    ...(conditions.notes ? [['Observações', conditions.notes] as [string, string]] : []),
-  ];
-  const conditionRows = conditionCards.map(([label, value]) => `<div class="condition"><b>${escapeHtml(label)}</b>${escapeHtml(value)}</div>`).join('');
+export const buildProposalHtml = (
+  proposal: ProposalDetail,
+  settings?: AppSettings,
+  options?: ProposalExportOptions
+) => {
+  const content = proposalPresentation(proposal, settings, options);
+  const logo = proposalLogoBase64();
+  let index = 0;
+  const showCodes = options?.showProductCodes ?? true;
+  const itemRow = (item: ProposalLine) => `<tr>
+    <td class="center">${++index}</td><td>${escapeHtml(item.description)}${showCodes && item.code ? `<small>${escapeHtml(item.code)}</small>` : ''}</td>
+    <td class="center">${escapeHtml(item.unit)}</td><td class="number">${quantity.format(item.quantity)}</td>
+    <td class="number">${money.format(item.unitSale)}</td><td class="number">${money.format(item.totalSale)}</td></tr>`;
 
-  const tradeName = settings?.tradeName?.trim() || 'CONSTRUTEC ENGENHARIA';
-  const companyName = settings?.companyName?.trim() || 'Construtec Engenharia Ltda.';
-  const logo = logoDataUri();
-  const presentation = 'A CONSTRUTEC é uma empresa especializada no desenvolvimento de soluções tecnológicas aplicadas e na execução de serviços nas áreas de automação, elétrica, incêndio, dados, voz e imagem, oferecendo soluções integradas para ambientes corporativos e de alta criticidade.';
-  const scopeItems = proposal.items.map((item) => `<li>Fornecimento de ${escapeHtml(item.description)}.</li>`).join('')
-    || '<li>Fornecimento, instalação, configuração e comissionamento conforme o escopo desta proposta.</li>';
+  const groupByCategory = options?.groupByCategory ?? true;
+  const groups = groupByCategory
+    ? groupItemsByCategory(proposal).map(([category, items]) => {
+        const [first, ...rest] = items;
+        return `<tbody class="category-start"><tr class="category"><td colspan="6">${escapeHtml(category)}</td></tr>${itemRow(first)}</tbody>
+          ${rest.length ? `<tbody>${rest.map(itemRow).join('')}</tbody>` : ''}`;
+      }).join('')
+    : (proposal.items.length ? `<tbody>${proposal.items.map(itemRow).join('')}</tbody>` : '');
 
-  return `<!doctype html>
-  <html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(documentTitle(proposal))}</title>
+  const labor = content.labor > 0 ? `<tbody class="category-start"><tr class="category"><td colspan="6">Serviços</td></tr>
+    <tr><td class="center">${++index}</td><td>Serviços técnicos conforme escopo da proposta.</td><td class="center">vb</td><td class="number">1</td><td class="number">${money.format(content.labor)}</td><td class="number">${money.format(content.labor)}</td></tr></tbody>` : '';
+  const rows = groups + labor || '<tbody><tr><td colspan="6">Nenhum item incluído nesta revisão.</td></tr></tbody>';
+  const summary = content.summary.map(([label, value], i) => `<tr class="${i === content.summary.length - 1 ? 'grand-total' : ''}"><th>${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td></tr>`).join('');
+  const terms = content.terms.map(([label, value]) => `<p class="term"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>`).join('');
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(documentTitle(proposal))}</title>
   <style>
-    @page { size: A4; margin: 16mm 14mm 18mm; }
-    * { box-sizing: border-box; }
-    body { margin: 0; color: #0b2530; font: 10.5pt "Segoe UI", Arial, sans-serif; }
-    header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 9mm; border-bottom: 2px solid #173f73; }
-    .brand { color: #031f29; font-size: 20pt; font-weight: 800; letter-spacing: -.4px; }
-    .brand-logo { display: block; width: 48mm; height: auto; }
-    .tagline { margin-top: 2mm; color: #5d7480; font-size: 8.5pt; }
-    .doc-id { text-align: right; }
-    .doc-id b { display: block; color: #173f73; font-size: 12pt; }
-    .doc-id span { color: #5d7480; font-size: 8.5pt; }
-    h1 { margin: 10mm 0 2mm; color: #173f73; font-size: 21pt; line-height: 1.1; text-transform: uppercase; }
-    .subtitle { margin: 0 0 8mm; color: #5d7480; }
-    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-bottom: 9mm; }
-    .meta div { padding: 4mm; background: #f2f8fa; border-left: 3px solid #12a9d1; }
-    .meta label { display: block; margin-bottom: 1.5mm; color: #5d7480; font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
-    .meta strong { color: #0b2530; font-size: 10.5pt; }
-    h2 { margin: 8mm 0 3mm; color: #173f73; font-size: 12pt; text-transform: uppercase; }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    thead { display: table-header-group; }
-    th { padding: 3mm 2mm; color: white; background: #2d94a3; font-size: 7.5pt; text-align: left; text-transform: uppercase; letter-spacing: .25px; }
-    td { padding: 3mm 2mm; border-bottom: 1px solid #d6e4e9; vertical-align: middle; font-size: 8.5pt; overflow-wrap: anywhere; }
-    td span { color: #4d596b; }
-    .center { text-align: center; }
-    .number { text-align: right; font-variant-numeric: tabular-nums; }
-    .strong { font-weight: 700; }
-    .category-row td { background: #e8f8fc; color: #173f73; font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: .3px; border-top: 2px solid #12a9d1; }
-    .total { display: flex; justify-content: flex-end; align-items: center; gap: 10mm; margin: 5mm 0 9mm auto; padding: 5mm; width: 78mm; color: white; background: #2d94a3; }
-    .total span { font-size: 9pt; font-weight: 600; }
-    .total strong { font-size: 15pt; font-variant-numeric: tabular-nums; }
-    .breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin: 4mm 0; }
-    .breakdown div { display: flex; justify-content: space-between; padding: 2.5mm 3mm; background: #f2f8fa; border-left: 3px solid #12a9d1; font-size: 8.5pt; }
-    .breakdown span { color: #5d7480; }
-    .breakdown strong { color: #0b2530; font-variant-numeric: tabular-nums; }
-    .conditions { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
-    .condition { padding: 4mm; border: 1px solid #d6e4e9; }
-    .condition b { display: block; margin-bottom: 1.5mm; color: #173f73; }
-    .note { margin-top: 7mm; color: #5d7480; font-size: 8pt; line-height: 1.5; }
-    footer { position: fixed; right: 0; bottom: -11mm; left: 0; padding-top: 3mm; color: #5d7480; border-top: 1px solid #2bb673; font-size: 7.5pt; text-align: center; }
-    .template-header { display:grid; grid-template-columns:47mm 1fr; min-height:28mm; margin-bottom:6mm; border:1px solid #d6e4e9; }
-    .template-brand { display:flex; align-items:center; padding:5mm; background:#031f29; }
-    .template-brand .brand-logo { width:37mm; filter:brightness(0) invert(1); }
-    .template-title { display:flex; flex-direction:column; justify-content:center; padding:4mm 5mm; color:#173f73; text-transform:uppercase; }
-    .template-title b { font-size:13pt; }
-    .template-title span { margin-top:1mm; color:#0b2530; font-size:9pt; }
-    body > h1 { margin:6mm 0 2mm; color:#173f73; font-size:11pt; }
-    .identity { width:100%; margin-bottom:7mm; border-collapse:collapse; font-size:9pt; }
-    .identity th,.identity td { padding:2.2mm 3mm; border:1px solid #d6e4e9; text-align:left; vertical-align:top; }
-    .identity th { width:25mm; color:#173f73; background:#e8f8fc; font-size:8pt; text-transform:uppercase; }
-    .template-section { margin:6mm 0 2mm; color:#173f73; font-size:11pt; text-transform:uppercase; }
-    .template-copy { margin:0 0 3mm; line-height:1.42; }
-    .scope-list { margin:0; padding-left:5mm; }
-    .scope-list li { margin:1.2mm 0; }
-    .summary { width:100%; margin:0; border-collapse:collapse; font-size:8.5pt; }
-    .summary th,.summary td { padding:2.4mm 3mm; border:1px solid #d6e4e9; }
-    .summary th { width:72%; color:#173f73; background:#e8f8fc; text-align:right; }
-    .summary td { font-weight:700; text-align:right; }
+    @page { size:A4; margin:14mm 14mm 20mm; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; background:#fff; color:#17252d; }
+    body { font:10pt Arial,sans-serif; line-height:1.4; }
+    .timbrado-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2.5px solid #12A9D1; padding-bottom:3.5mm; margin-bottom:5mm; break-inside:avoid; page-break-inside:avoid; }
+    .timbrado-left { display:flex; align-items:center; gap:4mm; }
+    .timbrado-logo { max-height:16mm; max-width:48mm; width:auto; height:auto; object-fit:contain; display:block; }
+    .timbrado-company { font-size:7.5pt; color:#485966; line-height:1.35; }
+    .timbrado-company-name { font-size:8.5pt; font-weight:bold; color:#163d69; }
+    .timbrado-right { text-align:right; font-size:7.5pt; color:#52616b; line-height:1.35; border-left:2px solid #e1edf2; padding-left:3.5mm; }
+    .timbrado-badge { font-size:7pt; font-weight:bold; color:#12A9D1; letter-spacing:0.8px; }
+    .timbrado-doc-ref { font-size:9.5pt; font-weight:bold; color:#163d69; }
+    .identity { margin-bottom:5mm; background:#f4f9fb; border:1px solid #d4e7ee; border-radius:3px; padding:2.5mm 3.5mm; break-inside:avoid; page-break-inside:avoid; }
+    .identity-table { width:100%; border-collapse:collapse; }
+    .identity-table td { padding:1mm 1.5mm; border:none; font-size:8.5pt; color:#17252d; vertical-align:top; }
+    h1 { margin:4mm 0; text-align:center; font-size:12.5pt; color:#163d69; letter-spacing:0.5px; }
+    h2 { margin:4mm 0 2mm; font-size:9.5pt; color:#163d69; text-transform:uppercase; border-bottom:1px solid #e8f0f3; padding-bottom:1mm; }
+    h1,h2 { break-after:avoid; page-break-after:avoid; }
+    p { margin:0 0 2.5mm; orphans:3; widows:3; font-size:9pt; }
+    .lead { font-size:9pt; color:#3b4d58; margin-bottom:3.5mm; }
+    .copy { white-space:pre-line; overflow-wrap:anywhere; }
+    ul { margin:0 0 2.5mm; padding-left:5mm; font-size:9pt; }
+    li { margin:1mm 0; break-inside:avoid; overflow-wrap:anywhere; }
+    table.pricing { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:2mm; }
+    thead { display:table-header-group; break-after:avoid; }
+    th,td { padding:2mm 1.5mm; border-bottom:1px solid #d4e2e7; vertical-align:top; font-size:8pt; overflow-wrap:anywhere; }
+    thead th { background:#163d69; color:#fff; font-size:7.5pt; text-align:left; font-weight:bold; border-bottom:2px solid #12A9D1; }
+    tr { break-inside:avoid; page-break-inside:avoid; }
+    .category-start { break-inside:avoid; page-break-inside:avoid; }
+    .category td { background:#eaf3f6; color:#163d69; font-weight:bold; padding:1.5mm 2mm; font-size:8pt; border-left:3px solid #12A9D1; }
+    .center { text-align:center; }
+    .number { text-align:right; font-variant-numeric:tabular-nums; }
+    small { display:block; color:#60717a; font-size:6.8pt; margin-top:0.8mm; }
+    .summary { width:100%; border-collapse:collapse; margin-top:3mm; break-inside:avoid; }
+    .summary th { text-align:left; width:75%; font-weight:normal; padding:1.5mm 2mm; font-size:8.5pt; border-bottom:1px solid #e1edf2; }
+    .summary td { width:25%; padding:1.5mm 2mm; font-size:8.5pt; border-bottom:1px solid #e1edf2; }
+    .grand-total th,.grand-total td { background:#d9edf3; font-size:9.5pt; font-weight:bold; color:#163d69; border-top:1.5px solid #12A9D1; border-bottom:2px solid #163d69; }
+    .commercial { margin-top:4mm; break-inside:avoid; page-break-inside:avoid; }
+    .term { margin-bottom:1.5mm; white-space:pre-line; overflow-wrap:anywhere; font-size:8.5pt; }
+    .closing { margin-top:4mm; font-size:8.5pt; color:#485966; }
+    .document-footer { margin-top:10mm; break-inside:avoid; page-break-inside:avoid; font-family:Arial,Helvetica,sans-serif; }
+    .footer-line { height:2px; background:#28539e; margin-bottom:2mm; }
+    .footer-top { display:flex; justify-content:flex-end; margin-bottom:1mm; font-size:8pt; color:#334155; }
+    .footer-company { font-weight:bold; font-size:7.5pt; color:#0f172a; margin-bottom:1px; letter-spacing:0.2px; }
+    .footer-text { font-size:7pt; color:#1e293b; line-height:1.4; margin-bottom:1px; }
+    .footer-text b { font-weight:bold; color:#0f172a; }
+    @media screen { body { max-width:210mm; padding:14mm; margin:auto; box-shadow:0 0 12px rgba(0,0,0,0.08); } }
+    @media print { * { print-color-adjust:exact; -webkit-print-color-adjust:exact; } .document-footer { display:none; } }
   </style></head><body>
-    <header class="template-header">
-      <div class="template-brand">
-        ${logo ? `<img class="brand-logo" src="${logo}" alt="${escapeHtml(tradeName)}">` : `<div class="brand">${escapeHtml(tradeName)}</div>`}
+    <header class="timbrado-header">
+      <div class="timbrado-left">
+        <img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">
+        <div class="timbrado-company">
+          <div class="timbrado-company-name">${escapeHtml(content.company)}</div>
+          ${content.cnpj ? `<div>CNPJ: ${escapeHtml(content.cnpj)}</div>` : ''}
+          <div>Sede: ${escapeHtml(content.address)}</div>
+          <div>Contato: ${escapeHtml(content.phone)} &bull; ${escapeHtml(content.email)}</div>
+        </div>
       </div>
-      <div class="template-title">
-        <b>Proposta Técnica-Comercial</b>
-        <span>${escapeHtml(conditions.scope)} · ${escapeHtml(proposal.number)} · REV.${String(proposal.revision).padStart(2, '0')}</span>
+      <div class="timbrado-right">
+        <div class="timbrado-badge">PROPOSTA COMERCIAL</div>
+        <div class="timbrado-doc-ref">${escapeHtml(proposal.number)}</div>
+        <div>Revisão ${String(proposal.revision).padStart(2, '0')}</div>
+        <div>${date.format(new Date())}</div>
       </div>
     </header>
-    <table class="identity"><tbody><tr><th>Data</th><td>${date.format(new Date())}</td></tr><tr><th>Cliente</th><td>${escapeHtml(proposal.clientName)}</td></tr><tr><th>Solicitante</th><td>${escapeHtml(proposal.responsibleName)}</td></tr><tr><th>Local</th><td>${escapeHtml(proposal.workName)}</td></tr><tr><th>Objeto</th><td>${escapeHtml(conditions.scope)}</td></tr></tbody></table>
-    <h1>Apresentação – Construtec</h1><p class="template-copy">${presentation}</p>
-    <h2 class="template-section">1. Objetivo</h2><p class="template-copy">${escapeHtml(conditions.scope)}</p>
-    <h2 class="template-section">2. Escopo dos serviços</h2><ul class="scope-list">${scopeItems}</ul>
-    <h2 class="template-section">3. Precificação</h2>
-    <table><colgroup><col style="width:6%"><col style="width:42%"><col style="width:8%"><col style="width:10%"><col style="width:16%"><col style="width:18%"></colgroup><thead><tr><th class="center">Item</th><th>Descrição</th><th class="center">Un.</th><th class="number">Qtd.</th><th class="number">Valor unit.</th><th class="number">Valor total</th></tr></thead><tbody>${tableRows}</tbody></table>
-    <table class="summary"><tbody><tr><th>Subtotal - equipamentos e materiais</th><td>${money.format(materialsTotal)}</td></tr>${laborTotal > 0 ? `<tr><th>Mão de obra - instalação, configuração, programação, testes e comissionamento</th><td>${money.format(laborTotal)}</td></tr>` : ''}</tbody></table>
-    <div class="total"><span>VALOR TOTAL</span><strong>${money.format(total)}</strong></div>
-    <h2 class="template-section">4. Condições comerciais</h2><section class="conditions">${conditionRows}</section>
-    <p class="note">${escapeHtml(companyName)} | Proposta ${escapeHtml(proposal.number)} | Revisão ${String(proposal.revision).padStart(2, '0')}</p>
-    <footer>${escapeHtml(companyName)} · Documento gerado automaticamente</footer>
+    <div class="identity">
+      <table class="identity-table">
+        <tr>
+          <td style="width:60%"><b>Cliente:</b> ${escapeHtml(proposal.clientName)}</td>
+          <td style="width:40%"><b>A/C:</b> ${escapeHtml(proposal.responsibleName || '-')}</td>
+        </tr>
+        <tr>
+          <td><b>Local / Obra:</b> ${escapeHtml(proposal.workName || '-')}</td>
+          <td><b>Referência:</b> ${escapeHtml(proposal.number)} | Rev. ${String(proposal.revision).padStart(2, '0')}</td>
+        </tr>
+      </table>
+    </div>
+    <h1>PROPOSTA TÉCNICA COMERCIAL</h1>
+    <p class="lead">Prezados Senhores,<br>Apresentamos nossa proposta técnica e comercial para fornecimento de equipamentos, materiais e execução dos serviços descritos a seguir.</p>
+    <h2>Apresentação — ${escapeHtml(content.brand)}</h2><p>${escapeHtml(content.presentation)}</p>
+    <h2>1. Objetivo</h2><p class="copy">${escapeHtml(content.conditions.scope)}</p>
+    <h2>2. Escopo dos serviços</h2>${content.scopeLines.length ? `<ul>${content.scopeLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>` : `<p class="copy">${escapeHtml(content.conditions.scope)}</p>`}
+    <h2>3. Precificação</h2><table class="pricing"><colgroup><col style="width:6%"><col style="width:42%"><col style="width:7%"><col style="width:9%"><col style="width:17%"><col style="width:19%"></colgroup>
+      <thead><tr><th class="center">ITEM</th><th>DESCRIÇÃO</th><th class="center">UN.</th><th class="number">QTD.</th><th class="number">VALOR UNIT.</th><th class="number">VALOR TOTAL</th></tr></thead>${rows}</table>
+    <table class="summary"><tbody>${summary}</tbody></table>
+    <section class="commercial"><h2>4. Condições comerciais</h2>${terms}<p>Valores expressos em moeda corrente nacional (BRL).</p></section>
+    <p class="closing">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>
+    <footer class="document-footer">
+      <div class="footer-line"></div>
+      <div class="footer-top"><span>Pág. 1 / 1</span></div>
+      <div class="footer-company">${escapeHtml(content.company)}</div>
+      <div class="footer-text"><b>Sede:</b> ${escapeHtml(content.address)} Contato: ${escapeHtml(content.phone)}</div>
+      <div class="footer-text"><b>E-mail:</b> ${escapeHtml(content.email)}</div>
+    </footer>
   </body></html>`;
 };

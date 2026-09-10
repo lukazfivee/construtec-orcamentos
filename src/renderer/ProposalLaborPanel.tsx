@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { sumDecimal } from '../shared/decimal';
 import type { ProposalLaborInput, ProposalLaborItem } from '../shared/contracts';
 import { calculateLaborItem } from '../shared/labor';
 import { proposalApi } from './api';
@@ -35,12 +36,12 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const laborTotal = useMemo(() => items.reduce((sum, item) => sum + item.totalCost, 0), [items]);
+  const laborTotal = useMemo(() => sumDecimal(items.map(item => item.totalCost)), [items]);
   const formPreview = useMemo(() => {
     try {
       return calculateLaborItem(form);
     } catch {
-      return { monthlyCost: 0, hourlyRate: 0, totalCost: 0 };
+      return { monthlyCost: 0, hourlyRate: 0, totalCost: 0, plannedTeamHours: 0 };
     }
   }, [form]);
 
@@ -145,7 +146,7 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
 
   return <div className="labor-panel">
     <div className="labor-header">
-      <div><h2>Mão de obra</h2><p>Calcule o custo por função usando salário, benefícios e horas previstas.</p></div>
+      <div><h2>Mão de obra</h2><p>Calcule o custo por função usando salário, benefícios e horas previstas por profissional.</p></div>
       <label>Horas mensais padrão
         <input type="text" inputMode="decimal" value={hoursDraft} disabled={!editable || saving} onChange={(event) => setHoursDraft(event.target.value)} onBlur={() => void saveDefaultHours()} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
       </label>
@@ -159,10 +160,11 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
       <label>Transporte mensal<input type="number" min="0" step="0.01" value={form.monthlyTransport} disabled={!editable || saving} onChange={(event) => updateNumber('monthlyTransport', event.target.value)} /></label>
       <label>Outros custos mensais<input type="number" min="0" step="0.01" value={form.monthlyOtherCosts} disabled={!editable || saving} onChange={(event) => updateNumber('monthlyOtherCosts', event.target.value)} /></label>
       <label>Horas mensais<input type="number" min="0.01" step="0.01" value={form.standardMonthlyHours} disabled={!editable || saving} onChange={(event) => updateNumber('standardMonthlyHours', event.target.value)} /></label>
-      <label>Horas previstas<input type="number" min="0" step="0.01" value={form.plannedHours} disabled={!editable || saving} onChange={(event) => updateNumber('plannedHours', event.target.value)} /></label>
+      <label>Horas por profissional<input type="number" min="0" step="0.01" value={form.plannedHours} disabled={!editable || saving} onChange={(event) => updateNumber('plannedHours', event.target.value)} /></label>
       <div className="labor-preview" aria-label="Prévia do cálculo">
         <span><small>Custo mensal</small><b>R$ {money.format(formPreview.monthlyCost)}</b></span>
         <span><small>Valor hora</small><b>R$ {money.format(formPreview.hourlyRate)}</b></span>
+        <span><small>Horas da equipe</small><b>{money.format(formPreview.plannedTeamHours)} h</b></span>
         <span><small>Custo total</small><b>R$ {money.format(formPreview.totalCost)}</b></span>
       </div>
       <div className="labor-form-actions"><button className="primary compact" type="submit" disabled={!editable || saving || form.description.trim().length < 2}><Plus size={16} /> {editingId ? 'Salvar alteração' : 'Adicionar função'}</button>{editingId && <button type="button" disabled={saving} onClick={resetForm}>Cancelar edição</button>}</div>
@@ -170,7 +172,7 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
 
     <div className="table-region labor-table-region">
       <table className="labor-table">
-        <thead><tr><th>Função</th><th>Prof.</th><th>Salário</th><th>Alimentação</th><th>Transporte</th><th>Outros</th><th>Custo mensal</th><th>Horas/mês</th><th>Valor hora</th><th>Horas previstas</th><th>Custo total</th><th /></tr></thead>
+        <thead><tr><th>Função</th><th>Prof.</th><th>Salário</th><th>Alimentação</th><th>Transporte</th><th>Outros</th><th>Custo mensal</th><th>Horas/mês</th><th>Valor hora</th><th>Horas/prof.</th><th>Horas da equipe</th><th>Custo total</th><th /></tr></thead>
         <tbody>
           {items.map((item) => <tr key={item.id} onDoubleClick={() => editable && startEdit(item)}>
             <td><button className="labor-edit-link" type="button" disabled={!editable} onClick={() => startEdit(item)}>{item.description}</button></td>
@@ -183,13 +185,14 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
             <td className="number">{money.format(item.standardMonthlyHours)}</td>
             <td className="number">{money.format(item.hourlyRate)}</td>
             <td className="number">{money.format(item.plannedHours)}</td>
+            <td className="number">{money.format(item.plannedTeamHours ?? calculateLaborItem(item).plannedTeamHours)}</td>
             <td className="number"><b>{money.format(item.totalCost)}</b></td>
             <td><button className="icon-button" type="button" aria-label={`Excluir ${item.description}`} disabled={!editable || saving} onClick={() => void remove(item.id)}><Trash2 size={15} /></button></td>
           </tr>)}
-          {!loading && items.length === 0 && <tr className="empty-row"><td colSpan={12}>Nenhuma função cadastrada. Preencha os campos acima para calcular a mão de obra.</td></tr>}
-          {loading && <tr className="empty-row"><td colSpan={12}>Carregando composição de mão de obra…</td></tr>}
+          {!loading && items.length === 0 && <tr className="empty-row"><td colSpan={13}>Nenhuma função cadastrada. Preencha os campos acima para calcular a mão de obra.</td></tr>}
+          {loading && <tr className="empty-row"><td colSpan={13}>Carregando composição de mão de obra…</td></tr>}
         </tbody>
-        <tfoot><tr><td colSpan={10}>Total de mão de obra</td><td className="number"><b>R$ {money.format(laborTotal)}</b></td><td /></tr></tfoot>
+        <tfoot><tr><td colSpan={11}>Total de mão de obra</td><td className="number"><b>R$ {money.format(laborTotal)}</b></td><td /></tr></tfoot>
       </table>
     </div>
   </div>;

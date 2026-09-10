@@ -1,3 +1,4 @@
+import { getProposalFinancials } from '../shared/proposalFinancials';
 import type { ProposalDetail } from '../shared/contracts';
 
 export const NAVY = '031F29';
@@ -74,7 +75,7 @@ export const documentTitle = (proposal: ProposalDetail) =>
 
 export const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
-export const documentTotal = (proposal: ProposalDetail) => proposal.totals.finalValue ?? proposal.totals.sale;
+export const documentTotal = (proposal: ProposalDetail) => getProposalFinancials(proposal).finalValue;
 
 export const commercialMaterialsTotal = (proposal: ProposalDetail) =>
   roundMoney(proposal.items.reduce((total, item) => total + item.totalSale, 0));

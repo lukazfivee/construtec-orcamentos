@@ -1,20 +1,24 @@
 import { randomUUID } from 'node:crypto';
+import { canChangeProposalStatus } from '../../shared/proposalStatus';
 import type { ProposalDetail, ProposalRevisionSummary } from '../../shared/contracts';
+import { copyProposalLabor } from './proposalLabor';
+import { finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal, getLatestProposal, roundMoney } from './proposalCommon';
+import { sealProposalInTransaction } from './integration/proposalSealing';
 
 type GetProposalByIdFn = (database: LocalDatabase, proposalId: string) => Promise<ProposalDetail | null>;
 
-export const createProposalRevision = async (database: LocalDatabase, sourceProposalId: string) => {
+export const createProposalRevision = async (database: LocalDatabase, sourceProposalId: string, userId?: string) => {
   return database.transaction(async (transaction) => {
     const source = await getLatestProposal(transaction, sourceProposalId);
     const newProposalId = randomUUID();
     const created = await transaction.query<{ revision: number }>(`
       INSERT INTO proposals
-        (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+        (id, series_id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
          snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by)
-      SELECT $2, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
+      SELECT $2, series_id, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
         snapshot_work_name, scope, 'draft', bdi_multiplier, valid_until, created_by
       FROM proposals
       WHERE id = $1
@@ -64,11 +68,13 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
       ]);
     }
 
+    await copyProposalLabor(transaction, sourceProposalId, newProposalId);
+    if (userId) await transaction.query('UPDATE proposals SET created_by = $2 WHERE id = $1', [newProposalId, userId]);
     const revision = created.rows[0]?.revision ?? source.revision + 1;
-    await transaction.query(`
-      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
-      VALUES ($1, 'proposal', $2, 'revision_created', $3::jsonb)
-    `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision })]);
+    await transaction.query(
+      'INSERT INTO audit_events (id, entity_type, entity_id, action, after_data, user_id) VALUES ($1, $2, $3, $4, $5::jsonb, $6)',
+      [randomUUID(), 'proposal', newProposalId, 'revision_created', JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision }), userId ?? null],
+    );
     logEvent('info', 'proposal.revision_created', { sourceProposalId, newProposalId, revision });
     return newProposalId;
   });
@@ -128,13 +134,7 @@ export const listProposalHistory = async (database: LocalDatabase, proposalId: s
   }>(`
     SELECT p.id, p.proposal_number, p.revision, p.status,
       count(i.id)::text AS item_count,
-      COALESCE(ROUND((
-        COALESCE(ROUND((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 2), 0)
-        + COALESCE(ROUND((SELECT SUM(
-            pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
-            / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
-          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 2), 0)
-      ) * p.bdi_multiplier, 2), 0)::text AS total_sale,
+      ${finalValueSql}::text AS total_sale,
       u.name AS responsible_name, p.updated_at::text,
       p.revision = max(p.revision) OVER (PARTITION BY p.proposal_number) AS is_latest
     FROM proposals p
@@ -172,6 +172,12 @@ export const deleteProposal = async (
     const row = current.rows[0];
     if (!row) throw new Error('PROPOSAL_NOT_FOUND');
 
+    const candidates = await transaction.query<{ status: ProposalDetail['status'] }>(
+      "SELECT status FROM proposals WHERE proposal_number = $1 AND ($2::text = 'all' OR id = $3) ORDER BY revision FOR UPDATE",
+      [row.proposal_number, mode, proposalId],
+    );
+    if (candidates.rows.some(candidate => candidate.status === 'approved')) throw new Error('PROPOSAL_LOCKED');
+
     if (mode === 'all') {
       await transaction.query('DELETE FROM proposals WHERE proposal_number = $1', [row.proposal_number]);
       logEvent('info', 'proposal.deleted_all', { proposalNumber: row.proposal_number });
@@ -196,20 +202,21 @@ export const updateProposalStatusWithGetter = async (
   proposalId: string,
   status: ProposalDetail['status'],
   getById: GetProposalByIdFn,
+  userId?: string,
 ): Promise<ProposalDetail> => {
   await database.transaction(async (transaction) => {
-    const current = await transaction.query<{ status: ProposalDetail['status'] }>(
-      'SELECT status FROM proposals WHERE id = $1',
-      [proposalId],
-    );
-    const row = current.rows[0];
-    if (!row) throw new Error('PROPOSAL_NOT_FOUND');
+    const row = await getLatestProposal(transaction, proposalId);
+    if (!canChangeProposalStatus(row.status, status)) throw new Error('PROPOSAL_LOCKED');
+    if (row.status === status) return;
 
     await transaction.query('UPDATE proposals SET status = $2, updated_at = now() WHERE id = $1', [proposalId, status]);
+    if (status === 'approved') {
+      await sealProposalInTransaction(transaction, proposalId, userId);
+    }
     await transaction.query(`
-      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
-      VALUES ($1, 'proposal', $2, 'status_updated', $3::jsonb, $4::jsonb)
-    `, [randomUUID(), proposalId, JSON.stringify({ status: row.status }), JSON.stringify({ status })]);
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data, user_id)
+      VALUES ($1, 'proposal', $2, 'status_updated', $3::jsonb, $4::jsonb, $5)
+    `, [randomUUID(), proposalId, JSON.stringify({ status: row.status }), JSON.stringify({ status }), userId ?? null]);
     logEvent('info', 'proposal.status_updated', { proposalId, status });
   });
 
@@ -222,10 +229,11 @@ export const cloneProposal = async (
   database: LocalDatabase,
   sourceProposalId: string,
   input?: { clientId?: string; workId?: string; scope?: string },
+  actorId?: string,
 ): Promise<string> => {
   return database.transaction(async (transaction) => {
     const userResult = await transaction.query<{ id: string }>('SELECT id FROM users ORDER BY created_at ASC LIMIT 1');
-    const userId = userResult.rows[0]?.id;
+    const userId = actorId ?? userResult.rows[0]?.id;
     if (!userId) throw new Error('NO_USER_FOUND');
 
     const sourceResult = await transaction.query<{
@@ -241,7 +249,7 @@ export const cloneProposal = async (
       SELECT p.client_id, p.work_id, p.work_name, p.snapshot_client_name,
         p.snapshot_work_name, p.scope, p.bdi_multiplier::text, p.proposal_number
       FROM proposals p
-      WHERE p.id = $1
+      WHERE p.id = $1 FOR UPDATE
     `, [sourceProposalId]);
     const source = sourceResult.rows[0];
     if (!source) throw new Error('PROPOSAL_NOT_FOUND');
@@ -329,10 +337,11 @@ export const cloneProposal = async (
       ]);
     }
 
+    await copyProposalLabor(transaction, sourceProposalId, newProposalId);
     await transaction.query(`
-      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
-      VALUES ($1, 'proposal', $2, 'cloned', $3::jsonb)
-    `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, newProposalNumber })]);
+      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data, user_id)
+      VALUES ($1, 'proposal', $2, 'cloned', $3::jsonb, $4)
+    `, [randomUUID(), newProposalId, JSON.stringify({ sourceProposalId, newProposalNumber }), userId]);
     logEvent('info', 'proposal.cloned', { sourceProposalId, newProposalId, newProposalNumber });
     return newProposalId;
   });

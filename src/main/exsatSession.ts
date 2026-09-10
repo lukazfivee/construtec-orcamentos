@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron';
-import type { CatalogImportItem, ExsatBatchPreview, ExsatPageFailure } from '../shared/contracts';
+import type { CatalogImportItem, ExsatBatchPreview, ExsatPageFailure, ExsatValidationSummary } from '../shared/contracts';
 import { validateExsatUrl } from '../server/services/catalog';
 import {
   discoverCatalogLinks,
@@ -12,6 +12,7 @@ import {
   PARTITION,
   responseHtml,
   responseRenderedHtml,
+  validateExsatProduct,
 } from './exsatFetcher';
 import {
   FULL_SYNC_INTERVAL_MS,
@@ -110,6 +111,45 @@ export const previewAuthenticatedExsat = async (rawUrl: string): Promise<{ items
   return { items: page.items, connected: true };
 };
 
+const emitValidationProgress = (current: number, total: number, code: string) => {
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed()) {
+      window.webContents.send('exsat:validation-progress', { current, total, code });
+    }
+  }
+};
+
+const validateBatchItems = async (
+  rawItems: CatalogImportItem[],
+  failures: ExsatPageFailure[],
+): Promise<{ items: CatalogImportItem[]; validationSummary: ExsatValidationSummary }> => {
+  const items = [...rawItems];
+  const validationSummary: ExsatValidationSummary = { confirmed: 0, divergent: 0, unavailable: 0, error: 0 };
+  const total = items.length;
+  let completed = 0;
+  const CONCURRENCY = 3;
+
+  for (let index = 0; index < items.length; index += CONCURRENCY) {
+    const chunk = items.slice(index, index + CONCURRENCY);
+    await Promise.all(chunk.map(async (item) => {
+      emitValidationProgress(completed + 1, total, item.code);
+      const validation = await validateExsatProduct(item.code, item.currentCost);
+      completed += 1;
+      emitValidationProgress(completed, total, item.code);
+      item.validationStatus = validation.status;
+      if (validation.status === 'confirmed' || validation.status === 'divergent') {
+        item.currentCost = validation.currentCost;
+      }
+      validationSummary[validation.status] += 1;
+      if (validation.failure) {
+        failures.push(validation.failure);
+      }
+    }));
+  }
+
+  return { items, validationSummary };
+};
+
 export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise<ExsatBatchPreview> => {
   const status = await exsatConnectionStatus();
   if (!status.connected) throw new Error('EXSAT_LOGIN_REQUIRED');
@@ -139,6 +179,8 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
     }
   }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
+  const rawList = [...items.values()].slice(0, 500);
+  const validated = await validateBatchItems(rawList, failures);
   const state = await loadSyncState();
   await saveSyncState({
     ...state,
@@ -153,11 +195,12 @@ export const previewAuthenticatedExsatBatch = async (rawUrls: string[]): Promise
     },
   });
   return {
-    items: [...items.values()].slice(0, 500),
+    items: validated.items,
     connected: true,
     sourceCount: urls.length - failures.length,
     ignored,
     failures,
+    validationSummary: validated.validationSummary,
   };
 };
 
@@ -232,11 +275,15 @@ export const previewAuthenticatedExsatAuto = async (): Promise<ExsatBatchPreview
     },
   });
 
+  const rawList = [...items.values()].slice(0, MAX_AUTO_ITEMS);
+  const validated = await validateBatchItems(rawList, failures);
+
   return {
-    items: [...items.values()].slice(0, MAX_AUTO_ITEMS),
+    items: validated.items,
     connected: true,
     sourceCount: visited.size - failures.length,
     ignored,
     failures,
+    validationSummary: validated.validationSummary,
   };
 };

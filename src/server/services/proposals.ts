@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import { multiplyDecimal, sumDecimal } from '../../shared/decimal';
+import { calculateProposalTotals } from '../../shared/proposalFinancials';
 import type { ProposalDetail, ProposalLine, ProposalSummary } from '../../shared/contracts';
+import { baseCostSql, finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
@@ -13,6 +16,7 @@ export * from './proposalLifecycle';
 
 type ProposalRow = {
   id: string;
+  series_id?: string;
   client_id: string;
   work_id: string | null;
   proposal_number: string;
@@ -26,18 +30,20 @@ type ProposalRow = {
   responsible_name: string;
   updated_at: string;
   is_latest: boolean;
+  has_approved_revision: boolean;
 };
 
 export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
   const proposalResult = await database.query<ProposalRow>(`
-    SELECT p.id, p.client_id, p.work_id, p.proposal_number, p.revision,
+    SELECT p.id, p.series_id::text AS series_id, p.client_id, p.work_id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.status, p.bdi_multiplier::text,
       p.valid_until::text, u.name AS responsible_name, p.updated_at::text,
       NOT EXISTS (
         SELECT 1 FROM proposals newer
         WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
-      ) AS is_latest
+      ) AS is_latest,
+      EXISTS (SELECT 1 FROM proposals approved WHERE approved.proposal_number = p.proposal_number AND approved.status = 'approved') AS has_approved_revision
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
@@ -46,18 +52,21 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   const proposal = proposalResult.rows[0];
   if (!proposal) return null;
 
-  const itemResult = await database.query<ItemRow>(`
-    SELECT id, snapshot_code, snapshot_description, snapshot_category, quantity::text,
-      snapshot_unit, snapshot_unit_cost::text, sale_unit_price::text
-    FROM proposal_items
-    WHERE proposal_id = $1
-    ORDER BY position
+  const isDraftOrReview = proposal.status === 'draft' || proposal.status === 'review';
+  const itemResult = await database.query<ItemRow & { catalog_cost?: string | null }>(`
+    SELECT pi.id, pi.snapshot_code, pi.snapshot_description, pi.snapshot_category, pi.quantity::text,
+      pi.snapshot_unit, pi.snapshot_unit_cost::text, pi.sale_unit_price::text, pr.current_cost::text AS catalog_cost
+    FROM proposal_items pi
+    LEFT JOIN products pr ON pr.code = pi.snapshot_code AND pr.active = true
+    WHERE pi.proposal_id = $1
+    ORDER BY pi.position
   `, [proposal.id]);
 
   const items: ProposalLine[] = itemResult.rows.map((item) => {
     const quantity = Number(item.quantity);
     const unitCost = Number(item.snapshot_unit_cost);
     const unitSale = Number(item.sale_unit_price);
+    const catalogCurrentCost = isDraftOrReview && item.catalog_cost ? Number(item.catalog_cost) : null;
     return {
       id: item.id,
       code: item.snapshot_code,
@@ -66,25 +75,25 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       quantity,
       unit: item.snapshot_unit,
       unitCost,
-      totalCost: roundMoney(quantity * unitCost),
+      totalCost: multiplyDecimal([item.quantity, item.snapshot_unit_cost]),
       unitSale,
-      totalSale: roundMoney(quantity * unitSale),
+      totalSale: multiplyDecimal([item.quantity, item.sale_unit_price]),
+      catalogCurrentCost,
     };
   });
 
   const bdiMultiplier = Number(proposal.bdi_multiplier);
   const laborItems = await listProposalLaborItems(database, proposal.id);
   const standardMonthlyHours = await getProposalStandardMonthlyHours(database, proposal.id);
-  const materials = roundMoney(items.reduce((total, item) => total + item.totalCost, 0));
-  const labor = roundMoney(laborItems.reduce((total, item) => total + item.totalCost, 0));
-  const baseCost = roundMoney(materials + labor);
-  const finalValue = roundMoney(baseCost * bdiMultiplier);
-  const additions = roundMoney(finalValue - baseCost);
-  const sale = roundMoney(items.reduce((total, item) => total + item.totalSale, 0));
-  const grossResult = roundMoney(finalValue - baseCost);
+  const materials = sumDecimal(items.map(item => item.totalCost));
+  const labor = sumDecimal(laborItems.map(item => item.totalCost));
+  const { baseCost, finalValue, additions } = calculateProposalTotals(materials, labor, bdiMultiplier);
+  const sale = sumDecimal(items.map(item => item.totalSale));
+  const grossResult = additions;
 
   return {
     id: proposal.id,
+    seriesId: proposal.series_id,
     clientId: proposal.client_id,
     workId: proposal.work_id,
     number: proposal.proposal_number,
@@ -98,6 +107,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     responsibleName: proposal.responsible_name,
     updatedAt: proposal.updated_at,
     isLatest: proposal.is_latest,
+    hasApprovedRevision: proposal.has_approved_revision,
     items,
     laborItems,
     standardMonthlyHours,
@@ -135,42 +145,34 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
     client_name: string;
     work_name: string;
     status: ProposalDetail['status'];
+    valid_until: string | null;
     item_count: string;
     total_cost: string;
     total_sale: string;
     responsible_name: string;
     updated_at: string;
     is_latest: boolean;
+    has_approved_revision: boolean;
   }>(`
     SELECT p.id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name,
       p.status,
+      p.valid_until::text AS valid_until,
       count(i.id)::text AS item_count,
-      COALESCE(ROUND((
-        COALESCE(ROUND((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 2), 0)
-        + COALESCE(ROUND((SELECT SUM(
-            pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
-            / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
-          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 2), 0)
-      ), 2), 0)::text AS total_cost,
-      COALESCE(ROUND((
-        COALESCE(ROUND((SELECT SUM(pi.quantity * pi.snapshot_unit_cost) FROM proposal_items pi WHERE pi.proposal_id = p.id), 2), 0)
-        + COALESCE(ROUND((SELECT SUM(
-            pli.professional_count * (pli.monthly_salary + pli.monthly_food + pli.monthly_transport + pli.monthly_other_costs)
-            / NULLIF(pli.standard_monthly_hours, 0) * pli.planned_hours
-          ) FROM proposal_labor_items pli WHERE pli.proposal_id = p.id), 2), 0)
-      ) * p.bdi_multiplier, 2), 0)::text AS total_sale,
+      ${baseCostSql}::text AS total_cost,
+      ${finalValueSql}::text AS total_sale,
       u.name AS responsible_name, p.updated_at::text,
       NOT EXISTS (
         SELECT 1 FROM proposals newer
         WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
-      ) AS is_latest
+      ) AS is_latest,
+      EXISTS (SELECT 1 FROM proposals approved WHERE approved.proposal_number = p.proposal_number AND approved.status = 'approved') AS has_approved_revision
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
     LEFT JOIN proposal_items i ON i.proposal_id = p.id
-    GROUP BY p.id, c.trade_name, c.legal_name, u.name, p.bdi_multiplier
+    GROUP BY p.id, c.trade_name, c.legal_name, u.name, p.bdi_multiplier, p.valid_until
     ORDER BY p.updated_at DESC
   `);
 
@@ -181,12 +183,14 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
     clientName: row.client_name,
     workName: row.work_name,
     status: row.status,
+    validUntil: row.valid_until ? row.valid_until.slice(0, 10) : null,
     itemCount: Number(row.item_count),
     totalCost: roundMoney(Number(row.total_cost)),
     totalSale: roundMoney(Number(row.total_sale)),
     responsibleName: row.responsible_name,
     updatedAt: row.updated_at,
     isLatest: row.is_latest,
+    hasApprovedRevision: row.has_approved_revision,
   }));
 };
 
@@ -317,6 +321,7 @@ export const updateProposalStatus = async (
   database: LocalDatabase,
   proposalId: string,
   status: ProposalDetail['status'],
+  userId?: string,
 ): Promise<ProposalDetail> => {
-  return updateProposalStatusWithGetter(database, proposalId, status, getProposalById);
+  return updateProposalStatusWithGetter(database, proposalId, status, getProposalById, userId);
 };

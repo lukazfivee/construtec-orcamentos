@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
+  BarChart3,
   Box,
   CheckCircle2,
-  Database,
   FilePlus2,
   FileText,
   Grid2X2,
   Layers3,
+  Mail,
   PackagePlus,
   RefreshCw,
   TrendingUp,
@@ -15,6 +16,9 @@ import {
 } from 'lucide-react';
 import type { DashboardMetrics, ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { dashboardApi } from './api';
+import { HomePipelineCard } from './HomePipelineCard';
+import { HomeAbcItemsCard } from './HomeAbcItemsCard';
+import { HomeTopClientsCard } from './HomeTopClientsCard';
 
 type HomeWorkspaceProps = {
   onOpenProposal: (proposalId: string) => void;
@@ -50,6 +54,7 @@ export function HomeWorkspace({
 }: HomeWorkspaceProps) {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'proposals' | 'intelligence'>('proposals');
 
   const loadData = async () => {
     setLoading(true);
@@ -74,7 +79,7 @@ export function HomeWorkspace({
           <Grid2X2 size={25} />
           <span>
             <h1>Início</h1>
-            <p>Visão geral de orçamentos, métricas comerciais e atalhos operacionais.</p>
+            <p>Visão geral de orçamentos, inteligência comercial e atalhos operacionais.</p>
           </span>
         </div>
         <span className="management-header-actions">
@@ -142,84 +147,115 @@ export function HomeWorkspace({
           <button type="button" onClick={() => onNavigate('Clientes')}>
             <UserPlus size={15} /> Novo cliente / obra
           </button>
+          <button type="button" onClick={() => void window.construtec?.openWebmail?.()} title="Acessar o UOL Webmail Pro corporativo com login persistente">
+            <Mail size={15} /> Webmail Pro
+          </button>
         </section>
 
-        {/* Recent Proposals Table */}
-        <section className="home-section-card">
-          <div className="home-card-header">
-            <div>
-              <FileText size={18} />
-              <h2>Propostas recentes</h2>
+        {/* View Switcher Tabs */}
+        <section className="home-view-switcher">
+          <button
+            type="button"
+            className={`home-tab-pill ${activeTab === 'proposals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('proposals')}
+          >
+            <FileText size={16} /> Propostas recentes
+            <span className="tab-counter">{metrics?.recentProposals?.length ?? 0}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`home-tab-pill ${activeTab === 'intelligence' ? 'active' : ''}`}
+            onClick={() => setActiveTab('intelligence')}
+          >
+            <BarChart3 size={16} /> Inteligência Comercial & Curva ABC
+            {metrics?.intelligence?.conversionRate !== undefined ? (
+              <span className="tab-counter highlight">{metrics.intelligence.conversionRate}% conv.</span>
+            ) : null}
+          </button>
+        </section>
+
+        {/* Main Section Content */}
+        {activeTab === 'proposals' ? (
+          <section className="home-section-card">
+            <div className="home-card-header">
+              <div>
+                <FileText size={18} />
+                <h2>Propostas recentes</h2>
+              </div>
+              <button type="button" onClick={() => onNavigate('Propostas')}>
+                Ver todas as propostas
+              </button>
             </div>
-            <button type="button" onClick={() => onNavigate('Propostas')}>
-              Ver todas as propostas
-            </button>
-          </div>
 
-          <div className="home-table-container">
-            {metrics?.recentProposals && metrics.recentProposals.length > 0 ? (
-              <table className="home-proposals-table">
-                <thead>
-                  <tr>
-                    <th>Número</th>
-                    <th>Cliente / Obra</th>
-                    <th>Status</th>
-                    <th>Itens</th>
-                    <th>Valor total</th>
-                    <th>Última alteração</th>
-                    <th>Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {metrics.recentProposals.map((prop: ProposalSummary) => (
-                    <tr key={prop.id}>
-                      <td>
-                        <strong>{prop.number}</strong>
-                        <span className="rev-badge">REV {String(prop.revision).padStart(2, '0')}</span>
-                      </td>
-                      <td>
-                        <b>{prop.clientName}</b>
-                        <small>{prop.workName}</small>
-                      </td>
-                      <td>
-                        <span className={`status-tag ${statusClasses[prop.status] || ''}`}>
-                          {statusLabels[prop.status] || prop.status}
-                        </span>
-                      </td>
-                      <td className="center">{prop.itemCount}</td>
-                      <td className="number strong">{money.format(prop.totalSale)}</td>
-                      <td>{prop.updatedAt ? dateTime.format(new Date(prop.updatedAt)) : '-'}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="open-proposal-btn"
-                          onClick={() => onOpenProposal(prop.id)}
-                        >
-                          Abrir
-                        </button>
-                      </td>
+            <div className="home-table-container">
+              {metrics?.recentProposals && metrics.recentProposals.length > 0 ? (
+                <table className="home-proposals-table">
+                  <thead>
+                    <tr>
+                      <th>Número</th>
+                      <th>Cliente / Obra</th>
+                      <th>Status</th>
+                      <th>Itens</th>
+                      <th>Valor total</th>
+                      <th>Última alteração</th>
+                      <th>Ação</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="management-empty">
-                {loading ? 'Carregando propostas…' : 'Nenhuma proposta cadastrada ainda.'}
-              </p>
-            )}
-          </div>
-        </section>
+                  </thead>
+                  <tbody>
+                    {metrics.recentProposals.map((prop: ProposalSummary) => (
+                      <tr key={prop.id}>
+                        <td>
+                          <strong>{prop.number}</strong>
+                          <span className="rev-badge">REV {String(prop.revision).padStart(2, '0')}</span>
+                        </td>
+                        <td>
+                          <b>{prop.clientName}</b>
+                          <small>{prop.workName}</small>
+                        </td>
+                        <td>
+                          <span className={`status-tag ${statusClasses[prop.status] || ''}`}>
+                            {statusLabels[prop.status] || prop.status}
+                          </span>
+                        </td>
+                        <td className="center">{prop.itemCount}</td>
+                        <td className="number strong">{money.format(prop.totalSale)}</td>
+                        <td>{prop.updatedAt ? dateTime.format(new Date(prop.updatedAt)) : '-'}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="open-proposal-btn"
+                            onClick={() => onOpenProposal(prop.id)}
+                          >
+                            Abrir
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="management-empty">
+                  {loading ? 'Carregando propostas…' : 'Nenhuma proposta cadastrada ainda.'}
+                </p>
+              )}
+            </div>
+          </section>
+        ) : (
+          <section className="home-intelligence-container">
+            <div className="intelligence-columns-grid">
+              <HomePipelineCard
+                pipeline={metrics?.intelligence?.pipeline}
+                conversionRate={metrics?.intelligence?.conversionRate}
+                averageTicketApproved={metrics?.intelligence?.averageTicketApproved}
+                averageTicketNegotiation={metrics?.intelligence?.averageTicketNegotiation}
+              />
+              <HomeTopClientsCard clients={metrics?.intelligence?.topClients} />
+            </div>
 
-        {/* System & Storage Status Banner */}
-        <footer className="home-system-banner">
-          <div className="system-status-indicator">
-            <Database size={16} />
-            <span>Banco de dados local-first (PGlite) ativo e operacional</span>
-          </div>
-          <div className="system-status-details">
-            <span>Privacidade total: dados comerciais congelados localmente</span>
-          </div>
-        </footer>
+            <HomeAbcItemsCard items={metrics?.intelligence?.topItems} />
+          </section>
+        )}
       </div>
     </main>
   );

@@ -177,7 +177,7 @@ export const updateProposalStandardMonthlyHours = async (
   });
 };
 
-export const copyProposalLabor = async (database: LocalDatabase, sourceProposalId: string, targetProposalId: string) => {
+export const copyProposalLabor = async (database: Pick<LocalDatabase, 'query'>, sourceProposalId: string, targetProposalId: string) => {
   const items = await listProposalLaborItems(database, sourceProposalId);
   const hours = await getProposalStandardMonthlyHours(database, sourceProposalId);
   await database.query('UPDATE proposals SET standard_monthly_hours=$2 WHERE id=$1', [targetProposalId, hours]);

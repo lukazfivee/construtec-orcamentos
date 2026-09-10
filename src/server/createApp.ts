@@ -23,8 +23,12 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
   api.disable('x-powered-by');
   api.use((request, response, next) => {
     const origin = request.headers.origin;
-    const allowedOrigin = origin === 'null' || origin?.startsWith('http://localhost:');
-    if (origin && !allowedOrigin) {
+    const isLocalOrPrivate = !origin
+      || origin === 'null'
+      || origin.startsWith('http://localhost:')
+      || origin.startsWith('http://127.0.0.1:')
+      || /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+|[\w-]+\.local)(:\d+)?$/i.test(origin);
+    if (origin && !isLocalOrPrivate) {
       response.status(403).json({ error: 'Origem não autorizada.' });
       return;
     }
@@ -41,7 +45,10 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     next();
   });
   api.use((request, response, next) => {
-    if (request.headers.authorization !== `Bearer ${apiToken}`) {
+    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`;
+    const hasUserSession = Boolean(getSessionToken(request));
+    const isPublicAuth = request.path.startsWith('/api/auth');
+    if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {
       response.status(401).json({ error: 'Sessão local inválida.' });
       return;
     }
@@ -92,8 +99,12 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
     void _next;
-    if (error instanceof ZodError) {
-      response.status(400).json({ error: 'Dados inválidos.', details: error.flatten() });
+    if (error instanceof ZodError || (error as { name?: string })?.name === 'ZodError' || Array.isArray((error as { issues?: unknown })?.issues)) {
+      const issues = (error as { issues?: Array<{ message: string; path: (string | number)[] }> }).issues;
+      const details = issues && issues.length > 0
+        ? issues.map((i) => `${i.path.length ? i.path.join('.') + ': ' : ''}${i.message}`).join(', ')
+        : 'Dados inválidos.';
+      response.status(400).json({ error: `Dados inválidos: ${details}` });
       return;
     }
     if (error instanceof Error && error.message === 'AUTH_INVALID_CREDENTIALS') {
@@ -124,6 +135,10 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       response.status(409).json({ error: 'Esta revisão está bloqueada para alterações.' });
       return;
     }
+    if (error instanceof Error && error.message.startsWith('FINANCIAL_')) {
+      response.status(422).json({ error: 'Valor financeiro inválido ou acima do limite suportado.' });
+      return;
+    }
     if (error instanceof Error && error.message === 'WORK_DUPLICATE') {
       response.status(409).json({ error: 'Já existe uma obra com esse nome para o cliente.' });
       return;
@@ -132,7 +147,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       response.status(409).json({ error: 'Já existe um item com esse código no catálogo.' });
       return;
     }
-    if (error instanceof Error && error.message === 'KIT_NAME_DUPLICATE') {
+    if (error instanceof Error && (error.message === 'KIT_NAME_DUPLICATE' || /unique constraint.*(?:kits_name|name)/i.test(error.message))) {
       response.status(409).json({ error: 'Já existe um kit com esse nome.' });
       return;
     }
@@ -150,6 +165,23 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     }
     if (error instanceof Error && error.message === 'EXSAT_UNAVAILABLE') {
       response.status(502).json({ error: 'Não foi possível consultar a Exsat agora.' });
+      return;
+    }
+    if (error instanceof Error) {
+      if (/violates not-null constraint/i.test(error.message)) {
+        response.status(422).json({ error: 'Preencha todos os campos obrigatórios.' });
+        return;
+      }
+      if (/violates foreign key constraint/i.test(error.message)) {
+        response.status(422).json({ error: 'Um dos produtos vinculados não foi encontrado no catálogo.' });
+        return;
+      }
+      if (/duplicate key/i.test(error.message)) {
+        response.status(409).json({ error: 'Registro já cadastrado com os mesmos dados.' });
+        return;
+      }
+      console.error(error);
+      response.status(500).json({ error: error.message || 'Não foi possível concluir a operação local.' });
       return;
     }
     console.error(error);

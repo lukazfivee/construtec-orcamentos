@@ -184,8 +184,7 @@ button:not(:disabled):active {
 }
 
 .quick-actions-bar,
-.home-section-card,
-.home-system-banner {
+.home-section-card {
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-sm);
 }
@@ -369,11 +368,19 @@ button:not(:disabled):active {
 }
 
 .kit-items-section table {
-  min-width: 760px;
+  min-width: 680px;
 }
 
+.kit-item-row:hover td,
 .kit-items-section tbody tr:hover td {
   background: #f8fafc;
+}
+
+.kit-item-remove-btn:hover {
+  background: #fee2e2 !important;
+  border-color: #f87171 !important;
+  color: #b91c1c !important;
+  transform: scale(1.08);
 }
 
 .kit-items-section input[type="number"]:focus-visible {

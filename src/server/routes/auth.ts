@@ -6,6 +6,7 @@ import { getAuthSetupStatus, loginUser, setupFirstAdmin, verifyUserSession } fro
 const credentialsSchema = z.object({
   email: z.string().trim().email().max(200),
   password: z.string().min(10).max(128),
+  rememberMe: z.boolean().optional(),
 });
 
 const setupSchema = credentialsSchema.extend({
@@ -36,7 +37,13 @@ export const createAuthRouter = (database: LocalDatabase, sessionSecret: string)
   router.post('/login', async (request, response, next) => {
     try {
       const input = credentialsSchema.parse(request.body);
-      response.json(await loginUser(database, sessionSecret, input.email, input.password));
+      response.json(await loginUser(
+        database,
+        sessionSecret,
+        input.email,
+        input.password,
+        Boolean(input.rememberMe),
+      ));
     } catch (error) { next(error); }
   });
 

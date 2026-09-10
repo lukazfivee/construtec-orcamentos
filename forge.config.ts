@@ -12,9 +12,13 @@ const config: ForgeConfig = {
     asar: true,
     junk: false,
     prune: false,
-    extraResource: ['node_modules/@electric-sql/pglite'],
+    extraResource: [
+      'node_modules/@electric-sql/pglite',
+      'src/assets',
+    ],
     name: 'ConstrutecOrcamentos',
     executableName: 'ConstrutecOrcamentos',
+    icon: 'src/assets/app-icon',
   },
   rebuildConfig: {},
   makers: [
@@ -23,6 +27,8 @@ const config: ForgeConfig = {
       authors: 'Construtec Engenharia',
       description: 'Orçamentos profissionais, rápidos, seguros e offline para a Construtec Engenharia.',
       setupExe: 'Construtec-Orcamentos-1.0.5-Setup.exe',
+      loadingGif: 'src/assets/install-splash.gif',
+      setupIcon: 'src/assets/app-icon.ico',
       noMsi: true,
     }),
     new MakerZIP({}, ['darwin']),
@@ -31,11 +37,8 @@ const config: ForgeConfig = {
   ],
   plugins: [
     new VitePlugin({
-      // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-      // If you are familiar with Vite configuration, it will look really familiar.
       build: [
         {
-          // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
           entry: 'src/main.ts',
           config: 'vite.main.config.mjs',
           target: 'main',
@@ -53,8 +56,6 @@ const config: ForgeConfig = {
         },
       ],
     }),
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,

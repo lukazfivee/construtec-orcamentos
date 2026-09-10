@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    }
+  }
+}

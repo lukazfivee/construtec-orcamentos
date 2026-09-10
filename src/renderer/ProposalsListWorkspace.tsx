@@ -1,16 +1,31 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  CheckCircle2,
-  Clock,
   FilePlus2,
-  FileText,
   RefreshCw,
-  Search,
 } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { proposalApi } from './api';
+import { CloneProposalDialog } from './CloneProposalDialog';
 import { ProposalDeleteModal } from './ProposalDeleteModal';
+import { ProposalExportDialog } from './ProposalExportDialog';
+import { ProposalExtendValidityDialog } from './ProposalExtendValidityDialog';
+import { ProposalShareDialog } from './ProposalShareDialog';
+import type {
+  DateFilterOption,
+  ValueFilterOption} from './ProposalsListFilterBar';
+import {
+  matchesDateFilter,
+  matchesValueFilter,
+  ProposalsListFilterBar
+} from './ProposalsListFilterBar';
+import { ProposalsListFooterSummary } from './ProposalsListFooterSummary';
+import { ProposalsListKpiBar } from './ProposalsListKpiBar';
 import { ProposalsListTable } from './ProposalsListTable';
+import { exportProposalsToCsv } from './proposalsListExport';
+import {
+  filterProposalsByValidity,
+  type ValidityFilterOption,
+} from './proposalValidityHelpers';
 
 type ProposalsListWorkspaceProps = {
   onOpenProposal: (proposalId: string) => void;
@@ -18,8 +33,6 @@ type ProposalsListWorkspaceProps = {
   onError: (message: string) => void;
   onNotice: (message: string) => void;
 };
-
-const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
   draft: 'Em edição',
@@ -39,9 +52,16 @@ export function ProposalsListWorkspace({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | ProposalDetail['status']>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+  const [valueFilter, setValueFilter] = useState<ValueFilterOption>('all');
+  const [validityFilter, setValidityFilter] = useState<ValidityFilterOption>('all');
   const [sortBy, setSortBy] = useState<'date' | 'number' | 'client' | 'value'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [deletingProposal, setDeletingProposal] = useState<ProposalSummary | null>(null);
+  const [cloningProposal, setCloningProposal] = useState<ProposalSummary | null>(null);
+  const [exportingProposal, setExportingProposal] = useState<ProposalDetail | null>(null);
+  const [sharingProposal, setSharingProposal] = useState<ProposalDetail | null>(null);
+  const [extendingProposal, setExtendingProposal] = useState<ProposalSummary | null>(null);
   const [actionPending, setActionPending] = useState(false);
 
   const loadProposals = async () => {
@@ -73,14 +93,25 @@ export function ProposalsListWorkspace({
     }
   };
 
-  const handleClone = async (item: ProposalSummary) => {
+  const handleExport = async (item: ProposalSummary) => {
     setActionPending(true);
     try {
-      const result = await proposalApi.clone(item.id);
-      onNotice(`Orçamento ${result.proposal.number} criado com sucesso a partir de ${item.number}.`);
-      onOpenProposal(result.proposal.id);
+      const detail = await proposalApi.byId(item.id);
+      setExportingProposal(detail.proposal);
     } catch (error) {
-      onError(error instanceof Error ? error.message : 'Erro ao clonar o orçamento.');
+      onError(error instanceof Error ? error.message : 'Erro ao carregar proposta para exportação.');
+    } finally {
+      setActionPending(false);
+    }
+  };
+
+  const handleShare = async (item: ProposalSummary) => {
+    setActionPending(true);
+    try {
+      const detail = await proposalApi.byId(item.id);
+      setSharingProposal(detail.proposal);
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Erro ao carregar proposta para compartilhamento.');
     } finally {
       setActionPending(false);
     }
@@ -101,10 +132,30 @@ export function ProposalsListWorkspace({
     }
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setDateFilter('all');
+    setValueFilter('all');
+    setValidityFilter('all');
+  };
+
+  const handleExportCsv = () => {
+    const success = exportProposalsToCsv(filteredProposals);
+    if (success) {
+      onNotice(`Exportadas ${filteredProposals.length} propostas em formato CSV com sucesso.`);
+    } else {
+      onError('Nenhuma proposta disponível para exportação.');
+    }
+  };
+
   const filteredProposals = useMemo(() => {
-    return proposals
+    const byValidity = filterProposalsByValidity(proposals, validityFilter);
+    return byValidity
       .filter((item) => {
         if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+        if (!matchesDateFilter(item.updatedAt, dateFilter)) return false;
+        if (!matchesValueFilter(item.totalSale, valueFilter)) return false;
         if (!searchTerm.trim()) return true;
         const q = searchTerm.toLowerCase();
         return (
@@ -126,7 +177,7 @@ export function ProposalsListWorkspace({
         }
         return sortOrder === 'desc' ? -diff : diff;
       });
-  }, [proposals, searchTerm, statusFilter, sortBy, sortOrder]);
+  }, [proposals, searchTerm, statusFilter, dateFilter, valueFilter, validityFilter, sortBy, sortOrder]);
 
   const stats = useMemo(() => {
     const totalCount = proposals.length;
@@ -180,76 +231,25 @@ export function ProposalsListWorkspace({
 
       <div className="home-body">
         {/* KPI Mini-Bar */}
-        <section className="kpi-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-          <div className="kpi-card highlight-blue">
-            <div className="kpi-icon">
-              <FileText size={22} />
-            </div>
-            <div className="kpi-content">
-              <span>Total de Orçamentos</span>
-              <strong>{stats.totalCount}</strong>
-              <small>Registros no banco local</small>
-            </div>
-          </div>
+        <ProposalsListKpiBar stats={stats} />
 
-          <div className="kpi-card">
-            <div className="kpi-icon" style={{ background: '#fffbeb', color: '#b45309' }}>
-              <Clock size={22} />
-            </div>
-            <div className="kpi-content">
-              <span>Em Negociação</span>
-              <strong>{money.format(stats.inNegotiation)}</strong>
-              <small>Edição, revisão ou enviadas</small>
-            </div>
-          </div>
-
-          <div className="kpi-card highlight-green">
-            <div className="kpi-icon">
-              <CheckCircle2 size={22} />
-            </div>
-            <div className="kpi-content">
-              <span>Propostas Aprovadas</span>
-              <strong>{money.format(stats.approved)}</strong>
-              <small>Fechamento confirmado</small>
-            </div>
-          </div>
-        </section>
-
-        {/* Filter and Search Bar */}
-        <div className="proposals-filter-bar">
-          <div className="search-box">
-            <Search size={16} />
-            <input
-              type="text"
-              placeholder="Buscar por número (PA-XXXX), cliente ou obra..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button type="button" className="clear-btn" onClick={() => setSearchTerm('')}>
-                ×
-              </button>
-            )}
-          </div>
-
-          <div className="filter-chips">
-            {(['all', 'draft', 'review', 'sent', 'approved', 'rejected'] as const).map((st) => (
-              <button
-                key={st}
-                type="button"
-                className={`filter-chip ${statusFilter === st ? 'active' : ''}`}
-                onClick={() => setStatusFilter(st)}
-              >
-                {st === 'all' ? 'Todas' : statusLabels[st]}
-                {st !== 'all' && (
-                  <span className="chip-count">
-                    {proposals.filter((p) => p.status === st).length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Filter and Search Bar Component */}
+        <ProposalsListFilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          dateFilter={dateFilter}
+          onDateFilterChange={setDateFilter}
+          valueFilter={valueFilter}
+          onValueFilterChange={setValueFilter}
+          validityFilter={validityFilter}
+          onValidityFilterChange={setValidityFilter}
+          proposals={proposals}
+          filteredCount={filteredProposals.length}
+          onClearFilters={handleClearFilters}
+          onExportCsv={handleExportCsv}
+        />
 
         {/* Proposals Table */}
         <ProposalsListTable
@@ -261,13 +261,19 @@ export function ProposalsListWorkspace({
           onToggleSort={toggleSort}
           onOpenProposal={onOpenProposal}
           onStatusChange={handleStatusChange}
-          onClone={handleClone}
+          onClone={(item) => setCloningProposal(item)}
+          onExport={(item) => void handleExport(item)}
+          onShare={(item) => void handleShare(item)}
+          onExtendValidity={(item) => setExtendingProposal(item)}
           onDeleteRequest={setDeletingProposal}
-          onClearFilters={() => {
-            setSearchTerm('');
-            setStatusFilter('all');
-          }}
+          onClearFilters={handleClearFilters}
           onNewProposal={onNewProposal}
+        />
+
+        {/* Portfolio Summary Footer Bar */}
+        <ProposalsListFooterSummary
+          filteredProposals={filteredProposals}
+          totalCount={proposals.length}
         />
       </div>
 
@@ -277,6 +283,52 @@ export function ProposalsListWorkspace({
         actionPending={actionPending}
         onClose={() => setDeletingProposal(null)}
         onConfirm={() => void handleDeleteConfirm()}
+      />
+
+      {/* Clone Proposal Dialog */}
+      <CloneProposalDialog
+        open={Boolean(cloningProposal)}
+        sourceProposal={cloningProposal}
+        onClose={() => setCloningProposal(null)}
+        onCloned={(cloned) => {
+          setCloningProposal(null);
+          onNotice(`Orçamento ${cloned.number} criado com sucesso.`);
+          onOpenProposal(cloned.id);
+        }}
+        onError={onError}
+      />
+
+      {/* Export Proposal Dialog */}
+      <ProposalExportDialog
+        open={Boolean(exportingProposal)}
+        proposal={exportingProposal}
+        onClose={() => setExportingProposal(null)}
+        onExportSuccess={(files) => {
+          onNotice(`Proposta exportada com sucesso! (${files.length} arquivo${files.length > 1 ? 's' : ''})`);
+          setExportingProposal(null);
+        }}
+        onError={onError}
+      />
+
+      {/* Share Proposal Dialog */}
+      <ProposalShareDialog
+        open={Boolean(sharingProposal)}
+        proposal={sharingProposal}
+        onClose={() => setSharingProposal(null)}
+        onNotice={onNotice}
+      />
+
+      {/* Extend Validity Dialog */}
+      <ProposalExtendValidityDialog
+        open={Boolean(extendingProposal)}
+        proposal={extendingProposal}
+        onClose={() => setExtendingProposal(null)}
+        onSuccess={() => {
+          onNotice('Validade da proposta prorrogada com sucesso.');
+          setExtendingProposal(null);
+          void loadProposals();
+        }}
+        onError={onError}
       />
     </div>
   );

@@ -2,26 +2,26 @@
 name: "Construtec Orçamentos"
 description: "Mesa operacional corporativa para orçamentos profissionais, rápidos, seguros e offline."
 colors:
-  nav: "#122036"
-  nav-muted: "#b8c3d3"
-  ink: "#172033"
-  muted: "#697386"
-  line: "#e4e6ea"
-  line-strong: "#cfd5de"
-  primary: "#085ce5"
-  primary-soft: "#eff5ff"
+  nav: "#031f29"
+  nav-muted: "#b9d4dd"
+  ink: "#0b2530"
+  muted: "#5d7480"
+  line: "#d6e4e9"
+  line-strong: "#bad0d8"
+  primary: "#12a9d1"
+  primary-soft: "#e8f8fc"
   success: "#178442"
   success-soft: "#f0f9f2"
   warning: "#9a5b00"
   warning-soft: "#fff5d9"
   surface: "#fefefe"
-  surface-subtle: "#f7f8fa"
-  focus: "#2f7cf4"
+  surface-subtle: "#f2f8fa"
+  focus: "#12a9d1"
   status-draft-text: "#8a4e00"
   status-draft-bg: "#fef3e6"
   status-draft-border: "#f1d693"
   status-review-text: "#1a4da1"
-  status-review-bg: "#eff5ff"
+  status-review-bg: "#e8f8fc"
   status-review-border: "#b8d1fb"
   status-sent-text: "#55278c"
   status-sent-bg: "#f4ecfc"
@@ -153,26 +153,27 @@ components:
 
 **Creative North Star: "Mesa Operacional"**
 
-A interface se comporta como uma bancada corporativa de trabalho: estável, precisa e pronta para uso prolongado. Sua familiaridade vem de padrões reconhecíveis de software de gestão; seu refinamento vem da disciplina de alinhamento, densidade e estado — não de ornamento. A direção combina a solidez operacional de sistemas de engenharia e gestão com a nitidez de produtos contemporâneos.
+A interface se comporta como uma bancada corporativa de trabalho: estável, precisa e pronta para uso prolongado. Sua familiaridade vem de padrões reconhecíveis de software de gestão; seu refinamento vem da disciplina de alinhamento, densidade e estado — não de ornamento. A direção combina a solidez operacional de sistemas de engenharia e gestão com a identidade real da Construtec: ciano tecnológico, petróleo profundo, branco limpo, símbolo angular e documentos técnicos em caixa alta.
 
-O conteúdo é o protagonista. Tabelas, valores e ações convivem em um único campo de trabalho contínuo, com navegação marinho-escura persistente, superfícies quase brancas e azul elétrico reservado para decisões. Clareza, velocidade e segurança precedem qualquer gesto expressivo.
+O conteúdo é o protagonista. Tabelas, valores e ações convivem em um único campo de trabalho contínuo, com navegação petróleo persistente, superfícies quase brancas e ciano Construtec reservado para decisões. Clareza, velocidade e segurança precedem qualquer gesto expressivo.
 
 **Key Characteristics:**
 
 - Corporativa contemporânea, familiar e altamente refinada.
 - Densa sem parecer congestionada; cada linha sustenta uma decisão operacional.
-- Navegação escura e estável emoldurando uma área de trabalho clara.
-- Azul elétrico raro, usado para seleção, foco e ação primária.
+- Navegação petróleo escura e estável emoldurando uma área de trabalho clara.
+- Ciano Construtec raro, usado para marca, seleção, foco e ação primária.
 - Hierarquia construída por alinhamento, tipografia, divisores e estados explícitos.
+- Logo oficial aplicado no topo do app e nos documentos quando disponível; fallback textual só quando o asset não puder ser carregado.
 
 ## Colors
 
-A paleta combina um azul-marinho estrutural, neutros frios quase brancos e um único azul de ação, com verde e âmbar estritamente semânticos.
+A paleta combina petróleo estrutural, neutros frios quase brancos e o ciano oficial da Construtec como ação, com verde e âmbar estritamente semânticos.
 
 ### Primary
 
-- **Azul de Decisão:** sinaliza ações primárias, aba ativa, item selecionado e valores comerciais de venda.
-- **Azul de Foco:** torna a navegação por teclado inequívoca sem introduzir uma segunda voz de marca.
+- **Ciano Construtec:** sinaliza marca, ações primárias, aba ativa, item selecionado e valores comerciais de venda.
+- **Ciano de Foco:** torna a navegação por teclado inequívoca sem introduzir uma segunda voz de marca.
 
 ### Secondary
 
@@ -181,7 +182,7 @@ A paleta combina um azul-marinho estrutural, neutros frios quase brancos e um ú
 
 ### Neutral
 
-- **Marinho Estrutural:** sustenta barra superior e navegação lateral, criando uma moldura estável para o trabalho.
+- **Petróleo Estrutural:** sustenta barra superior e navegação lateral, criando uma moldura estável para o trabalho.
 - **Tinta Operacional:** cobre textos de alta prioridade e números que exigem leitura rápida.
 - **Cinza de Apoio:** atende rótulos, notas, atalhos e informações secundárias.
 - **Linha Fria / Linha Fria Forte:** separa campos, linhas de tabela e controles sem fragmentar a tela em cartões.
@@ -189,7 +190,7 @@ A paleta combina um azul-marinho estrutural, neutros frios quase brancos e um ú
 
 ### Named Rules
 
-**The One Decision Rule.** O azul primário aparece apenas onde existe seleção, foco ou próxima ação clara; ele nunca funciona como preenchimento decorativo.
+**The One Decision Rule.** O ciano primário aparece apenas na marca, seleção, foco ou próxima ação clara; ele nunca funciona como preenchimento decorativo.
 
 **The Semantic Reserve Rule.** Verde comunica integridade ou resultado positivo; âmbar comunica edição ou atenção. Nenhum deles substitui o azul em ações.
 
@@ -200,7 +201,7 @@ A paleta combina um azul-marinho estrutural, neutros frios quase brancos e um ú
 **Body Font:** IBM Plex Sans (com Segoe UI e system-ui como fallback)
 **Label/Mono Font:** IBM Plex Sans com numerais tabulares para códigos, quantidades e moeda
 
-**Character:** IBM Plex Sans traz rigor técnico e excelente leitura em alta densidade. A mesma família atravessa interface e dados, deixando tamanho, peso e alinhamento criarem a hierarquia.
+**Character:** IBM Plex Sans traz rigor técnico e excelente leitura em alta densidade. A mesma família atravessa interface e dados, deixando tamanho, peso, caixa alta controlada e alinhamento criarem a hierarquia.
 
 ### Hierarchy
 
@@ -217,7 +218,7 @@ A paleta combina um azul-marinho estrutural, neutros frios quase brancos e um ú
 
 ## Layout
 
-O aplicativo usa uma casca fixa de desktop: barra superior compacta, navegação lateral persistente e área de trabalho dividida entre editor expansível e inspetor comercial fixo à direita. A grade principal começa com barra de 43px, lateral de 118px e inspetor de 284px; em larguras até 1350px, lateral e inspetor se compactam para 94px e 260px. O canvas exige pelo menos 1180px, coerente com a aplicação Electron de uso interno.
+O aplicativo usa uma casca fixa de desktop: barra superior compacta com logo oficial, navegação lateral persistente e área de trabalho dividida entre editor expansível e inspetor comercial fixo à direita. A grade principal começa com barra de 43px, lateral de 118px e inspetor de 284px; em larguras até 1350px, lateral e inspetor se compactam para 94px e 260px. O canvas exige pelo menos 1180px, coerente com a aplicação Electron de uso interno.
 
 O editor é um fluxo contínuo, não uma coleção de cartões. Abas abertas, metadados, seções, ferramentas, tabela e rodapé se alinham pela mesma geometria. O ritmo base privilegia passos curtos de 4–16px, reservando 24–26px para respiros estruturais. Em alturas até 800px, o painel comercial reduz alturas e intervalos para manter a ação “Gerar proposta” visível.
 
@@ -250,7 +251,7 @@ As formas são discretamente arredondadas: controles usam raios de 5–7px, etiq
 Botões são compactos e funcionais, com ícone, verbo direto e atalho quando relevante.
 
 - **Shape:** cantos suavemente curvos (6px), altura padrão de 34px e padding horizontal de 13px.
-- **Primary:** Azul de Decisão com texto branco e peso reforçado; usado para inserir e gerar proposta.
+- **Primary:** Ciano Construtec com texto branco e peso reforçado; usado para inserir e gerar proposta.
 - **Hover / Focus:** o hover aprofunda o azul; o foco visível usa contorno externo de 2px com afastamento de 2px.
 - **Secondary / Ghost:** branco com borda forte para ações de ferramenta; ghost transparente para ícones e ações de baixo peso.
 
@@ -275,7 +276,7 @@ Botões são compactos e funcionais, com ícone, verbo direto e atalho quando re
 
 ### Navigation
 
-A navegação usa Marinho Estrutural e rótulos compactos em cinza azulado. Hover clareia o texto e eleva levemente o tom da superfície. O item ativo recebe texto branco, fundo naval mais claro e uma faixa azul de 4px na borda esquerda. A primeira versão é uma aplicação desktop e não define navegação móvel.
+A navegação usa Petróleo Estrutural e rótulos compactos em cinza azulado. Hover clareia o texto e eleva levemente o tom da superfície. O item ativo recebe texto branco, fundo petróleo mais claro e uma faixa ciano de 4px na borda esquerda. A primeira versão é uma aplicação desktop e não define navegação móvel.
 
 ### Data Table
 
@@ -285,6 +286,10 @@ A tabela é a assinatura do sistema: cabeçalho fixo, linhas de 34px, células s
 
 O inspetor fixa custo, venda, resultado, margem, parâmetros internos, integridade do snapshot e ações finais em uma única coluna. Valores ganham prioridade por tamanho e cor; “Gerar proposta” encerra a sequência como ação primária inequívoca.
 
+### Exported Proposal
+
+PDF e Word seguem a proposta técnica-comercial real: logo Construtec no cabeçalho quando disponível, título azul corporativo em caixa alta, divisória horizontal forte, tabela com cabeçalho teal/ciano, rodapé institucional e linha verde discreta. O documento do cliente continua limpo, branco e comercial; custo interno, BDI, salários e margem permanecem fora da saída.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -292,7 +297,7 @@ O inspetor fixa custo, venda, resultado, margem, parâmetros internos, integrida
 - **Do** manter a tarefa e os dados centrais visíveis no primeiro viewport.
 - **Do** alinhar moeda e quantidade à direita e usar numerais tabulares.
 - **Do** usar linhas de 1px e mudanças tonais mínimas para estruturar superfícies permanentes.
-- **Do** reservar o azul para foco, seleção e ação primária.
+- **Do** reservar o ciano para marca, foco, seleção e ação primária.
 - **Do** escrever ações com verbos diretos em português do Brasil e mostrar atalhos quando existirem.
 - **Do** preservar foco visível, contraste adequado e suporte a movimento reduzido.
 
@@ -301,6 +306,6 @@ O inspetor fixa custo, venda, resultado, margem, parâmetros internos, integrida
 - **Don't** transformar a bancada de edição em uma grade de cartões gerenciais.
 - **Don't** usar sombras em barras, tabela, painéis ou outros elementos permanentes.
 - **Don't** introduzir gradientes, vidro, ilustração ornamental ou cor de destaque sem função operacional.
-- **Don't** usar verde ou âmbar como substitutos da ação azul primária.
+- **Don't** usar verde ou âmbar como substitutos da ação ciano primária.
 - **Don't** esconder custo, margem, BDI ou fornecedor em saídas destinadas ao cliente; a distinção entre visão interna e documento exportado é obrigatória.
 - **Don't** inventar comportamento mobile para a primeira versão desktop.

@@ -11,10 +11,20 @@
 }
 
 .auth-loading {
+  display: grid;
+  place-items: center;
   align-content: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
+}
+
+.auth-loading-logo {
+  height: 48px;
+  width: auto;
+  max-width: 210px;
+  object-fit: contain;
+  margin-bottom: 6px;
 }
 
 .auth-card {
@@ -22,14 +32,32 @@
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--line-strong);
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 24px 70px rgba(18, 32, 54, .14);
+}
+
+.auth-card-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 24px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+}
+
+.auth-logo {
+  height: 42px;
+  width: auto;
+  max-width: 205px;
+  object-fit: contain;
 }
 
 .auth-card-header {
   display: flex;
+  align-items: flex-start;
   gap: 14px;
-  padding: 24px 24px 20px;
+  padding: 18px 24px 16px;
+  background: #fafbfc;
   border-bottom: 1px solid var(--line);
 }
 
@@ -37,24 +65,28 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
+  margin-top: 2px;
   color: var(--blue);
   background: var(--blue-soft);
   border-radius: 8px;
 }
 
 .auth-eyebrow {
+  display: inline-block;
   color: var(--blue);
   font-size: 9px;
   font-weight: 750;
   letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .auth-card h1 {
-  margin: 3px 0 5px;
+  margin: 2px 0 4px;
   color: var(--nav);
-  font-size: 20px;
+  font-size: 19px;
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -99,6 +131,33 @@
   box-shadow: 0 0 0 2px rgba(8, 92, 229, .12);
 }
 
+.auth-remember-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: #3b4555 !important;
+  margin: 4px 0 2px;
+}
+
+.auth-remember-row input[type="checkbox"] {
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: pointer;
+  accent-color: var(--blue);
+}
+
+.auth-remember-row:hover span {
+  color: var(--nav);
+}
+
 .auth-error {
   padding: 9px 11px;
   color: #9e2323;
@@ -127,8 +186,33 @@
 }
 
 .auth-submit:hover:not(:disabled) {
-  background: #064ebf;
-  border-color: #064ebf;
+  background: #0b8fb2;
+  border-color: #0b8fb2;
+}
+
+.auth-switch {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+  color: var(--petroleo);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-align: center;
+}
+
+.auth-switch:hover:not(:disabled) {
+  color: #0b8fb2;
+}
+
+.auth-switch:disabled {
+  opacity: .6;
+  cursor: wait;
 }
 
 .auth-card footer {
@@ -142,71 +226,4 @@
   font-size: 9px;
 }
 
-.auth-session-chip {
-  position: fixed;
-  z-index: 80;
-  top: 5px;
-  right: 9px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 190px;
-  height: 34px;
-  padding: 0 5px 0 7px;
-  color: #f5f7fa;
-  background: var(--nav);
-  border-radius: 6px;
-}
 
-body:has(.auth-session-chip) .top-actions .profile {
-  visibility: hidden;
-}
-
-.auth-session-avatar {
-  display: grid;
-  place-items: center;
-  width: 27px;
-  height: 27px;
-  color: #fff;
-  background: #445169;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.auth-session-user {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  line-height: 1.15;
-}
-
-.auth-session-user b,
-.auth-session-user small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.auth-session-user b { font-size: 10px; font-weight: 650; }
-.auth-session-user small { color: var(--nav-muted); font-size: 8px; }
-
-.auth-session-chip button {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  color: #dce3ec;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.auth-session-chip button:hover {
-  color: #fff;
-  background: #233147;
-  border-color: #435066;
-}

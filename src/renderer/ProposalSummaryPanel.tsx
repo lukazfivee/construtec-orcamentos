@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   ChevronDown,
@@ -8,9 +8,13 @@ import {
   FilePlus2,
   LockKeyhole,
   Save,
+  Share2,
   Trash2,
+  X,
 } from 'lucide-react';
+import { calculateProposalTotals } from '../shared/proposalFinancials';
 import type { ProposalDetail } from '../shared/contracts';
+import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -46,6 +50,7 @@ type Props = {
   onCloneProposal: () => void;
   onPreviewProposal: () => void;
   onExportProposal: () => void;
+  onShareProposal?: () => void;
   onDeleteProposal: () => void;
 };
 
@@ -62,14 +67,22 @@ export function ProposalSummaryPanel({
   onCloneProposal,
   onPreviewProposal,
   onExportProposal,
+  onShareProposal,
   onDeleteProposal,
 }: Props) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  useEffect(() => {
+    if (!deleteModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !mutationPending) setDeleteModalOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteModalOpen, mutationPending]);
+
   const materialsTotal = proposal.totals.cost ?? 0;
-  const baseCost = materialsTotal + laborTotal;
-  const finalValue = baseCost * (proposal.bdiMultiplier ?? 1);
-  const additions = finalValue - baseCost;
+  const { baseCost, finalValue, additions } = calculateProposalTotals(materialsTotal, laborTotal, proposal.bdiMultiplier ?? 1);
 
   const formattedUpdatedAt = proposal.updatedAt
     ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(proposal.updatedAt))
@@ -149,10 +162,22 @@ export function ProposalSummaryPanel({
           >
             <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd>
           </button>
+          {onShareProposal && (
+            <button
+              type="button"
+              className="share-action-btn"
+              disabled={documentPending}
+              onClick={onShareProposal}
+              title="Compartilhar proposta via WhatsApp ou E-mail"
+            >
+              <Share2 size={18} /> Compartilhar proposta
+            </button>
+          )}
+          <ProposalSyncDirectAction proposal={proposal} />
           <button
             type="button"
             className="danger-action-btn"
-            disabled={mutationPending}
+            disabled={mutationPending || proposal.status === 'approved' || proposal.hasApprovedRevision}
             onClick={() => setDeleteModalOpen(true)}
             title="Excluir este orçamento definitivamente"
           >
@@ -170,14 +195,29 @@ export function ProposalSummaryPanel({
       </aside>
 
       {deleteModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-card delete-modal">
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !mutationPending) setDeleteModalOpen(false);
+          }}
+        >
+          <div className="modal-card delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-proposal-title">
             <div className="modal-header danger-header">
               <AlertTriangle size={24} color="#dc2626" />
-              <div>
-                <h3>Excluir Orçamento</h3>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 id="delete-proposal-title">Excluir Orçamento</h3>
                 <p>Confirmação de exclusão permanente</p>
               </div>
+              <button
+                type="button"
+                className="dialog-close"
+                aria-label="Fechar"
+                disabled={mutationPending}
+                onClick={() => setDeleteModalOpen(false)}
+              >
+                <X size={18} />
+              </button>
             </div>
             <div className="modal-body">
               <p>

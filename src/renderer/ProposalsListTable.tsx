@@ -2,14 +2,18 @@ import {
   ArrowUpDown,
   Building2,
   Calendar,
+  CalendarClock,
+  Clock,
   Copy,
   ExternalLink,
   FilePlus2,
   FileText,
   Layers,
+  Share2,
   Trash2,
 } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+import { getProposalValidityStatus } from './proposalValidityHelpers';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const dateTime = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
@@ -32,6 +36,9 @@ type ProposalsListTableProps = {
   onOpenProposal: (proposalId: string) => void;
   onStatusChange: (proposalId: string, newStatus: ProposalDetail['status']) => void;
   onClone: (item: ProposalSummary) => void;
+  onExport?: (item: ProposalSummary) => void;
+  onShare?: (item: ProposalSummary) => void;
+  onExtendValidity?: (item: ProposalSummary) => void;
   onDeleteRequest: (item: ProposalSummary) => void;
   onClearFilters: () => void;
   onNewProposal: () => void;
@@ -46,6 +53,9 @@ export function ProposalsListTable({
   onOpenProposal,
   onStatusChange,
   onClone,
+  onExport,
+  onShare,
+  onExtendValidity,
   onDeleteRequest,
   onClearFilters,
   onNewProposal,
@@ -102,6 +112,7 @@ export function ProposalsListTable({
                   <ArrowUpDown size={14} />
                 </th>
                 <th>Status</th>
+                <th>Validade</th>
                 <th onClick={() => onToggleSort('date')} className="sortable-th">
                   <span>Atualizado em</span>
                   <ArrowUpDown size={14} />
@@ -110,7 +121,9 @@ export function ProposalsListTable({
               </tr>
             </thead>
             <tbody>
-              {proposals.map((item) => (
+              {proposals.map((item) => {
+                const validity = getProposalValidityStatus(item.validUntil, item.status);
+                return (
                 <tr key={item.id} className="proposal-row">
                   <td className="proposal-number-cell" onClick={() => onOpenProposal(item.id)}>
                     <div className="proposal-number-badge">
@@ -138,7 +151,8 @@ export function ProposalsListTable({
                     <select
                       className={`status-select ${statusClasses[item.status]}`}
                       value={item.status}
-                      disabled={actionPending}
+                      disabled={actionPending || item.isLatest === false || item.status === 'approved'}
+                      title={item.status === 'approved' ? 'Proposta aprovada: crie uma nova revisão para alterar.' : undefined}
                       onChange={(e) => onStatusChange(item.id, e.target.value as ProposalDetail['status'])}
                     >
                       <option value="draft">Em edição</option>
@@ -147,6 +161,15 @@ export function ProposalsListTable({
                       <option value="approved">Aprovada</option>
                       <option value="rejected">Recusada</option>
                     </select>
+                  </td>
+                  <td className="proposal-validity-cell" onClick={() => onExtendValidity?.(item)}>
+                    <span
+                      className={`validity-badge ${validity.badgeClass}`}
+                      title={validity.formattedDate === '—' ? 'Sem data de validade definida. Clique para definir.' : `Data limite: ${validity.formattedDate}. Clique para prorrogar.`}
+                    >
+                      <Clock size={11} />
+                      <span>{validity.label}</span>
+                    </span>
                   </td>
                   <td className="proposal-date-cell" onClick={() => onOpenProposal(item.id)}>
                     <Calendar size={12} />
@@ -162,6 +185,18 @@ export function ProposalsListTable({
                       <ExternalLink size={15} />
                       Abrir
                     </button>
+                    {onExtendValidity && (
+                      <button
+                        type="button"
+                        className="table-action-btn secondary"
+                        title="Prorrogar prazo de validade comercial"
+                        disabled={actionPending}
+                        onClick={() => onExtendValidity(item)}
+                      >
+                        <CalendarClock size={14} />
+                        Prorrogar
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="table-action-btn secondary"
@@ -172,18 +207,43 @@ export function ProposalsListTable({
                       <Copy size={14} />
                       Clonar
                     </button>
+                    {onExport && (
+                      <button
+                        type="button"
+                        className="table-action-btn secondary"
+                        title="Gerar PDF / Word da proposta"
+                        disabled={actionPending}
+                        onClick={() => onExport(item)}
+                      >
+                        <FileText size={14} />
+                        Exportar
+                      </button>
+                    )}
+                    {onShare && (
+                      <button
+                        type="button"
+                        className="table-action-btn secondary share-btn"
+                        title="Compartilhar proposta via WhatsApp ou E-mail"
+                        disabled={actionPending}
+                        onClick={() => onShare(item)}
+                      >
+                        <Share2 size={14} />
+                        Compartilhar
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="table-action-btn danger"
                       title="Excluir proposta"
-                      disabled={actionPending}
+                      disabled={actionPending || item.status === 'approved' || item.hasApprovedRevision}
                       onClick={() => onDeleteRequest(item)}
                     >
                       <Trash2 size={15} />
                     </button>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

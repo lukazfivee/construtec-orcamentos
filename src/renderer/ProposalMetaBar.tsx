@@ -163,7 +163,8 @@ export function ProposalMetaBar({
           <select
             className={`status-select ${statusClasses[proposal.status ?? 'draft']}`}
             value={proposal.status ?? 'draft'}
-            disabled={mutationPending}
+            disabled={mutationPending || !proposal.isLatest || proposal.status === 'approved'}
+            title={proposal.status === 'approved' ? 'Proposta aprovada: crie uma nova revisão para alterar.' : undefined}
             onChange={(e) => void updateProposalStatusDirect(e.target.value as ProposalDetail['status'])}
           >
             <option value="draft">Em edição</option>

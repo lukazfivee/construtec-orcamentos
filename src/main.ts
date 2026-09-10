@@ -1,21 +1,36 @@
-import { app, BrowserWindow, dialog, ipcMain, screen } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron';
+import fs from 'node:fs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { startApiServer, type ApiRuntime } from './server/startApiServer';
 import { getDatabasePath, restoreDatabaseFromBackup, validateDatabaseBackup } from './server/services/database';
-import type { ProposalDetail } from './shared/contracts';
-import { buildProposalDocx, buildProposalHtml, proposalFileBaseName } from './documents/proposalDocument';
+import type { AppSettings, ProposalDetail, ProposalExportOptions } from './shared/contracts';
+import { buildProposalDocx, buildProposalHtml, proposalFileBaseName, proposalPdfOptions } from './documents/proposalDocument';
 import { selectCatalogImport } from './main/catalogImport';
 import { normalizeCatalogImportFile } from './main/catalogImportNormalize';
 import { disconnectExsat, exsatConnectionStatus, getExsatSyncInfo, openExsatLogin, previewAuthenticatedExsat, previewAuthenticatedExsatAuto, previewAuthenticatedExsatBatch, recordExsatSyncResult } from './main/exsatSession';
+import { disconnectWebmail, openWebmailWindow, webmailConnectionStatus } from './main/webmailSession';
+
 
 if (started) app.quit();
 
 let apiRuntime: ApiRuntime | undefined;
 const previewWindows = new Set<BrowserWindow>();
 
-const loadDocumentWindow = async (proposal: ProposalDetail, show: boolean) => {
+const fetchAppSettings = async (): Promise<AppSettings | undefined> => {
+  if (!apiRuntime) return undefined;
+  try {
+    const res = await fetch(`${apiRuntime.url}/api/settings`, {
+      headers: { 'X-Construtec-Token': apiRuntime.token },
+    });
+    if (res.ok) return (await res.json()) as AppSettings;
+  } catch { return undefined; }
+  return undefined;
+};
+
+const loadDocumentWindow = async (proposal: ProposalDetail, show: boolean, settings?: AppSettings, options?: ProposalExportOptions) => {
+  const resolvedSettings = settings ?? (await fetchAppSettings());
   const documentWindow = new BrowserWindow({
     width: 1100,
     height: 850,
@@ -27,7 +42,7 @@ const loadDocumentWindow = async (proposal: ProposalDetail, show: boolean) => {
   });
   previewWindows.add(documentWindow);
   documentWindow.on('closed', () => previewWindows.delete(documentWindow));
-  await documentWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(buildProposalHtml(proposal))}`);
+  await documentWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(buildProposalHtml(proposal, resolvedSettings, options))}`);
   if (show) documentWindow.show();
   return documentWindow;
 };
@@ -50,19 +65,30 @@ const createWindow = async () => {
     },
   });
 
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^(https?|mailto):/i.test(url)) {
+      void shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
   mainWindow.webContents.on('did-fail-load', (_event, code, description) => {
     console.error(`Falha ao carregar o renderer (${code}): ${description}`);
   });
 
-  const devUrl = typeof MAIN_WINDOW_VITE_DEV_SERVER_URL !== 'undefined' ? MAIN_WINDOW_VITE_DEV_SERVER_URL : undefined;
+  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    console.log(`[RENDERER CONSOLE ${level}] ${message} (${sourceId}:${line})`);
+  });
+
+  const devUrl = typeof MAIN_WINDOW_VITE_DEV_SERVER_URL !== 'undefined'
+    ? MAIN_WINDOW_VITE_DEV_SERVER_URL
+    : (process.env.CONSTRUTEC_DEV_SERVER_URL || (!app.isPackaged ? 'http://127.0.0.1:5173' : undefined));
   const rendererName = typeof MAIN_WINDOW_VITE_NAME !== 'undefined' ? MAIN_WINDOW_VITE_NAME : 'main_window';
 
   if (devUrl) {
     await mainWindow.loadURL(devUrl);
   } else {
-    await mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${rendererName}/index.html`),
-    );
+    await mainWindow.loadFile(path.join(__dirname, `../renderer/${rendererName}/index.html`));
   }
   mainWindow.show();
   mainWindow.focus();
@@ -80,33 +106,54 @@ app.whenReady().then(async () => {
     storage: 'local',
   }));
 
-  ipcMain.handle('documents:preview', async (_event, proposal: ProposalDetail) => {
-    await loadDocumentWindow(proposal, true);
+  ipcMain.handle('app:open-external', async (_event, targetUrl: string) => {
+    if (typeof targetUrl === 'string' && /^(https?|mailto):/i.test(targetUrl.trim())) {
+      await shell.openExternal(targetUrl.trim());
+      return { opened: true };
+    }
+    return { opened: false };
+  });
+
+  ipcMain.handle('webmail:open', (_event, composeData?: Parameters<typeof openWebmailWindow>[0]) => openWebmailWindow(composeData));
+  ipcMain.handle('webmail:status', () => webmailConnectionStatus());
+  ipcMain.handle('webmail:logout', () => disconnectWebmail());
+
+  ipcMain.handle('documents:preview', async (_event, proposal: ProposalDetail, options?: ProposalExportOptions) => {
+    await loadDocumentWindow(proposal, true, undefined, options);
     return { opened: true };
   });
 
-  ipcMain.handle('documents:export', async (_event, proposal: ProposalDetail) => {
+  ipcMain.handle('documents:export', async (_event, proposal: ProposalDetail, options?: ProposalExportOptions) => {
     const selection = await dialog.showOpenDialog({
       title: 'Escolha onde salvar a proposta',
       defaultPath: app.getPath('documents'),
       properties: ['openDirectory', 'createDirectory'],
-      buttonLabel: 'Salvar PDF e Word',
+      buttonLabel: 'Salvar documentos',
     });
     if (selection.canceled || !selection.filePaths[0]) return { canceled: true, files: [] };
     const outputDirectory = selection.filePaths[0];
     await mkdir(outputDirectory, { recursive: true });
+    const settings = await fetchAppSettings();
     const baseName = proposalFileBaseName(proposal);
     const docxPath = path.join(outputDirectory, `${baseName}.docx`);
     const pdfPath = path.join(outputDirectory, `${baseName}.pdf`);
-    await writeFile(docxPath, await buildProposalDocx(proposal));
-    const pdfWindow = await loadDocumentWindow(proposal, false);
-    try {
-      const pdf = await pdfWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
-      await writeFile(pdfPath, pdf);
-    } finally {
-      pdfWindow.destroy();
+    const exportedFiles: string[] = [];
+
+    if (options?.format !== 'pdf') {
+      await writeFile(docxPath, await buildProposalDocx(proposal, settings, options));
+      exportedFiles.push(docxPath);
     }
-    return { canceled: false, files: [pdfPath, docxPath] };
+    if (options?.format !== 'docx') {
+      const pdfWindow = await loadDocumentWindow(proposal, false, settings, options);
+      try {
+        const pdf = await pdfWindow.webContents.printToPDF(proposalPdfOptions(proposal, settings, options));
+        await writeFile(pdfPath, pdf);
+        exportedFiles.push(pdfPath);
+      } finally {
+        pdfWindow.destroy();
+      }
+    }
+    return { canceled: false, files: exportedFiles };
   });
 
   ipcMain.handle('backup:save', async (_event, bytes: Uint8Array, suggestedName: string) => {

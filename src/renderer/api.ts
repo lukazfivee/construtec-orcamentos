@@ -30,10 +30,20 @@ export const setAuthSessionToken = (token: string | null) => {
 };
 
 const getRuntime = async () => {
-  runtimePromise ??= window.construtec?.runtime().then((runtime) => {
-    if (!runtime.apiUrl || !runtime.apiToken) throw new Error('A API local não foi iniciada.');
-    return { apiUrl: runtime.apiUrl, apiToken: runtime.apiToken };
-  }) ?? Promise.reject(new Error('O aplicativo precisa ser executado pelo Electron.'));
+  if (runtimePromise) return runtimePromise;
+  if (window.construtec?.runtime) {
+    runtimePromise = window.construtec.runtime().then((runtime) => {
+      if (!runtime.apiUrl || !runtime.apiToken) throw new Error('A API local não foi iniciada.');
+      return { apiUrl: runtime.apiUrl, apiToken: runtime.apiToken };
+    });
+    return runtimePromise;
+  }
+  const defaultApiUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://127.0.0.1:3000';
+  const apiUrl = (typeof window !== 'undefined' && (window as unknown as { __CONSTRUTEC_API_URL__?: string }).__CONSTRUTEC_API_URL__)
+    || (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_url'))
+    || defaultApiUrl;
+  const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || 'web-session';
+  runtimePromise = Promise.resolve({ apiUrl, apiToken });
   return runtimePromise;
 };
 
@@ -71,10 +81,10 @@ const requestBinary = async (path: string): Promise<Uint8Array> => {
 
 export const authApi = {
   setupStatus: () => request<AuthSetupStatus>('/api/auth/setup-status'),
-  setup: (input: { name: string; email: string; password: string }) => request<AuthSession>(
+  setup: (input: { name: string; email: string; password: string; rememberMe?: boolean }) => request<AuthSession>(
     '/api/auth/setup', { method: 'POST', body: JSON.stringify(input) },
   ),
-  login: (input: { email: string; password: string }) => request<AuthSession>(
+  login: (input: { email: string; password: string; rememberMe?: boolean }) => request<AuthSession>(
     '/api/auth/login', { method: 'POST', body: JSON.stringify(input) },
   ),
   me: () => request<{ user: AuthUser }>('/api/auth/me'),
@@ -105,6 +115,22 @@ export const proposalApi = {
   ),
   addItem: (proposalId: string, productId: string) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/items`, { method: 'POST', body: JSON.stringify({ productId, quantity: 1 }) },
+  ),
+  importBatch: (proposalId: string, items: Array<{
+    code?: string;
+    description: string;
+    category?: string;
+    unit?: string;
+    quantity: number;
+    unitCost?: number;
+    unitSale?: number;
+  }>) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/items/import-batch`,
+    { method: 'POST', body: JSON.stringify({ items }) },
+  ),
+  copyFromProposal: (targetProposalId: string, sourceProposalId: string, itemIds?: string[]) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${targetProposalId}/items/copy-from-proposal`,
+    { method: 'POST', body: JSON.stringify({ sourceProposalId, itemIds }) },
   ),
   removeItems: (proposalId: string, itemIds: string[]) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/items/remove`, { method: 'POST', body: JSON.stringify({ itemIds }) },

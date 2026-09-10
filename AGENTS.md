@@ -9,6 +9,8 @@ App Electron local-first de orçamentos da Construtec, com React, TypeScript e P
 - Preserve alterações existentes do usuário; nunca descarte ou sobrescreva trabalho local sem autorização.
 - Nunca exponha BDI, salários, custos, margens ou parâmetros internos em PDF/Word do cliente.
 - Preserve funcionamento offline e integridade dos dados locais.
+- Sem emojis no frontend: interfaces, botões, modais, alertas, títulos, tabelas e componentes visuais NUNCA devem conter emojis em texto; use ícones profissionais (Lucide, SVG vetorial) ou apenas texto sóbrio e corporativo.
+- Bug persistente (reincidência ou correção pedida mais de 1 vez): OBRIGATÓRIO ativar `sequentialthinking` (`.agents/skills/sequential-thinking/SKILL.md`) antes de alterar código, revisando premissas (`isRevision`) até isolar causa raiz.
 - Comunique em português curto usando `caveman full`.
 
 ## Instruções sob demanda

@@ -28,6 +28,7 @@ const fields: Array<{ key: keyof CatalogImportItem; label: string; width?: strin
 ];
 const statusLabel: Record<CatalogImportStatus, string> = {
   new: 'Novo', updated: 'Atualizar', unchanged: 'Sem alteração', no_price: 'Sem preço',
+  confirmed: 'Confirmado', divergent: 'Divergente', unavailable: 'Indisponível', error: 'Erro',
 };
 
 export function CatalogImportDialog({ open, onClose, onImported, onError }: Props) {
@@ -38,6 +39,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   const [sourceName, setSourceName] = useState('');
   const [ocrText, setOcrText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [progressText, setProgressText] = useState('');
   const [exsatConnected, setExsatConnected] = useState(false);
   const [batchInfo, setBatchInfo] = useState('');
   const [exsatFailures, setExsatFailures] = useState<ExsatPageFailure[]>([]);
@@ -49,16 +51,36 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
     unchanged: rows.filter((row) => row.status === 'unchanged').length,
     noPrice: rows.filter((row) => row.status === 'no_price').length,
   }), [rows]);
+  const exsatSummary = useMemo(() => ({
+    confirmed: rows.filter((row) => row.status === 'confirmed').length,
+    divergent: rows.filter((row) => row.status === 'divergent').length,
+    unavailable: rows.filter((row) => row.status === 'unavailable').length,
+    error: rows.filter((row) => row.status === 'error').length,
+  }), [rows]);
   const importableRows = useMemo(() => mode === 'exsat'
-    ? validRows.filter((row) => row.status === 'new' || row.status === 'updated' || (row.status === undefined && row.currentCost > 0))
+    ? validRows.filter((row) => row.status === 'confirmed')
     : validRows, [mode, validRows]);
 
   useEffect(() => {
     if (open && mode === 'exsat') {
       void window.construtec?.exsatStatus().then((status) => setExsatConnected(status.connected));
       void window.construtec?.exsatSyncInfo?.().then(setSyncInfo);
+      const unsubscribe = window.construtec?.onExsatValidationProgress?.((data) => {
+        setProgressText(`Validando na Exsat: ${data.current} de ${data.total} (${data.code})…`);
+      });
+      return () => { unsubscribe?.(); };
     }
   }, [open, mode]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !loading) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, loading, onClose]);
+
   if (!open) return null;
 
   const chooseFile = async (expected: 'file' | 'image') => {
@@ -100,10 +122,13 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   };
 
   const applyExsatPreview = async (result: ExsatBatchPreview, automatic: boolean) => {
+    setProgressText('');
     setExsatConnected(result.connected);
     setExsatFailures(result.failures);
-    const preview = await catalogApi.previewImport(result.items);
-    setRows(preview.items.map((item) => newRow(item)));
+    setRows(result.items.map((item) => ({
+      ...newRow(item),
+      status: item.validationStatus ?? 'confirmed',
+    })));
     setSourceName(automatic ? `Exsat automática · ${result.sourceCount} páginas lidas` : `Exsat Distribuidora · ${result.sourceCount} fonte${result.sourceCount === 1 ? '' : 's'}`);
     const notes = [
       result.ignored > 0 ? `${result.ignored} duplicado${result.ignored === 1 ? '' : 's'} consolidado${result.ignored === 1 ? '' : 's'}` : '',
@@ -115,6 +140,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   };
 
   const handleExsatError = (error: unknown, fallback: string) => {
+    setProgressText('');
     const message = error instanceof Error ? error.message : '';
     if (message.includes('EXSAT_LOGIN_REQUIRED')) {
       setExsatConnected(false);
@@ -131,21 +157,23 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
 
   const loadExsat = async () => {
     setLoading(true);
+    setProgressText('Consultando páginas da Exsat…');
     try {
       const urls = exsatUrls.split(/\r?\n|;/).map((url) => url.trim()).filter(Boolean);
       if (!window.construtec?.previewExsatBatch) throw new Error('A atualização em lote da Exsat requer o aplicativo desktop atualizado.');
       await applyExsatPreview(await window.construtec.previewExsatBatch(urls), false);
     } catch (error) { handleExsatError(error, 'Não foi possível consultar a Exsat.'); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setProgressText(''); }
   };
 
   const loadExsatAuto = async () => {
     setLoading(true);
+    setProgressText('Varrendo catálogo da Exsat…');
     try {
       if (!window.construtec?.previewExsatAuto) throw new Error('A atualização automática da Exsat requer o aplicativo desktop atualizado.');
       await applyExsatPreview(await window.construtec.previewExsatAuto(), true);
     } catch (error) { handleExsatError(error, 'Não foi possível varrer o catálogo da Exsat.'); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setProgressText(''); }
   };
 
   const loginExsat = async () => {
@@ -173,9 +201,12 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
         void key; void status;
         return item;
       });
-      const preview = await catalogApi.previewImport(cleanRows);
-      const allowedCodes = new Set(preview.items.filter((item) => item.status === 'new' || item.status === 'updated').map((item) => item.code.toLowerCase()));
-      const finalRows = cleanRows.filter((item) => allowedCodes.has(item.code.toLowerCase()));
+      let finalRows = cleanRows;
+      if (mode !== 'exsat') {
+        const preview = await catalogApi.previewImport(cleanRows);
+        const allowedCodes = new Set(preview.items.filter((item) => item.status === 'new' || item.status === 'updated').map((item) => item.code.toLowerCase()));
+        finalRows = cleanRows.filter((item) => allowedCodes.has(item.code.toLowerCase()));
+      }
       if (finalRows.length === 0) {
         onError('Nenhum item precisa ser atualizado.');
         return;
@@ -187,7 +218,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       onImported(result.products, `${result.created} itens cadastrados, ${result.updated} atualizados${result.ignored ? ` e ${result.ignored} ignorados` : ''}.`);
       setRows([]); setBatchInfo(''); setExsatFailures([]); onClose();
     } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível importar os itens.'); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setProgressText(''); }
   };
   const updateRow = (key: string, field: keyof CatalogImportItem, value: string) => setRows((current) => current.map((row) => row.key === key ? {
     ...row, status: undefined, [field]: field === 'currentCost' ? moneyValue(value) : value,
@@ -205,7 +236,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
     finally { setLoading(false); }
   };
 
-  return <div className="import-overlay" role="presentation"><section className="import-dialog" role="dialog" aria-modal="true" aria-label="Importar catálogo em lote">
+  return <div className="import-overlay" role="presentation" onClick={(e) => { if (e.target === e.currentTarget && !loading) onClose(); }}><section className={`import-dialog${mode === 'exsat' && rows.length > 0 ? ' has-preview' : ''}`} role="dialog" aria-modal="true" aria-label="Importar catálogo em lote" onClick={(e) => e.stopPropagation()}>
     <header><span><Import size={22} /><div><h2>Importar itens em lote</h2><p>Confira o valor total do item antes de atualizar o catálogo.</p></div></span><button type="button" aria-label="Fechar" onClick={onClose}><X size={18} /></button></header>
     <nav>{[
       ['manual', Plus, 'Manual'], ['file', FileSpreadsheet, 'Planilha'], ['image', FileImage, 'Imagem/PDF'], ['exsat', Globe2, 'Exsat'],
@@ -214,11 +245,21 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
       {mode === 'manual' && <><textarea value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Cole linhas separadas por TAB, ponto e vírgula ou CSV." /><button type="button" className="primary" onClick={() => { setRows(parseCatalogText(manual, 'MANUAL')); setSourceName('Digitação manual'); }}>Interpretar linhas</button>{ocrText && <button type="button" className="ocr-copy" onClick={() => void copyOcrText()}><Copy size={14} /> Copiar OCR</button>}</>}
       {mode === 'file' && <div className="import-picker"><FileSpreadsheet size={28} /><span><b>Planilha XLSX, CSV ou TSV</b><small>A primeira linha deve conter os nomes das colunas.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('file')}>Selecionar planilha</button></div>}
       {mode === 'image' && <div className="import-picker"><FileImage size={28} /><span><b>Imagem, foto, captura de tela ou PDF</b><small>O app tenta reconhecer produtos, materiais e equipamentos com preço, com ou sem código. Confira os itens antes de salvar.</small></span><button type="button" className="primary" disabled={loading} onClick={() => void chooseFile('image')}>Selecionar imagem ou PDF</button></div>}
-      {mode === 'exsat' && <div className="exsat-source"><div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div><div className="import-summary"><span><b>Última sincronização Exsat:</b> {formatSyncDate(syncInfo.lastSyncAt)}</span><span>Varredura completa: {formatSyncDate(syncInfo.lastFullSyncAt)}</span></div><button type="button" className="primary" disabled={loading || !exsatConnected} onClick={() => void loadExsatAuto()}>Atualizar catálogo automaticamente</button><small>O app prioriza páginas produtivas, usa até 24 páginas no incremental e faz varredura completa periódica de até 60 páginas.</small>{syncInfo.history.length > 0 && <details><summary>Histórico das últimas sincronizações</summary><div>{syncInfo.history.slice(0, 10).map((entry) => <p key={entry.id}><b>{formatSyncDate(entry.completedAt)}</b> · {entry.mode === 'full' ? 'Completa' : entry.mode === 'incremental' ? 'Incremental' : 'Manual'} · {entry.pagesRead} páginas · {entry.itemsFound} itens · <b>{entry.created} novos</b> · <b>{entry.updated} atualizados</b>{entry.failedPages ? ` · ${entry.failedPages} falhas` : ''}</p>)}</div></details>}<details><summary>Modo avançado: informar páginas manualmente</summary><label><span>Endereços de categorias ou buscas — um por linha</span><textarea value={exsatUrls} onChange={(event) => setExsatUrls(event.target.value)} placeholder={'https://exsat.com.br/...\nhttps://exsat.com.br/...'} /></label><button type="button" disabled={loading || !exsatConnected} onClick={() => void loadExsat()}>Buscar somente estas páginas</button></details></div>}
+      {mode === 'exsat' && <div className="exsat-source">
+        <div className="exsat-overview">
+          <div className={`exsat-session ${exsatConnected ? 'connected' : ''}`}><span>{exsatConnected ? 'Conta conectada' : 'Conta não conectada'}</span>{exsatConnected ? <button type="button" disabled={loading} onClick={() => void logoutExsat()}><LogOut size={14} /> Desconectar</button> : <button type="button" disabled={loading} onClick={() => void loginExsat()}><LogIn size={14} /> Entrar na Exsat</button>}</div>
+          <div className="exsat-sync-dates"><span><b>Última sincronização</b>{formatSyncDate(syncInfo.lastSyncAt)}</span><span><b>Varredura completa</b>{formatSyncDate(syncInfo.lastFullSyncAt)}</span></div>
+          <div className="exsat-auto-action"><button type="button" className="primary" disabled={loading || !exsatConnected} onClick={() => void loadExsatAuto()}>Atualizar catálogo</button><small>Até 24 páginas no incremental e 60 na varredura completa periódica.</small></div>
+        </div>
+        <div className="exsat-tools">
+          {syncInfo.history.length > 0 && <details><summary>Histórico das últimas sincronizações</summary><div>{syncInfo.history.slice(0, 10).map((entry) => <p key={entry.id}><b>{formatSyncDate(entry.completedAt)}</b> · {entry.mode === 'full' ? 'Completa' : entry.mode === 'incremental' ? 'Incremental' : 'Manual'} · {entry.pagesRead} páginas · {entry.itemsFound} itens · <b>{entry.created} novos</b> · <b>{entry.updated} atualizados</b>{entry.failedPages ? ` · ${entry.failedPages} falhas` : ''}</p>)}</div></details>}
+          <details><summary>Modo avançado: informar páginas manualmente</summary><label><span>Endereços de categorias ou buscas — um por linha</span><textarea value={exsatUrls} onChange={(event) => setExsatUrls(event.target.value)} placeholder={'https://exsat.com.br/...\nhttps://exsat.com.br/...'} /></label><button type="button" disabled={loading || !exsatConnected} onClick={() => void loadExsat()}>Buscar somente estas páginas</button></details>
+        </div>
+      </div>}
     </div>
-    {mode === 'exsat' && rows.length > 0 && <div className="import-summary exsat-preview-summary"><span><b>{previewSummary.new}</b> novos · <b>{previewSummary.updated}</b> atualizar · <b>{previewSummary.unchanged}</b> sem alteração · <b>{previewSummary.noPrice}</b> sem preço</span><span>{batchInfo || 'Prévia comparada com o catálogo local'}</span>{exsatFailures.length > 0 && <details className="exsat-failures"><summary>Diagnóstico de {exsatFailures.length} falha{exsatFailures.length === 1 ? '' : 's'} por página</summary><ul>{exsatFailures.map((failure) => <li key={`${failure.url}-${failure.stage}-${failure.code}`}><code>{failure.stage} · {failure.code}</code><span>{failure.url}</span><small>{failure.message}</small></li>)}</ul></details>}</div>}
+    {mode === 'exsat' && rows.length > 0 && <div className={`import-summary exsat-preview-summary${exsatFailures.length > 0 ? ' has-warning' : ''}`}><span><b>{exsatSummary.confirmed}</b> confirmados · <b>{exsatSummary.divergent}</b> divergentes · <b>{exsatSummary.unavailable}</b> indisponíveis · <b>{exsatSummary.error}</b> com erro</span><span>{batchInfo || 'Validação individual realizada'}</span>{exsatFailures.length > 0 && <details className="exsat-failures"><summary>Diagnóstico de {exsatFailures.length} falha{exsatFailures.length === 1 ? '' : 's'} por página</summary><ul>{exsatFailures.map((failure) => <li key={`${failure.url}-${failure.stage}-${failure.code}`}><code>{failure.stage} · {failure.code}</code><span>{failure.url}</span><small>{failure.message}</small></li>)}</ul></details>}</div>}
     <div className="import-summary"><span><b>{rows.length}</b> linhas encontradas · <b>{importableRows.length}</b> para importar</span><span>{sourceName || 'Nenhuma fonte carregada'}</span>{rows.length > 0 && <button type="button" disabled={loading} onClick={() => void exportRows()}><Download size={14} /> Exportar planilha</button>}<button type="button" onClick={() => setRows((current) => [...current, newRow({ source: mode === 'exsat' ? 'EXSAT' : 'MANUAL' })])}><Plus size={14} /> Linha</button></div>
-    <div className="import-table"><table><thead><tr>{mode === 'exsat' && <th style={{ width: '100px' }}>Situação</th>}{fields.map((field) => <th key={field.key} style={{ width: field.width }}>{field.label}</th>)}<th aria-label="Excluir" /></tr></thead><tbody>{rows.map((row) => <tr key={row.key} className={!row.code || !row.description || row.status === 'no_price' ? 'invalid' : ''}>{mode === 'exsat' && <td><b>{row.status ? statusLabel[row.status] : 'Editado'}</b></td>}{fields.map((field) => <td key={field.key}><input value={field.key === 'currentCost' ? formatMoney(row.currentCost) : String(row[field.key] ?? '')} onChange={(event) => updateRow(row.key, field.key, event.target.value)} aria-label={`${field.label} da linha`} /></td>)}<td><button type="button" aria-label="Excluir linha" onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}><Trash2 size={14} /></button></td></tr>)}</tbody></table>{rows.length === 0 && <p>Carregue uma fonte ou adicione uma linha manualmente.</p>}</div>
-    <footer><span>Use valor total do item; parcelas e condições de pagamento são ignoradas.</span><button type="button" onClick={onClose}>Cancelar</button><button type="button" className="primary" disabled={importableRows.length === 0 || loading} onClick={() => void importRows()}>{loading ? 'Processando…' : `Confirmar ${importableRows.length} alterações`}</button></footer>
+    <div className="import-table"><table><thead><tr>{mode === 'exsat' && <th style={{ width: '120px' }}>Situação</th>}{fields.map((field) => <th key={field.key} style={{ width: field.width }}>{field.label}</th>)}<th aria-label="Excluir" /></tr></thead><tbody>{rows.map((row) => <tr key={row.key} className={!row.code || !row.description || row.status === 'no_price' || row.status === 'unavailable' || row.status === 'error' ? 'invalid' : ''}>{mode === 'exsat' && <td><b className={`import-status status-${row.status ?? 'edited'}`}>{row.status ? statusLabel[row.status] : 'Editado'}</b></td>}{fields.map((field) => <td key={field.key}><input value={field.key === 'currentCost' ? formatMoney(row.currentCost) : String(row[field.key] ?? '')} onChange={(event) => updateRow(row.key, field.key, event.target.value)} aria-label={`${field.label} da linha`} /></td>)}<td><button type="button" aria-label="Excluir linha" onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}><Trash2 size={14} /></button></td></tr>)}</tbody></table>{rows.length === 0 && <p>Carregue uma fonte ou adicione uma linha manualmente.</p>}</div>
+    <footer><span>Use valor total do item; parcelas e condições de pagamento são ignoradas.</span><button type="button" onClick={onClose}>Cancelar</button><button type="button" className="primary" disabled={importableRows.length === 0 || loading} onClick={() => void importRows()}>{loading ? (progressText || 'Processando…') : `Confirmar ${importableRows.length} alterações`}</button></footer>
   </section></div>;
 }

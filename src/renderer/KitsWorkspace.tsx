@@ -99,16 +99,17 @@ export function KitsWorkspace({
   };
 
   const addProductToKit = (product: CatalogProduct) => {
-    const existingIndex = draft.items.findIndex((item) => item.productId === product.id);
-    if (existingIndex >= 0) {
-      const updated = [...draft.items];
-      updated[existingIndex].quantity += 1;
-      setDraft({ ...draft, items: updated });
-    } else {
-      setDraft({
-        ...draft,
+    setDraft((current) => {
+      const idx = current.items.findIndex((item) => item.productId === product.id);
+      if (idx >= 0) {
+        const items = [...current.items];
+        items[idx] = { ...items[idx], quantity: items[idx].quantity + 1 };
+        return { ...current, items };
+      }
+      return {
+        ...current,
         items: [
-          ...draft.items,
+          ...current.items,
           {
             productId: product.id,
             code: product.code,
@@ -119,28 +120,31 @@ export function KitsWorkspace({
             quantity: 1,
           },
         ],
-      });
-    }
+      };
+    });
   };
 
   const addProductsBatchToKit = (products: CatalogProduct[]) => {
-    const updated = [...draft.items];
-    for (const product of products) {
-      const idx = updated.findIndex((it) => it.productId === product.id);
-      if (idx >= 0) updated[idx].quantity += 1;
-      else {
-        updated.push({
-          productId: product.id,
-          code: product.code,
-          description: product.description,
-          category: product.category,
-          unit: product.unit,
-          currentCost: product.currentCost,
-          quantity: 1,
-        });
+    setDraft((current) => {
+      const updated = [...current.items];
+      for (const product of products) {
+        const idx = updated.findIndex((it) => it.productId === product.id);
+        if (idx >= 0) {
+          updated[idx] = { ...updated[idx], quantity: updated[idx].quantity + 1 };
+        } else {
+          updated.push({
+            productId: product.id,
+            code: product.code,
+            description: product.description,
+            category: product.category,
+            unit: product.unit,
+            currentCost: product.currentCost,
+            quantity: 1,
+          });
+        }
       }
-    }
-    setDraft({ ...draft, items: updated });
+      return { ...current, items: updated };
+    });
   };
 
   const removeKitItem = (productId: string) => {
@@ -166,22 +170,43 @@ export function KitsWorkspace({
 
   const saveKit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!draft.name.trim() || saving) return;
+    if (saving) return;
+
+    const trimmedName = draft.name.trim();
+    if (trimmedName.length < 2) {
+      onError('O nome do kit deve ter no mínimo 2 caracteres.');
+      return;
+    }
+
     if (draft.items.length === 0) {
       onError('Adicione pelo menos um item ao kit.');
       return;
     }
 
+    const hasInvalidItem = draft.items.some(
+      (it) => !it.productId || Number.isNaN(Number(it.quantity)) || Number(it.quantity) <= 0,
+    );
+    if (hasInvalidItem) return onError('Todos os itens do kit devem ter quantidade válida maior que zero.');
+
+    const itemMap = new Map<string, number>();
+    for (const item of draft.items) {
+      if (!item.productId) continue;
+      itemMap.set(item.productId, (itemMap.get(item.productId) ?? 0) + (Number(item.quantity) || 0));
+    }
+
+    const sanitizedItems = Array.from(itemMap.entries())
+      .filter(([_, qty]) => qty > 0)
+      .map(([productId, quantity]) => ({ productId, quantity }));
+
+    if (sanitizedItems.length === 0) return onError('Adicione pelo menos um item válido ao kit.');
+
     setSaving(true);
     const payload: KitInput = {
-      name: draft.name.trim(),
+      name: trimmedName,
       description: draft.description.trim() || null,
       category: draft.category.trim() || 'Geral',
       active: draft.active,
-      items: draft.items.map((it) => ({
-        productId: it.productId,
-        quantity: it.quantity,
-      })),
+      items: sanitizedItems,
     };
 
     try {

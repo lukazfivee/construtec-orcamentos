@@ -1,6 +1,6 @@
 import type { CatalogImportFile } from '../shared/contracts';
 
-const HEADER = 'Código\tDescrição\tCategoria\tFabricante\tModelo\tUnidade\tCusto\tFonte';
+const HEADER = 'Código\tDescrição\tCategoria\tFabricante\tModelo\tUnidade\tValor total\tFonte';
 const TELCABOS_HINT = /TELCABOS|LIGHTERA|WJ\s+MOREIRA|DTEC|VELCRO|Class\.?Fiscal|Previs[aã]o\s+Entrega|Vl\.?\s*Unit[aá]rio|Descri[cç][aã]o\s+Detalhada/i;
 const EXSAT_HINT = /(?:Print\s*Preview|Qt\.?\s*\(?Un\.?\)?|Vl\.?\s*L[ií]q\.?|Condi[cç][oõ]es\s+de\s+Pagamento)/i;
 const STOP_BACKTRACK = /(?:Í|I)tem\s+C[oó]digo|TELCABOS|^Pag\s*:|Desc\.?\s*Impostos|Total\s+Mercadorias/i;

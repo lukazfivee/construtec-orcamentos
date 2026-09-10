@@ -1,4 +1,4 @@
-import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ExsatSyncInfo, ProposalDetail } from '../shared/contracts';
+import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ExsatSyncInfo, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 
 export {};
 
@@ -11,11 +11,16 @@ declare global {
         platform: string;
         storage: 'local';
       }>;
-      previewProposal: (proposal: ProposalDetail) => Promise<{ opened: boolean }>;
-      exportProposal: (proposal: ProposalDetail) => Promise<{ canceled: boolean; files: string[] }>;
+      openExternal?: (url: string) => Promise<{ opened: boolean }>;
+      openWebmail?: (composeData?: { to?: string; subject?: string; body?: string }) => Promise<{ opened: boolean }>;
+      webmailStatus?: () => Promise<{ connected: boolean }>;
+      webmailLogout?: () => Promise<{ success: boolean }>;
+      previewProposal: (proposal: ProposalDetail, options?: ProposalExportOptions) => Promise<{ opened: boolean }>;
+      exportProposal: (proposal: ProposalDetail, options?: ProposalExportOptions) => Promise<{ canceled: boolean; files: string[] }>;
       saveBackup: (bytes: Uint8Array, suggestedName: string) => Promise<{ canceled: boolean; filePath?: string }>;
       restoreBackup: (sessionToken: string) => Promise<{ canceled: boolean; restarting: boolean; emergencyBackupPath?: string }>;
       selectCatalogImport: (kind: 'table' | 'image') => Promise<CatalogImportFile>;
+      exportCatalogPreview: (items: CatalogImportItem[]) => Promise<{ canceled: boolean; filePath?: string }>;
       exsatStatus: () => Promise<{ connected: boolean }>;
       exsatLogin: () => Promise<{ connected: boolean }>;
       exsatLogout: () => Promise<{ connected: boolean }>;
@@ -24,6 +29,7 @@ declare global {
       previewExsatAuto: () => Promise<ExsatBatchPreview>;
       exsatSyncInfo: () => Promise<ExsatSyncInfo>;
       recordExsatSync: (result: { created: number; updated: number }) => Promise<ExsatSyncInfo>;
+      onExsatValidationProgress?: (callback: (data: { current: number; total: number; code: string }) => void) => () => void;
     };
   }
 }

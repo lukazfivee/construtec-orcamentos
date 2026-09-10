@@ -35,6 +35,15 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
   const activeWorks = selectedClient?.works.filter((work) => work.active) ?? [];
   const canSubmit = Boolean(clientId && workId && scope.trim().length >= 3 && !loading);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !loading) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, loading, onClose]);
+
   if (!open) return null;
 
   const submit = async (event: React.FormEvent) => {

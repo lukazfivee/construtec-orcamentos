@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Plus, Search } from 'lucide-react';
+import { Box, Plus, Search, X } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
 
@@ -23,12 +23,12 @@ export function KitProductPickerModal({
   const [query, setQuery] = useState('');
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedProducts, setSelectedProducts] = useState<Map<string, CatalogProduct>>(new Map());
 
   useEffect(() => {
     if (!open) {
       setQuery('');
-      setSelectedIds(new Set());
+      setSelectedProducts(new Map());
       return;
     }
     let active = true;
@@ -49,27 +49,73 @@ export function KitProductPickerModal({
     };
   }, [open, query, onError]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
-  const toggleSelect = (productId: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(productId)) next.delete(productId);
-      else next.add(productId);
+  const toggleSelect = (product: CatalogProduct) => {
+    setSelectedProducts((prev) => {
+      const next = new Map(prev);
+      if (next.has(product.id)) next.delete(product.id);
+      else next.set(product.id, product);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    setSelectedProducts((prev) => {
+      const next = new Map(prev);
+      if (checked) {
+        for (const p of products) next.set(p.id, p);
+      } else {
+        for (const p of products) next.delete(p.id);
+      }
       return next;
     });
   };
 
   const handleAddBatch = () => {
-    const selected = products.filter((p) => selectedIds.has(p.id));
+    const selected = Array.from(selectedProducts.values());
     if (selected.length === 0) return;
     onAddProductsBatch(selected);
     onClose();
   };
 
+  const handleAddSingle = (product: CatalogProduct) => {
+    if (selectedProducts.size > 0) {
+      const next = new Map(selectedProducts);
+      next.set(product.id, product);
+      onAddProductsBatch(Array.from(next.values()));
+    } else {
+      onAddProduct(product);
+    }
+    onClose();
+  };
+
+  const allVisibleSelected = products.length > 0 && products.every((p) => selectedProducts.has(p.id));
+
   return (
-    <div className="dialog-backdrop">
-      <div className="new-proposal-dialog" style={{ width: '680px' }}>
+    <div
+      className="dialog-backdrop"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="new-proposal-dialog"
+        style={{ width: '680px' }}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
         <header>
           <div>
             <Box size={22} />
@@ -78,8 +124,8 @@ export function KitProductPickerModal({
               <p>Pesquise e selecione itens do catálogo cadastrado.</p>
             </div>
           </div>
-          <button type="button" className="dialog-close" onClick={onClose}>
-            ✕
+          <button type="button" className="dialog-close" aria-label="Fechar" onClick={onClose}>
+            <X size={18} />
           </button>
         </header>
 
@@ -109,58 +155,83 @@ export function KitProductPickerModal({
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
-                  checked={products.length > 0 && selectedIds.size === products.length}
-                  onChange={(e) =>
-                    setSelectedIds(e.target.checked ? new Set(products.map((p) => p.id)) : new Set())
-                  }
+                  checked={allVisibleSelected}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
                 />{' '}
-                Selecionar todos
+                Selecionar todos visíveis
               </label>
-              <span style={{ color: '#5d7480' }}>{selectedIds.size} selecionado(s)</span>
-            </div>
-            {products.map((product) => (
-              <div
-                key={product.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderBottom: '1px solid #f0f2f5',
-                  background: selectedIds.has(product.id) ? '#e8f8fc' : 'white',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(product.id)}
-                  onChange={() => toggleSelect(product.id)}
-                  style={{ width: '16px', height: '16px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: '12px' }}>
-                    {product.code} - {product.description}
-                  </div>
-                  <div style={{ fontSize: '10px', color: '#5d7480' }}>
-                    {product.category} • Un: {product.unit}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '11px' }}>{money.format(product.currentCost)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ color: selectedProducts.size > 0 ? '#09738a' : '#5d7480', fontWeight: selectedProducts.size > 0 ? 600 : 400 }}>
+                  {selectedProducts.size} selecionado(s) no total
+                </span>
+                {selectedProducts.size > 0 && (
                   <button
                     type="button"
-                    className="primary"
-                    onClick={() => {
-                      onAddProduct(product);
-                      onClose();
+                    onClick={() => setSelectedProducts(new Map())}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#d13438',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      padding: 0,
+                      textDecoration: 'underline',
                     }}
-                    style={{ height: '28px', padding: '0 10px', fontSize: '11px' }}
                   >
-                    <Plus size={13} /> Adicionar
+                    Limpar
                   </button>
-                </div>
+                )}
               </div>
-            ))}
+            </div>
+            {products.map((product) => {
+              const isSelected = selectedProducts.has(product.id);
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => toggleSelect(product)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderBottom: '1px solid #f0f2f5',
+                    background: isSelected ? '#e8f8fc' : 'white',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelect(product)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: '12px' }}>
+                      {product.code} - {product.description}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#5d7480' }}>
+                      {product.category} • Un: {product.unit}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: 600, fontSize: '11px' }}>{money.format(product.currentCost)}</span>
+                    <button
+                      type="button"
+                      className={isSelected ? 'secondary' : 'primary'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddSingle(product);
+                      }}
+                      style={{ height: '28px', padding: '0 10px', fontSize: '11px' }}
+                    >
+                      <Plus size={13} /> {isSelected ? 'Adicionar itens' : 'Adicionar'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
             {!loading && products.length === 0 && (
               <p style={{ padding: '24px', textAlign: 'center', color: '#5d7480', margin: 0, fontSize: '11px' }}>
                 Nenhum produto ativo encontrado com esse termo.
@@ -170,7 +241,9 @@ export function KitProductPickerModal({
         </div>
 
         <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: '#5d7480' }}>{selectedIds.size} selecionado(s)</span>
+          <span style={{ fontSize: '11px', color: '#5d7480' }}>
+            {selectedProducts.size} produto(s) marcado(s) para inclusão
+          </span>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="button" onClick={onClose}>
               Fechar
@@ -178,10 +251,10 @@ export function KitProductPickerModal({
             <button
               type="button"
               className="primary"
-              disabled={selectedIds.size === 0}
+              disabled={selectedProducts.size === 0}
               onClick={handleAddBatch}
             >
-              <Plus size={14} /> Adicionar em lote ({selectedIds.size})
+              <Plus size={14} /> Adicionar em lote ({selectedProducts.size})
             </button>
           </div>
         </footer>
