@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import type { ProposalDetail, ProposalLine } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
+import { getProposalFinancials } from '../shared/proposalFinancials';
 import {
   commercialLaborTotal,
-  commercialMaterialsTotal,
   date,
-  documentTotal,
   groupItemsByCategory,
   money,
   parseCommercialConditions,
@@ -33,11 +32,15 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
   customNotes,
 }) => {
   const conditions = useMemo(() => parseCommercialConditions(proposal.scope), [proposal.scope]);
+  const financials = useMemo(() => getProposalFinancials(proposal), [proposal]);
+  const total = financials.finalValue;
+  const taxPercentage = proposal.taxPercentage ?? 0;
+  const taxAmount = financials.taxAmount ?? 0;
+  const subtotalBeforeTax = Math.round((total - taxAmount + Number.EPSILON) * 100) / 100;
   const laborTotal = useMemo(() => (includeLabor ? commercialLaborTotal(proposal) : 0), [includeLabor, proposal]);
-  const total = useMemo(() => documentTotal(proposal), [proposal]);
   const materialsTotal = useMemo(
-    () => (laborTotal > 0 ? roundMoney(total - laborTotal) : total),
-    [total, laborTotal]
+    () => (laborTotal > 0 ? roundMoney(subtotalBeforeTax - laborTotal) : subtotalBeforeTax),
+    [subtotalBeforeTax, laborTotal]
   );
   const groupedItems = useMemo(() => groupItemsByCategory(proposal), [proposal]);
 
@@ -201,14 +204,27 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
       {/* 6. Resumo Financeiro */}
       <table className="sheet-summary-table">
         <tbody>
-          <tr>
-            <th>Valor dos materiais e equipamentos</th>
-            <td className="number">{money.format(materialsTotal)}</td>
-          </tr>
-          {laborTotal > 0 && (
+          {laborTotal > 0 ? (
+            <>
+              <tr>
+                <th>Valor dos materiais e equipamentos</th>
+                <td className="number">{money.format(materialsTotal)}</td>
+              </tr>
+              <tr>
+                <th>Valor dos serviços técnicos</th>
+                <td className="number">{money.format(laborTotal)}</td>
+              </tr>
+            </>
+          ) : (
             <tr>
-              <th>Valor dos serviços técnicos</th>
-              <td className="number">{money.format(laborTotal)}</td>
+              <th>Subtotal dos itens e serviços</th>
+              <td className="number">{money.format(subtotalBeforeTax)}</td>
+            </tr>
+          )}
+          {taxAmount > 0 && (
+            <tr>
+              <th>Impostos ({String(taxPercentage).replace('.', ',')}%)</th>
+              <td className="number">{money.format(taxAmount)}</td>
             </tr>
           )}
           <tr className="sheet-grand-total">

@@ -6,6 +6,7 @@ import type * as PGliteModule from '@electric-sql/pglite';
 import type * as NodeFsModule from '@electric-sql/pglite/nodefs';
 import { approvedProposalGuardsMigration } from '../migrations/008-approved-proposal-guards';
 import { proposalIntegrationMigration } from '../migrations/009-proposal-integration';
+import { proposalTaxMigration } from '../migrations/010-proposal-tax';
 import { initialMigration } from '../migrations/001-initial';
 import { clientsAndWorksMigration } from '../migrations/002-clients-works';
 import { catalogManagementMigration } from '../migrations/003-catalog-management';
@@ -87,6 +88,11 @@ export const restoreDatabaseFromBackup = async (userDataPath: string, dump: Uint
 export const createDatabase = async (userDataPath: string, packagedModulePath?: string) => {
   const databasePath = getDatabasePath(userDataPath);
   await mkdir(databasePath, { recursive: true });
+  try {
+    await rm(path.join(databasePath, 'postmaster.pid'), { force: true });
+  } catch {
+    // Ignore if not found
+  }
   const { PGlite, NodeFS } = await loadPGlite(packagedModulePath);
   const database = await PGlite.create({ fs: new NodeFS(databasePath) });
 
@@ -107,6 +113,7 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
     [7, kitsAndSettingsMigration],
     [8, approvedProposalGuardsMigration],
     [9, proposalIntegrationMigration],
+    [10, proposalTaxMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {

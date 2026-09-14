@@ -1,13 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Building2,
-  CheckCircle2,
-  Copy,
-  FileSpreadsheet,
-  Loader2,
-  MapPin,
-  X,
-} from 'lucide-react';
+import { Building2, CheckCircle2, Copy, FileSpreadsheet, Loader2, MapPin, X } from 'lucide-react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
 import { clientsApi, proposalApi } from './api';
 
@@ -29,17 +21,13 @@ interface CloneProposalDialogProps {
   onError: (message: string) => void;
 }
 
-export function CloneProposalDialog({
-  open,
-  sourceProposal,
-  onClose,
-  onCloned,
-  onError,
-}: CloneProposalDialogProps) {
+export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, onError }: CloneProposalDialogProps) {
   const [targetMode, setTargetMode] = useState<'same' | 'change'>('same');
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [clientId, setClientId] = useState('');
   const [workId, setWorkId] = useState('');
+  const [newWorkName, setNewWorkName] = useState('');
+  const [isCreatingWork, setIsCreatingWork] = useState(false);
   const [scope, setScope] = useState('');
   const [loadingClients, setLoadingClients] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -52,34 +40,33 @@ export function CloneProposalDialog({
     if (sourceProposal.scope !== undefined) {
       setScope(sourceProposal.scope || '');
     } else {
-      proposalApi
-        .byId(sourceProposal.id)
-        .then((res) => setScope(res.proposal.scope || ''))
-        .catch(() => setScope(''));
+      proposalApi.byId(sourceProposal.id).then((res) => setScope(res.proposal.scope || '')).catch(() => setScope(''));
     }
 
-    clientsApi
-      .list()
-      .then((res) => {
-        setClients(res.clients);
+    clientsApi.list().then((res) => {
+      setClients(res.clients);
+      if (res.clients.length > 0) {
         const firstWithWork = res.clients.find((c) => c.works.some((w) => w.active));
         if (firstWithWork) {
           setClientId(firstWithWork.id);
           const activeWork = firstWithWork.works.find((w) => w.active);
           setWorkId(activeWork?.id ?? '');
+          setIsCreatingWork(false);
+          setNewWorkName('');
+        } else {
+          setClientId(res.clients[0].id);
+          setWorkId('');
+          setIsCreatingWork(true);
+          setNewWorkName(res.clients[0].tradeName || res.clients[0].legalName || '');
         }
-      })
-      .catch((err: unknown) => {
-        onError(err instanceof Error ? err.message : 'Não foi possível listar clientes.');
-      })
-      .finally(() => setLoadingClients(false));
+      }
+    }).catch((err: unknown) => {
+      onError(err instanceof Error ? err.message : 'Não foi possível listar clientes.');
+    }).finally(() => setLoadingClients(false));
   }, [open, sourceProposal, onError]);
 
-  const selectedClient = useMemo(
-    () => clients.find((c) => c.id === clientId),
-    [clientId, clients]
-  );
-  const activeWorks = selectedClient?.works.filter((w) => w.active) ?? [];
+  const selectedClient = useMemo(() => clients.find((c) => c.id === clientId), [clientId, clients]);
+  const activeWorks = useMemo(() => selectedClient?.works.filter((w) => w.active) ?? [], [selectedClient]);
 
   useEffect(() => {
     if (!open) return;
@@ -96,17 +83,33 @@ export function CloneProposalDialog({
     e.preventDefault();
     if (submitting) return;
 
-    if (targetMode === 'change' && (!clientId || !workId)) {
-      onError('Selecione o cliente e a obra para o novo orçamento.');
-      return;
+    if (targetMode === 'change') {
+      if (!clientId) {
+        onError('Selecione o cliente para o novo orçamento.');
+        return;
+      }
+      if (activeWorks.length === 0 || isCreatingWork) {
+        if (newWorkName.trim().length < 2) {
+          onError('Informe um nome válido para a obra (mínimo 2 caracteres).');
+          return;
+        }
+      } else if (!workId) {
+        onError('Selecione a obra para o novo orçamento.');
+        return;
+      }
     }
 
     setSubmitting(true);
     try {
-      const payload =
-        targetMode === 'change'
-          ? { clientId, workId, scope: scope.trim() }
-          : { scope: scope.trim() };
+      let finalWorkId = workId;
+      if (targetMode === 'change' && (activeWorks.length === 0 || isCreatingWork)) {
+        const createdWork = await clientsApi.createWork(clientId, { name: newWorkName.trim(), address: null });
+        finalWorkId = createdWork.workId;
+      }
+
+      const payload = targetMode === 'change'
+        ? { clientId, workId: finalWorkId, scope: scope.trim() }
+        : { scope: scope.trim() };
 
       const result = await proposalApi.clone(sourceProposal.id, payload);
       onCloned(result.proposal);
@@ -132,9 +135,7 @@ export function CloneProposalDialog({
             <Copy size={22} />
             <span>
               <h2 id="clone-proposal-title">Duplicar / Clonar Proposta</h2>
-              <p>
-                Origem: <b>{sourceProposal.number}</b> (REV.{String(sourceProposal.revision).padStart(2, '0')}) — {sourceProposal.clientName}
-              </p>
+              <p>Origem: <b>{sourceProposal.number}</b> (REV.{String(sourceProposal.revision).padStart(2, '0')}) — {sourceProposal.clientName}</p>
             </span>
           </div>
           <button type="button" className="dialog-close" aria-label="Fechar" onClick={onClose} disabled={submitting}>
@@ -145,14 +146,7 @@ export function CloneProposalDialog({
         <form onSubmit={(e) => void handleSubmit(e)}>
           <div className="clone-mode-selector wide">
             <label className="radio-option">
-              <input
-                type="radio"
-                name="targetMode"
-                value="same"
-                checked={targetMode === 'same'}
-                onChange={() => setTargetMode('same')}
-                disabled={submitting}
-              />
+              <input type="radio" name="targetMode" value="same" checked={targetMode === 'same'} onChange={() => setTargetMode('same')} disabled={submitting} />
               <span>
                 <strong>Manter mesmo cliente e obra</strong>
                 <small>{sourceProposal.clientName} • {sourceProposal.workName}</small>
@@ -160,14 +154,7 @@ export function CloneProposalDialog({
             </label>
 
             <label className="radio-option">
-              <input
-                type="radio"
-                name="targetMode"
-                value="change"
-                checked={targetMode === 'change'}
-                onChange={() => setTargetMode('change')}
-                disabled={submitting}
-              />
+              <input type="radio" name="targetMode" value="change" checked={targetMode === 'change'} onChange={() => setTargetMode('change')} disabled={submitting} />
               <span>
                 <strong>Selecionar outro cliente / obra</strong>
                 <small>Replicar itens e composição para um novo destinatário</small>
@@ -187,36 +174,81 @@ export function CloneProposalDialog({
                     const nextId = e.target.value;
                     const nextClient = clients.find((c) => c.id === nextId);
                     setClientId(nextId);
-                    setWorkId(nextClient?.works.find((w) => w.active)?.id ?? '');
+                    const active = nextClient?.works.filter((w) => w.active) ?? [];
+                    if (active.length > 0) {
+                      setWorkId(active[0].id);
+                      setIsCreatingWork(false);
+                      setNewWorkName('');
+                    } else {
+                      setWorkId('');
+                      setIsCreatingWork(true);
+                      setNewWorkName(nextClient ? (nextClient.tradeName || nextClient.legalName) : '');
+                    }
                   }}
                 >
                   <option value="">Selecione um cliente...</option>
-                  {clients
-                    .filter((c) => c.works.some((w) => w.active))
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.tradeName || c.legalName}
-                      </option>
-                    ))}
-                </select>
-              </label>
-
-              <label htmlFor="clone-work">
-                <span><MapPin size={15} /> Nova Obra <b>*</b></span>
-                <select
-                  id="clone-work"
-                  value={workId}
-                  disabled={submitting || !clientId}
-                  onChange={(e) => setWorkId(e.target.value)}
-                >
-                  <option value="">Selecione uma obra...</option>
-                  {activeWorks.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.name}
-                    </option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>{c.tradeName || c.legalName}</option>
                   ))}
                 </select>
               </label>
+
+              {activeWorks.length > 0 && !isCreatingWork ? (
+                <label htmlFor="clone-work">
+                  <span><MapPin size={15} /> Nova Obra <b>*</b></span>
+                  <select
+                    id="clone-work"
+                    value={workId}
+                    disabled={submitting || !clientId}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setIsCreatingWork(true);
+                        setWorkId('');
+                        if (!newWorkName) {
+                          setNewWorkName(selectedClient?.tradeName || selectedClient?.legalName || '');
+                        }
+                      } else {
+                        setWorkId(e.target.value);
+                      }
+                    }}
+                  >
+                    <option value="">Selecione uma obra...</option>
+                    {activeWorks.map((w) => (
+                      <option key={w.id} value={w.id}>{w.name}</option>
+                    ))}
+                    <option value="__new__">+ Cadastrar nova obra...</option>
+                  </select>
+                </label>
+              ) : (
+                <label htmlFor="clone-work-name">
+                  <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={15} /> {activeWorks.length > 0 ? 'Nova Obra' : 'Obra'} <b>*</b>
+                    </span>
+                    {activeWorks.length > 0 && (
+                      <button
+                        type="button"
+                        style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', fontSize: '11px', padding: 0 }}
+                        onClick={() => {
+                          setIsCreatingWork(false);
+                          setWorkId(activeWorks[0]?.id ?? '');
+                        }}
+                      >
+                        Selecionar existente
+                      </button>
+                    )}
+                  </span>
+                  <input
+                    id="clone-work-name"
+                    type="text"
+                    maxLength={180}
+                    placeholder={activeWorks.length > 0 ? 'Nome da nova obra' : 'Nome da obra (ex: Sede, Principal)'}
+                    value={newWorkName}
+                    disabled={submitting || !clientId}
+                    onChange={(e) => setNewWorkName(e.target.value)}
+                  />
+                </label>
+              )}
             </>
           )}
 
@@ -261,9 +293,7 @@ export function CloneProposalDialog({
           </div>
 
           <footer>
-            <button type="button" disabled={submitting} onClick={onClose}>
-              Cancelar
-            </button>
+            <button type="button" disabled={submitting} onClick={onClose}>Cancelar</button>
             <button type="submit" className="primary" disabled={submitting || scope.trim().length < 3}>
               {submitting ? <Loader2 className="spinning" size={15} /> : <Copy size={15} />}
               {submitting ? 'Duplicando…' : 'Criar Novo Orçamento'}

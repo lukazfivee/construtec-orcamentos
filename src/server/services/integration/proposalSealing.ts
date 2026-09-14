@@ -41,6 +41,7 @@ export const buildApprovedProposalEnvelope = async (
     scope: string;
     status: string;
     bdi_multiplier: string;
+    tax_percentage: string;
     valid_until: string | null;
     updated_at: string;
     client_legal_name: string;
@@ -50,9 +51,10 @@ export const buildApprovedProposalEnvelope = async (
     creator_name: string;
   }>(`
     SELECT p.id, p.series_id, p.proposal_number, p.revision, p.client_id, p.work_id,
-      p.work_name, p.scope, p.status, p.bdi_multiplier::text, p.valid_until::text,
-      p.updated_at::text, c.legal_name AS client_legal_name, c.trade_name AS client_trade_name,
-      c.document AS client_document, w.address AS work_address, u.name AS creator_name
+      p.work_name, p.scope, p.status, p.bdi_multiplier::text, p.tax_percentage::text,
+      p.valid_until::text, p.updated_at::text, c.legal_name AS client_legal_name,
+      c.trade_name AS client_trade_name, c.document AS client_document,
+      w.address AS work_address, u.name AS creator_name
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
@@ -65,6 +67,7 @@ export const buildApprovedProposalEnvelope = async (
 
   const identity = await getIntegrationIdentity(database);
   const bdiMultiplier = Number(p.bdi_multiplier);
+  const taxPercentage = Number(p.tax_percentage || 0);
 
   // Materials
   const itemsResult = await database.query<{
@@ -161,8 +164,10 @@ export const buildApprovedProposalEnvelope = async (
   const materialsCost = roundMoney(materials.reduce((sum, m) => sum + Number(m.totalCost), 0));
   const laborCost = roundMoney(labor.reduce((sum, l) => sum + Number(l.totalCost), 0));
   const baseCost = roundMoney(materialsCost + laborCost);
-  const contractValue = roundMoney(baseCost * bdiMultiplier);
-  const additions = roundMoney(contractValue - baseCost);
+  const contractValueBeforeTax = roundMoney(baseCost * bdiMultiplier);
+  const taxAmount = roundMoney(contractValueBeforeTax * (taxPercentage / 100));
+  const contractValue = roundMoney(contractValueBeforeTax + taxAmount);
+  const additions = roundMoney(contractValueBeforeTax - baseCost);
   const totalAllocated = roundMoney(
     materials.reduce((sum, m) => sum + Number(m.allocatedSale), 0) +
     labor.reduce((sum, l) => sum + Number(l.allocatedSale), 0)
@@ -229,6 +234,7 @@ export const buildApprovedProposalEnvelope = async (
       calculationVersion: 'construtec-decimal-v1',
       method: 'bdi_multiplier' as const,
       bdiMultiplier: bdiMultiplier.toFixed(4),
+      taxPercentage: taxPercentage.toFixed(2),
     },
     materials,
     labor,
@@ -236,6 +242,8 @@ export const buildApprovedProposalEnvelope = async (
       materialsCost: materialsCost.toFixed(2),
       laborCost: laborCost.toFixed(2),
       baseCost: baseCost.toFixed(2),
+      contractValueBeforeTax: contractValueBeforeTax.toFixed(2),
+      taxAmount: taxAmount.toFixed(2),
       contractValue: contractValue.toFixed(2),
       additions: additions.toFixed(2),
       salesRoundingAdjustment: salesRoundingAdjustment.toFixed(2),

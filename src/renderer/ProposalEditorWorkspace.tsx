@@ -14,13 +14,9 @@ import { ProposalMetaBar } from './ProposalMetaBar';
 import { ProposalSummaryPanel } from './ProposalSummaryPanel';
 
 const sectionTabs = [
-  { label: 'Itens', enabled: true },
-  { label: 'Mão de obra', enabled: true },
-  { label: 'Kits', enabled: true },
-  { label: 'Condições', enabled: true },
-  { label: 'Histórico', enabled: true },
+  { label: 'Itens', enabled: true }, { label: 'Mão de obra', enabled: true },
+  { label: 'Kits', enabled: true }, { label: 'Condições', enabled: true }, { label: 'Histórico', enabled: true },
 ] as const;
-
 type ActiveSection = typeof sectionTabs[number]['label'];
 
 type Props = {
@@ -40,6 +36,7 @@ type Props = {
   onCreateRevision: () => void;
   onPreviewProposal: () => void;
   onExportProposal: () => void;
+  onNavigateToCentroCustos?: (costCenterId?: number) => void;
   showNotice: (message: string) => void;
   setError: (error: string) => void;
 };
@@ -61,6 +58,7 @@ export function ProposalEditorWorkspace({
   onCreateRevision,
   onPreviewProposal,
   onExportProposal,
+  onNavigateToCentroCustos,
   showNotice,
   setError,
 }: Props) {
@@ -68,6 +66,7 @@ export function ProposalEditorWorkspace({
   const [mutationPending, setMutationPending] = useState(false);
   const [laborTotal, setLaborTotal] = useState(0);
   const [bdiDraft, setBdiDraft] = useState<string | null>(null);
+  const [taxDraft, setTaxDraft] = useState<string | null>(null);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -122,6 +121,32 @@ export function ProposalEditorWorkspace({
     }
   };
 
+  const updateTax = async () => {
+    if (mutationPending) return;
+    const raw = (taxDraft ?? String(proposal.taxPercentage ?? 0)).trim().replace(/%/g, '').replace(',', '.');
+    const nextTax = Number(raw);
+    if (!Number.isFinite(nextTax) || nextTax < 0 || nextTax > 100) {
+      setTaxDraft(null);
+      showNotice('Informe uma alíquota de impostos entre 0 e 100%.');
+      return;
+    }
+    if ((proposal.taxPercentage ?? 0) === nextTax) {
+      setTaxDraft(null);
+      return;
+    }
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await proposalApi.updateTax(proposal.id, nextTax);
+      onProposalUpdate(result.proposal);
+      setTaxDraft(null);
+      showNotice('Alíquota de impostos atualizada.');
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível alterar o imposto.');
+    } finally {
+      setMutationPending(false);
+    }
+  };
 
   const deleteCurrentProposal = async () => {
     if (mutationPending) return;
@@ -131,11 +156,8 @@ export function ProposalEditorWorkspace({
       const result = await proposalApi.delete(proposal.id, 'all');
       showNotice(`Orçamento ${proposal.number} excluído com sucesso.`);
       await reloadProposalTabs();
-      if (result.nextProposalId) {
-        await onOpenProposal(result.nextProposalId);
-      } else {
-        onViewList();
-      }
+      if (result.nextProposalId) await onOpenProposal(result.nextProposalId);
+      else onViewList();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Não foi possível excluir a proposta.');
     } finally {
@@ -280,12 +302,18 @@ export function ProposalEditorWorkspace({
         bdiDraft={bdiDraft}
         setBdiDraft={setBdiDraft}
         onUpdateBdi={() => void updateBdi()}
+        taxDraft={taxDraft}
+        setTaxDraft={setTaxDraft}
+        onUpdateTax={() => void updateTax()}
         onCreateRevision={onCreateRevision}
         onCloneProposal={() => setCloneDialogOpen(true)}
         onPreviewProposal={() => setExportDialogOpen(true)}
         onExportProposal={() => setExportDialogOpen(true)}
         onShareProposal={() => setShareDialogOpen(true)}
         onDeleteProposal={() => void deleteCurrentProposal()}
+        onProposalUpdate={onProposalUpdate}
+        onNavigateToCentroCustos={onNavigateToCentroCustos}
+        showNotice={showNotice}
       />
 
       <CloneProposalDialog

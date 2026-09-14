@@ -15,22 +15,10 @@ export * from './proposalItems';
 export * from './proposalLifecycle';
 
 type ProposalRow = {
-  id: string;
-  series_id?: string;
-  client_id: string;
-  work_id: string | null;
-  proposal_number: string;
-  revision: number;
-  client_name: string;
-  work_name: string;
-  scope: string;
-  status: ProposalDetail['status'];
-  bdi_multiplier: string;
-  valid_until: string | null;
-  responsible_name: string;
-  updated_at: string;
-  is_latest: boolean;
-  has_approved_revision: boolean;
+  id: string; series_id?: string; client_id: string; work_id: string | null; proposal_number: string;
+  revision: number; client_name: string; work_name: string; scope: string; status: ProposalDetail['status'];
+  bdi_multiplier: string; tax_percentage?: string | null; valid_until: string | null; responsible_name: string;
+  updated_at: string; is_latest: boolean; has_approved_revision: boolean;
 };
 
 export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
@@ -38,6 +26,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     SELECT p.id, p.series_id::text AS series_id, p.client_id, p.work_id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.status, p.bdi_multiplier::text,
+      COALESCE(p.tax_percentage, 0)::text AS tax_percentage,
       p.valid_until::text, u.name AS responsible_name, p.updated_at::text,
       NOT EXISTS (
         SELECT 1 FROM proposals newer
@@ -83,11 +72,14 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   });
 
   const bdiMultiplier = Number(proposal.bdi_multiplier);
+  const taxPercentage = Number(proposal.tax_percentage ?? 0);
   const laborItems = await listProposalLaborItems(database, proposal.id);
   const standardMonthlyHours = await getProposalStandardMonthlyHours(database, proposal.id);
   const materials = sumDecimal(items.map(item => item.totalCost));
   const labor = sumDecimal(laborItems.map(item => item.totalCost));
-  const { baseCost, finalValue, additions } = calculateProposalTotals(materials, labor, bdiMultiplier);
+  const totals = calculateProposalTotals(materials, labor, bdiMultiplier, taxPercentage);
+  const { baseCost, finalValue, additions } = totals;
+  const taxAmount = totals.taxAmount ?? 0;
   const sale = sumDecimal(items.map(item => item.totalSale));
   const grossResult = additions;
 
@@ -103,6 +95,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     scope: proposal.scope,
     status: proposal.status,
     bdiMultiplier,
+    taxPercentage,
     validUntil: proposal.valid_until ? proposal.valid_until.slice(0, 10) : null,
     responsibleName: proposal.responsible_name,
     updatedAt: proposal.updated_at,
@@ -120,6 +113,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       labor,
       baseCost,
       additions,
+      taxAmount,
       finalValue,
     },
   };
@@ -153,6 +147,7 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
     updated_at: string;
     is_latest: boolean;
     has_approved_revision: boolean;
+    sync_status: 'pending' | 'delivered' | 'failed' | null;
   }>(`
     SELECT p.id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
@@ -167,7 +162,11 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
         SELECT 1 FROM proposals newer
         WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
       ) AS is_latest,
-      EXISTS (SELECT 1 FROM proposals approved WHERE approved.proposal_number = p.proposal_number AND approved.status = 'approved') AS has_approved_revision
+      EXISTS (SELECT 1 FROM proposals approved WHERE approved.proposal_number = p.proposal_number AND approved.status = 'approved') AS has_approved_revision,
+      (SELECT io.status FROM integration_outbox io
+        JOIN proposal_approval_snapshots s ON s.id = io.snapshot_id
+        WHERE s.proposal_id = p.id
+        ORDER BY io.created_at DESC LIMIT 1) AS sync_status
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
@@ -191,6 +190,7 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
     updatedAt: row.updated_at,
     isLatest: row.is_latest,
     hasApprovedRevision: row.has_approved_revision,
+    syncStatus: row.sync_status ?? null,
   }));
 };
 
@@ -282,6 +282,23 @@ export const updateProposalBdi = async (
       VALUES ($1, 'proposal', $2, 'bdi_updated', $3::jsonb, $4::jsonb)
     `, [randomUUID(), proposalId, JSON.stringify({ bdiMultiplier: Number(proposal.bdi_multiplier) }), JSON.stringify({ bdiMultiplier })]);
     logEvent('info', 'proposal.bdi_updated', { proposalId });
+  });
+};
+
+export const updateProposalTax = async (
+  database: LocalDatabase,
+  proposalId: string,
+  taxPercentage: number,
+) => {
+  await database.transaction(async (transaction) => {
+    const proposal = await getEditableProposal(transaction, proposalId);
+    await transaction.query('UPDATE proposals SET tax_percentage = $2, updated_at = now() WHERE id = $1', [proposalId, taxPercentage]);
+    await transaction.query(
+      `INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
+       VALUES ($1, 'proposal', $2, 'tax_updated', $3::jsonb, $4::jsonb)`,
+      [randomUUID(), proposalId, JSON.stringify({ taxPercentage: Number(proposal.tax_percentage ?? 0) }), JSON.stringify({ taxPercentage })]
+    );
+    logEvent('info', 'proposal.tax_updated', { proposalId, taxPercentage });
   });
 };
 

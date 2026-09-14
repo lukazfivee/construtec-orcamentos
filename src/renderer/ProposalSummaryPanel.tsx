@@ -46,12 +46,18 @@ type Props = {
   bdiDraft: string | null;
   setBdiDraft: (draft: string | null) => void;
   onUpdateBdi: () => void;
+  taxDraft?: string | null;
+  setTaxDraft?: (draft: string | null) => void;
+  onUpdateTax?: () => void;
   onCreateRevision: () => void;
   onCloneProposal: () => void;
   onPreviewProposal: () => void;
   onExportProposal: () => void;
   onShareProposal?: () => void;
   onDeleteProposal: () => void;
+  onProposalUpdate?: (proposal: ProposalDetail) => void;
+  onNavigateToCentroCustos?: (costCenterId?: number) => void;
+  showNotice?: (message: string) => void;
 };
 
 export function ProposalSummaryPanel({
@@ -63,12 +69,18 @@ export function ProposalSummaryPanel({
   bdiDraft,
   setBdiDraft,
   onUpdateBdi,
+  taxDraft,
+  setTaxDraft,
+  onUpdateTax,
   onCreateRevision,
   onCloneProposal,
   onPreviewProposal,
   onExportProposal,
   onShareProposal,
   onDeleteProposal,
+  onProposalUpdate,
+  onNavigateToCentroCustos,
+  showNotice,
 }: Props) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
@@ -82,7 +94,16 @@ export function ProposalSummaryPanel({
   }, [deleteModalOpen, mutationPending]);
 
   const materialsTotal = proposal.totals.cost ?? 0;
-  const { baseCost, finalValue, additions } = calculateProposalTotals(materialsTotal, laborTotal, proposal.bdiMultiplier ?? 1);
+  const parsedDraftTax = taxDraft != null ? Number(taxDraft.trim().replace(/%/g, '').replace(',', '.')) : NaN;
+  const taxPercentage = Number.isFinite(parsedDraftTax) && parsedDraftTax >= 0 && parsedDraftTax <= 100
+    ? parsedDraftTax
+    : (proposal.taxPercentage ?? 0);
+  const parsedDraftBdi = bdiDraft != null ? Number(bdiDraft.trim().replace(/[xX]/g, '').replace(',', '.')) : NaN;
+  const bdiMultiplier = Number.isFinite(parsedDraftBdi) && parsedDraftBdi > 0 ? parsedDraftBdi : (proposal.bdiMultiplier ?? 1);
+  const { baseCost, finalValue } = calculateProposalTotals(materialsTotal, laborTotal, bdiMultiplier, taxPercentage);
+  const subtotalWithBdi = Math.round((baseCost * bdiMultiplier + Number.EPSILON) * 100) / 100;
+  const bdiAdditions = Math.round((subtotalWithBdi - baseCost + Number.EPSILON) * 100) / 100;
+  const taxAmount = taxPercentage > 0 ? Math.round((subtotalWithBdi * (taxPercentage / 100) + Number.EPSILON) * 100) / 100 : 0;
 
   const formattedUpdatedAt = proposal.updatedAt
     ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(proposal.updatedAt))
@@ -98,7 +119,10 @@ export function ProposalSummaryPanel({
         <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
         <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
         <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
-        <Amount label="BDI / acréscimos" value={`R$ ${money.format(additions)}`} />
+        <Amount label="BDI / acréscimos" value={`R$ ${money.format(bdiAdditions)}`} />
+        {taxAmount > 0 && (
+          <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
+        )}
         <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
 
         <div className="panel-section">
@@ -126,6 +150,31 @@ export function ProposalSummaryPanel({
                 }}
               />
               <span aria-hidden="true">×</span>
+            </span>
+          </label>
+          <label>
+            Impostos{' '}
+            <span className="editable-parameter">
+              <input
+                type="text"
+                inputMode="decimal"
+                aria-label="Alíquota de Impostos"
+                value={taxDraft ?? String(proposal.taxPercentage ?? 0).replace('.', ',')}
+                disabled={!isEditable || mutationPending}
+                onFocus={() => {
+                  if (taxDraft === null && setTaxDraft) setTaxDraft(String(proposal.taxPercentage ?? 0).replace('.', ','));
+                }}
+                onChange={(event) => setTaxDraft?.(event.target.value)}
+                onBlur={onUpdateTax}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.currentTarget.blur();
+                  if (event.key === 'Escape') {
+                    setTaxDraft?.(null);
+                    event.currentTarget.blur();
+                  }
+                }}
+              />
+              <span aria-hidden="true">%</span>
             </span>
           </label>
           <label>
@@ -173,7 +222,13 @@ export function ProposalSummaryPanel({
               <Share2 size={18} /> Compartilhar proposta
             </button>
           )}
-          <ProposalSyncDirectAction proposal={proposal} />
+          <ProposalSyncDirectAction
+            proposal={proposal}
+            onProposalUpdate={onProposalUpdate}
+            onNavigateToCentroCustos={onNavigateToCentroCustos}
+            showNotice={showNotice}
+            disabled={mutationPending}
+          />
           <button
             type="button"
             className="danger-action-btn"

@@ -3,7 +3,10 @@ import {
   Building2,
   Calendar,
   CalendarClock,
+  Check,
   Clock,
+  Cloud,
+  CloudOff,
   Copy,
   ExternalLink,
   FilePlus2,
@@ -11,6 +14,7 @@ import {
   Layers,
   Share2,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { getProposalValidityStatus } from './proposalValidityHelpers';
@@ -161,6 +165,17 @@ export function ProposalsListTable({
                       <option value="approved">Aprovada</option>
                       <option value="rejected">Recusada</option>
                     </select>
+                    {item.syncStatus && (
+                      <span className={`sync-badge sync-${item.syncStatus}`} title={
+                        item.syncStatus === 'delivered' ? 'Sincronizado com Centro de Custos' :
+                        item.syncStatus === 'pending' ? 'Aguardando sincronização' :
+                        'Falha na sincronização'
+                      }>
+                        {item.syncStatus === 'delivered' && <><Check size={10} /> Sincronizado</>}
+                        {item.syncStatus === 'pending' && <><RefreshCw size={10} /> Pendente</>}
+                        {item.syncStatus === 'failed' && <><CloudOff size={10} /> Falha</>}
+                      </span>
+                    )}
                   </td>
                   <td className="proposal-validity-cell" onClick={() => onExtendValidity?.(item)}>
                     <span

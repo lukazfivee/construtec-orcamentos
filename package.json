@@ -8,6 +8,7 @@
   "scripts": {
     "start": "electron-forge start",
     "dev": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
+    "dev:web": "node scripts/start-web.mjs",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:windows": "electron-forge make --platform=win32 --arch=x64",

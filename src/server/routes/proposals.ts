@@ -7,10 +7,10 @@ import {
 } from '../services/auditAttribution';
 import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
-  addProductToProposal, cloneProposal, createProposal, createProposalRevision, deleteProposal,
+  addProductToProposal, cloneProposal, createProposal, createRevision, deleteProposal,
   duplicateProposalItem, getCurrentProposal, getProposalById, listProposalHistory, listCurrentProposals,
   moveProposalItem, removeProposalItems, updateProposalBdi, updateProposalContext,
-  updateProposalDetails, updateProposalItem, updateProposalStatus,
+  updateProposalDetails, updateProposalItem, updateProposalStatus, updateProposalTax,
 } from '../services/proposals';
 import {
   createProposalLaborItem, getProposalStandardMonthlyHours, listProposalLaborItems,
@@ -48,6 +48,7 @@ const updateItemSchema = z.object({
 }).refine((input) => Object.keys(input).length > 0, { message: 'Informe ao menos um campo para atualizar.' });
 const moveItemSchema = z.object({ direction: z.enum(['up', 'down']) });
 const updateBdiSchema = z.object({ bdiMultiplier: z.number().positive().max(100) });
+const updateTaxSchema = z.object({ taxPercentage: z.number().min(0).max(100) });
 const updateContextSchema = z.object({ clientId: z.string().uuid(), workId: z.string().uuid() });
 const updateDetailsSchema = z.object({
   scope: z.string().trim().min(3).max(1200).optional(),
@@ -209,7 +210,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
   router.post('/:proposalId/revisions', async (request, response, next) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
-      const newProposalId = await createProposalRevision(database, proposalId, actor(response).id);
+      const newProposalId = await createRevision(database, proposalId, actor(response).id);
       response.status(201).json({ proposal: await getProposalById(database, newProposalId) });
     } catch (error) { next(error); }
   });
@@ -290,6 +291,16 @@ export const createProposalsRouter = (database: LocalDatabase) => {
       const input = updateBdiSchema.parse(request.body);
       await updateProposalBdi(database, proposalId, input.bdiMultiplier);
       await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'bdi_updated');
+      response.json({ proposal: await getProposalById(database, proposalId) });
+    } catch (error) { next(error); }
+  });
+
+  router.patch('/:proposalId/tax', async (request, response, next) => {
+    try {
+      const proposalId = idSchema.parse(request.params.proposalId);
+      const input = updateTaxSchema.parse(request.body);
+      await updateProposalTax(database, proposalId, input.taxPercentage);
+      await attributeAuditEvent(database, actor(response).id, 'proposal', proposalId, 'tax_updated');
       response.json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });

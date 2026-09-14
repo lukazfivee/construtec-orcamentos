@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Eye, FileCheck2, FileText, Layers, Loader2, Printer, Sparkles, X } from 'lucide-react';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import type { ProposalDetail, ProposalExportOptions } from '../shared/contracts';
+import { buildProposalDocxBlob, buildProposalHtml, proposalFileBaseName } from '../documents/proposalDocument';
 import { ProposalPreviewSheet } from './ProposalPreviewSheet';
 
 interface Props {
@@ -13,6 +14,40 @@ interface Props {
 }
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const printDocumentHtml = (html: string) => {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.visibility = 'hidden';
+  document.body.appendChild(iframe);
+  const doc = iframe.contentWindow?.document;
+  if (doc) {
+    doc.open();
+    doc.write(html);
+    doc.close();
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => iframe.remove(), 2500);
+    }, 350);
+  }
+};
+
+const downloadDocxBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+};
 
 export function ProposalExportDialog({
   open,
@@ -59,7 +94,13 @@ export function ProposalExportDialog({
       if (window.construtec?.previewProposal) {
         await window.construtec.previewProposal(proposal, exportOptions);
       } else {
-        window.print();
+        const html = buildProposalHtml(proposal, undefined, exportOptions);
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.open();
+          win.document.write(html);
+          win.document.close();
+        }
       }
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Erro ao abrir pré-visualização.');
@@ -79,7 +120,23 @@ export function ProposalExportDialog({
           onClose();
         }
       } else {
-        window.print();
+        const baseName = proposalFileBaseName(proposal);
+        const files: string[] = [];
+
+        if (format === 'docx' || format === 'both') {
+          const blob = await buildProposalDocxBlob(proposal, undefined, exportOptions);
+          const docxName = `${baseName}.docx`;
+          downloadDocxBlob(blob, docxName);
+          files.push(docxName);
+        }
+
+        if (format === 'pdf' || format === 'both') {
+          const html = buildProposalHtml(proposal, undefined, exportOptions);
+          printDocumentHtml(html);
+          files.push(`${baseName}.pdf`);
+        }
+
+        onExportSuccess(files);
         onClose();
       }
     } catch (err) {

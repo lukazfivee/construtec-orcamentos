@@ -10,34 +10,32 @@ import { sealProposalInTransaction } from './integration/proposalSealing';
 
 type GetProposalByIdFn = (database: LocalDatabase, proposalId: string) => Promise<ProposalDetail | null>;
 
-export const createProposalRevision = async (database: LocalDatabase, sourceProposalId: string, userId?: string) => {
+type LifecycleItemRow = {
+  catalog_product_id: string | null; position: number; snapshot_code: string; snapshot_manufacturer: string | null;
+  snapshot_model: string | null; snapshot_description: string; snapshot_category: string; snapshot_unit: string;
+  snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
+};
+
+export const createRevision = async (
+  database: LocalDatabase,
+  sourceProposalId: string,
+  userId: string,
+): Promise<string> => {
   return database.transaction(async (transaction) => {
     const source = await getLatestProposal(transaction, sourceProposalId);
     const newProposalId = randomUUID();
     const created = await transaction.query<{ revision: number }>(`
       INSERT INTO proposals
         (id, series_id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-         snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by)
+         snapshot_work_name, scope, status, bdi_multiplier, tax_percentage, valid_until, created_by)
       SELECT $2, series_id, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
-        snapshot_work_name, scope, 'draft', bdi_multiplier, valid_until, created_by
+        snapshot_work_name, scope, 'draft', bdi_multiplier, COALESCE(tax_percentage, 0), valid_until, created_by
       FROM proposals
       WHERE id = $1
       RETURNING revision
     `, [sourceProposalId, newProposalId]);
 
-    const items = await transaction.query<{
-      catalog_product_id: string | null;
-      position: number;
-      snapshot_code: string;
-      snapshot_manufacturer: string | null;
-      snapshot_model: string | null;
-      snapshot_description: string;
-      snapshot_category: string;
-      snapshot_unit: string;
-      snapshot_unit_cost: string;
-      quantity: string;
-      sale_unit_price: string;
-    }>(`
+    const items = await transaction.query<LifecycleItemRow>(`
       SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
         snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
       FROM proposal_items
@@ -79,6 +77,8 @@ export const createProposalRevision = async (database: LocalDatabase, sourceProp
     return newProposalId;
   });
 };
+
+export { createRevision as createProposalRevision };
 
 export const updateProposalContext = async (
   database: LocalDatabase,
@@ -244,10 +244,11 @@ export const cloneProposal = async (
       snapshot_work_name: string;
       scope: string;
       bdi_multiplier: string;
+      tax_percentage: string;
       proposal_number: string;
     }>(`
       SELECT p.client_id, p.work_id, p.work_name, p.snapshot_client_name,
-        p.snapshot_work_name, p.scope, p.bdi_multiplier::text, p.proposal_number
+        p.snapshot_work_name, p.scope, p.bdi_multiplier::text, COALESCE(p.tax_percentage, 0)::text AS tax_percentage, p.proposal_number
       FROM proposals p
       WHERE p.id = $1 FOR UPDATE
     `, [sourceProposalId]);
@@ -280,8 +281,8 @@ export const cloneProposal = async (
     await transaction.query(`
       INSERT INTO proposals
         (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-         snapshot_work_name, scope, status, bdi_multiplier, created_by)
-      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9)
+         snapshot_work_name, scope, status, bdi_multiplier, tax_percentage, created_by)
+      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9, $10)
     `, [
       newProposalId,
       newProposalNumber,
@@ -291,22 +292,11 @@ export const cloneProposal = async (
       targetContext.client_name,
       input?.scope?.trim() || source.scope,
       Number(source.bdi_multiplier),
+      Number(source.tax_percentage),
       userId,
     ]);
 
-    const items = await transaction.query<{
-      catalog_product_id: string | null;
-      position: number;
-      snapshot_code: string;
-      snapshot_manufacturer: string | null;
-      snapshot_model: string | null;
-      snapshot_description: string;
-      snapshot_category: string;
-      snapshot_unit: string;
-      snapshot_unit_cost: string;
-      quantity: string;
-      sale_unit_price: string;
-    }>(`
+    const items = await transaction.query<LifecycleItemRow>(`
       SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
         snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
       FROM proposal_items

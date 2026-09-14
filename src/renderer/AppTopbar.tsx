@@ -21,6 +21,7 @@ interface AppTopbarProps {
   proposal: ProposalDetail | null;
   onOpenCatalog: () => void;
   onLogout?: () => void;
+  onSelectApp?: (app: 'orcamentos' | 'centro-custos' | 'hub') => void;
   showNotice: (message: string) => void;
 }
 
@@ -38,6 +39,7 @@ export function AppTopbar({
   proposal,
   onOpenCatalog,
   onLogout,
+  onSelectApp,
   showNotice,
 }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
@@ -107,7 +109,11 @@ export function AppTopbar({
               <ChevronDown size={11} className="suite-caret" />
             </button>
             {suiteOpen && (
-              <SuiteSwitcherPopover onClose={() => setSuiteOpen(false)} />
+              <SuiteSwitcherPopover
+                activeApp={activeNav === 'Centro de Custos' ? 'centro-custos' : 'orcamentos'}
+                onSelectApp={onSelectApp}
+                onClose={() => setSuiteOpen(false)}
+              />
             )}
           </div>
 

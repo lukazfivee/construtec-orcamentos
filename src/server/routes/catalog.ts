@@ -72,6 +72,21 @@ export const createCatalogRouter = (database: LocalDatabase) => {
     } catch (error) { next(error); }
   });
 
+  router.delete('/:productId', async (request, response, next) => {
+    try {
+      const productId = idSchema.parse(request.params.productId);
+      const check = await database.query<{ id: string }>('SELECT id FROM catalog_products WHERE id = $1', [productId]);
+      if (!check.rows[0]) { response.status(404).json({ error: 'Produto não encontrado no catálogo.' }); return; }
+      const usedInProposal = await database.query<{ id: string }>(
+        'SELECT id FROM proposal_items WHERE snapshot_code = (SELECT code FROM catalog_products WHERE id = $1) LIMIT 1', [productId]
+      );
+      if (usedInProposal.rows[0]) { response.status(409).json({ error: 'Produto vinculado a proposta(s). Não é possível excluir.' }); return; }
+      await database.query('DELETE FROM catalog_products WHERE id = $1', [productId]);
+      await attributeAuditEvent(database, actor(response).id, 'product', productId, 'deleted');
+      response.json({ products: await listCatalogProducts(database) });
+    } catch (error) { next(error); }
+  });
+
   router.post('/import/preview', async (request, response, next) => {
     try {
       const input = importSchema.parse(request.body);

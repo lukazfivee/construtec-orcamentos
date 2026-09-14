@@ -23,6 +23,11 @@
       FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
     -->
     <div id="root"></div>
+    <script>
+      if (location.pathname.startsWith('/orcamentos')) {
+        window.__CONSTRUTEC_API_URL__ = `${location.origin}/orcamentos-api`;
+      }
+    </script>
     <script type="module" src="/src/renderer.tsx"></script>
   </body>
 </html>

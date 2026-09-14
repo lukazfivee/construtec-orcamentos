@@ -12,9 +12,11 @@ export const getLatestProposal = async (database: Queryable, proposalId: string)
     bdi_multiplier: string;
     proposal_number: string;
     revision: number;
+    tax_percentage?: string | null;
     superseded: boolean;
   }>(`
     SELECT p.status, p.bdi_multiplier::text, p.proposal_number, p.revision,
+      COALESCE(p.tax_percentage, 0)::text AS tax_percentage,
       EXISTS (
         SELECT 1 FROM proposals newer
         WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision

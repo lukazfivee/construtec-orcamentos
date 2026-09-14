@@ -10,6 +10,7 @@ import type {
   CatalogProduct,
   ClientRecord,
   DashboardMetrics,
+  DirectSyncResult,
   KitDetail,
   KitInput,
   KitSummary,
@@ -150,6 +151,9 @@ export const proposalApi = {
   updateBdi: (proposalId: string, bdiMultiplier: number) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/bdi`, { method: 'PATCH', body: JSON.stringify({ bdiMultiplier }) },
   ),
+  updateTax: (proposalId: string, taxPercentage: number) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/tax`, { method: 'PATCH', body: JSON.stringify({ taxPercentage }) },
+  ),
   updateDetails: (proposalId: string, input: { scope?: string; validUntil?: string | null }) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/details`, { method: 'PATCH', body: JSON.stringify(input) },
   ),
@@ -168,6 +172,12 @@ export const proposalApi = {
   ),
   updateLaborSettings: (proposalId: string, standardMonthlyHours: number) => request<{ standardMonthlyHours: number }>(
     `/api/proposals/${proposalId}/labor-settings`, { method: 'PATCH', body: JSON.stringify({ standardMonthlyHours }) },
+  ),
+  directSync: (proposalId: string) => request<DirectSyncResult>(
+    `/api/proposals/${proposalId}/direct-sync`, { method: 'POST' },
+  ),
+  integrationExport: (proposalId: string) => request<Record<string, unknown>>(
+    `/api/proposals/${proposalId}/integration-export`, { method: 'POST' },
   ),
 };
 
@@ -203,6 +213,9 @@ export const catalogApi = {
   ),
   previewExsat: (url: string) => request<{ items: CatalogImportItem[] }>(
     '/api/catalog/import/exsat', { method: 'POST', body: JSON.stringify({ url }) },
+  ),
+  delete: (productId: string) => request<{ products: CatalogProduct[] }>(
+    `/api/catalog/${productId}`, { method: 'DELETE' },
   ),
 };
 

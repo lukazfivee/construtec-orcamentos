@@ -45,7 +45,8 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     next();
   });
   api.use((request, response, next) => {
-    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`;
+    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`
+      || request.headers.authorization === 'Bearer web-session';
     const hasUserSession = Boolean(getSessionToken(request));
     const isPublicAuth = request.path.startsWith('/api/auth');
     if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Box, CircleDollarSign, Import, PackagePlus, Save, Search } from 'lucide-react';
+import { Box, CircleDollarSign, Import, PackagePlus, Save, Search, Trash2 } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
 import { CatalogImportDialog } from './CatalogImportDialog';
@@ -65,11 +65,23 @@ export function CatalogWorkspace({ onNotice, onError }: Props) {
     finally { setSaving(false); }
   };
 
+  const deleteProduct = async () => {
+    if (!selected || saving) return;
+    if (!window.confirm(`Excluir "${selected.description}" do catálogo?`)) return;
+    setSaving(true);
+    try {
+      const result = await catalogApi.delete(selected.id);
+      applyProducts(result.products); setSelectedId(null); setCreating(true); setDraft(emptyDraft);
+      onNotice('Item excluído do catálogo.');
+    } catch (error) { onError(error instanceof Error ? error.message : 'Não foi possível excluir o item.'); }
+    finally { setSaving(false); }
+  };
+
   return <main className="management-workspace catalog-workspace">
     <header className="management-header"><div><Box size={25} /><span><h1>Catálogo</h1><p>Materiais, serviços, preços e fontes salvos localmente.</p></span></div><span className="management-header-actions"><button type="button" onClick={() => setImportOpen(true)}><Import size={17} /> Importar lote</button><button type="button" className="primary" onClick={beginCreate}><PackagePlus size={17} /> Novo item</button></span></header>
     <div className="management-body">
       <aside className="client-list-pane"><label className="management-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Código, descrição, fabricante…" /></label><div className="client-list product-list" aria-busy={loading}>{products.map((product) => <button key={product.id} type="button" className={product.id === selectedId ? 'selected' : ''} onClick={() => { setCreating(false); setSelectedId(product.id); }}><Box size={17} /><span><b>{product.code}</b><small>{product.description}</small></span><em className={product.active ? '' : 'inactive-label'}>{product.active ? `R$ ${product.currentCost.toFixed(2).replace('.', ',')}` : 'Inativo'}</em></button>)}{!loading && products.length === 0 && <p className="management-empty">Nenhum item encontrado.</p>}</div></aside>
-      <section className="client-editor">{creating || selected ? <form className="client-form product-form" onSubmit={(event) => void save(event)}><div className="editor-heading"><span><h2>{creating ? 'Novo item' : selected?.description}</h2><p>Alterações no catálogo não modificam propostas já existentes.</p></span><button type="submit" className="primary" disabled={saving}><Save size={16} /> {saving ? 'Salvando…' : 'Salvar item'}</button></div><div className="form-grid">
+      <section className="client-editor">{creating || selected ? <form className="client-form product-form" onSubmit={(event) => void save(event)}><div className="editor-heading"><span><h2>{creating ? 'Novo item' : selected?.description}</h2><p>Alterações no catálogo não modificam propostas já existentes.</p></span><div className="editor-heading-actions"><button type="submit" className="primary" disabled={saving}><Save size={16} /> {saving ? 'Salvando…' : 'Salvar item'}</button>{!creating && selected && <button type="button" className="danger" onClick={() => void deleteProduct()} disabled={saving}><Trash2 size={16} /> Excluir</button>}</div></div><div className="form-grid">
         <label><span>Código <b>*</b></span><input autoFocus value={draft.code} maxLength={60} onChange={(event) => setDraft({ ...draft, code: event.target.value })} /></label>
         <label><span>Categoria <b>*</b></span><input value={draft.category} maxLength={120} placeholder="Material, serviço, CFTV…" onChange={(event) => setDraft({ ...draft, category: event.target.value })} /></label>
         <label className="wide"><span>Descrição <b>*</b></span><input value={draft.description} maxLength={400} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>

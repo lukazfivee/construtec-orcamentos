@@ -116,6 +116,45 @@ test('F2.1 - Selo Canônico de Proposta e Outbox de Integração', async context
     assert.equal(outbox.rows[0].attempts, 1);
   });
 
+  await context.test('envelope de integração inclui impostos e contractValue com tax aplicado', async () => {
+    const { exportProposalIntegration } = await import('./integration/proposalExport');
+    const pId = await makeProposal();
+    await addMaterial(pId, '10', '5', '8');
+
+    // Definir BDI=30% e tax=15%
+    await database.query('UPDATE proposals SET bdi_multiplier = 1.30, tax_percentage = 15 WHERE id = $1', [pId]);
+    await updateProposalStatus(database, pId, 'approved', userId);
+
+    const { envelope } = await exportProposalIntegration(database, pId, userId);
+    const p = envelope.payload;
+    const totals = p.totals;
+    const pricing = p.pricing;
+
+    // pricing deve conter taxPercentage
+    assert.equal(pricing.taxPercentage, '15.00');
+    assert.equal(pricing.bdiMultiplier, '1.3000');
+
+    // baseCost = material(10×5=50) + labor
+    const baseCost = Number(totals.baseCost);
+    assert.ok(baseCost > 0, 'baseCost deve ser positivo');
+
+    // contractValueBeforeTax = baseCost × 1.30
+    const expectedBeforeTax = Math.round(baseCost * 1.30 * 100) / 100;
+    assert.equal(Number(totals.contractValueBeforeTax), expectedBeforeTax);
+
+    // taxAmount = contractValueBeforeTax × 15%
+    const expectedTax = Math.round(expectedBeforeTax * 0.15 * 100) / 100;
+    assert.equal(Number(totals.taxAmount), expectedTax);
+
+    // contractValue = contractValueBeforeTax + taxAmount
+    const expectedContract = Math.round((expectedBeforeTax + expectedTax) * 100) / 100;
+    assert.equal(Number(totals.contractValue), expectedContract);
+
+    // additions = BDI only (sem imposto)
+    const expectedAdditions = Math.round((expectedBeforeTax - baseCost) * 100) / 100;
+    assert.equal(Number(totals.additions), expectedAdditions);
+  });
+
   await context.test('sincronização direta transmite envelope com sucesso e trata servidor offline', async () => {
     const { syncProposalDirectly } = await import('./integration/proposalSync');
     const pId = await makeProposal();

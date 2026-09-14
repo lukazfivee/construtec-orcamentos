@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
+  Building2,
   ChevronLeft,
   FileText,
   Grid2X2,
@@ -12,6 +13,7 @@ import type { AuthUser, ProposalDetail, ProposalSummary } from '../shared/contra
 import { kitsApi, proposalApi } from './api';
 import { AppTopbar } from './AppTopbar';
 import { CatalogWorkspace } from './CatalogWorkspace';
+import { CentroCustosWorkspace } from './CentroCustosWorkspace';
 import { ClientsWorkspace } from './ClientsWorkspace';
 import { HomeWorkspace } from './HomeWorkspace';
 import { KitsWorkspace } from './KitsWorkspace';
@@ -20,9 +22,12 @@ import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
 
-const navItems = [
+type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações';
+
+const navItems: { label: NavSection; icon: typeof Grid2X2 }[] = [
   { label: 'Início', icon: Grid2X2 },
   { label: 'Propostas', icon: FileText },
+  { label: 'Centro de Custos', icon: Building2 },
   { label: 'Catálogo', icon: Box },
   { label: 'Clientes', icon: Users },
   { label: 'Kits', icon: Layers3 },
@@ -35,7 +40,8 @@ export interface AppProps {
 }
 
 export function App({ user, onLogout }: AppProps = {}) {
-  const [activeNav, setActiveNav] = useState<'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações'>('Início');
+  const [activeNav, setActiveNav] = useState<NavSection>('Início');
+  const [targetCostCenterId, setTargetCostCenterId] = useState<number | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [proposal, setProposal] = useState<ProposalDetail | null>(null);
@@ -180,6 +186,14 @@ export function App({ user, onLogout }: AppProps = {}) {
         proposal={proposal}
         onOpenCatalog={() => setCatalogOpen(true)}
         onLogout={onLogout}
+        onSelectApp={(app) => {
+          if (app === 'centro-custos') {
+            if (window.location.pathname.startsWith('/orcamentos')) window.location.assign('/');
+            else setActiveNav('Centro de Custos');
+          } else if (app === 'orcamentos') {
+            setActiveNav('Propostas');
+          }
+        }}
         showNotice={showNotice}
       />
 
@@ -194,7 +208,7 @@ export function App({ user, onLogout }: AppProps = {}) {
                 className={active ? 'active' : ''}
                 aria-current={active ? 'page' : undefined}
                 onClick={() => {
-                  setActiveNav(label as 'Início' | 'Propostas' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações');
+                  setActiveNav(label);
                   setCatalogOpen(false);
                   setError('');
                 }}
@@ -220,6 +234,7 @@ export function App({ user, onLogout }: AppProps = {}) {
 
       {activeNav === 'Propostas' && (proposalViewMode === 'list' || !proposal) ? (
         <ProposalsListWorkspace
+          key="proposals-list"
           onOpenProposal={async (proposalId) => {
             await openProposal(proposalId);
             setProposalViewMode('editor');
@@ -233,6 +248,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         />
       ) : activeNav === 'Propostas' && proposal ? (
         <ProposalEditorWorkspace
+          key="proposal-editor"
           proposal={proposal}
           proposalTabs={proposalTabs}
           loading={loading}
@@ -255,11 +271,16 @@ export function App({ user, onLogout }: AppProps = {}) {
           onCreateRevision={() => void createRevision()}
           onPreviewProposal={() => void previewProposal()}
           onExportProposal={() => void exportProposal()}
+          onNavigateToCentroCustos={(ccId) => {
+            setTargetCostCenterId(ccId ?? null);
+            setActiveNav('Centro de Custos');
+          }}
           showNotice={showNotice}
           setError={setError}
         />
       ) : activeNav === 'Início' ? (
         <HomeWorkspace
+          key="home"
           onOpenProposal={async (proposalId) => {
             await openProposal(proposalId);
             setActiveNav('Propostas');
@@ -275,12 +296,24 @@ export function App({ user, onLogout }: AppProps = {}) {
           }}
           onError={setError}
         />
+      ) : activeNav === 'Centro de Custos' ? (
+        <CentroCustosWorkspace
+          key="centro-custos"
+          activeProposal={proposal}
+          targetCostCenterId={targetCostCenterId}
+          onBackToProposal={() => {
+            setActiveNav('Propostas');
+            setProposalViewMode('editor');
+          }}
+          onNotice={showNotice}
+        />
       ) : activeNav === 'Catálogo' ? (
-        <CatalogWorkspace onNotice={showNotice} onError={setError} />
+        <CatalogWorkspace key="catalog" onNotice={showNotice} onError={setError} />
       ) : activeNav === 'Clientes' ? (
-        <ClientsWorkspace onNotice={showNotice} onError={setError} />
+        <ClientsWorkspace key="clients" onNotice={showNotice} onError={setError} />
       ) : activeNav === 'Kits' ? (
         <KitsWorkspace
+          key="kits"
           activeProposal={proposal}
           onApplyKitToProposal={async (kitId) => {
             if (!proposal) return;
@@ -298,7 +331,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           onError={setError}
         />
       ) : (
-        <SettingsWorkspace onNotice={showNotice} onError={setError} />
+        <SettingsWorkspace key="settings" onNotice={showNotice} onError={setError} />
       )}
 
       {notice && <div className="toast" role="status">{notice}</div>}

@@ -37,6 +37,21 @@ export type ExsatBatchPreview = {
   failures: ExsatPageFailure[];
   validationSummary?: ExsatValidationSummary;
 };
+export type DirectSyncResult = {
+  ok: boolean;
+  status: 'imported' | 'already_imported' | 'failed' | 'offline';
+  isDuplicate?: boolean;
+  contractId?: string;
+  costCenterId?: number;
+  baselineId?: string;
+  proposalNumber?: string;
+  revision?: number;
+  message?: string;
+  error?: string;
+  offline?: boolean;
+  centerUrl?: string;
+};
+
 export type ExsatSyncHistoryEntry = { id: string; startedAt: string; completedAt: string; mode: 'full' | 'incremental' | 'manual'; pagesRead: number; itemsFound: number; created: number; updated: number; ignored: number; failedPages: number };
 export type ExsatSyncInfo = { lastSyncAt?: string; lastFullSyncAt?: string; history: ExsatSyncHistoryEntry[] };
 export type CatalogImportFile = { canceled: boolean; kind?: 'table' | 'image'; name?: string; text?: string; ocrEngine?: 'cloudflare' | 'windows' };
@@ -87,6 +102,7 @@ export type ProposalDetail = {
   scope: string;
   status: 'draft' | 'review' | 'sent' | 'approved' | 'rejected';
   bdiMultiplier: number;
+  taxPercentage?: number;
   validUntil: string | null;
   responsibleName: string;
   updatedAt: string;
@@ -106,6 +122,7 @@ export type ProposalDetail = {
     labor?: number;
     baseCost?: number;
     additions?: number;
+    taxAmount?: number;
     finalValue?: number;
   };
 };
@@ -113,7 +130,7 @@ export type ProposalDetail = {
 export type WorkRecord = { id: string; clientId: string; name: string; address: string | null; active: boolean; updatedAt: string };
 export type ClientRecord = { id: string; legalName: string; tradeName: string | null; document: string | null; updatedAt: string; works: WorkRecord[] };
 export type ProposalRevisionSummary = { id: string; number: string; revision: number; status: ProposalDetail['status']; itemCount: number; totalSale: number; responsibleName: string; updatedAt: string; isLatest: boolean };
-export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string; validUntil?: string | null; isLatest?: boolean; hasApprovedRevision?: boolean };
+export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string; validUntil?: string | null; isLatest?: boolean; hasApprovedRevision?: boolean; syncStatus?: 'pending' | 'delivered' | 'failed' | null };
 export type ApiErrorPayload = { error: string; details?: unknown };
 
 export type AuthRole = 'admin' | 'commercial' | 'viewer';

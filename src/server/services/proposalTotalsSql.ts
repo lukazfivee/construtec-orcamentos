@@ -13,4 +13,4 @@ export const laborCostSql = `COALESCE((
 ), 0)`;
 
 export const baseCostSql = `(${materialsCostSql} + ${laborCostSql})`;
-export const finalValueSql = `ROUND(${baseCostSql} * p.bdi_multiplier, 2)`;
+export const finalValueSql = `ROUND(${baseCostSql} * p.bdi_multiplier * (1 + COALESCE(p.tax_percentage, 0) / 100), 2)`;
