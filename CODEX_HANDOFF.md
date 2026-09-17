@@ -1,5 +1,16 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-17 14:15 BRT — App shell mobile: alinhado ao Centro de Custos
+
+- Usuário rejeitou a primeira rodada de variantes da tela de Início (muito parecidas entre si, mudança superficial) e pediu redesenho real: "não está parecendo um app, e sim uma versão de um site". Revertido o commit da 1ª rodada (`git revert 4cca0e9`).
+- Implementado app shell mobile de verdade (não CSS de espaçamento): navegação inferior fixa (Início/Propostas/Kits/Menu), topbar consolidado num botão "Mais opções", lista de propostas em cartões tocáveis (`grid-template-areas` sobre as classes já existentes de cada célula, sem mudar `ProposalsListTable.tsx`). Concorrência detectada no meio do trabalho: outro agente (ou o usuário) editou `App.tsx`/`mobile-responsive.css` em paralelo, implementando de forma independente uma barra inferior de 3 itens + "Menu" (padrão espelhado do Centro de Custos) — verificado, absorvido e mantido (não descartado), com limpeza de CSS duplicado.
+- Usuário comparou com screenshots reais do Centro de Custos e pediu paridade visual. Lido o CSS/HTML real de `centro de custos CONSTRUTEC/public/style-base.css` (não estimado por screenshot) para replicar exato: `.mobile-nav-item.ativo{background:var(--navy-2)}` → aba ativa da barra inferior agora é uma pílula preenchida (`#1b2c45`, mesma cor do item ativo do desktop) em vez de linha fina; `.sidebar.open{left:0}` (Centro de Custos reaproveita a própria sidebar desktop como gaveta mobile) → "Menu" agora desliza o painel completo de navegação (6 itens, ativo destacado) da esquerda com fundo escurecido, em vez de uma caixa pequena com só 3 itens de overflow.
+- Dois bugs reais pegos e corrigidos durante a verificação ao vivo (não só por leitura de código):
+  1. Painel "Mais opções" do topbar era `position:fixed` e sobrepunha o conteúdo da página (visível no screenshot do usuário cobrindo o título "Início"); corrigido para expandir em fluxo (`flex-basis:100%` dentro de `.top-actions`).
+  2. `.sidebar` tinha `z-index:40`, menor que `.topbar` (`z-index:60`); como `.sidebar` é `position:fixed`, ela cria seu próprio contexto de empilhamento — a gaveta de navegação (`z-index` interno mais alto) ficava presa dentro desse contexto e a topbar continuava pintando por cima. Corrigido subindo `.sidebar` para `z-index:62`.
+- Validado: typecheck limpo, `npm run test:critical` 23/23 (1 ignorado) em cada rodada, verificado ao vivo em 390×844 (gaveta, scrim, pílula ativa, painel Mais sem sobreposição) e 1600×900 (desktop idêntico ao original, sem vazamento de nenhum elemento mobile). Publicado via `npm run deploy:cloud` (script novo, ver commit `444b65f`, encontrado já escrito em disco por outra sessão/agente — revisado antes de commitar, sem segredos).
+- Pendente: login de produção não foi verificado visualmente por este agente (sem credenciais reais); código é idêntico ao testado exaustivamente em dev local.
+
 ## 2026-09-17 12:00 BRT — Homologação mobile + impeccable adapt no editor
 
 - Homologação visual mobile (Maestri portal, 390x844, UA iOS) da versão cloud publicada. Achados corrigidos e publicados (2 deploys via `cloudflare/api-container && npm run deploy`; um terceiro deploy foi bloqueado uma vez pelo classificador de auto mode do Claude Code e teve sucesso na tentativa seguinte, sem intervenção especial):
