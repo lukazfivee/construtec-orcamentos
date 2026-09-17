@@ -150,7 +150,7 @@ export function AppTopbar({
             </div>
 
             <button
-              className={`icon-button ${helpOpen ? 'active' : ''}`}
+              className={`icon-button help-button ${helpOpen ? 'active' : ''}`}
               aria-label="Central de Ajuda"
               type="button"
               onClick={() => {

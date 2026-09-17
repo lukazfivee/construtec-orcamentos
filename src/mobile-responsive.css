@@ -22,6 +22,7 @@
   .topbar .divider { display: none; }
   .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
   .top-actions .icon-button.top-actions-mobile-menu-toggle { display: inline-grid !important; }
+  .top-actions .icon-button.help-button { display: none !important; }
   /* impeccable adapt: this read as a shrunk website, not a mobile app --
      primary nav moves to a fixed bottom tab bar (thumb reach, native
      pattern) instead of a horizontal-scrolling strip at the top. */
