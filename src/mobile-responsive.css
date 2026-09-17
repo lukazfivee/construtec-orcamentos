@@ -49,6 +49,13 @@
   .toolbar { flex-wrap: wrap; padding: 12px; }
   .toolbar button, .actions button { min-height: 44px; height: auto; white-space: normal; }
   .toolbar .toolbar-space { display: none; }
+  /* Inserir/Excluir/Filtrar stay one tap away; the rest (Duplicar, Mover,
+     Importar, colunas) collapse behind "Mais ações" so the toolbar fits
+     one row instead of three -- nothing is removed, only reordered. */
+  .toolbar .icon-button.toolbar-more-toggle { display: inline-grid !important; margin-left: auto; }
+  .toolbar-secondary-group { display: none; width: 100%; flex-wrap: wrap; gap: 8px; }
+  .toolbar-secondary-group.open { display: flex; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .toolbar-secondary-group button { flex: 1 1 calc(50% - 4px); }
   .proposal-filter-inputs, .proposal-filter-bar { flex-wrap: wrap; }
   .proposal-filter-search-box, .proposal-filter-category-box { min-width: 0; max-width: 100%; }
   .table-region { flex: none; width: 100%; max-height: 60dvh; overflow: auto; }

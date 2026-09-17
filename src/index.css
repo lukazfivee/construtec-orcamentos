@@ -283,6 +283,8 @@ kbd {
 .toolbar button:hover, .actions button:hover { background: #f7f9fb; border-color: #aeb8c6; }
 .toolbar button:disabled, .actions button:disabled { background: #f5f6f8; border-color: #e4e6ea; color: var(--muted); cursor: not-allowed; }
 .toolbar-space { flex: 1; }
+.toolbar .icon-button.toolbar-more-toggle { display: none !important; }
+.toolbar-secondary-group { display: contents; }
 .primary { color: #fff !important; background: var(--blue) !important; border-color: var(--blue) !important; font-weight: 650; }
 .primary:hover { background: #064ebf !important; }
 .primary:disabled { background: #94a8b8 !important; border-color: #94a8b8 !important; cursor: not-allowed; }

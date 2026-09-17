@@ -4,6 +4,7 @@ import {
   ChevronUp,
   Copy,
   Filter,
+  MoreHorizontal,
   Plus,
   Settings,
   SlidersHorizontal,
@@ -64,6 +65,7 @@ export function ProposalItemsPanel({
   const [columns, setColumns] = useState<ProposalColumnsVisibility>(loadSavedColumns);
   const [columnsPopoverOpen, setColumnsPopoverOpen] = useState(false);
   const [filterBarOpen, setFilterBarOpen] = useState(false);
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -129,33 +131,6 @@ export function ProposalItemsPanel({
         <button type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void actions.removeSelectedItems(selectedItemIds)}>
           <Trash2 size={16} /> Excluir
         </button>
-        <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.duplicateSelectedItem(selectedItemIds)}>
-          <Copy size={16} /> Duplicar
-        </button>
-        <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
-          <ChevronUp size={14} /> Mover
-        </button>
-        <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
-          <ChevronDown size={14} /> Mover
-        </button>
-        <span className="toolbar-space" />
-        <button
-          type="button"
-          disabled={!isEditable || mutationPending}
-          onClick={() => setImportDialogOpen(true)}
-          title="Importar itens via planilha (CSV), de outra proposta ou de um kit"
-        >
-          <Upload size={15} /> Importar
-        </button>
-        <button
-          className={`icon-button ${columnsPopoverOpen ? 'active' : ''}`}
-          aria-label="Configurar colunas"
-          type="button"
-          onClick={() => setColumnsPopoverOpen((v) => !v)}
-          title="Configurar colunas visíveis da tabela"
-        >
-          <SlidersHorizontal size={18} />
-        </button>
         <button
           className={`icon-button ${filterBarOpen || hasActiveFilters ? 'active' : ''}`}
           aria-label="Filtrar itens"
@@ -165,9 +140,48 @@ export function ProposalItemsPanel({
         >
           <Filter size={18} />
         </button>
-        <button className="icon-button" aria-label="Configurações da tabela (indisponível)" aria-disabled="true" type="button" disabled title="Configurações da tabela serão implementadas em uma próxima etapa.">
-          <Settings size={18} />
+        <span className="toolbar-space" />
+        <button
+          className={`icon-button toolbar-more-toggle ${moreActionsOpen ? 'active' : ''}`}
+          aria-label="Mais ações"
+          aria-expanded={moreActionsOpen}
+          type="button"
+          onClick={() => setMoreActionsOpen((v) => !v)}
+          title="Mais ações: duplicar, mover, importar e colunas"
+        >
+          <MoreHorizontal size={18} />
         </button>
+        <div className={`toolbar-secondary-group ${moreActionsOpen ? 'open' : ''}`}>
+          <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.duplicateSelectedItem(selectedItemIds)}>
+            <Copy size={16} /> Duplicar
+          </button>
+          <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
+            <ChevronUp size={14} /> Mover
+          </button>
+          <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
+            <ChevronDown size={14} /> Mover
+          </button>
+          <button
+            type="button"
+            disabled={!isEditable || mutationPending}
+            onClick={() => setImportDialogOpen(true)}
+            title="Importar itens via planilha (CSV), de outra proposta ou de um kit"
+          >
+            <Upload size={15} /> Importar
+          </button>
+          <button
+            className={`icon-button ${columnsPopoverOpen ? 'active' : ''}`}
+            aria-label="Configurar colunas"
+            type="button"
+            onClick={() => setColumnsPopoverOpen((v) => !v)}
+            title="Configurar colunas visíveis da tabela"
+          >
+            <SlidersHorizontal size={18} />
+          </button>
+          <button className="icon-button" aria-label="Configurações da tabela (indisponível)" aria-disabled="true" type="button" disabled title="Configurações da tabela serão implementadas em uma próxima etapa.">
+            <Settings size={18} />
+          </button>
+        </div>
       </div>
 
       <ProposalColumnsPopover
