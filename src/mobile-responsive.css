@@ -49,7 +49,12 @@
      (--navy-2: #073541, modo claro), igual ao padrao de la -- nao so uma
      linha fina de indicador. Tamanho (padding/fonte/icone) tambem seguindo
      os valores exatos de centro de custos CONSTRUTEC/public/style-base.css. */
-  .sidebar-mobile-only > button { flex: 1 1 0; width: auto; min-width: 0; height: auto; min-height: 46px; gap: 3px; padding: 5px 1px; border-radius: 8px; color: var(--muted); }
+  .sidebar-mobile-only > button {
+    flex: 1 1 0 !important; width: auto !important; min-width: 0 !important;
+    height: auto !important; min-height: 46px !important;
+    gap: 3px !important; padding: 5px 1px !important; border-radius: 8px !important;
+    color: var(--muted);
+  }
   .sidebar-mobile-only > button svg { width: 18px; height: 18px; }
   .sidebar-mobile-only > button span { font-size: 9px; line-height: 1; }
   .sidebar-mobile-only > button.active { background: #073541; color: #fff; }
