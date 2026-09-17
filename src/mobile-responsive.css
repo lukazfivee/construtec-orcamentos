@@ -8,16 +8,16 @@
 @media screen and (max-width: 767px) {
   html, body, #root { height: auto; min-height: 100%; overflow: visible; }
   .app-shell { display: flex; flex-direction: column; min-height: 100dvh; height: auto; padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
-  .topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 8px; gap: 8px; }
+  .topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 6px; gap: 6px; }
   /* Igual ao Centro de Custos: so a marca (sem "Orcamentos" por extenso) e
      sem o texto de status Online/Dados na nuvem -- os icones de acao ficam
      diretamente na barra, com espaco de sobra. */
-  .topbar .brand { height: 36px; padding: 0 4px; border: 0; }
+  .topbar .brand { height: 36px; padding: 0; border: 0; gap: 0; }
   .topbar .brand span, .topbar .brand-logo-full { display: none; }
   .topbar .brand-logo-icon { display: block; height: 26px; }
   .topbar .local-state { display: none; }
   .topbar .global-search { display: none; }
-  .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 4px; flex-wrap: wrap; }
+  .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 2px; flex-wrap: wrap; }
   .topbar .profile b, .topbar .profile > svg { display: none; }
   .topbar .divider { display: none; }
   .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
@@ -29,23 +29,30 @@
     flex: none; overflow: visible;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 62;
     padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -2px 10px rgba(3, 31, 41, .18);
+    background: transparent;
   }
   /* A barra inferior carrega 4 destinos largos (Inicio, Propostas, Kits e
      Menu), no mesmo desenho do Centro de Custos: poucos itens, alvo de toque
      confortavel, sem rotulo apertado. Catalogo, Clientes e Configuracoes
-     seguem a um toque de distancia, dentro do Menu. */
-  .sidebar-mobile-only { display: flex; width: 100%; padding: 6px 4px; gap: 4px; }
+     seguem a um toque de distancia, dentro do Menu.
+     Centro de Custos so tem modo claro na barra inferior (.mobile-bottom-nav
+     usa --white/--muted/--line mesmo com o dark mode do app ligado), entao
+     o fundo aqui e sempre claro -- nao usa var(--nav) escuro do desktop. */
+  .sidebar-mobile-only {
+    display: flex; width: 100%; padding: 6px 4px; gap: 4px;
+    background: var(--surface); border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 16px rgba(2, 29, 38, .08);
+  }
   .sidebar-desktop-only { display: none; }
   .sidebar nav { display: flex; padding: 0; }
-  /* Aba ativa vira uma pilula preenchida (mesmo tom do item ativo no menu
-     completo/desktop, #1b2c45), igual ao padrao do Centro de Custos --
-     nao so uma linha fina de indicador. Tamanho (padding/fonte/icone)
-     tambem seguindo os valores exatos do Centro de Custos. */
-  .sidebar-mobile-only > button { flex: 1 1 0; width: auto; min-width: 0; height: auto; min-height: 46px; gap: 3px; padding: 5px 1px; border-radius: 8px; }
+  /* Aba ativa vira uma pilula preenchida com a cor exata do Centro de Custos
+     (--navy-2: #073541, modo claro), igual ao padrao de la -- nao so uma
+     linha fina de indicador. Tamanho (padding/fonte/icone) tambem seguindo
+     os valores exatos de centro de custos CONSTRUTEC/public/style-base.css. */
+  .sidebar-mobile-only > button { flex: 1 1 0; width: auto; min-width: 0; height: auto; min-height: 46px; gap: 3px; padding: 5px 1px; border-radius: 8px; color: var(--muted); }
   .sidebar-mobile-only > button svg { width: 18px; height: 18px; }
   .sidebar-mobile-only > button span { font-size: 9px; line-height: 1; }
-  .sidebar-mobile-only > button.active { background: #1b2c45; color: #fff; }
+  .sidebar-mobile-only > button.active { background: #073541; color: #fff; }
   .sidebar-mobile-only > button.active::before { content: none; }
   .sidebar .collapse { display: none; }
   /* "Menu" desliza o painel completo de navegacao (mesmo conteudo do
