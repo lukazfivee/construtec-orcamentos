@@ -3,6 +3,40 @@
 .sidebar-mobile-only { display: none; }
 .sidebar-desktop-only { display: contents; }
 .mobile-nav-menu, .mobile-nav-scrim { display: none; }
+.proposal-items-cards, .proposal-items-fab { display: none; }
+
+/* Impeccable adapt: tela de itens da proposta em modo "operar" no celular --
+   cartoes com swipe (duplicar/excluir) em vez da tabela com scroll
+   horizontal forcado; FAB fixo pra inserir sem precisar rolar ate o fim da
+   lista. Backdrop/folha de edicao ficam fora do media query (so sao
+   alcancaveis tocando um cartao, que so existe no layout mobile). */
+.proposal-item-edit-backdrop {
+  position: fixed; inset: 0; background: rgba(10, 20, 35, .45);
+  display: flex; align-items: flex-end; z-index: 71;
+}
+.proposal-item-edit-sheet {
+  background: #fff; width: 100%; border-radius: 16px 16px 0 0;
+  padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  max-height: 86dvh; overflow-y: auto;
+}
+.proposal-item-edit-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
+.proposal-item-edit-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.proposal-item-edit-sheet-head b { font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
+.proposal-item-edit-sheet-head button { color: var(--muted); background: transparent; border: 0; flex: none; }
+.proposal-item-edit-field { margin-bottom: 12px; }
+.proposal-item-edit-field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+.proposal-item-edit-field input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 8px; font-size: 16px; color: var(--ink); }
+.proposal-item-edit-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.proposal-item-edit-totals { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); margin-bottom: 12px; font-size: 12px; color: var(--muted); }
+.proposal-item-edit-totals b { color: var(--ink); font-size: 13px; }
+.proposal-item-edit-actions { display: flex; gap: 8px; }
+.proposal-item-edit-actions button {
+  flex: 1; height: 44px; border-radius: 8px; font-size: 13px; font-weight: 700;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.proposal-item-edit-actions .duplicate { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
+.proposal-item-edit-actions .delete { background: var(--status-rejected-bg); border-color: var(--status-rejected-border); color: var(--status-rejected-text); }
 
 /* Impeccable adapt: phone layout, scoped away from desktop and printed proposals. */
 @media screen and (max-width: 767px) {
@@ -138,10 +172,47 @@
   .toolbar-secondary-group { display: none; width: 100%; flex-wrap: wrap; gap: 8px; }
   .toolbar-secondary-group.open { display: flex; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
   .toolbar-secondary-group button { flex: 1 1 calc(50% - 4px); }
+  /* Selecao multipla (checkbox por linha) so existe na tabela desktop; no
+     celular cada cartao ja resolve duplicar/excluir individualmente (swipe
+     ou folha de edicao), entao os controles que dependiam de selecao somem
+     em vez de ficar mostrando um botao permanentemente desabilitado. */
+  .toolbar .bulk-only { display: none; }
   .proposal-filter-inputs, .proposal-filter-bar { flex-wrap: wrap; }
   .proposal-filter-search-box, .proposal-filter-category-box { min-width: 0; max-width: 100%; }
-  .table-region { flex: none; width: 100%; max-height: 60dvh; overflow: auto; }
-  .table-region table { min-width: 900px; }
+  .table-region { display: none; }
+  .add-line { display: none; }
+  .proposal-items-cards {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 4px 2px calc(80px + env(safe-area-inset-bottom));
+    list-style: none; margin: 0;
+  }
+  .proposal-items-cards-empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13px; }
+  .proposal-item-card-wrap { position: relative; border-radius: 10px; overflow: hidden; }
+  .proposal-item-card-swipe-actions { position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: stretch; }
+  .proposal-item-card-swipe-actions button { width: 48px; display: grid; place-items: center; border: 0; color: #fff; }
+  .proposal-item-card-swipe-actions .duplicate { background: var(--blue); }
+  .proposal-item-card-swipe-actions .delete { background: var(--status-rejected-text); }
+  .proposal-item-card {
+    position: relative; display: flex; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px; min-height: 44px; touch-action: pan-y; user-select: none;
+    transition: transform 160ms ease; cursor: grab;
+  }
+  .proposal-item-card.dragging { transition: none; cursor: grabbing; }
+  .proposal-item-card-drag { color: var(--line-strong); flex: none; }
+  .proposal-item-card-main { flex: 1; min-width: 0; }
+  .proposal-item-card-main b { display: block; font-size: 13px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+  .proposal-item-card-main span { font-size: 11px; color: var(--muted); }
+  .proposal-item-card-value { text-align: right; font-size: 12.5px; font-weight: 700; color: var(--ink); flex: none; }
+  .proposal-item-card-value small { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
+  .proposal-items-fab {
+    display: grid; place-items: center;
+    position: fixed; right: 16px; bottom: calc(74px + env(safe-area-inset-bottom));
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--blue); color: #fff; border: 0;
+    box-shadow: 0 8px 20px rgba(8, 92, 229, .4); z-index: 30;
+  }
+  .proposal-items-fab:disabled { opacity: .5; }
   .commercial-panel { overflow: visible; height: auto; padding: 16px; border-top: 1px solid var(--line); }
   .home-workspace, .management-workspace { display: flex; flex-direction: column; overflow: visible; padding: 0; }
   .home-header, .management-header { flex-wrap: wrap; gap: 12px; padding: 16px; min-height: 0; }

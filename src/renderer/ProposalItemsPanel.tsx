@@ -21,6 +21,8 @@ import {
 } from './ProposalColumnsPopover';
 import { ProposalItemsFilterBar } from './ProposalItemsFilterBar';
 import { ProposalItemsTableRow } from './ProposalItemsTableRow';
+import { ProposalItemCard } from './ProposalItemCard';
+import { ProposalItemEditSheet } from './ProposalItemEditSheet';
 import { useProposalItemActions } from './useProposalItemActions';
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -69,6 +71,8 @@ export function ProposalItemsPanel({
   const [filterSearch, setFilterSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [peekedCardId, setPeekedCardId] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const actions = useProposalItemActions({
     proposal,
@@ -121,6 +125,7 @@ export function ProposalItemsPanel({
 
   const hasActiveFilters = Boolean(filterSearch.trim()) || Boolean(filterCategory);
   const visibleColCount = 3 + (columns.code ? 1 : 0) + (columns.unit ? 1 : 0) + (columns.unitCost ? 1 : 0) + (columns.totalCost ? 1 : 0) + (columns.unitSale ? 1 : 0) + (columns.totalSale ? 1 : 0);
+  const editingItem = editingItemId ? proposal.items.find((item) => item.id === editingItemId) ?? null : null;
 
   return (
     <div className="proposal-items-panel">
@@ -128,7 +133,7 @@ export function ProposalItemsPanel({
         <button className="primary compact" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen((v) => !v)}>
           <Plus size={17} /> Inserir <ChevronDown size={14} />
         </button>
-        <button type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void actions.removeSelectedItems(selectedItemIds)}>
+        <button className="bulk-only" type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void actions.removeSelectedItems(selectedItemIds)}>
           <Trash2 size={16} /> Excluir
         </button>
         <button
@@ -152,13 +157,13 @@ export function ProposalItemsPanel({
           <MoreHorizontal size={18} />
         </button>
         <div className={`toolbar-secondary-group ${moreActionsOpen ? 'open' : ''}`}>
-          <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.duplicateSelectedItem(selectedItemIds)}>
+          <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.duplicateSelectedItem(selectedItemIds)}>
             <Copy size={16} /> Duplicar
           </button>
-          <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
+          <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
             <ChevronUp size={14} /> Mover
           </button>
-          <button type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
+          <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
             <ChevronDown size={14} /> Mover
           </button>
           <button
@@ -303,6 +308,59 @@ export function ProposalItemsPanel({
           </tfoot>
         </table>
       </div>
+
+      <ul className="proposal-items-cards">
+        {filteredItems.map((item) => (
+          <ProposalItemCard
+            key={item.id}
+            item={item}
+            isEditable={isEditable}
+            mutationPending={mutationPending}
+            peeked={peekedCardId === item.id}
+            onPeek={() => setPeekedCardId(item.id)}
+            onClosePeek={() => setPeekedCardId((curr) => (curr === item.id ? null : curr))}
+            onOpenEdit={() => setEditingItemId(item.id)}
+            onDuplicate={() => { setPeekedCardId(null); void actions.duplicateSelectedItem([item.id]); }}
+            onDelete={() => { setPeekedCardId(null); void actions.removeSelectedItems([item.id]); }}
+          />
+        ))}
+        {!loading && proposal.items.length > 0 && filteredItems.length === 0 && (
+          <li className="proposal-items-cards-empty">
+            Nenhum item corresponde ao filtro aplicado.{' '}
+            <button type="button" className="filter-inline-clear-btn" onClick={() => { setFilterSearch(''); setFilterCategory(''); }}>
+              Limpar filtro
+            </button>
+          </li>
+        )}
+        {!loading && proposal.items.length === 0 && (
+          <li className="proposal-items-cards-empty">Nenhum item nesta proposta. Toque no + para pesquisar no catálogo local.</li>
+        )}
+        {loading && <li className="proposal-items-cards-empty">Carregando dados locais…</li>}
+      </ul>
+
+      <button
+        className="proposal-items-fab"
+        type="button"
+        aria-label="Inserir item do catálogo"
+        disabled={!isEditable || mutationPending}
+        onClick={() => setCatalogOpen(true)}
+      >
+        <Plus size={24} />
+      </button>
+
+      {editingItem && (
+        <ProposalItemEditSheet
+          item={editingItem}
+          isEditable={isEditable}
+          mutationPending={mutationPending}
+          onClose={() => setEditingItemId(null)}
+          onUpdateText={(id, field, val) => void actions.updateItemText(id, field, val)}
+          onUpdateMoney={(id, field, val) => void actions.updateItemMoney(id, field, val)}
+          onUpdateQuantity={(id, val) => void actions.updateQuantity(id, val)}
+          onDuplicate={() => { void actions.duplicateSelectedItem([editingItem.id]); setEditingItemId(null); }}
+          onDelete={() => { void actions.removeSelectedItems([editingItem.id]); setEditingItemId(null); }}
+        />
+      )}
 
       <button className="add-line" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen(true)}>
         <Plus size={16} /> Adicionar linha <kbd>Ctrl+I</kbd>
