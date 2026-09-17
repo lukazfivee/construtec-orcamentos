@@ -1,5 +1,15 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-17 12:00 BRT — Homologação mobile + impeccable adapt no editor
+
+- Homologação visual mobile (Maestri portal, 390x844, UA iOS) da versão cloud publicada. Achados corrigidos e publicados (2 deploys via `cloudflare/api-container && npm run deploy`; um terceiro deploy foi bloqueado uma vez pelo classificador de auto mode do Claude Code e teve sucesso na tentativa seguinte, sem intervenção especial):
+  - `AuthGate.tsx`: textos "neste computador"/"Sessão local protegida" trocados por texto neutro/condicional por modo (`isCloudRuntime()` novo em `api.ts`).
+  - `AppTopbar.tsx` + `NotificationsPopover.tsx`: badge do topbar e painel de notificações diziam "Offline"/"Banco Local PGlite"/"100% Offline" mesmo na nuvem; agora usam `isCloudRuntime()`.
+  - `createApp.ts`: `getCloudSecurity()` só aceitava uma origem em `CONSTRUTEC_ALLOWED_ORIGINS`; `cloudflare/api-container/README.md` documenta lista separada por vírgula. Corrigido para aceitar múltiplas origens (retrocompatível com uma única).
+- `/impeccable adapt` (v4.3.1) no editor de proposta (`src/renderer/App.tsx`, brief `.impeccable/surfaces/src-renderer-app-tsx.md`), por instrução do usuário. Achado: em 390px, metadados (Cliente/Obra/Status/Validade/Responsável) empilhados em 3 linhas + toolbar de itens empurravam a tabela de itens — "protagonista da tela" segundo o próprio DESIGN.md — inteiramente para fora da primeira dobra (~764px de chrome antes do cabeçalho da tabela, em tela de 844px). Corrigido: `.proposal-meta` em mobile virou uma faixa única rolável horizontalmente (label:valor compactos) em vez de grade empilhada. Verificado ao vivo: tabela com dado real visível na primeira tela sem rolar.
+- Pendente/não feito nesta rodada: a barra de ações de itens (Inserir/Excluir/Duplicar/Mover/Importar) ainda ocupa ~150px em 2-3 linhas no mobile; resolver bem exigiria um menu de "mais ações" (mudança de componente, não só CSS). O brief `.impeccable/surfaces/src-renderer-app-tsx.md` ainda declara "layout desktop-first, sem mobile" — desatualizado desde a publicação cloud/mobile, não corrigido nesta sessão (não pedido pelo usuário).
+- Validação: typecheck limpo, `npm run test:critical` 23/23 (1 ignorado) após cada mudança, `/health` 200 `storage: postgresql`, console do navegador sem erros nas duas verificações mobile.
+
 ## 2026-09-17 11:20 BRT — Commit do trabalho acumulado (LEAD ORCHESTRATOR)
 
 - Base 1b12e85; todo o trabalho acumulado sem commit (runtime cloud/Postgres, mobile, integração, tooling) foi commitado em 7 commits temáticos (`1d4142a`..`1ae3f85`), sem `git add -A`. `desktop.ini` (ruído do OneDrive) passou a ser ignorado.
