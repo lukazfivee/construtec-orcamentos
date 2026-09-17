@@ -16,6 +16,7 @@ import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
 import { UserProfilePopover } from './UserProfilePopover';
 
 const brandLogo = new URL('../assets/logo-branca.png', import.meta.url).href;
+const brandIcon = new URL('../assets/logo-icon.png', import.meta.url).href;
 const isCloud = isCloudRuntime();
 
 interface AppTopbarProps {
@@ -69,7 +70,8 @@ export function AppTopbar({
     <>
       <header className="topbar">
         <div className="brand">
-          <img src={brandLogo} alt="Construtec" />
+          <img src={brandLogo} alt="Construtec" className="brand-logo-full" />
+          <img src={brandIcon} alt="Construtec" className="brand-logo-icon" />
           <span>Orçamentos</span>
         </div>
 

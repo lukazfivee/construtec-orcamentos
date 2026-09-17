@@ -96,8 +96,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); out
   width: auto;
   max-width: 100px;
   object-fit: contain;
-  display: block;
 }
+
+.brand-logo-full { display: block; }
+.brand-logo-icon { display: none; }
 
 .local-state { display: flex; align-items: center; gap: 7px; padding: 0 16px; font-size: 12px; color: #eef2f7; white-space: nowrap; }
 .local-state > span { width: 8px; height: 8px; border-radius: 50%; background: #42bd68; }

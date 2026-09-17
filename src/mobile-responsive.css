@@ -13,10 +13,10 @@
      sem o texto de status Online/Dados na nuvem -- os icones de acao ficam
      diretamente na barra, com espaco de sobra. */
   .topbar .brand { height: 36px; padding: 0 4px; border: 0; }
-  .topbar .brand span { display: none; }
+  .topbar .brand span, .topbar .brand-logo-full { display: none; }
+  .topbar .brand-logo-icon { display: block; height: 26px; }
   .topbar .local-state { display: none; }
-  .topbar .global-search { order: 3; width: 100%; margin: 0; min-height: 44px; }
-  .topbar .global-search kbd { display: none; }
+  .topbar .global-search { display: none; }
   .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 4px; flex-wrap: wrap; }
   .topbar .profile b, .topbar .profile > svg { display: none; }
   .topbar .divider { display: none; }
