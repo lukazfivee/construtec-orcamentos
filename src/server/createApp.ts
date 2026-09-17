@@ -20,10 +20,11 @@ const getSessionToken = (request: express.Request) => {
 export interface CloudSecurity {
   sessionSecret: string;
   setupToken: string;
-  allowedOrigin: string;
+  allowedOrigins: string[];
 }
 
 const MIN_SECRET_LENGTH = 32;
+const ALLOWED_ORIGINS_ERROR = 'CONSTRUTEC_ALLOWED_ORIGINS deve ser uma ou mais origens HTTPS válidas, separadas por vírgula, sem caminho ou credenciais.';
 
 export const getCloudSecurity = (env: NodeJS.ProcessEnv = process.env): CloudSecurity | undefined => {
   if (!env.DATABASE_URL) return undefined;
@@ -35,16 +36,21 @@ export const getCloudSecurity = (env: NodeJS.ProcessEnv = process.env): CloudSec
   if (setupToken.length < MIN_SECRET_LENGTH) {
     throw new Error(`CONSTRUTEC_SETUP_TOKEN é obrigatório e deve ter ao menos ${MIN_SECRET_LENGTH} caracteres no modo cloud.`);
   }
-  let origin: URL;
-  try {
-    origin = new URL(env.CONSTRUTEC_ALLOWED_ORIGINS || '');
-  } catch {
-    throw new Error('CONSTRUTEC_ALLOWED_ORIGINS deve ser uma única origem HTTPS válida (sem caminho ou credenciais).');
-  }
-  if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
-    throw new Error('CONSTRUTEC_ALLOWED_ORIGINS deve ser uma única origem HTTPS válida (sem caminho ou credenciais).');
-  }
-  return { sessionSecret, setupToken, allowedOrigin: origin.origin };
+  const rawOrigins = (env.CONSTRUTEC_ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean);
+  if (rawOrigins.length === 0) throw new Error(ALLOWED_ORIGINS_ERROR);
+  const allowedOrigins = rawOrigins.map(raw => {
+    let origin: URL;
+    try {
+      origin = new URL(raw);
+    } catch {
+      throw new Error(ALLOWED_ORIGINS_ERROR);
+    }
+    if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
+      throw new Error(ALLOWED_ORIGINS_ERROR);
+    }
+    return origin.origin;
+  });
+  return { sessionSecret, setupToken, allowedOrigins };
 };
 
 const CLOUD_SETUP_PATH = /^\/api\/auth\/setup\/?$/i;
@@ -58,7 +64,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
   api.use((request, response, next) => {
     const origin = request.headers.origin;
     if (cloud) {
-      if (origin && origin !== cloud.allowedOrigin) {
+      if (origin && !cloud.allowedOrigins.includes(origin)) {
         response.status(403).json({ error: 'Origem não autorizada.' });
         return;
       }
