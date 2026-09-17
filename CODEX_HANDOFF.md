@@ -1,5 +1,12 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-17 15:45 BRT — 4ª rodada: ícone justo, topo numa linha, rodapé branco
+
+- `logo-icon.png`: recorte anterior (330×135) tinha ~77px de sobra em cada lado, empurrando o ícone pra própria linha acima do "Suíte". Recortado mais justo (200×135); com isso + padding/gap reduzidos (`topbar` 8px→6px, `top-actions` 4px→2px), tudo (logo+6 ícones) cabe numa linha só em 390px (confirmado via `getBoundingClientRect`: 401px→364px, contra 380px de viewport).
+- Rodapé (barra inferior): estava com fundo navy escuro (herdado do `.sidebar` do desktop). Confirmado no CSS real do Centro de Custos (`style-base.css`) que `.mobile-bottom-nav` é **sempre branco**, mesmo com o dark mode do app ligado (nunca re-temizado sob `html.dark`) — corrigido, `.sidebar-mobile-only` agora tem fundo próprio branco/`border-top`/sombra, ícones inativos em cinza-azulado.
+- Cor da pílula ativa também estava errada: eu tinha usado o tom do próprio Orçamentos desktop (`#1b2c45`) em vez do `--navy-2` real do Centro de Custos em modo claro (`#073541`, confirmado no `:root` do arquivo deles). Corrigido.
+- Validado em 390×844 e 1600×900; publicado.
+
 ## 2026-09-17 15:10 BRT — Paridade visual completa com Centro de Custos (mobile)
 
 Sequência de 3 rodadas de comparação por screenshot movida pelo usuário, todas publicadas:
