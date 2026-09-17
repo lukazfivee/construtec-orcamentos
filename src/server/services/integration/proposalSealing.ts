@@ -271,7 +271,7 @@ export const sealProposalInTransaction = async (
   evidence?: SealEvidence,
 ) => {
   const tableCheck = await transaction.query<{ exists: boolean }>(
-    "SELECT to_regclass('public.proposal_approval_snapshots') IS NOT NULL AS exists"
+    "SELECT to_regclass('proposal_approval_snapshots') IS NOT NULL AS exists"
   );
   if (!tableCheck.rows[0]?.exists) {
     return null;

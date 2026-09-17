@@ -16,7 +16,7 @@ export interface DirectSyncResult {
   centerUrl?: string;
 }
 
-const DEFAULT_CENTER_URL = 'http://localhost:3333/api/integracao/orcamentos/sync-direto';
+const DEFAULT_CENTER_URL = 'https://centro-custos-api.construtec-reports.workers.dev/api/integracao/orcamentos/sync-direto';
 const DEFAULT_INTEGRATION_KEY = 'construtec-internal-integration-secret-2026';
 
 export const syncProposalDirectly = async (
