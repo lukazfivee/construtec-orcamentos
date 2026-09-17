@@ -83,6 +83,8 @@ export function ProposalSummaryPanel({
   showNotice,
 }: Props) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [summaryCollapsed, setSummaryCollapsed] = useState(false);
+  const [paramsCollapsed, setParamsCollapsed] = useState(false);
 
   useEffect(() => {
     if (!deleteModalOpen) return;
@@ -112,21 +114,40 @@ export function ProposalSummaryPanel({
   return (
     <>
       <aside className="commercial-panel">
-        <div className="panel-title">
+        <button
+          type="button"
+          className="panel-title panel-title-toggle"
+          aria-expanded={!summaryCollapsed}
+          onClick={() => setSummaryCollapsed((v) => !v)}
+        >
           <b>Resumo comercial</b>
-          <ChevronUp size={16} />
-        </div>
-        <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
-        <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
-        <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
-        <Amount label="BDI / acréscimos" value={`R$ ${money.format(bdiAdditions)}`} />
-        {taxAmount > 0 && (
-          <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
+          {summaryCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+        </button>
+        {!summaryCollapsed && (
+          <>
+            <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
+            <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
+            <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
+            <Amount label="BDI / acréscimos" value={`R$ ${money.format(bdiAdditions)}`} />
+            {taxAmount > 0 && (
+              <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
+            )}
+            <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
+          </>
         )}
-        <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
 
         <div className="panel-section">
-          <h2>Parâmetros internos</h2>
+          <button
+            type="button"
+            className="panel-section-toggle"
+            aria-expanded={!paramsCollapsed}
+            onClick={() => setParamsCollapsed((v) => !v)}
+          >
+            <h2>Parâmetros internos</h2>
+            {paramsCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
+          {!paramsCollapsed && (
+          <>
           <label>
             Multiplicador BDI{' '}
             <span className="editable-parameter">
@@ -180,6 +201,8 @@ export function ProposalSummaryPanel({
           <label>
             Encargos <span className="locked-input">87,25% <ChevronDown size={14} /></span>
           </label>
+          </>
+          )}
         </div>
 
         <div className="frozen-state">

@@ -547,6 +547,11 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 
 .commercial-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 0 18px 15px; background: #fbfcfd; overflow-y: auto; }
 .panel-title { display: flex; align-items: center; justify-content: space-between; height: 55px; font-size: 12px; border-bottom: 1px solid var(--line); }
+.panel-title-toggle { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.panel-title-toggle svg { color: var(--muted); flex: none; }
+.panel-section-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; background: transparent; border: 0; padding: 0; margin: 0 0 15px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.panel-section-toggle h2 { margin: 0; }
+.panel-section-toggle svg { color: var(--muted); flex: none; }
 .amount { display: flex; flex-direction: column; gap: 7px; padding: 17px 0 5px; font-variant-numeric: tabular-nums; }
 .amount span { color: #3e4857; font-size: 11px; }
 .amount strong { color: #101820; font-size: 25px; line-height: 1; letter-spacing: -.025em; }
