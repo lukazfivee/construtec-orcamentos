@@ -1,0 +1,71 @@
+/* Impeccable adapt: phone layout, scoped away from desktop and printed proposals. */
+@media screen and (max-width: 767px) {
+  html, body, #root { height: auto; min-height: 100%; overflow: visible; }
+  .app-shell { display: flex; flex-direction: column; min-height: 100dvh; height: auto; }
+  .topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 8px; gap: 8px; }
+  .topbar .brand { height: 36px; padding: 0 4px; border: 0; }
+  .topbar .local-state { padding: 0 4px; flex-wrap: wrap; }
+  .topbar .global-search { order: 3; width: 100%; margin: 0; min-height: 44px; }
+  .topbar .global-search kbd { display: none; }
+  .topbar .top-actions { height: auto; width: 100%; padding: 0; gap: 4px; flex-wrap: wrap; }
+  .topbar .profile b, .topbar .profile > svg { display: none; }
+  .topbar .divider { display: none; }
+  .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
+  .sidebar { flex: none; overflow: visible; }
+  .sidebar nav { display: flex; overflow-x: auto; padding: 0; }
+  .sidebar nav button { flex: 0 0 auto; width: auto; min-width: 80px; height: 64px; gap: 4px; padding: 8px 12px; }
+  .sidebar nav button.active::before { inset: auto 0 0; width: auto; height: 2px; }
+  .sidebar .collapse { display: none; }
+  .workspace { display: flex; flex-direction: column; overflow: visible; }
+  .proposal-tabs { flex: none; min-height: 48px; }
+  .proposal-editor { height: auto; overflow: visible; border-right: 0; }
+  .proposal-items-panel, .history-region, .labor-panel, .proposal-kits-panel { flex: none; overflow: auto; }
+  .proposal-items-panel .table-region { flex: none; min-height: 160px; }
+  .proposal-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .proposal-meta .meta-field { padding: 12px; overflow-wrap: anywhere; }
+  .proposal-meta .meta-field:first-child { grid-column: 1 / -1; }
+  .section-tabs { overflow-x: auto; flex: none; gap: 20px; padding-inline: 12px; }
+  .section-tabs button { flex: none; min-height: 44px; }
+  .toolbar { flex-wrap: wrap; padding: 12px; }
+  .toolbar button, .actions button { min-height: 44px; height: auto; white-space: normal; }
+  .toolbar .toolbar-space { display: none; }
+  .proposal-filter-inputs, .proposal-filter-bar { flex-wrap: wrap; }
+  .proposal-filter-search-box, .proposal-filter-category-box { min-width: 0; max-width: 100%; }
+  .table-region { flex: none; width: 100%; max-height: 60dvh; overflow: auto; }
+  .table-region table { min-width: 900px; }
+  .commercial-panel { overflow: visible; height: auto; padding: 16px; border-top: 1px solid var(--line); }
+  .home-workspace, .management-workspace { display: flex; flex-direction: column; overflow: visible; padding: 0; }
+  .home-header, .management-header { flex-wrap: wrap; gap: 12px; padding: 16px; min-height: 0; }
+  .home-header-actions, .management-header-actions { flex-wrap: wrap; width: 100%; }
+  .home-body, .proposals-list-workspace .home-body { overflow: visible; padding: 16px; }
+  .home-intelligence-container, .management-body { grid-template-columns: minmax(0, 1fr); }
+  .management-body { margin: 12px; }
+  .management-body > *, .home-body > * { min-width: 0; }
+  .management-list { max-height: 40dvh; overflow: auto; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-card { padding: 12px; gap: 8px; flex-direction: column; align-items: flex-start; }
+  .kpi-content strong { overflow-wrap: anywhere; }
+  .quick-actions-bar, .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
+  .filter-chips, .proposals-footer-summary { flex-wrap: wrap; gap: 8px; }
+  .search-box { min-width: 0; width: 100%; }
+  .proposals-table-wrapper, .home-table-container, .kit-items-section { max-width: 100%; overflow-x: auto; }
+  .form-grid, .work-form, .new-proposal-dialog form { grid-template-columns: minmax(0, 1fr); }
+  .app-shell input:not([type="checkbox"]):not([type="radio"]), .app-shell select,
+  .app-shell textarea, .auth-shell input { font-size: 16px; min-height: 44px; max-width: 100%; }
+  .app-shell button, .dialog-backdrop button, .modal-overlay button { min-height: 44px; }
+  .app-shell .icon-button, .dialog-close, .table-action-btn { min-width: 44px; min-height: 44px; }
+  .dialog-backdrop, .modal-overlay { padding: 12px; overflow-y: auto; }
+  .new-proposal-dialog, .modal-card, .import-dialog, .proposal-import-dialog {
+    min-width: 0; width: 100%; max-width: 100%; max-height: calc(100dvh - 24px); overflow: auto;
+  }
+  .modal-footer, .new-proposal-dialog form > footer { flex-wrap: wrap; }
+  .catalog-popover { position: fixed; left: 12px; right: 12px; bottom: 12px; width: auto; max-height: 80dvh; overflow: auto; z-index: 70; }
+  .suite-dropdown-menu, .user-profile-popover, .notifications-popover { position: fixed; top: 104px; left: 12px; right: 12px; width: auto; max-height: calc(100dvh - 120px); overflow: auto; }
+  .auth-shell { height: auto; min-height: 100dvh; padding: 16px; }
+  .toast { max-width: calc(100vw - 24px); left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+
+@media screen and (max-width: 380px) {
+  .kpi-grid, .proposal-meta { grid-template-columns: minmax(0, 1fr); }
+  .home-body, .proposals-list-workspace .home-body { padding: 12px; }
+}

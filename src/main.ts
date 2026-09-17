@@ -52,8 +52,9 @@ const createWindow = async () => {
   const mainWindow = new BrowserWindow({
     width: Math.min(1536, availableWidth),
     height: Math.min(1024, availableHeight),
-    minWidth: Math.min(1280, availableWidth),
-    minHeight: Math.min(720, availableHeight),
+    minWidth: Math.min(860, availableWidth),
+    minHeight: Math.min(560, availableHeight),
+    resizable: true,
     backgroundColor: '#fefefe',
     show: true,
     autoHideMenuBar: true,
@@ -104,6 +105,7 @@ app.whenReady().then(async () => {
     apiToken: apiRuntime?.token,
     platform: process.platform,
     storage: 'local',
+    centroCustosUrl: process.env.CENTRO_CUSTOS_URL || 'https://centro-custos-api.construtec-reports.workers.dev',
   }));
 
   ipcMain.handle('app:open-external', async (_event, targetUrl: string) => {

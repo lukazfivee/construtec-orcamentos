@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Building2,
   ExternalLink,
@@ -7,6 +7,7 @@ import {
   LayoutGrid,
   Wrench,
 } from 'lucide-react';
+import { getCentroCustosUrl } from './api';
 
 interface SuiteSwitcherPopoverProps {
   activeApp?: 'orcamentos' | 'centro-custos';
@@ -20,6 +21,11 @@ export function SuiteSwitcherPopover({
   onClose,
 }: SuiteSwitcherPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [centroUrl, setCentroUrl] = useState('http://localhost:3333');
+
+  useEffect(() => {
+    void getCentroCustosUrl().then(setCentroUrl);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -58,11 +64,13 @@ export function SuiteSwitcherPopover({
   };
 
   const handleSelectModule = (app: 'orcamentos' | 'centro-custos') => {
+    if (app === 'centro-custos') {
+      handleOpenUrl(centroUrl);
+      return;
+    }
     if (onSelectApp) {
       onSelectApp(app);
       onClose();
-    } else if (app === 'centro-custos') {
-      handleOpenUrl('http://localhost:3333');
     } else {
       onClose();
     }

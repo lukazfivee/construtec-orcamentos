@@ -8,6 +8,7 @@ import {
   RotateCw,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { getCentroCustosUrl } from './api';
 
 interface Props {
   activeProposal?: ProposalDetail | null;
@@ -25,8 +26,11 @@ export function CentroCustosWorkspace({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState<boolean | null>(null);
+  const [baseAppUrl, setBaseAppUrl] = useState('http://localhost:3333');
 
-  const baseAppUrl = 'http://localhost:3333';
+  useEffect(() => {
+    void getCentroCustosUrl().then(setBaseAppUrl);
+  }, []);
   const iframeUrl = targetCostCenterId
     ? `${baseAppUrl}/#obra=${targetCostCenterId}`
     : `${baseAppUrl}/`;
@@ -86,7 +90,7 @@ export function CentroCustosWorkspace({
 
           <div className="cc-status-indicator">
             <span className={`status-dot ${online === true ? 'green' : online === false ? 'red' : 'yellow'}`} />
-            <span>{online === true ? 'Centro de Custos Online (:3333)' : online === false ? 'Servidor Desconectado' : 'Conectando…'}</span>
+            <span>{online === true ? `Centro de Custos Online (${new URL(baseAppUrl).port ? `:${new URL(baseAppUrl).port}` : ''})` : online === false ? 'Servidor Desconectado' : 'Conectando…'}</span>
           </div>
         </div>
 
@@ -117,9 +121,9 @@ export function CentroCustosWorkspace({
         {online === false ? (
           <div className="cc-offline-card">
             <AlertTriangle size={36} color="#eab308" />
-            <h3>Centro de Custos não iniciado (:3333)</h3>
+            <h3>Centro de Custos não iniciado</h3>
             <p>
-              O serviço do Centro de Custos não foi detectado na porta local 3333.
+              O serviço do Centro de Custos não foi detectado em <code>{baseAppUrl}</code>.
               <br />
               Utilize o <strong>INICIAR-SUITE-CONSTRUTEC.bat</strong> ou inicie pelo Portal Hub.
             </p>

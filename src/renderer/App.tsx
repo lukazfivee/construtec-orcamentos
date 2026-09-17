@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
-  Building2,
   ChevronLeft,
   FileText,
   Grid2X2,
@@ -27,7 +26,6 @@ type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | '
 const navItems: { label: NavSection; icon: typeof Grid2X2 }[] = [
   { label: 'Início', icon: Grid2X2 },
   { label: 'Propostas', icon: FileText },
-  { label: 'Centro de Custos', icon: Building2 },
   { label: 'Catálogo', icon: Box },
   { label: 'Clientes', icon: Users },
   { label: 'Kits', icon: Layers3 },

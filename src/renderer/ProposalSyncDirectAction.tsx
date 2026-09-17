@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   Building2,
@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
-import { proposalApi } from './api';
+import { getCentroCustosUrl, proposalApi } from './api';
 
 interface Props {
   proposal: ProposalDetail;
@@ -39,6 +39,11 @@ export function ProposalSyncDirectAction({
 
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [centroUrl, setCentroUrl] = useState('http://localhost:3333');
+
+  useEffect(() => {
+    void getCentroCustosUrl().then(setCentroUrl);
+  }, []);
 
   const executeSync = async (targetProposalId = proposal.id) => {
     setSyncState({ status: 'syncing' });
@@ -50,13 +55,13 @@ export function ProposalSyncDirectAction({
           message: res.message || 'Centro de Custo gerado com sucesso no Centro de Custos v3.',
           costCenterId: res.costCenterId,
           contractId: res.contractId,
-          centerUrl: res.centerUrl || 'http://localhost:3333/',
+          centerUrl: res.centerUrl || centroUrl,
         });
         showNotice?.(res.message || 'Centro de Custo gerado com sucesso!');
       } else if (res.offline) {
         setSyncState({
           status: 'offline',
-          message: res.error || 'O Centro de Custos não está em execução na porta 3333.',
+          message: res.error || `O Centro de Custos não está acessível em ${centroUrl}.`,
           centerUrl: 'http://localhost:3000',
         });
       } else {
@@ -102,7 +107,7 @@ export function ProposalSyncDirectAction({
   };
 
   const handleOpenCenter = () => {
-    const url = syncState.centerUrl || 'http://localhost:3333/';
+    const url = syncState.centerUrl || centroUrl;
     if (window.construtec?.openExternal) {
       void window.construtec.openExternal(url);
     } else {

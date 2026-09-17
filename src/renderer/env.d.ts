@@ -10,6 +10,7 @@ declare global {
         apiToken?: string;
         platform: string;
         storage: 'local';
+        centroCustosUrl: string;
       }>;
       openExternal?: (url: string) => Promise<{ opened: boolean }>;
       openWebmail?: (composeData?: { to?: string; subject?: string; body?: string }) => Promise<{ opened: boolean }>;

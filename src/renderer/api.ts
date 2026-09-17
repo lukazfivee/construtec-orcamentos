@@ -23,7 +23,7 @@ import type {
   UserRecord,
 } from '../shared/contracts';
 
-let runtimePromise: Promise<{ apiUrl: string; apiToken: string }> | undefined;
+let runtimePromise: Promise<{ apiUrl: string; apiToken: string; centroCustosUrl: string }> | undefined;
 let authSessionToken = '';
 
 export const setAuthSessionToken = (token: string | null) => {
@@ -35,18 +35,20 @@ const getRuntime = async () => {
   if (window.construtec?.runtime) {
     runtimePromise = window.construtec.runtime().then((runtime) => {
       if (!runtime.apiUrl || !runtime.apiToken) throw new Error('A API local não foi iniciada.');
-      return { apiUrl: runtime.apiUrl, apiToken: runtime.apiToken };
+      return { apiUrl: runtime.apiUrl, apiToken: runtime.apiToken, centroCustosUrl: runtime.centroCustosUrl };
     });
     return runtimePromise;
   }
-  const defaultApiUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://127.0.0.1:3000';
+  const defaultApiUrl = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev';
   const apiUrl = (typeof window !== 'undefined' && (window as unknown as { __CONSTRUTEC_API_URL__?: string }).__CONSTRUTEC_API_URL__)
-    || (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_url'))
     || defaultApiUrl;
   const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || 'web-session';
-  runtimePromise = Promise.resolve({ apiUrl, apiToken });
+  const centroCustosUrl = 'https://centro-custos-api.construtec-reports.workers.dev';
+  runtimePromise = Promise.resolve({ apiUrl, apiToken, centroCustosUrl });
   return runtimePromise;
 };
+
+export const getCentroCustosUrl = async () => (await getRuntime()).centroCustosUrl;
 
 const requestHeaders = (apiToken: string, hasBody = false) => ({
   Authorization: `Bearer ${apiToken}`,

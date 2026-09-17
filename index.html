@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Construtec" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' file:; font-src 'self' file: data:; connect-src 'self' file: http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; img-src 'self' file: data:" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' file:; font-src 'self' file: data:; connect-src 'self' file: https://construtec-orcamentos-cloud.construtec-reports.workers.dev http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; img-src 'self' file: data:" />
     <title>Construtec Orçamentos</title>
   </head>
   <body>
@@ -25,7 +25,7 @@
     <div id="root"></div>
     <script>
       if (location.pathname.startsWith('/orcamentos')) {
-        window.__CONSTRUTEC_API_URL__ = `${location.origin}/orcamentos-api`;
+        window.__CONSTRUTEC_API_URL__ = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev';
       }
     </script>
     <script type="module" src="/src/renderer.tsx"></script>
