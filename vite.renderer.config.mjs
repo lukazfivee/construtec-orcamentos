@@ -24,5 +24,17 @@ export default defineConfig({
         return html.replace(/ crossorigin(?:="[^"]*")?/g, '');
       },
     },
+    {
+      // Dev-only allowance so impeccable live mode can load its picker script.
+      // apply: 'serve' means this never runs for `vite build`.
+      name: 'impeccable-live-csp-dev-only',
+      apply: 'serve',
+      transformIndexHtml(html) {
+        return html.replace(
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' file:",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' file: http://localhost:8400"
+        );
+      },
+    },
   ],
 });

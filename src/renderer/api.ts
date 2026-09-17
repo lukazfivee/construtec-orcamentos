@@ -39,7 +39,7 @@ const getRuntime = async () => {
     });
     return runtimePromise;
   }
-  const defaultApiUrl = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev';
+  const defaultApiUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://127.0.0.1:5173';
   const apiUrl = (typeof window !== 'undefined' && (window as unknown as { __CONSTRUTEC_API_URL__?: string }).__CONSTRUTEC_API_URL__)
     || defaultApiUrl;
   const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || 'web-session';
