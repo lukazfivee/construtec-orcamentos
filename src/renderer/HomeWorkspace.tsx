@@ -7,7 +7,6 @@ import {
   FileText,
   Grid2X2,
   Layers3,
-  Mail,
   PackagePlus,
   RefreshCw,
   TrendingUp,
@@ -136,19 +135,20 @@ export function HomeWorkspace({
         <section className="quick-actions-bar">
           <span className="quick-actions-title">Ações rápidas:</span>
           <button type="button" onClick={onNewProposal}>
-            <FilePlus2 size={15} /> Nova proposta
+            <span className="quick-action-icon"><FilePlus2 size={15} /></span>
+            <span className="quick-action-label">Nova proposta</span>
           </button>
           <button type="button" onClick={() => onNavigate('Kits')}>
-            <Layers3 size={15} /> Novo kit / composição
+            <span className="quick-action-icon"><Layers3 size={15} /></span>
+            <span className="quick-action-label">Novo kit / composição</span>
           </button>
           <button type="button" onClick={() => onNavigate('Catálogo')}>
-            <PackagePlus size={15} /> Cadastrar item no catálogo
+            <span className="quick-action-icon"><PackagePlus size={15} /></span>
+            <span className="quick-action-label">Cadastrar item no catálogo</span>
           </button>
           <button type="button" onClick={() => onNavigate('Clientes')}>
-            <UserPlus size={15} /> Novo cliente / obra
-          </button>
-          <button type="button" onClick={() => void window.construtec?.openWebmail?.()} title="Acessar o UOL Webmail Pro corporativo com login persistente">
-            <Mail size={15} /> Webmail Pro
+            <span className="quick-action-icon"><UserPlus size={15} /></span>
+            <span className="quick-action-label">Novo cliente / obra</span>
           </button>
         </section>
 
@@ -168,7 +168,7 @@ export function HomeWorkspace({
             className={`home-tab-pill ${activeTab === 'intelligence' ? 'active' : ''}`}
             onClick={() => setActiveTab('intelligence')}
           >
-            <BarChart3 size={16} /> Inteligência Comercial & Curva ABC
+            <BarChart3 size={16} /> Inteligência Comercial
             {metrics?.intelligence?.conversionRate !== undefined ? (
               <span className="tab-counter highlight">{metrics.intelligence.conversionRate}% conv.</span>
             ) : null}

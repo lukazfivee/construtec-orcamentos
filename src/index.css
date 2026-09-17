@@ -814,6 +814,9 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
   border-color: #b8d1fb;
 }
 
+.quick-action-icon { display: inline-flex; align-items: center; }
+.quick-action-label { display: inline; }
+
 .home-section-card {
   background: #fff;
   border: 1px solid var(--line);

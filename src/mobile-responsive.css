@@ -156,12 +156,24 @@
   .kpi-content strong { overflow-wrap: anywhere; }
   /* Início: subtitulo, "Atualizar" (redundante com o pull-to-refresh
      implicito de reabrir a aba) e o "Nova proposta" duplicado dentro de
-     Acoes rapidas somem; a faixa vira uma unica linha rolavel. */
+     Acoes rapidas somem; a faixa vira uma grade em vez de tira rolavel
+     (impeccable adapt: grade 2 colunas -- tudo visivel sem scroll,
+     alvo de toque generoso, ultimo item sozinho ocupa a linha inteira). */
   .home-workspace .management-header p { display: none; }
   .home-workspace .management-header-actions button:first-child { display: none; }
   .home-workspace .quick-actions-title { display: none; }
   .home-workspace .quick-actions-bar button:first-of-type { display: none; }
-  .quick-actions-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 8px; }
+  .quick-actions-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .quick-actions-bar button {
+    flex-direction: row; align-items: center; gap: 10px; min-height: 56px;
+    height: auto; padding: 10px 12px; text-align: left; white-space: normal;
+  }
+  .quick-actions-bar button:last-child { grid-column: 1 / -1; }
+  .quick-action-icon {
+    width: 30px; height: 30px; flex: none;
+    background: var(--blue-soft); color: var(--blue); border-radius: 8px;
+  }
+  .quick-action-label { font-size: 12px; font-weight: 600; line-height: 1.25; }
   .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
   .filter-chips, .proposals-footer-summary { flex-wrap: wrap; gap: 8px; }
   .search-box { min-width: 0; width: 100%; }
