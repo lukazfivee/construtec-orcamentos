@@ -18,9 +18,11 @@
   .topbar .local-state { display: none; }
   .topbar .global-search { display: none; }
   .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 2px; flex-wrap: wrap; margin-left: auto; }
-  .topbar .profile b, .topbar .profile > svg { display: none; }
+  /* Logout mora no menu hamburguer (.mobile-nav-logout) no mobile -- o
+     avatar/nome no topbar some, nao ha perda de funcionalidade. */
+  .topbar .top-action-anchor:has(.profile) { display: none; }
   .topbar .divider { display: none; }
-  .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
+  .topbar .icon-button, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
   .top-actions .icon-button.top-actions-mobile-menu-toggle { display: inline-grid !important; }
   .top-actions .icon-button.help-button { display: none !important; }
   /* impeccable adapt: this read as a shrunk website, not a mobile app --
@@ -89,6 +91,13 @@
   .mobile-nav-menu button:hover { color: #fff; background: #182941; }
   .mobile-nav-menu button.active { color: #fff; background: #1b2c45; font-weight: 600; }
   .mobile-nav-menu button span { font-size: 14px; }
+  .mobile-nav-menu .mobile-nav-logout {
+    margin-top: 8px; padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    color: #f2a0a0;
+  }
+  .mobile-nav-menu .mobile-nav-logout:hover { color: #fff; background: #3a1c1c; }
+  .mobile-nav-menu .mobile-nav-logout span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .workspace { display: flex; flex-direction: column; overflow: visible; }
   .proposal-tabs { flex: none; min-height: 48px; }
   .proposal-editor { height: auto; overflow: visible; border-right: 0; }

@@ -5,6 +5,7 @@ import {
   FileText,
   Grid2X2,
   Layers3,
+  LogOut,
   Menu,
   Settings,
   Users,
@@ -310,6 +311,21 @@ export function App({ user, onLogout }: AppProps = {}) {
             </button>
           );
         })}
+        {user && onLogout && (
+          <button
+            type="button"
+            role="menuitem"
+            className="mobile-nav-logout"
+            tabIndex={mobileMenuOpen ? 0 : -1}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onLogout();
+            }}
+          >
+            <LogOut size={20} />
+            <span>Sair ({user.name})</span>
+          </button>
+        )}
       </div>
       <button className="collapse" type="button">
           <ChevronLeft size={17} />
