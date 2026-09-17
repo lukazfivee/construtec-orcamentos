@@ -21,9 +21,29 @@
   .proposal-editor { height: auto; overflow: visible; border-right: 0; }
   .proposal-items-panel, .history-region, .labor-panel, .proposal-kits-panel { flex: none; overflow: auto; }
   .proposal-items-panel .table-region { flex: none; min-height: 160px; }
-  .proposal-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .proposal-meta .meta-field { padding: 12px; overflow-wrap: anywhere; }
-  .proposal-meta .meta-field:first-child { grid-column: 1 / -1; }
+  /* The line-item table is the protagonist (DESIGN.md); a 3-row stacked
+     grid of labels pushed it past the first viewport on phones, so the
+     metadata collapses to one scrollable strip instead of stacking. */
+  .proposal-meta {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .proposal-meta .meta-field {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+  .proposal-meta .meta-field:first-child { grid-column: auto; border-left: 0; }
+  .proposal-meta .status-field { flex-direction: row; align-items: center; }
+  .proposal-meta .meta-field > span,
+  .proposal-meta .status-field > label { font-size: 10px; }
+  .proposal-meta .meta-field button { font-size: 12px; }
   .section-tabs { overflow-x: auto; flex: none; gap: 20px; padding-inline: 12px; }
   .section-tabs button { flex: none; min-height: 44px; }
   .toolbar { flex-wrap: wrap; padding: 12px; }
@@ -66,6 +86,6 @@
 }
 
 @media screen and (max-width: 380px) {
-  .kpi-grid, .proposal-meta { grid-template-columns: minmax(0, 1fr); }
+  .kpi-grid { grid-template-columns: minmax(0, 1fr); }
   .home-body, .proposals-list-workspace .home-body { padding: 12px; }
 }
