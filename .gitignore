@@ -23,6 +23,7 @@ backups/
 # editor and operating system
 .DS_Store
 Thumbs.db
+desktop.ini
 .idea/
 .vscode/*
 !.vscode/extensions.json
