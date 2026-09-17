@@ -8,11 +8,14 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { isCloudRuntime } from './api';
 
 interface NotificationsPopoverProps {
   proposal: ProposalDetail | null;
   onClose: () => void;
 }
+
+const isCloud = isCloudRuntime();
 
 export function NotificationsPopover({ proposal, onClose }: NotificationsPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -101,11 +104,13 @@ export function NotificationsPopover({ proposal, onClose }: NotificationsPopover
             <Database size={16} />
           </div>
           <div className="notification-body">
-            <strong>Banco Local PGlite Conectado</strong>
-            <p>Operação local-first ativa e íntegra. Todos os dados são persistidos neste computador.</p>
+            <strong>{isCloud ? 'Banco PostgreSQL na Nuvem Conectado' : 'Banco Local PGlite Conectado'}</strong>
+            <p>{isCloud
+              ? 'Conexão segura e íntegra com o banco de dados na nuvem.'
+              : 'Operação local-first ativa e íntegra. Todos os dados são persistidos neste computador.'}</p>
             <small>
               <CheckCircle2 size={12} style={{ display: 'inline', marginRight: 4 }} />
-              100% Offline e seguro
+              {isCloud ? 'Conexão segura (HTTPS)' : '100% Offline e seguro'}
             </small>
           </div>
         </div>

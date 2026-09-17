@@ -8,12 +8,14 @@ import {
   Search,
 } from 'lucide-react';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
+import { isCloudRuntime } from './api';
 import { HelpModal } from './HelpModal';
 import { NotificationsPopover } from './NotificationsPopover';
 import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
 import { UserProfilePopover } from './UserProfilePopover';
 
 const brandLogo = new URL('../assets/logo-branca.png', import.meta.url).href;
+const isCloud = isCloudRuntime();
 
 interface AppTopbarProps {
   user?: AuthUser | null;
@@ -69,12 +71,14 @@ export function AppTopbar({
         </div>
 
         <div className="local-state">
-          <span aria-hidden="true" /> Offline{' '}
+          <span aria-hidden="true" /> {isCloud ? 'Online' : 'Offline'}{' '}
           <button
             type="button"
-            onClick={() => showNotice('Os dados desta versão ficam armazenados localmente neste computador.')}
+            onClick={() => showNotice(isCloud
+              ? 'Os dados desta versão ficam armazenados na nuvem, em um banco PostgreSQL.'
+              : 'Os dados desta versão ficam armazenados localmente neste computador.')}
           >
-            Dados locais <ChevronDown size={14} />
+            {isCloud ? 'Dados na nuvem' : 'Dados locais'} <ChevronDown size={14} />
           </button>
         </div>
 
