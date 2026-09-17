@@ -3,12 +3,13 @@ import { KeyRound, LoaderCircle, LockKeyhole, ShieldCheck, UserPlus } from 'luci
 import type { AuthUser } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
-import { authApi, setAuthSessionToken } from './api';
+import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
 
 const SESSION_KEY = 'construtec.auth.session';
 const REMEMBERED_EMAIL_KEY = 'construtec.auth.remembered_email';
 const REMEMBER_FLAG_KEY = 'construtec.auth.remember_me';
 const brandLogo = `data:image/png;base64,${CONSTRUTEC_LOGO_BASE64}`;
+const isCloud = isCloudRuntime();
 type AuthMode = 'checking' | 'setup' | 'login' | 'ready';
 
 export function AuthGate() {
@@ -98,7 +99,7 @@ export function AuthGate() {
         }
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof Error ? loadError.message : 'Não foi possível iniciar a autenticação local.');
+          setError(loadError instanceof Error ? loadError.message : 'Não foi possível iniciar a autenticação.');
           setMode('login');
         }
       }
@@ -139,7 +140,7 @@ export function AuthGate() {
       finishSession(session.token, session.user, rememberMe);
     } catch (submitError) {
       if (submitError instanceof Error && submitError.message.includes('AUTH_SETUP_COMPLETE')) {
-        setError('O primeiro acesso já foi configurado neste computador. Por favor, faça login com seu e-mail e senha.');
+        setError('O primeiro acesso já foi configurado. Por favor, faça login com seu e-mail e senha.');
       } else {
         setError(submitError instanceof Error ? submitError.message : 'Não foi possível entrar no aplicativo.');
       }
@@ -157,7 +158,7 @@ export function AuthGate() {
       <main className="auth-shell auth-loading" aria-busy="true">
         <img src={brandLogo} alt="Construtec Orçamentos" className="auth-loading-logo" />
         <LoaderCircle className="spinning" size={26} />
-        <strong>Preparando ambiente local…</strong>
+        <strong>{isCloud ? 'Conectando…' : 'Preparando ambiente local…'}</strong>
       </main>
     );
   }
@@ -177,8 +178,12 @@ export function AuthGate() {
             <span className="auth-eyebrow">{setup ? 'PRIMEIRO ACESSO' : 'CONSTRUTEC ORÇAMENTOS'}</span>
             <h1>{setup ? 'Cadastro de administrador' : 'Entrar'}</h1>
             <p>{setup
-              ? 'Crie o primeiro acesso administrativo deste computador. Os dados continuam armazenados localmente.'
-              : 'Use sua conta interna para acessar os orçamentos deste computador.'}</p>
+              ? (isCloud
+                  ? 'Crie o primeiro acesso administrativo da conta na nuvem.'
+                  : 'Crie o primeiro acesso administrativo deste computador. Os dados continuam armazenados localmente.')
+              : (isCloud
+                  ? 'Use sua conta para acessar os orçamentos.'
+                  : 'Use sua conta interna para acessar os orçamentos deste computador.')}</p>
           </div>
         </header>
 
@@ -210,7 +215,7 @@ export function AuthGate() {
               checked={rememberMe}
               onChange={(event) => setRememberMe(event.target.checked)}
             />
-            <span>Lembrar meu acesso neste computador</span>
+            <span>Lembrar meu acesso neste dispositivo</span>
           </label>
 
           {error && <div className="auth-error" role="alert">{error}</div>}
@@ -231,7 +236,7 @@ export function AuthGate() {
 
         <footer>
           <ShieldCheck size={15} />
-          <span>Sessão local protegida. Senhas são armazenadas somente como hash.</span>
+          <span>{isCloud ? 'Sessão protegida por HTTPS.' : 'Sessão local protegida.'} Senhas são armazenadas somente como hash.</span>
         </footer>
       </section>
     </main>

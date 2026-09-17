@@ -50,6 +50,8 @@ const getRuntime = async () => {
 
 export const getCentroCustosUrl = async () => (await getRuntime()).centroCustosUrl;
 
+export const isCloudRuntime = () => typeof window === 'undefined' || !window.construtec?.runtime;
+
 const requestHeaders = (apiToken: string, hasBody = false) => ({
   Authorization: `Bearer ${apiToken}`,
   ...(authSessionToken ? { 'X-Construtec-Session': authSessionToken } : {}),
