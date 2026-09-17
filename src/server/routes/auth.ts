@@ -31,7 +31,7 @@ export const createAuthRouter = (database: LocalDatabase, sessionSecret: string)
     try {
       const input = setupSchema.parse(request.body);
       response.status(201).json(await setupFirstAdmin(database, sessionSecret, input));
-    } catch (error) { next(error); }
+    } catch (error) { console.error('[auth/login]', error); next(error); }
   });
 
   router.post('/login', async (request, response, next) => {

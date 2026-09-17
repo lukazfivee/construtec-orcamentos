@@ -16,7 +16,16 @@ import { proposalItemCategoryMigration } from '../migrations/006-proposal-item-c
 import { kitsAndSettingsMigration } from '../migrations/007-kits-and-settings';
 import { ensureFirstRunData } from './bootstrap';
 
-export type LocalDatabase = PGliteModule.PGlite;
+export interface DatabaseQueries {
+  query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: T[]; affectedRows?: number }>;
+  exec(sql: string): Promise<unknown>;
+}
+
+export interface LocalDatabase extends DatabaseQueries {
+  transaction<T>(callback: (transaction: DatabaseQueries) => Promise<T>): Promise<T>;
+  close(): Promise<void>;
+  dumpDataDir(compression?: 'gzip' | 'none'): Promise<Blob>;
+}
 
 const loadPGlite = async (packagedModulePath?: string) => {
   const pgliteSpecifier = packagedModulePath
@@ -86,6 +95,20 @@ export const restoreDatabaseFromBackup = async (userDataPath: string, dump: Uint
 };
 
 export const createDatabase = async (userDataPath: string, packagedModulePath?: string) => {
+  if (process.env.DATABASE_URL) {
+    const { createPostgresDatabase } = await import('./postgresDatabase');
+    const database = createPostgresDatabase(process.env.DATABASE_URL);
+    try {
+      await database.transaction(async transaction => {
+        await transaction.query('SELECT pg_advisory_xact_lock(178241, 1)');
+        await migrateDatabase(transaction);
+      });
+      return database;
+    } catch (error) {
+      await database.close();
+      throw error;
+    }
+  }
   const databasePath = getDatabasePath(userDataPath);
   await mkdir(databasePath, { recursive: true });
   try {
@@ -96,6 +119,17 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
   const { PGlite, NodeFS } = await loadPGlite(packagedModulePath);
   const database = await PGlite.create({ fs: new NodeFS(databasePath) });
 
+  try {
+    await database.transaction(migrateDatabase);
+    await ensureFirstRunData(database);
+    return database;
+  } catch (error) {
+    await database.close();
+    throw error;
+  }
+};
+
+const migrateDatabase = async (database: DatabaseQueries) => {
   await database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version integer PRIMARY KEY,
@@ -122,22 +156,12 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
       [version],
     );
     if (result.rows.length === 0) {
-      await database.transaction(async (transaction) => {
-        await transaction.exec(sql);
-        await transaction.query('INSERT INTO schema_migrations (version) VALUES ($1)', [version]);
-      });
+      await database.exec(sql);
+      await database.query('INSERT INTO schema_migrations (version) VALUES ($1)', [version]);
     }
   }
 
   // Self-heal: garante coluna snapshot_category e que description em kits seja opcional
   await database.exec("ALTER TABLE proposal_items ADD COLUMN IF NOT EXISTS snapshot_category text NOT NULL DEFAULT 'Outros'");
-  try {
-    await database.exec('ALTER TABLE kits ALTER COLUMN description DROP NOT NULL');
-  } catch {
-    // Compatibilidade com bases antigas sem a tabela kits; migrações são verificadas antes.
-  }
-
-  await ensureFirstRunData(database);
-
-  return database;
+  await database.exec('ALTER TABLE kits ALTER COLUMN description DROP NOT NULL');
 };

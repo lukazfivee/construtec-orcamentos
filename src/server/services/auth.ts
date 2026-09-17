@@ -20,7 +20,9 @@ type UserRow = {
 };
 
 const toAuthUser = (row: Pick<UserRow, 'id' | 'name' | 'email' | 'role'>): AuthUser => ({
-  id: row.id,
+  // PostgreSQL returns integer ids as numbers in the legacy public schema;
+  // JWT subject values must always be strings.
+  id: String(row.id),
   name: row.name,
   email: row.email,
   role: row.role,
@@ -58,6 +60,8 @@ export const setupFirstAdmin = async (
 ): Promise<AuthSession> => {
   const passwordHash = await hash(input.password, 12);
   const user = await database.transaction(async (transaction) => {
+    // Serialize initial setup even when there are no user rows to lock yet.
+    await transaction.exec('LOCK TABLE users IN EXCLUSIVE MODE');
     const existing = await transaction.query<{ id: string }>(`
       SELECT id
       FROM users
@@ -122,7 +126,7 @@ export const verifyUserSession = async (
     const result = await database.query<UserRow>(`
       SELECT id, name, email, password_hash, role, active
       FROM users
-      WHERE id = $1 AND active = true
+      WHERE id::text = $1 AND active = true
       LIMIT 1
     `, [payload.sub]);
     return result.rows[0] ? toAuthUser(result.rows[0]) : null;

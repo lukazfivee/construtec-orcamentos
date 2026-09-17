@@ -17,20 +17,61 @@ const getSessionToken = (request: express.Request) => {
   return typeof value === 'string' ? value : '';
 };
 
+export interface CloudSecurity {
+  sessionSecret: string;
+  setupToken: string;
+  allowedOrigin: string;
+}
+
+const MIN_SECRET_LENGTH = 32;
+
+export const getCloudSecurity = (env: NodeJS.ProcessEnv = process.env): CloudSecurity | undefined => {
+  if (!env.DATABASE_URL) return undefined;
+  const sessionSecret = env.SESSION_SECRET || '';
+  if (sessionSecret.length < MIN_SECRET_LENGTH) {
+    throw new Error(`SESSION_SECRET é obrigatório e deve ter ao menos ${MIN_SECRET_LENGTH} caracteres no modo cloud.`);
+  }
+  const setupToken = env.CONSTRUTEC_SETUP_TOKEN || '';
+  if (setupToken.length < MIN_SECRET_LENGTH) {
+    throw new Error(`CONSTRUTEC_SETUP_TOKEN é obrigatório e deve ter ao menos ${MIN_SECRET_LENGTH} caracteres no modo cloud.`);
+  }
+  let origin: URL;
+  try {
+    origin = new URL(env.CONSTRUTEC_ALLOWED_ORIGINS || '');
+  } catch {
+    throw new Error('CONSTRUTEC_ALLOWED_ORIGINS deve ser uma única origem HTTPS válida (sem caminho ou credenciais).');
+  }
+  if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) {
+    throw new Error('CONSTRUTEC_ALLOWED_ORIGINS deve ser uma única origem HTTPS válida (sem caminho ou credenciais).');
+  }
+  return { sessionSecret, setupToken, allowedOrigin: origin.origin };
+};
+
+const CLOUD_SETUP_PATH = /^\/api\/auth\/setup\/?$/i;
+
 export const createApp = (database: LocalDatabase, apiToken: string, sessionSecret: string) => {
   const api = express();
+  const cloud = getCloudSecurity();
+  const effectiveSessionSecret = cloud?.sessionSecret ?? sessionSecret;
 
   api.disable('x-powered-by');
   api.use((request, response, next) => {
     const origin = request.headers.origin;
-    const isLocalOrPrivate = !origin
-      || origin === 'null'
-      || origin.startsWith('http://localhost:')
-      || origin.startsWith('http://127.0.0.1:')
-      || /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+|[\w-]+\.local)(:\d+)?$/i.test(origin);
-    if (origin && !isLocalOrPrivate) {
-      response.status(403).json({ error: 'Origem não autorizada.' });
-      return;
+    if (cloud) {
+      if (origin && origin !== cloud.allowedOrigin) {
+        response.status(403).json({ error: 'Origem não autorizada.' });
+        return;
+      }
+    } else {
+      const isLocalOrPrivate = !origin
+        || origin === 'null'
+        || origin.startsWith('http://localhost:')
+        || origin.startsWith('http://127.0.0.1:')
+        || /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+|[\w-]+\.local)(:\d+)?$/i.test(origin);
+      if (origin && !isLocalOrPrivate) {
+        response.status(403).json({ error: 'Origem não autorizada.' });
+        return;
+      }
     }
     if (origin) {
       response.setHeader('Access-Control-Allow-Origin', origin);
@@ -43,6 +84,21 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       return;
     }
     next();
+  });
+  api.use((request, response, next) => {
+    if (cloud && CLOUD_SETUP_PATH.test(request.path) && request.headers.authorization !== `Bearer ${cloud.setupToken}`) {
+      response.status(403).json({ error: 'Configuração inicial protegida.' });
+      return;
+    }
+    next();
+  });
+  api.get('/health', async (_request, response) => {
+    try {
+      await database.query('SELECT now()::text AS now');
+      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local' });
+    } catch {
+      response.status(503).json({ ok: false, error: 'Banco de dados indisponível.' });
+    }
   });
   api.use((request, response, next) => {
     const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`
@@ -59,12 +115,12 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
 
   api.get('/api/health', async (_request, response) => {
     const result = await database.query<{ now: string }>('SELECT now()::text AS now');
-    response.json({ ok: true, storage: 'local', databaseTime: result.rows[0]?.now });
+    response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', databaseTime: result.rows[0]?.now });
   });
-  api.use('/api/auth', createAuthRouter(database, sessionSecret));
+  api.use('/api/auth', createAuthRouter(database, effectiveSessionSecret));
 
   api.use(async (request, response, next) => {
-    const user = await verifyUserSession(database, sessionSecret, getSessionToken(request));
+    const user = await verifyUserSession(database, effectiveSessionSecret, getSessionToken(request));
     if (!user) {
       response.status(401).json({ error: 'Sessão de usuário inválida ou expirada.' });
       return;
@@ -182,11 +238,11 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
         return;
       }
       console.error(error);
-      response.status(500).json({ error: error.message || 'Não foi possível concluir a operação local.' });
+      response.status(500).json({ error: cloud ? 'Não foi possível concluir a operação.' : (error.message || 'Não foi possível concluir a operação local.') });
       return;
     }
     console.error(error);
-    response.status(500).json({ error: 'Não foi possível concluir a operação local.' });
+    response.status(500).json({ error: cloud ? 'Não foi possível concluir a operação.' : 'Não foi possível concluir a operação local.' });
   });
 
   return api;

@@ -1,6 +1,6 @@
 import type { Server } from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { createApp } from './createApp';
+import { createApp, getCloudSecurity } from './createApp';
 import { verifyUserSession } from './services/auth';
 import { createDatabase } from './services/database';
 import { startOutboxRetryWorker } from './services/outboxRetryWorker';
@@ -18,16 +18,18 @@ export const startApiServer = async (
   packagedModulePath?: string,
   preferredPort = Number(process.env.CONSTRUTEC_API_PORT || 5176),
 ): Promise<ApiRuntime> => {
+  const cloud = getCloudSecurity();
   const database = await createDatabase(userDataPath, packagedModulePath);
   const token = process.env.CONSTRUTEC_API_TOKEN || randomUUID();
-  const sessionSecret = `${randomUUID()}${randomUUID()}`;
+  const sessionSecret = cloud?.sessionSecret || process.env.SESSION_SECRET || `${randomUUID()}${randomUUID()}`;
   const api = createApp(database, token, sessionSecret);
 
   const server = await new Promise<Server>((resolve, reject) => {
+    const host = process.env.CONSTRUTEC_API_HOST || '127.0.0.1';
     const bindServer = (port: number) => {
-      const instance = api.listen(port, '127.0.0.1', () => resolve(instance));
+      const instance = api.listen(port, host, () => resolve(instance));
       instance.once('error', (err: NodeJS.ErrnoException) => {
-        if (err.code === 'EADDRINUSE' && port !== 0) {
+        if (err.code === 'EADDRINUSE' && port !== 0 && !cloud) {
           bindServer(0);
         } else {
           reject(err);
@@ -35,6 +37,9 @@ export const startApiServer = async (
       });
     };
     bindServer(preferredPort);
+  }).catch(async error => {
+    await database.close();
+    throw error;
   });
 
   const address = server.address();
