@@ -1,5 +1,15 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-17 15:10 BRT — Paridade visual completa com Centro de Custos (mobile)
+
+Sequência de 3 rodadas de comparação por screenshot movida pelo usuário, todas publicadas:
+
+1. Topbar: ícones (Suíte/Notificações/Ajuda/Webmail/Perfil) diretos na barra em vez de atrás de "Mais opções"; hambúrguer novo abre o mesmo menu completo da barra inferior; barra inferior com tamanho exato do Centro de Custos (`min-height:46px`, `padding:5px 1px`, ícone 18px, rótulo 9px, lido de `centro de custos CONSTRUTEC/public/style-base.css`).
+2. Logo: `src/assets/logo-icon.png` — recorte do `public/icon-192.png` oficial (não redesenhado), isolando só o símbolo do telhado/chevron. Mobile mostra só o ícone; desktop mantém a logo completa com "Orçamentos".
+3. Removida a barra de busca do topo no mobile (não existe no Centro de Custos; a mesma busca de catálogo continua acessível via "Inserir" no editor).
+
+Dois bugs de especificidade CSS pegos e corrigidos durante a verificação (mesmo padrão dos 2 já registrados na entrada anterior): `.brand img { display:block }` (tag+classe) vencia `.brand-logo-icon { display:none }` (1 classe), fazendo os dois logos aparecerem juntos no desktop — corrigido removendo `display` da regra compartilhada. Validado em 390×844 e 1600×900 em cada rodada; typecheck e `test:critical` 23/23 antes de cada commit/deploy.
+
 ## 2026-09-17 14:15 BRT — App shell mobile: alinhado ao Centro de Custos
 
 - Usuário rejeitou a primeira rodada de variantes da tela de Início (muito parecidas entre si, mudança superficial) e pediu redesenho real: "não está parecendo um app, e sim uma versão de um site". Revertido o commit da 1ª rodada (`git revert 4cca0e9`).
