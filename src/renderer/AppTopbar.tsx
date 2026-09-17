@@ -5,6 +5,7 @@ import {
   HelpCircle,
   LayoutGrid,
   Mail,
+  MoreVertical,
   Search,
 } from 'lucide-react';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
@@ -48,6 +49,7 @@ export function AppTopbar({
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   const divergentCount =
     proposal?.isLatest
@@ -94,109 +96,123 @@ export function AppTopbar({
         </button>
 
         <div className="top-actions">
-          {/* Suíte Construtec / App Switcher */}
-          <div className="top-action-anchor suite-switcher-container">
+          <button
+            className={`icon-button top-actions-mobile-toggle ${mobileMoreOpen ? 'active' : ''}`}
+            aria-label="Mais opções"
+            aria-expanded={mobileMoreOpen}
+            type="button"
+            onClick={() => setMobileMoreOpen((prev) => !prev)}
+            title="Suíte, notificações, ajuda, webmail e perfil"
+          >
+            <MoreVertical size={18} />
+            {divergentCount > 0 && <span className="notification-badge" aria-label={`${divergentCount} divergências`} />}
+          </button>
+
+          <div className={`top-actions-secondary ${mobileMoreOpen ? 'open' : ''}`}>
+            {/* Suíte Construtec / App Switcher */}
+            <div className="top-action-anchor suite-switcher-container">
+              <button
+                id="btn-suite-switcher"
+                className={`btn-suite-topbar ${suiteOpen ? 'active' : ''}`}
+                type="button"
+                aria-expanded={suiteOpen}
+                onClick={() => {
+                  setSuiteOpen((prev) => !prev);
+                  setNotificationsOpen(false);
+                  setProfileOpen(false);
+                }}
+                title="Alternar entre sistemas da Suíte Construtec"
+              >
+                <LayoutGrid size={15} />
+                <span className="suite-label">Suíte</span>
+                <ChevronDown size={11} className="suite-caret" />
+              </button>
+              {suiteOpen && (
+                <SuiteSwitcherPopover
+                  activeApp={activeNav === 'Centro de Custos' ? 'centro-custos' : 'orcamentos'}
+                  onSelectApp={onSelectApp}
+                  onClose={() => setSuiteOpen(false)}
+                />
+              )}
+            </div>
+
+            <div className="top-action-anchor">
+              <button
+                className={`icon-button ${notificationsOpen ? 'active' : ''}`}
+                aria-label="Notificações"
+                type="button"
+                onClick={() => {
+                  setNotificationsOpen((prev) => !prev);
+                  setSuiteOpen(false);
+                  setProfileOpen(false);
+                }}
+                title="Notificações e alertas do sistema"
+              >
+                <Bell size={18} />
+                {divergentCount > 0 && <span className="notification-badge" aria-label={`${divergentCount} divergências`} />}
+              </button>
+              {notificationsOpen && (
+                <NotificationsPopover
+                  proposal={proposal}
+                  onClose={() => setNotificationsOpen(false)}
+                />
+              )}
+            </div>
+
             <button
-              id="btn-suite-switcher"
-              className={`btn-suite-topbar ${suiteOpen ? 'active' : ''}`}
+              className={`icon-button ${helpOpen ? 'active' : ''}`}
+              aria-label="Central de Ajuda"
               type="button"
-              aria-expanded={suiteOpen}
               onClick={() => {
-                setSuiteOpen((prev) => !prev);
+                setHelpOpen(true);
+                setSuiteOpen(false);
                 setNotificationsOpen(false);
                 setProfileOpen(false);
               }}
-              title="Alternar entre sistemas da Suíte Construtec"
+              title="Central de Ajuda e Atalhos (Ctrl+H)"
             >
-              <LayoutGrid size={15} />
-              <span className="suite-label">Suíte</span>
-              <ChevronDown size={11} className="suite-caret" />
+              <HelpCircle size={18} />
             </button>
-            {suiteOpen && (
-              <SuiteSwitcherPopover
-                activeApp={activeNav === 'Centro de Custos' ? 'centro-custos' : 'orcamentos'}
-                onSelectApp={onSelectApp}
-                onClose={() => setSuiteOpen(false)}
-              />
-            )}
-          </div>
 
-          <div className="top-action-anchor">
             <button
-              className={`icon-button ${notificationsOpen ? 'active' : ''}`}
-              aria-label="Notificações"
+              className="icon-button"
+              aria-label="Webmail Corporativo (UOL Pro)"
               type="button"
               onClick={() => {
-                setNotificationsOpen((prev) => !prev);
-                setSuiteOpen(false);
-                setProfileOpen(false);
+                void window.construtec?.openWebmail?.();
+                showNotice('Abrindo UOL Webmail Pro corporativo…');
               }}
-              title="Notificações e alertas do sistema"
+              title="Webmail Corporativo (UOL Pro)"
             >
-              <Bell size={18} />
-              {divergentCount > 0 && <span className="notification-badge" aria-label={`${divergentCount} divergências`} />}
+              <Mail size={18} />
             </button>
-            {notificationsOpen && (
-              <NotificationsPopover
-                proposal={proposal}
-                onClose={() => setNotificationsOpen(false)}
-              />
-            )}
-          </div>
 
-          <button
-            className={`icon-button ${helpOpen ? 'active' : ''}`}
-            aria-label="Central de Ajuda"
-            type="button"
-            onClick={() => {
-              setHelpOpen(true);
-              setSuiteOpen(false);
-              setNotificationsOpen(false);
-              setProfileOpen(false);
-            }}
-            title="Central de Ajuda e Atalhos (Ctrl+H)"
-          >
-            <HelpCircle size={18} />
-          </button>
+            <span className="divider" />
 
-          <button
-            className="icon-button"
-            aria-label="Webmail Corporativo (UOL Pro)"
-            type="button"
-            onClick={() => {
-              void window.construtec?.openWebmail?.();
-              showNotice('Abrindo UOL Webmail Pro corporativo…');
-            }}
-            title="Webmail Corporativo (UOL Pro)"
-          >
-            <Mail size={18} />
-          </button>
-
-          <span className="divider" />
-
-          <div className="top-action-anchor">
-            <button
-              className={`profile ${profileOpen ? 'active' : ''}`}
-              type="button"
-              onClick={() => {
-                setProfileOpen((prev) => !prev);
-                setSuiteOpen(false);
-                setNotificationsOpen(false);
-              }}
-              title={`Perfil: ${displayName}`}
-              aria-label="Menu do usuário"
-            >
-              <span>{displayInitials}</span>
-              <b>{displayName}</b>
-              <ChevronDown size={14} />
-            </button>
-            {profileOpen && user && onLogout && (
-              <UserProfilePopover
-                user={user}
-                onLogout={onLogout}
-                onClose={() => setProfileOpen(false)}
-              />
-            )}
+            <div className="top-action-anchor">
+              <button
+                className={`profile ${profileOpen ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  setProfileOpen((prev) => !prev);
+                  setSuiteOpen(false);
+                  setNotificationsOpen(false);
+                }}
+                title={`Perfil: ${displayName}`}
+                aria-label="Menu do usuário"
+              >
+                <span>{displayInitials}</span>
+                <b>{displayName}</b>
+                <ChevronDown size={14} />
+              </button>
+              {profileOpen && user && onLogout && (
+                <UserProfilePopover
+                  user={user}
+                  onLogout={onLogout}
+                  onClose={() => setProfileOpen(false)}
+                />
+              )}
+            </div>
           </div>
         </div>
       </header>

@@ -1,21 +1,67 @@
+/* Os dois grupos de navegacao existem sempre no DOM; a alternancia e feita por
+   visibilidade, para que o desktop permaneca exatamente como estava. */
+.sidebar-mobile-only { display: none; }
+.sidebar-desktop-only { display: contents; }
+
 /* Impeccable adapt: phone layout, scoped away from desktop and printed proposals. */
 @media screen and (max-width: 767px) {
   html, body, #root { height: auto; min-height: 100%; overflow: visible; }
-  .app-shell { display: flex; flex-direction: column; min-height: 100dvh; height: auto; }
+  .app-shell { display: flex; flex-direction: column; min-height: 100dvh; height: auto; padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
   .topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 8px; gap: 8px; }
   .topbar .brand { height: 36px; padding: 0 4px; border: 0; }
   .topbar .local-state { padding: 0 4px; flex-wrap: wrap; }
   .topbar .global-search { order: 3; width: 100%; margin: 0; min-height: 44px; }
   .topbar .global-search kbd { display: none; }
-  .topbar .top-actions { height: auto; width: 100%; padding: 0; gap: 4px; flex-wrap: wrap; }
+  .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 4px; }
   .topbar .profile b, .topbar .profile > svg { display: none; }
   .topbar .divider { display: none; }
   .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
-  .sidebar { flex: none; overflow: visible; }
-  .sidebar nav { display: flex; overflow-x: auto; padding: 0; }
-  .sidebar nav button { flex: 0 0 auto; width: auto; min-width: 80px; height: 64px; gap: 4px; padding: 8px 12px; }
-  .sidebar nav button.active::before { inset: auto 0 0; width: auto; height: 2px; }
+  /* Suíte/Notificações/Ajuda/Webmail/Perfil consolidate behind one "Mais"
+     trigger so the bar reads as a title, not a row of five icons. */
+  .top-actions .icon-button.top-actions-mobile-toggle { display: inline-grid !important; }
+  .top-actions-secondary { display: none; }
+  .top-actions-secondary.open {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+    position: fixed; top: 96px; left: 8px; right: 8px; z-index: 55;
+    background: var(--nav); padding: 8px; border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(3, 31, 41, .3);
+  }
+  /* impeccable adapt: this read as a shrunk website, not a mobile app --
+     primary nav moves to a fixed bottom tab bar (thumb reach, native
+     pattern) instead of a horizontal-scrolling strip at the top. */
+  .sidebar {
+    flex: none; overflow: visible;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -2px 10px rgba(3, 31, 41, .18);
+  }
+  /* A barra inferior carrega 4 destinos largos (Inicio, Propostas, Kits e
+     Menu), no mesmo desenho do Centro de Custos: poucos itens, alvo de toque
+     confortavel, sem rotulo apertado. Catalogo, Clientes e Configuracoes
+     seguem a um toque de distancia, dentro do Menu. */
+  .sidebar-mobile-only { display: flex; width: 100%; }
+  .sidebar-desktop-only { display: none; }
+  .sidebar nav { display: flex; padding: 0; }
+  .sidebar-mobile-only > button { flex: 1 1 0; width: auto; min-width: 0; height: 60px; gap: 2px; padding: 7px 2px; }
+  .sidebar-mobile-only > button span { font-size: 10px; }
+  .sidebar-mobile-only > button.active::before { inset: auto 0 0; width: auto; height: 2px; }
   .sidebar .collapse { display: none; }
+  /* Painel do Menu ancorado acima da barra, com alvos de toque folgados. */
+  .mobile-nav-menu {
+    position: fixed; left: 8px; right: 8px;
+    bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 45;
+    display: flex; flex-direction: column; gap: 4px; padding: 8px;
+    background: var(--nav); border-radius: 10px;
+    box-shadow: 0 -2px 18px rgba(3, 31, 41, .28);
+  }
+  .mobile-nav-menu button {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    min-height: 48px; padding: 0 14px; border: 0; border-radius: 8px;
+    color: var(--nav-muted); background: transparent;
+  }
+  .mobile-nav-menu button:hover { color: #fff; background: #182941; }
+  .mobile-nav-menu button.active { color: #fff; background: #1b2c45; }
+  .mobile-nav-menu button span { font-size: 13px; }
   .workspace { display: flex; flex-direction: column; overflow: visible; }
   .proposal-tabs { flex: none; min-height: 48px; }
   .proposal-editor { height: auto; overflow: visible; border-right: 0; }
@@ -75,7 +121,40 @@
   .quick-actions-bar, .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
   .filter-chips, .proposals-footer-summary { flex-wrap: wrap; gap: 8px; }
   .search-box { min-width: 0; width: 100%; }
-  .proposals-table-wrapper, .home-table-container, .kit-items-section { max-width: 100%; overflow-x: auto; }
+  .home-table-container, .kit-items-section { max-width: 100%; overflow-x: auto; }
+  /* impeccable adapt: the dense 8-column table read as a website data grid;
+     each row becomes a touchable card, same data, no columns dropped
+     (only "Atualizado em" moves off-glance -- still on the open proposal). */
+  .proposals-table-wrapper { max-width: 100%; overflow: visible; }
+  .proposals-table thead { display: none; }
+  .proposals-table, .proposals-table tbody { display: block; width: 100%; }
+  .proposals-table tr.proposal-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "number status"
+      "client client"
+      "items value"
+      "validity validity"
+      "actions actions";
+    gap: 8px 10px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .proposals-table td { display: block; padding: 0; border: 0; }
+  .proposal-number-cell { grid-area: number; }
+  .proposal-client-cell { grid-area: client; }
+  .proposal-row td:nth-of-type(3) { grid-area: items; align-self: center; }
+  .proposal-value-cell { grid-area: value; justify-self: end; align-self: center; }
+  .proposal-status-cell { grid-area: status; justify-self: end; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .proposal-validity-cell { grid-area: validity; }
+  .proposal-date-cell { display: none; }
+  .proposal-actions-cell { grid-area: actions; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding-top: 10px; margin-top: 2px; border-top: 1px solid var(--line); }
+  .proposal-actions-cell .table-action-btn { flex: 0 0 auto; white-space: nowrap; }
   .form-grid, .work-form, .new-proposal-dialog form { grid-template-columns: minmax(0, 1fr); }
   .app-shell input:not([type="checkbox"]):not([type="radio"]), .app-shell select,
   .app-shell textarea, .auth-shell input { font-size: 16px; min-height: 44px; max-width: 100%; }

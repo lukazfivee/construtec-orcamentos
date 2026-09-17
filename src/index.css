@@ -137,6 +137,8 @@ kbd {
 .top-actions .icon-button:hover, .top-actions .icon-button.active { background: #233147; }
 .top-actions .icon-button:disabled { color: #7a8594; background: transparent; cursor: not-allowed; }
 .top-actions .icon-button:disabled:hover { background: rgba(35, 49, 71, 0.5); }
+.top-actions .icon-button.top-actions-mobile-toggle { display: none !important; }
+.top-actions-secondary { display: contents; }
 .divider { width: 1px; height: 23px; margin: 0 7px; background: #435066; }
 .profile { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 8px; color: #f5f7fa; background: transparent; border: 0; border-radius: 5px; cursor: pointer; white-space: nowrap; transition: background 0.15s ease; }
 .profile:hover, .profile.active { background: #233147; }

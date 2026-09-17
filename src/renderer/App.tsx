@@ -5,6 +5,7 @@ import {
   FileText,
   Grid2X2,
   Layers3,
+  Menu,
   Settings,
   Users,
 } from 'lucide-react';
@@ -23,12 +24,31 @@ import { SettingsWorkspace } from './SettingsWorkspace';
 
 type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações';
 
-const navItems: { label: NavSection; icon: typeof Grid2X2 }[] = [
+type NavItem = { label: NavSection; icon: typeof Grid2X2 };
+
+/* Desktop mantem a navegacao completa na lateral. */
+const navItems: NavItem[] = [
   { label: 'Início', icon: Grid2X2 },
   { label: 'Propostas', icon: FileText },
   { label: 'Catálogo', icon: Box },
   { label: 'Clientes', icon: Users },
   { label: 'Kits', icon: Layers3 },
+  { label: 'Configurações', icon: Settings },
+];
+
+/* Barra inferior no celular: tres destinos de uso diario. Espelha o padrao do
+   Centro de Custos, onde a barra carrega poucos itens largos em vez de uma
+   tira comprimida com todos. */
+const mobilePrimaryNav: NavItem[] = [
+  { label: 'Início', icon: Grid2X2 },
+  { label: 'Propostas', icon: FileText },
+  { label: 'Kits', icon: Layers3 },
+];
+
+/* O restante continua a um toque, dentro de "Menu". */
+const mobileOverflowNav: NavItem[] = [
+  { label: 'Catálogo', icon: Box },
+  { label: 'Clientes', icon: Users },
   { label: 'Configurações', icon: Settings },
 ];
 
@@ -49,6 +69,7 @@ export function App({ user, onLogout }: AppProps = {}) {
   const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
   const [newProposalOpen, setNewProposalOpen] = useState(false);
   const [proposalViewMode, setProposalViewMode] = useState<'editor' | 'list'>('editor');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const showNotice = (message: string) => {
     setNotice(message);
@@ -197,27 +218,95 @@ export function App({ user, onLogout }: AppProps = {}) {
 
       <aside className="sidebar" aria-label="Navegação principal">
         <nav>
-          {navItems.map(({ label, icon: Icon }) => {
+          <span className="sidebar-mobile-only" aria-hidden="true">
+            {mobilePrimaryNav.map(({ label, icon: Icon }) => {
+              const active = label === activeNav;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  className={active ? 'active' : ''}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => {
+                    setActiveNav(label);
+                    setCatalogOpen(false);
+                    setMobileMenuOpen(false);
+                    setError('');
+                  }}
+                >
+                  <Icon size={22} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              className={mobileMenuOpen ? 'active' : ''}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
+              onClick={() => {
+                setCatalogOpen(false);
+                setMobileMenuOpen((open) => !open);
+              }}
+            >
+              <Menu size={22} />
+              <span>Menu</span>
+            </button>
+          </span>
+          <span className="sidebar-desktop-only">
+            {navItems.map(({ label, icon: Icon }) => {
+              const active = label === activeNav;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  className={active ? 'active' : ''}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => {
+                    setActiveNav(label);
+                    setCatalogOpen(false);
+                    setMobileMenuOpen(false);
+                    setError('');
+                  }}
+                >
+                  <Icon size={22} />
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </span>
+        </nav>
+      {mobileMenuOpen && (
+        <div
+          className="mobile-nav-menu"
+          id="mobile-nav-menu"
+          role="menu"
+          aria-label="Mais sistemas do Construtec Orçamentos"
+        >
+          {mobileOverflowNav.map(({ label, icon: Icon }) => {
             const active = label === activeNav;
             return (
               <button
                 key={label}
                 type="button"
+                role="menuitem"
                 className={active ? 'active' : ''}
                 aria-current={active ? 'page' : undefined}
                 onClick={() => {
                   setActiveNav(label);
                   setCatalogOpen(false);
+                  setMobileMenuOpen(false);
                   setError('');
                 }}
               >
-                <Icon size={22} />
+                <Icon size={20} />
                 <span>{label}</span>
               </button>
             );
           })}
-        </nav>
-        <button className="collapse" type="button">
+        </div>
+      )}
+      <button className="collapse" type="button">
           <ChevronLeft size={17} />
           <span>Recolher</span>
         </button>
