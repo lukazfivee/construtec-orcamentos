@@ -72,20 +72,8 @@
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-card { padding: 12px; gap: 8px; flex-direction: column; align-items: flex-start; }
   .kpi-content strong { overflow-wrap: anywhere; }
-  .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
+  .quick-actions-bar, .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
   .filter-chips, .proposals-footer-summary { flex-wrap: wrap; gap: 8px; }
-  /* impeccable adapt: Início dashboard -- table/list is still the point, so
-     quick actions collapse to one scrollable strip (no duplicate "Nova
-     proposta", already the header's primary action) and the recent-
-     proposals / intelligence switcher reads as one segmented control
-     instead of two disconnected pills. */
-  .quick-actions-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 6px; padding: 8px 12px; }
-  .quick-actions-title { display: none; }
-  .quick-actions-bar button:first-of-type { display: none; }
-  .quick-actions-bar button { flex: 0 0 auto; white-space: nowrap; }
-  .home-view-switcher { gap: 0; margin: 12px 0 0; background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
-  .home-tab-pill { flex: 1; justify-content: center; height: 36px; border: 0; background: transparent; }
-  .home-tab-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: none; }
   .search-box { min-width: 0; width: 100%; }
   .proposals-table-wrapper, .home-table-container, .kit-items-section { max-width: 100%; overflow-x: auto; }
   .form-grid, .work-form, .new-proposal-dialog form { grid-template-columns: minmax(0, 1fr); }
