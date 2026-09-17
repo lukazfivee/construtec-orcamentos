@@ -14,7 +14,7 @@
      diretamente na barra, com espaco de sobra. */
   .topbar .brand { height: 36px; padding: 0; border: 0; gap: 0; }
   .topbar .brand span, .topbar .brand-logo-full { display: none; }
-  .topbar .brand-logo-icon { display: block; height: 26px; }
+  .topbar .brand-logo-icon { display: block; height: 30px; }
   .topbar .local-state { display: none; }
   .topbar .global-search { display: none; }
   .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 2px; flex-wrap: wrap; margin-left: auto; }
