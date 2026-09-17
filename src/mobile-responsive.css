@@ -17,7 +17,7 @@
   .topbar .brand-logo-icon { display: block; height: 26px; }
   .topbar .local-state { display: none; }
   .topbar .global-search { display: none; }
-  .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 2px; flex-wrap: wrap; }
+  .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 2px; flex-wrap: wrap; margin-left: auto; }
   .topbar .profile b, .topbar .profile > svg { display: none; }
   .topbar .divider { display: none; }
   .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
