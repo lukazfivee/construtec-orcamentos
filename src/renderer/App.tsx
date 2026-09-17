@@ -209,6 +209,7 @@ export function App({ user, onLogout }: AppProps = {}) {
             setActiveNav('Propostas');
           }
         }}
+        onOpenMobileMenu={() => setMobileMenuOpen(true)}
         showNotice={showNotice}
       />
 

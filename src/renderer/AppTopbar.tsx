@@ -5,7 +5,7 @@ import {
   HelpCircle,
   LayoutGrid,
   Mail,
-  MoreVertical,
+  Menu,
   Search,
 } from 'lucide-react';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
@@ -25,6 +25,7 @@ interface AppTopbarProps {
   onOpenCatalog: () => void;
   onLogout?: () => void;
   onSelectApp?: (app: 'orcamentos' | 'centro-custos' | 'hub') => void;
+  onOpenMobileMenu?: () => void;
   showNotice: (message: string) => void;
 }
 
@@ -43,13 +44,13 @@ export function AppTopbar({
   onOpenCatalog,
   onLogout,
   onSelectApp,
+  onOpenMobileMenu,
   showNotice,
 }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   const divergentCount =
     proposal?.isLatest
@@ -96,19 +97,6 @@ export function AppTopbar({
         </button>
 
         <div className="top-actions">
-          <button
-            className={`icon-button top-actions-mobile-toggle ${mobileMoreOpen ? 'active' : ''}`}
-            aria-label="Mais opções"
-            aria-expanded={mobileMoreOpen}
-            type="button"
-            onClick={() => setMobileMoreOpen((prev) => !prev)}
-            title="Suíte, notificações, ajuda, webmail e perfil"
-          >
-            <MoreVertical size={18} />
-            {divergentCount > 0 && <span className="notification-badge" aria-label={`${divergentCount} divergências`} />}
-          </button>
-
-          <div className={`top-actions-secondary ${mobileMoreOpen ? 'open' : ''}`}>
             {/* Suíte Construtec / App Switcher */}
             <div className="top-action-anchor suite-switcher-container">
               <button
@@ -187,6 +175,16 @@ export function AppTopbar({
               <Mail size={18} />
             </button>
 
+            <button
+              className="icon-button top-actions-mobile-menu-toggle"
+              aria-label="Abrir menu de navegação"
+              type="button"
+              onClick={onOpenMobileMenu}
+              title="Menu"
+            >
+              <Menu size={18} />
+            </button>
+
             <span className="divider" />
 
             <div className="top-action-anchor">
@@ -213,7 +211,6 @@ export function AppTopbar({
                 />
               )}
             </div>
-          </div>
         </div>
       </header>
 

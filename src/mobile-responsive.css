@@ -9,25 +9,19 @@
   html, body, #root { height: auto; min-height: 100%; overflow: visible; }
   .app-shell { display: flex; flex-direction: column; min-height: 100dvh; height: auto; padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
   .topbar { height: auto; min-height: 48px; flex-wrap: wrap; padding: 8px; gap: 8px; }
+  /* Igual ao Centro de Custos: so a marca (sem "Orcamentos" por extenso) e
+     sem o texto de status Online/Dados na nuvem -- os icones de acao ficam
+     diretamente na barra, com espaco de sobra. */
   .topbar .brand { height: 36px; padding: 0 4px; border: 0; }
-  .topbar .local-state { padding: 0 4px; flex-wrap: wrap; }
+  .topbar .brand span { display: none; }
+  .topbar .local-state { display: none; }
   .topbar .global-search { order: 3; width: 100%; margin: 0; min-height: 44px; }
   .topbar .global-search kbd { display: none; }
   .topbar .top-actions { height: auto; width: auto; padding: 0; gap: 4px; flex-wrap: wrap; }
   .topbar .profile b, .topbar .profile > svg { display: none; }
   .topbar .divider { display: none; }
   .topbar .icon-button, .topbar .profile, .topbar .btn-suite-topbar { min-width: 44px; min-height: 44px; height: auto; }
-  /* Suíte/Notificações/Ajuda/Webmail/Perfil consolidate behind one "Mais"
-     trigger so the bar reads as a title, not a row of five icons. In-flow
-     (not fixed) so opening it grows the topbar instead of overlapping the
-     page underneath. */
-  .top-actions .icon-button.top-actions-mobile-toggle { display: inline-grid !important; }
-  .top-actions-secondary { display: none; }
-  .top-actions-secondary.open {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
-    flex-basis: 100%; margin-top: 4px; padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, .12);
-  }
+  .top-actions .icon-button.top-actions-mobile-menu-toggle { display: inline-grid !important; }
   /* impeccable adapt: this read as a shrunk website, not a mobile app --
      primary nav moves to a fixed bottom tab bar (thumb reach, native
      pattern) instead of a horizontal-scrolling strip at the top. */
@@ -41,14 +35,16 @@
      Menu), no mesmo desenho do Centro de Custos: poucos itens, alvo de toque
      confortavel, sem rotulo apertado. Catalogo, Clientes e Configuracoes
      seguem a um toque de distancia, dentro do Menu. */
-  .sidebar-mobile-only { display: flex; width: 100%; }
+  .sidebar-mobile-only { display: flex; width: 100%; padding: 6px 4px; gap: 4px; }
   .sidebar-desktop-only { display: none; }
   .sidebar nav { display: flex; padding: 0; }
   /* Aba ativa vira uma pilula preenchida (mesmo tom do item ativo no menu
      completo/desktop, #1b2c45), igual ao padrao do Centro de Custos --
-     nao so uma linha fina de indicador. */
-  .sidebar-mobile-only > button { flex: 1 1 0; width: auto; min-width: 0; height: 60px; gap: 2px; padding: 7px 2px; margin: 6px 4px; border-radius: 8px; }
-  .sidebar-mobile-only > button span { font-size: 10px; }
+     nao so uma linha fina de indicador. Tamanho (padding/fonte/icone)
+     tambem seguindo os valores exatos do Centro de Custos. */
+  .sidebar-mobile-only > button { flex: 1 1 0; width: auto; min-width: 0; height: auto; min-height: 46px; gap: 3px; padding: 5px 1px; border-radius: 8px; }
+  .sidebar-mobile-only > button svg { width: 18px; height: 18px; }
+  .sidebar-mobile-only > button span { font-size: 9px; line-height: 1; }
   .sidebar-mobile-only > button.active { background: #1b2c45; color: #fff; }
   .sidebar-mobile-only > button.active::before { content: none; }
   .sidebar .collapse { display: none; }
