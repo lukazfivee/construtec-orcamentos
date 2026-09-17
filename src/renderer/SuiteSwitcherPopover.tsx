@@ -3,11 +3,14 @@ import {
   Building2,
   ExternalLink,
   FileSpreadsheet,
+  Headset,
   Layers,
   LayoutGrid,
-  Wrench,
 } from 'lucide-react';
 import { getCentroCustosUrl } from './api';
+
+/* Dominio oficial do ChamadoPro na Suite Construtec. */
+const CHAMADOPRO_URL = 'https://chamadopro-app.lucas-coelho5923.workers.dev/';
 
 interface SuiteSwitcherPopoverProps {
   activeApp?: 'orcamentos' | 'centro-custos';
@@ -168,21 +171,22 @@ export function SuiteSwitcherPopover({
         </button>
       )}
 
-      <div
-        className="suite-dropdown-item disabled-system"
+      <button
+        type="button"
+        className="suite-dropdown-item"
+        onClick={() => handleOpenUrl(CHAMADOPRO_URL)}
         role="menuitem"
-        aria-disabled="true"
-        title="Módulo em preparação"
+        title="Abrir Chamados e O.S. em nova aba"
       >
         <span className="suite-item-icon">
-          <Wrench size={15} />
+          <Headset size={15} />
         </span>
         <div className="suite-item-text">
           <strong>Chamados &amp; O.S.</strong>
-          <small>Etapa 03: Em preparação</small>
+          <small>Etapa 03: ChamadoPro integrado</small>
         </div>
-        <span className="suite-soon-badge">Em breve</span>
-      </div>
+        <ExternalLink size={12} className="suite-item-ext" />
+      </button>
     </div>
   );
 }
