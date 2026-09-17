@@ -19,6 +19,9 @@
     "verify": "npm run typecheck && npm run lint && npm run test:critical",
     "security:audit": "npm audit --audit-level=high",
     "security:audit:prod": "npm audit --omit=dev --audit-level=high",
+    "deploy:cloud": "node scripts/deploy-cloud.mjs",
+    "deploy:cloud:dry": "node scripts/deploy-cloud.mjs --dry-run",
+    "deploy:cloud:skipbuild": "node scripts/deploy-cloud.mjs --skip-build",
     "test:critical": "node scripts/test-critical.mjs"
   },
   "keywords": [
