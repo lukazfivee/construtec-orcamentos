@@ -45,12 +45,8 @@ const mobilePrimaryNav: NavItem[] = [
   { label: 'Kits', icon: Layers3 },
 ];
 
-/* O restante continua a um toque, dentro de "Menu". */
-const mobileOverflowNav: NavItem[] = [
-  { label: 'Catálogo', icon: Box },
-  { label: 'Clientes', icon: Users },
-  { label: 'Configurações', icon: Settings },
-];
+/* "Menu" desliza o mesmo painel completo de navegacao usado no desktop,
+   igual ao Centro de Custos: nao um subconjunto separado. */
 
 export interface AppProps {
   user?: AuthUser | null;
@@ -277,35 +273,43 @@ export function App({ user, onLogout }: AppProps = {}) {
           </span>
         </nav>
       {mobileMenuOpen && (
-        <div
-          className="mobile-nav-menu"
-          id="mobile-nav-menu"
-          role="menu"
-          aria-label="Mais sistemas do Construtec Orçamentos"
-        >
-          {mobileOverflowNav.map(({ label, icon: Icon }) => {
-            const active = label === activeNav;
-            return (
-              <button
-                key={label}
-                type="button"
-                role="menuitem"
-                className={active ? 'active' : ''}
-                aria-current={active ? 'page' : undefined}
-                onClick={() => {
-                  setActiveNav(label);
-                  setCatalogOpen(false);
-                  setMobileMenuOpen(false);
-                  setError('');
-                }}
-              >
-                <Icon size={20} />
-                <span>{label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <button
+          type="button"
+          className="mobile-nav-scrim"
+          aria-label="Fechar menu"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
+      <div
+        className={`mobile-nav-menu ${mobileMenuOpen ? 'open' : ''}`}
+        id="mobile-nav-menu"
+        role="menu"
+        aria-label="Navegação completa"
+        aria-hidden={!mobileMenuOpen}
+      >
+        {navItems.map(({ label, icon: Icon }) => {
+          const active = label === activeNav;
+          return (
+            <button
+              key={label}
+              type="button"
+              role="menuitem"
+              className={active ? 'active' : ''}
+              aria-current={active ? 'page' : undefined}
+              tabIndex={mobileMenuOpen ? 0 : -1}
+              onClick={() => {
+                setActiveNav(label);
+                setCatalogOpen(false);
+                setMobileMenuOpen(false);
+                setError('');
+              }}
+            >
+              <Icon size={20} />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+      </div>
       <button className="collapse" type="button">
           <ChevronLeft size={17} />
           <span>Recolher</span>
