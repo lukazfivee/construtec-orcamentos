@@ -145,7 +145,15 @@
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi-card { padding: 12px; gap: 8px; flex-direction: column; align-items: flex-start; }
   .kpi-content strong { overflow-wrap: anywhere; }
-  .quick-actions-bar, .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
+  /* Início: subtitulo, "Atualizar" (redundante com o pull-to-refresh
+     implicito de reabrir a aba) e o "Nova proposta" duplicado dentro de
+     Acoes rapidas somem; a faixa vira uma unica linha rolavel. */
+  .home-workspace .management-header p { display: none; }
+  .home-workspace .management-header-actions button:first-child { display: none; }
+  .home-workspace .quick-actions-title { display: none; }
+  .home-workspace .quick-actions-bar button:first-of-type { display: none; }
+  .quick-actions-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 8px; }
+  .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
   .filter-chips, .proposals-footer-summary { flex-wrap: wrap; gap: 8px; }
   .search-box { min-width: 0; width: 100%; }
   .home-table-container, .kit-items-section { max-width: 100%; overflow-x: auto; }
