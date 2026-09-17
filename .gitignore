@@ -6,6 +6,9 @@ node_modules/
 dist/
 out/
 .vite/
+.wrangler/
+cloudflare/*/node_modules/
+cloudflare/*/.wrangler/
 
 # local databases and runtime data
 *.db
