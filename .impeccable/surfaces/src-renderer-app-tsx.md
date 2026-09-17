@@ -59,6 +59,7 @@ related_targets: []
 - O snapshot de preço deve ser legível e não depender apenas de cor.
 - Layout desktop-first, com mínimo operacional de 1280 × 720; estados menores preservam a tabela por rolagem, não por remoção de colunas silenciosa.
 - Operação por teclado, foco visível e contraste adequado.
+- Mobile (`src/mobile-responsive.css`, ≤767px, adaptado em 2026-09-17): a tabela de itens continua a protagonista, então a faixa de metadados (Cliente/Obra/Status/Validade/Responsável) vira uma única linha rolável horizontalmente em vez de grade empilhada em 3 linhas, e a toolbar de ações de item mantém Inserir/Excluir/Filtrar em linha e recolhe Duplicar/Mover/Importar/Configurar colunas atrás de um toggle "Mais ações" (nada fica oculto permanentemente). Desktop permanece inalterado (`display: contents` isola o agrupamento mobile do fluxo de layout acima de 767px).
 
 ## Direction contract
 
