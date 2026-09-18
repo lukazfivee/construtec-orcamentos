@@ -31,3 +31,14 @@ Usuario comparou lado a lado com o prototipo (`qa-proposals.tsx`) e pediu 3 ajus
 3. Barra de busca sempre visivel acima da lista de itens (nao mais atras do icone de filtro), com o filtro por categoria continuando recolhido por padrao atras do funil; o botao "+ Inserir" da toolbar some no mobile (o FAB ja cobre a mesma funcao, sem duplicidade).
 
 Validado ao vivo (mobile 390x844 e desktop 1600x900, instancia isolada e descartavel) via screenshot real: pilulas, busca funcionando com filtragem ao vivo, funil abrindo so a categoria (sem duplicar a busca), FAB continua funcionando, desktop pixel-a-pixel igual a antes. typecheck e test:critical 23/23 ok. Commits: `1e5c589` (aviso removido) e `2dc636e` (pilulas + busca).
+
+### Ajuste seguinte: consolidar FAB (menu) e Resumo comercial (chip + folha)
+
+Usuario pediu 2 coisas a mais, comparando com a Variante 3 do prototipo:
+1. O (+) devia ter dentro dele as funcoes de filtro e do "..." (Importar, Colunas), alem do que ja tinha (inserir do catalogo). Implementado: `.proposal-items-fab-menu`, um menu que abre ao tocar o (+); funil e "..." somem da toolbar no mobile (redundantes).
+2. Aviso: as abas ficaram arredondadas demais (igual a Variante 1, raio 999px); corrigido pra 7px (Variante 3, a escolhida).
+3. Depois, usuario mandou 2 prints do prototipo (chip "VALOR FINAL" fixo no rodape + folha "Resumo & acoes" com o detalhamento financeiro e todas as acoes) e pediu pra ficar assim. Implementado: `.proposal-summary-chip` (fixo acima da nav inferior, sempre visivel) + `.proposal-summary-sheet` (abre ao tocar o chip) com Materiais/Mao de obra/Custo base/BDI/Impostos/Valor final, os campos editaveis de Multiplicador BDI e Impostos (nao existiam no prototipo, que era estatico -- adicionados pra nao perder a funcionalidade real), e todas as acoes (Criar revisao, Clonar, Preview, Exportar, Compartilhar, Gerar Centro de Custo, Excluir). A sidebar "Resumo comercial" desktop fica `display:none` no mobile (substituida pelo chip+folha); FAB da lista de itens subiu de posicao pra nao sobrepor o chip novo.
+
+Armadilha de teste (nao e bug real): usar a tecla Enter via automacao pra forcar blur no input de BDI dentro da folha nao disparava o `onBlur` de forma confiavel (parecia que o valor nao persistia). Chamar `blur()` diretamente confirmou que o fluxo real (o mesmo `updateBdi` ja usado no desktop) funciona perfeitamente e persiste apos reload -- em uso real (toque humano tirando o foco do campo) isso nao acontece.
+
+Validado ao vivo (instancia isolada e descartavel, mobile e desktop). typecheck e test:critical 23/23 ok. Commit: `c77af31`.
