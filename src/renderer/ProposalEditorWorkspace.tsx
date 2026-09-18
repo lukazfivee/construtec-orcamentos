@@ -262,7 +262,7 @@ export function ProposalEditorWorkspace({
                     <b>{tab.number} · REV.{String(tab.revision).padStart(2, '0')}</b>
                     <small>{tab.clientName} · {tab.workName}</small>
                   </span>
-                  {selected && <span className="status-tag status-review">Aberta</span>}
+                  {selected && <span className="current-tag">Aberta</span>}
                 </button>
               );
             })}

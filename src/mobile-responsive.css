@@ -254,9 +254,9 @@
   .proposal-mobile-sheet { background: #fff; width: 100%; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); max-height: 86dvh; overflow-y: auto; }
   .proposal-mobile-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
   .proposal-mobile-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .proposal-mobile-sheet-head b { font-size: 15px; color: var(--ink); }
+  .proposal-mobile-sheet-head b { font-size: 14px; color: var(--ink); }
   .proposal-mobile-sheet-head button { color: var(--muted); background: transparent; border: 0; }
-  .proposal-mobile-sheet-section { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 8px; }
+  .proposal-mobile-sheet-section { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 8px; }
   .proposal-mobile-tab-row {
     display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 8px;
     border: 0; border-radius: 8px; background: transparent; text-align: left; color: var(--muted);
@@ -264,7 +264,7 @@
   .proposal-mobile-tab-row.active { background: var(--blue-soft); }
   .proposal-mobile-tab-row.new { color: var(--blue); }
   .proposal-mobile-tab-row span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-  .proposal-mobile-tab-row b { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proposal-mobile-tab-row b { font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .proposal-mobile-tab-row small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .proposal-mobile-tab-row .status-tag { margin-left: auto; flex: none; }
   /* A mesma ProposalMetaBar (com edicao real de Cliente/Obra/Status) e
@@ -277,6 +277,15 @@
   .proposal-mobile-meta .meta-field:first-child { border-left: 0; }
   .proposal-mobile-meta .status-field { flex-direction: row; align-items: center; }
   .proposal-mobile-meta .meta-field button { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  /* .status-select e' um chip compacto (28px no desktop), nao um campo de
+     texto -- a regra global de 44px/16px (evitar zoom do iOS em texto) nao
+     se aplica a <select> (o picker nativo do iOS nao da zoom nele) e so
+     inflava o chip. */
+  .proposal-mobile-meta .status-select { min-height: 30px; height: 30px; font-size: 12px; padding: 0 10px; }
+  .proposal-mobile-tab-row .current-tag {
+    flex: none; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .2px; color: var(--blue); background: var(--blue-soft);
+  }
   .proposal-mobile-meta .context-popover {
     position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; width: auto;
     max-height: 80dvh; overflow: auto; z-index: 80;
