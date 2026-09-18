@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LayoutList, Plus } from 'lucide-react';
+import { ChevronDown, LayoutList, Plus, X } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
@@ -18,6 +18,22 @@ const sectionTabs = [
   { label: 'Kits', enabled: true }, { label: 'Condições', enabled: true }, { label: 'Histórico', enabled: true },
 ] as const;
 type ActiveSection = typeof sectionTabs[number]['label'];
+
+const mobileStatusLabels: Record<ProposalDetail['status'], string> = {
+  draft: 'Em edição',
+  review: 'Em revisão',
+  sent: 'Enviada',
+  approved: 'Aprovada',
+  rejected: 'Recusada',
+};
+
+const mobileStatusClasses: Record<ProposalDetail['status'], string> = {
+  draft: 'status-draft',
+  review: 'status-review',
+  sent: 'status-sent',
+  approved: 'status-approved',
+  rejected: 'status-rejected',
+};
 
 type Props = {
   proposal: ProposalDetail;
@@ -63,6 +79,7 @@ export function ProposalEditorWorkspace({
   setError,
 }: Props) {
   const [activeSection, setActiveSection] = useState<ActiveSection>('Itens');
+  const [mobileHeaderOpen, setMobileHeaderOpen] = useState(false);
   const [mutationPending, setMutationPending] = useState(false);
   const [laborTotal, setLaborTotal] = useState(0);
   const [bdiDraft, setBdiDraft] = useState<string | null>(null);
@@ -193,6 +210,91 @@ export function ProposalEditorWorkspace({
           <Plus size={17} /> Nova proposta
         </button>
       </div>
+
+      {/* Mobile: abas abertas + Cliente/Obra/Status/Validade/Responsavel viram
+          uma barra compacta (numero + status) que abre uma folha unica com
+          tudo empilhado -- elimina o scroll horizontal duplo que existia
+          nas duas faixas acima. Desktop continua usando as faixas de cima. */}
+      <button
+        type="button"
+        className="proposal-mobile-header"
+        onClick={() => setMobileHeaderOpen(true)}
+        aria-haspopup="dialog"
+      >
+        <span className="proposal-mobile-header-number">{proposal.number} · REV.{String(proposal.revision).padStart(2, '0')}</span>
+        <span className={`status-tag ${mobileStatusClasses[proposal.status ?? 'draft']}`}>{mobileStatusLabels[proposal.status ?? 'draft']}</span>
+        <span className="proposal-mobile-header-chevron" aria-hidden="true"><ChevronDown size={16} /></span>
+      </button>
+
+      {mobileHeaderOpen && (
+        <div className="proposal-mobile-sheet-backdrop" role="presentation" onClick={() => setMobileHeaderOpen(false)}>
+          <div
+            className="proposal-mobile-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Abas abertas e detalhes da proposta"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="proposal-mobile-sheet-handle" />
+            <div className="proposal-mobile-sheet-head">
+              <b>Proposta</b>
+              <button type="button" aria-label="Fechar" onClick={() => setMobileHeaderOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <h3 className="proposal-mobile-sheet-section">Abas abertas</h3>
+            {proposalTabs.map((tab) => {
+              const selected = tab.id === proposal.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`proposal-mobile-tab-row ${selected ? 'active' : ''}`}
+                  disabled={loading}
+                  onClick={() => {
+                    setMobileHeaderOpen(false);
+                    void onOpenProposal(tab.id);
+                  }}
+                >
+                  <LayoutList size={16} />
+                  <span>
+                    <b>{tab.number} · REV.{String(tab.revision).padStart(2, '0')}</b>
+                    <small>{tab.clientName} · {tab.workName}</small>
+                  </span>
+                  {selected && <span className="status-tag status-review">Aberta</span>}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              className="proposal-mobile-tab-row new"
+              onClick={() => {
+                setMobileHeaderOpen(false);
+                onNewProposal();
+              }}
+            >
+              <Plus size={16} /> Nova proposta
+            </button>
+
+            <h3 className="proposal-mobile-sheet-section">Detalhes da proposta</h3>
+            <div className="proposal-mobile-meta">
+              <ProposalMetaBar
+                proposal={proposal}
+                isEditable={isEditable}
+                mutationPending={mutationPending}
+                setMutationPending={setMutationPending}
+                onProposalUpdate={onProposalUpdate}
+                onProposalTabsReload={() => void reloadProposalTabs()}
+                onManageClients={onManageClients}
+                showNotice={showNotice}
+                setError={setError}
+                setCatalogOpen={(open) => setCatalogOpen(open)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="proposal-editor" aria-label={`Editor da proposta ${proposalLabel}`} aria-busy={loading || mutationPending}>
         {error && (

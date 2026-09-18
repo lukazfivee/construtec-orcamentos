@@ -8,6 +8,7 @@
 .proposal-summary-chip { display: none; }
 .labor-items-cards { display: none; }
 .history-cards { display: none; }
+.proposal-mobile-header { display: none; }
 
 /* Impeccable adapt: tela de itens da proposta em modo "operar" no celular --
    cartoes com swipe (duplicar/excluir) em vez da tabela com scroll
@@ -194,7 +195,7 @@
   .mobile-nav-menu .mobile-nav-logout:hover { color: #fff; background: #3a1c1c; }
   .mobile-nav-menu .mobile-nav-logout span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .workspace { display: flex; flex-direction: column; overflow: visible; }
-  .proposal-tabs { flex: none; min-height: 48px; }
+  .proposal-tabs { display: none; }
   .proposal-editor { height: auto; overflow: visible; border-right: 0; }
   .proposal-items-panel, .history-region, .labor-panel, .proposal-kits-panel { flex: none; overflow: auto; }
   .proposal-items-panel .table-region { flex: none; min-height: 160px; }
@@ -237,29 +238,49 @@
   .history-card-value b { font-size: 14px; color: var(--ink); }
   .history-card-actions { display: flex; gap: 8px; margin-top: 10px; }
   .history-card-actions button { flex: 1; height: 40px; }
-  /* The line-item table is the protagonist (DESIGN.md); a 3-row stacked
-     grid of labels pushed it past the first viewport on phones, so the
-     metadata collapses to one scrollable strip instead of stacking. */
-  .proposal-meta {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  /* Abas abertas + Cliente/Obra/Status/Validade/Responsavel forcavam scroll
+     horizontal duplo logo no topo da tela. Virou uma barra compacta (numero
+     + status) que abre uma folha unica com as abas e os detalhes empilhados
+     -- ver .proposal-mobile-header/.proposal-mobile-sheet abaixo. */
+  .proposal-editor > .proposal-meta { display: none; }
+  .proposal-mobile-header {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 12px 14px; border: 0; border-bottom: 1px solid var(--line);
+    background: #fff; text-align: left; cursor: pointer;
   }
-  .proposal-meta .meta-field {
-    flex: 0 0 auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    min-height: 44px;
-    padding: 0 14px;
-    white-space: nowrap;
+  .proposal-mobile-header-number { font-size: 14px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proposal-mobile-header-chevron { margin-left: auto; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--surface-subtle); color: var(--muted); flex: none; }
+  .proposal-mobile-sheet-backdrop { position: fixed; inset: 0; background: rgba(10, 20, 35, .45); display: flex; align-items: flex-end; z-index: 73; }
+  .proposal-mobile-sheet { background: #fff; width: 100%; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); max-height: 86dvh; overflow-y: auto; }
+  .proposal-mobile-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
+  .proposal-mobile-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .proposal-mobile-sheet-head b { font-size: 15px; color: var(--ink); }
+  .proposal-mobile-sheet-head button { color: var(--muted); background: transparent; border: 0; }
+  .proposal-mobile-sheet-section { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 8px; }
+  .proposal-mobile-tab-row {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 8px;
+    border: 0; border-radius: 8px; background: transparent; text-align: left; color: var(--muted);
   }
-  .proposal-meta .meta-field:first-child { grid-column: auto; border-left: 0; }
-  .proposal-meta .status-field { flex-direction: row; align-items: center; }
-  .proposal-meta .meta-field > span,
-  .proposal-meta .status-field > label { font-size: 10px; }
-  .proposal-meta .meta-field button { font-size: 12px; }
+  .proposal-mobile-tab-row.active { background: var(--blue-soft); }
+  .proposal-mobile-tab-row.new { color: var(--blue); }
+  .proposal-mobile-tab-row span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .proposal-mobile-tab-row b { font-size: 13px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proposal-mobile-tab-row small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proposal-mobile-tab-row .status-tag { margin-left: auto; flex: none; }
+  /* A mesma ProposalMetaBar (com edicao real de Cliente/Obra/Status) e
+     reaproveitada aqui, so empilhada em vez da faixa horizontal do desktop. */
+  .proposal-mobile-meta .proposal-meta { display: flex; flex-direction: column; gap: 8px; }
+  .proposal-mobile-meta .meta-field {
+    display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+    gap: 10px; min-height: 44px; padding: 0 4px; border-bottom: 1px dashed var(--line);
+  }
+  .proposal-mobile-meta .meta-field:first-child { border-left: 0; }
+  .proposal-mobile-meta .status-field { flex-direction: row; align-items: center; }
+  .proposal-mobile-meta .meta-field button { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  .proposal-mobile-meta .context-popover {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; width: auto;
+    max-height: 80dvh; overflow: auto; z-index: 80;
+  }
   /* Impeccable adapt: abas viram pilulas (mesmo padrao visual do prototipo
      validado com o usuario), em vez do sublinhado do desktop. */
   .section-tabs { overflow-x: auto; flex: none; gap: 6px; padding: 8px 12px; }
