@@ -6,6 +6,7 @@
 .proposal-items-cards, .proposal-items-fab, .proposal-items-quick-search { display: none; }
 .proposal-items-fab-menu, .proposal-items-fab-backdrop { display: none; }
 .proposal-summary-chip { display: none; }
+.labor-items-cards { display: none; }
 
 /* Impeccable adapt: tela de itens da proposta em modo "operar" no celular --
    cartoes com swipe (duplicar/excluir) em vez da tabela com scroll
@@ -196,6 +197,25 @@
   .proposal-editor { height: auto; overflow: visible; border-right: 0; }
   .proposal-items-panel, .history-region, .labor-panel, .proposal-kits-panel { flex: none; overflow: auto; }
   .proposal-items-panel .table-region { flex: none; min-height: 160px; }
+  /* Mao de obra: o formulario (grade de 3-5 colunas no desktop) forcava
+     scroll horizontal no celular; vira uma coluna so. A tabela larga (13
+     colunas) vira cartoes, mesmo padrao ja usado na lista de itens. */
+  .labor-panel { padding: 16px 12px calc(150px + env(safe-area-inset-bottom)); }
+  .labor-header { flex-direction: column; align-items: stretch; }
+  .labor-header input { width: 100%; }
+  .labor-form { grid-template-columns: 1fr; }
+  .labor-description { grid-column: span 1; }
+  .labor-form-actions { flex-wrap: wrap; }
+  .labor-table-region { display: none; }
+  .labor-items-cards { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; list-style: none; padding: 0; }
+  .labor-items-cards-empty { padding: 20px 12px; text-align: center; color: var(--muted); font-size: 13px; }
+  .labor-item-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .labor-item-card-main { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; padding: 0; }
+  .labor-item-card-main b { display: block; font-size: 13px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+  .labor-item-card-main span { font-size: 11px; color: var(--muted); }
+  .labor-item-card-value { display: flex; align-items: center; gap: 8px; flex: none; }
+  .labor-item-card-value strong { font-size: 13px; color: var(--ink); }
+  .labor-item-card-value button { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface-subtle); color: var(--status-rejected-text); }
   /* The line-item table is the protagonist (DESIGN.md); a 3-row stacked
      grid of labels pushed it past the first viewport on phones, so the
      metadata collapses to one scrollable strip instead of stacking. */

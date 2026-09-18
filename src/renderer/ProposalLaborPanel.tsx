@@ -170,6 +170,40 @@ export function ProposalLaborPanel({ proposalId, editable, onLaborTotalChange, o
       <div className="labor-form-actions"><button className="primary compact" type="submit" disabled={!editable || saving || form.description.trim().length < 2}><Plus size={16} /> {editingId ? 'Salvar alteração' : 'Adicionar função'}</button>{editingId && <button type="button" disabled={saving} onClick={resetForm}>Cancelar edição</button>}</div>
     </form>
 
+    <ul className="labor-items-cards">
+      {items.map((item) => (
+        <li key={item.id} className="labor-item-card">
+          <button
+            type="button"
+            className="labor-item-card-main"
+            disabled={!editable}
+            onClick={() => {
+              startEdit(item);
+              document.querySelector('.labor-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          >
+            <b>{item.description}</b>
+            <span>{money.format(item.professionalCount)} prof. · {money.format(item.plannedTeamHours ?? calculateLaborItem(item).plannedTeamHours)} h equipe</span>
+          </button>
+          <div className="labor-item-card-value">
+            <strong>R$ {money.format(item.totalCost)}</strong>
+            <button
+              type="button"
+              aria-label={`Excluir ${item.description}`}
+              disabled={!editable || saving}
+              onClick={() => void remove(item.id)}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </li>
+      ))}
+      {!loading && items.length === 0 && (
+        <li className="labor-items-cards-empty">Nenhuma função cadastrada. Preencha os campos acima para calcular a mão de obra.</li>
+      )}
+      {loading && <li className="labor-items-cards-empty">Carregando composição de mão de obra…</li>}
+    </ul>
+
     <div className="table-region labor-table-region">
       <table className="labor-table">
         <thead><tr><th>Função</th><th>Prof.</th><th>Salário</th><th>Alimentação</th><th>Transporte</th><th>Outros</th><th>Custo mensal</th><th>Horas/mês</th><th>Valor hora</th><th>Horas/prof.</th><th>Horas da equipe</th><th>Custo total</th><th /></tr></thead>
