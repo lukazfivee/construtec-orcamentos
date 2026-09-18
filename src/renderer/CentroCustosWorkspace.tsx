@@ -8,7 +8,7 @@ import {
   RotateCw,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
-import { getCentroCustosUrl } from './api';
+import { getCentroCustosUrl, isCloudRuntime } from './api';
 
 interface Props {
   activeProposal?: ProposalDetail | null;
@@ -45,6 +45,11 @@ export function CentroCustosWorkspace({
   };
 
   useEffect(() => {
+    // Na nuvem, cada app roda como Worker independente; o ping de saude
+    // (fetch entre origens) e' bloqueado por CORS mesmo quando o outro
+    // servico esta no ar, e a mensagem de ".bat local"/"Portal Hub" nao
+    // se aplica -- o iframe carrega direto, sem esse gate.
+    if (isCloudRuntime()) return undefined;
     void checkHealth();
     const timer = setInterval(() => void checkHealth(), 10000);
     return () => clearInterval(timer);
@@ -88,10 +93,12 @@ export function CentroCustosWorkspace({
             <span>Etapa 02 · Gestão de Obras</span>
           </div>
 
-          <div className="cc-status-indicator">
-            <span className={`status-dot ${online === true ? 'green' : online === false ? 'red' : 'yellow'}`} />
-            <span>{online === true ? `Centro de Custos Online (${new URL(baseAppUrl).port ? `:${new URL(baseAppUrl).port}` : ''})` : online === false ? 'Servidor Desconectado' : 'Conectando…'}</span>
-          </div>
+          {!isCloudRuntime() && (
+            <div className="cc-status-indicator">
+              <span className={`status-dot ${online === true ? 'green' : online === false ? 'red' : 'yellow'}`} />
+              <span>{online === true ? `Centro de Custos Online (${new URL(baseAppUrl).port ? `:${new URL(baseAppUrl).port}` : ''})` : online === false ? 'Servidor Desconectado' : 'Conectando…'}</span>
+            </div>
+          )}
         </div>
 
         <div className="cc-control-right">
@@ -118,7 +125,7 @@ export function CentroCustosWorkspace({
       </div>
 
       <div className="cc-frame-container">
-        {online === false ? (
+        {!isCloudRuntime() && online === false ? (
           <div className="cc-offline-card">
             <AlertTriangle size={36} color="#eab308" />
             <h3>Centro de Custos não iniciado</h3>
