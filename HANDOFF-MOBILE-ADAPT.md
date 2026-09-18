@@ -22,3 +22,12 @@ Usuario notou (olhando o proprio portal Maestri): "Resumo comercial" e "Parametr
 ### Ajuste seguinte: manter o item mais importante visivel ao recolher
 
 Usuario pediu para, ao recolher uma secao, nao sumir com tudo -- deixar so o item mais importante aparente (e pediu o mesmo pra secao "Acoes", que ainda nao tinha nenhum toggle). Ajustado: "Resumo comercial" recolhido mantem "Valor Final da Proposta"; "Parametros internos" recolhido mantem "Multiplicador BDI"; "Acoes" ganhou seu proprio toggle (igual ao padrao das outras duas) e recolhida mantem so "Gerar PDF + Word" (a acao primaria, unico botao com classe `primary generate`). Validado ao vivo em desktop (a mesma logica de colapso, sem CSS especifico de mobile, entao vale pros dois breakpoints); typecheck e test:critical 23/23 continuam passando.
+
+### Ajuste seguinte: remover aviso de custos-base no mobile + aproximar do prototipo
+
+Usuario comparou lado a lado com o prototipo (`qa-proposals.tsx`) e pediu 3 ajustes:
+1. Remover o banner "Custos-base preservados nesta revisao" (`.frozen-state`) no mobile -- `display:none` so dentro do media query (desktop mantem, ja publicado).
+2. Abas da secao (Itens/Mao de obra/Kits/Condicoes/Historico) virarem pilulas arredondadas (ativa = azul preenchido), como no prototipo, em vez do sublinhado do desktop.
+3. Barra de busca sempre visivel acima da lista de itens (nao mais atras do icone de filtro), com o filtro por categoria continuando recolhido por padrao atras do funil; o botao "+ Inserir" da toolbar some no mobile (o FAB ja cobre a mesma funcao, sem duplicidade).
+
+Validado ao vivo (mobile 390x844 e desktop 1600x900, instancia isolada e descartavel) via screenshot real: pilulas, busca funcionando com filtragem ao vivo, funil abrindo so a categoria (sem duplicar a busca), FAB continua funcionando, desktop pixel-a-pixel igual a antes. typecheck e test:critical 23/23 ok. Commits: `1e5c589` (aviso removido) e `2dc636e` (pilulas + busca).
