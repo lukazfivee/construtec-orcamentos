@@ -42,3 +42,11 @@ Usuario pediu 2 coisas a mais, comparando com a Variante 3 do prototipo:
 Armadilha de teste (nao e bug real): usar a tecla Enter via automacao pra forcar blur no input de BDI dentro da folha nao disparava o `onBlur` de forma confiavel (parecia que o valor nao persistia). Chamar `blur()` diretamente confirmou que o fluxo real (o mesmo `updateBdi` ja usado no desktop) funciona perfeitamente e persiste apos reload -- em uso real (toque humano tirando o foco do campo) isso nao acontece.
 
 Validado ao vivo (instancia isolada e descartavel, mobile e desktop). typecheck e test:critical 23/23 ok. Commit: `c77af31`.
+
+### Correcao pontual: !important divergente deixava o funil visivel
+
+Usuario reportou 2x que o icone de filtro (funil) continuava aparecendo no mobile mesmo apos o commit acima. Causa: `.toolbar .icon-button{display:inline-grid!important}` (regra base do desktop) tem `!important`; a regra que escondia `.filter-toolbar-btn` no mobile nao tinha, entao perdia a briga de especificidade independente de media query/ordem. Corrigido igualando a `!important` (mesmo padrao ja usado por `.toolbar-more-toggle` ao lado). Commit `f41008e`, deploy `a528729e`.
+
+### Redesign da aba "Mao de obra" no mobile
+
+Usuario pediu o mesmo tratamento pra aba Mao de obra: formulario de grid (3-5 colunas, sem breakpoint mobile proprio) forcava scroll horizontal e cortava rotulos. Vira 1 coluna no celular; a tabela de 13 colunas vira cartoes (nome da funcao + custo total + horas da equipe, toque abre edicao com scroll automatico ate o formulario, botao de excluir por cartao) -- mesmo padrao da lista de itens. Desktop inalterado. Validado ao vivo (adicionar/editar/excluir funcionando, desktop pixel-a-pixel igual). Commit `e1e8fda`, ainda sem deploy.
