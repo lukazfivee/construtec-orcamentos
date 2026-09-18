@@ -49,4 +49,10 @@ Usuario reportou 2x que o icone de filtro (funil) continuava aparecendo no mobil
 
 ### Redesign da aba "Mao de obra" no mobile
 
-Usuario pediu o mesmo tratamento pra aba Mao de obra: formulario de grid (3-5 colunas, sem breakpoint mobile proprio) forcava scroll horizontal e cortava rotulos. Vira 1 coluna no celular; a tabela de 13 colunas vira cartoes (nome da funcao + custo total + horas da equipe, toque abre edicao com scroll automatico ate o formulario, botao de excluir por cartao) -- mesmo padrao da lista de itens. Desktop inalterado. Validado ao vivo (adicionar/editar/excluir funcionando, desktop pixel-a-pixel igual). Commit `e1e8fda`, ainda sem deploy.
+Usuario pediu o mesmo tratamento pra aba Mao de obra: formulario de grid (3-5 colunas, sem breakpoint mobile proprio) forcava scroll horizontal e cortava rotulos. Vira 1 coluna no celular; a tabela de 13 colunas vira cartoes (nome da funcao + custo total + horas da equipe, toque abre edicao com scroll automatico ate o formulario, botao de excluir por cartao) -- mesmo padrao da lista de itens. Desktop inalterado. Validado ao vivo (adicionar/editar/excluir funcionando, desktop pixel-a-pixel igual). Commit `e1e8fda`, deploy `79be7c52`.
+
+### Redesign da aba "Historico" no mobile
+
+Mesmo tratamento pra aba Historico: tabela de 7 colunas (min-width 850px) vira cartoes por revisao (numero+badge Atual, status, itens, responsavel, data, venda total em destaque, Consultar/Aberta + Comparar). Cabecalho da secao empilha em coluna. Fora de escopo por ora: o modal "Comparativo de Revisoes" (ProposalDiffModal, aberto pelo botao Comparar) tem sua propria tabela larga e complexa, ainda nao adaptada -- componente maior, redesign separado se o usuario pedir. Validado ao vivo (2 revisoes reais, Consultar/Comparar funcionando, desktop inalterado). Commit `0a8baf6`.
+
+Nota de processo (a partir desta rodada): usuario pediu para SEMPRE publicar automaticamente apos validar, sem perguntar (memoria salva: `feedback_always_deploy_construtec_orcamentos`).
