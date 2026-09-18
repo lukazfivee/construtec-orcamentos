@@ -94,8 +94,7 @@ export function ProposalSyncDirectAction({
 
   const handleButtonClick = () => {
     if (syncState.status === 'success') {
-      if (onNavigateToCentroCustos) onNavigateToCentroCustos(syncState.costCenterId);
-      else handleOpenCenter();
+      handleGoToCenter();
     } else if (proposal.status !== 'approved') {
       setConfirmModalOpen(true);
     } else {
@@ -123,9 +122,27 @@ export function ProposalSyncDirectAction({
     }
   };
 
-  const handleOpenCenter = () => {
+  const centerDeepLinkUrl = () => {
     const base = syncState.centerUrl || centroUrl;
-    const url = syncState.costCenterId ? `${base.replace(/\/$/, '')}/#obra=${syncState.costCenterId}` : base;
+    return syncState.costCenterId ? `${base.replace(/\/$/, '')}/#obra=${syncState.costCenterId}` : base;
+  };
+
+  // Acao principal: sem iframe, navega a mesma janela direto pro Centro de
+  // Custos (no desktop Electron, abre no navegador do sistema -- nao ha
+  // "mesma janela" fora do shell do app la).
+  const handleGoToCenter = () => {
+    const url = centerDeepLinkUrl();
+    if (window.construtec?.openExternal) {
+      void window.construtec.openExternal(url);
+    } else {
+      window.location.assign(url);
+    }
+  };
+
+  // "Janela externa": sempre abre em outra aba/janela (uso dual monitor),
+  // mesmo quando a acao principal ja navega na mesma janela.
+  const handleOpenCenter = () => {
+    const url = centerDeepLinkUrl();
     if (window.construtec?.openExternal) {
       void window.construtec.openExternal(url);
     } else {
@@ -186,17 +203,6 @@ export function ProposalSyncDirectAction({
           </div>
           <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
           <div className="gerar-centro-actions-row">
-            {onNavigateToCentroCustos && (
-              <button
-                type="button"
-                className="gerar-centro-btn-secondary"
-                style={{ background: 'rgba(4, 120, 87, 0.15)', borderColor: 'rgba(4, 120, 87, 0.4)', color: '#047857', fontWeight: 650 }}
-                onClick={() => onNavigateToCentroCustos(syncState.costCenterId)}
-                title="Acessar o Centro de Custos da obra nesta mesma janela"
-              >
-                <Building2 size={13} /> Visualizar Obra Integrada
-              </button>
-            )}
             <button type="button" className="gerar-centro-btn-secondary" onClick={handleOpenCenter} title="Abrir em outra janela (dual monitor)">
               <ExternalLink size={13} /> Janela externa
             </button>
