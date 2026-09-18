@@ -79,6 +79,49 @@ export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, 
         <p className="history-message">Nenhuma revisão registrada para esta proposta.</p>
       )}
       {!historyLoading && revisions.length > 0 && (
+        <ul className="history-cards">
+          {revisions.map((revision) => (
+            <li key={revision.id} className={`history-card ${revision.id === proposal.id ? 'current' : ''}`}>
+              <div className="history-card-top">
+                <div className="history-card-title">
+                  <b>{revision.number} · REV.{String(revision.revision).padStart(2, '0')}</b>
+                  {revision.isLatest && <small>Atual</small>}
+                </div>
+                <span className="history-card-status">{statusLabels[revision.status]}</span>
+              </div>
+              <div className="history-card-meta">
+                <span>{revision.itemCount} {revision.itemCount === 1 ? 'item' : 'itens'}</span>
+                <span>{revision.responsibleName}</span>
+                <span>{dateTime.format(new Date(revision.updatedAt))}</span>
+              </div>
+              <div className="history-card-value"><span>Venda total</span><b>R$ {money.format(revision.totalSale)}</b></div>
+              <div className="history-card-actions">
+                <button
+                  type="button"
+                  disabled={revision.id === proposal.id || parentLoading}
+                  onClick={() => onOpenRevision(revision.id)}
+                >
+                  {revision.id === proposal.id ? 'Aberta' : 'Consultar'}
+                </button>
+                {revision.id !== proposal.id && (
+                  <button
+                    type="button"
+                    className="diff-row-btn"
+                    onClick={() => {
+                      setDiffBaseRevId(revision.id);
+                      setDiffModalOpen(true);
+                    }}
+                  >
+                    <GitCompare size={13} /> Comparar
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!historyLoading && revisions.length > 0 && (
         <table className="history-table">
           <thead>
             <tr>
