@@ -253,7 +253,7 @@
      todos atras do (+) no mobile (.proposal-items-fab-menu) -- a toolbar
      nao precisa mais desses botoes duplicados. */
   .toolbar .icon-button.toolbar-more-toggle { display: none !important; }
-  .toolbar .filter-toolbar-btn { display: none; }
+  .toolbar .filter-toolbar-btn { display: none !important; }
   .toolbar-secondary-group { display: none; width: 100%; flex-wrap: wrap; gap: 8px; }
   .toolbar-secondary-group.open { display: flex; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
   .toolbar-secondary-group button { flex: 1 1 calc(50% - 4px); }
