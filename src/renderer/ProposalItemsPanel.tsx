@@ -75,6 +75,7 @@ export function ProposalItemsPanel({
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [peekedCardId, setPeekedCardId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [fabMenuOpen, setFabMenuOpen] = useState(false);
 
   const actions = useProposalItemActions({
     proposal,
@@ -139,7 +140,7 @@ export function ProposalItemsPanel({
           <Trash2 size={16} /> Excluir
         </button>
         <button
-          className={`icon-button ${filterBarOpen || hasActiveFilters ? 'active' : ''}`}
+          className={`icon-button filter-toolbar-btn ${filterBarOpen || hasActiveFilters ? 'active' : ''}`}
           aria-label="Filtrar itens"
           type="button"
           onClick={() => setFilterBarOpen((v) => !v)}
@@ -361,14 +362,53 @@ export function ProposalItemsPanel({
         {loading && <li className="proposal-items-cards-empty">Carregando dados locais…</li>}
       </ul>
 
+      {fabMenuOpen && (
+        <div className="proposal-items-fab-backdrop" onClick={() => setFabMenuOpen(false)} />
+      )}
+
+      {fabMenuOpen && (
+        <div className="proposal-items-fab-menu" role="menu" aria-label="Ações da lista de itens">
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!isEditable || mutationPending}
+            onClick={() => { setCatalogOpen(true); setFabMenuOpen(false); }}
+          >
+            <Search size={16} /> Inserir do catálogo
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setFilterBarOpen(true); setFabMenuOpen(false); }}
+          >
+            <Filter size={16} /> Filtrar por categoria
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!isEditable || mutationPending}
+            onClick={() => { setImportDialogOpen(true); setFabMenuOpen(false); }}
+          >
+            <Upload size={16} /> Importar itens
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setColumnsPopoverOpen(true); setFabMenuOpen(false); }}
+          >
+            <SlidersHorizontal size={16} /> Configurar colunas
+          </button>
+        </div>
+      )}
+
       <button
         className="proposal-items-fab"
         type="button"
-        aria-label="Inserir item do catálogo"
-        disabled={!isEditable || mutationPending}
-        onClick={() => setCatalogOpen(true)}
+        aria-label={fabMenuOpen ? 'Fechar ações' : 'Ações da lista de itens'}
+        aria-expanded={fabMenuOpen}
+        onClick={() => setFabMenuOpen((v) => !v)}
       >
-        <Plus size={24} />
+        {fabMenuOpen ? <X size={24} /> : <Plus size={24} />}
       </button>
 
       {editingItem && (

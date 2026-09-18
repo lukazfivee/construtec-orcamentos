@@ -4,6 +4,8 @@
 .sidebar-desktop-only { display: contents; }
 .mobile-nav-menu, .mobile-nav-scrim { display: none; }
 .proposal-items-cards, .proposal-items-fab, .proposal-items-quick-search { display: none; }
+.proposal-items-fab-menu, .proposal-items-fab-backdrop { display: none; }
+.proposal-summary-chip { display: none; }
 
 /* Impeccable adapt: tela de itens da proposta em modo "operar" no celular --
    cartoes com swipe (duplicar/excluir) em vez da tabela com scroll
@@ -37,6 +39,63 @@
 }
 .proposal-item-edit-actions .duplicate { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
 .proposal-item-edit-actions .delete { background: var(--status-rejected-bg); border-color: var(--status-rejected-border); color: var(--status-rejected-text); }
+
+/* Menu do FAB da lista de itens: consolida Inserir/Filtrar/Importar/Colunas
+   (antes espalhados na toolbar) atras do (+), so alcancavel no mobile. */
+.proposal-items-fab-backdrop { position: fixed; inset: 0; z-index: 28; background: transparent; }
+.proposal-items-fab-menu {
+  position: fixed; right: 16px; bottom: calc(134px + env(safe-area-inset-bottom));
+  z-index: 29; display: flex; flex-direction: column; gap: 4px;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  padding: 6px; box-shadow: 0 10px 26px rgba(18, 32, 54, .18);
+  min-width: 220px;
+}
+.proposal-items-fab-menu button {
+  display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px;
+  border: 0; border-radius: 8px; background: transparent; color: var(--ink);
+  font-size: 13px; font-weight: 600; text-align: left;
+}
+.proposal-items-fab-menu button:disabled { opacity: .5; }
+.proposal-items-fab-menu button svg { color: var(--muted); flex: none; }
+
+/* Resumo & acoes: chip fixo com o valor final (sempre visivel, sem rolar) e
+   folha com o resumo comercial completo + acoes -- mesmo padrao validado com
+   o usuario no prototipo (qa-proposals.tsx, Variante 3, .v3-chip/.v3-sheet). */
+.proposal-summary-chip {
+  align-items: center; justify-content: space-between; gap: 10px;
+  border: 0; text-align: left; cursor: pointer;
+}
+.proposal-summary-chip small { display: block; font-size: 10px; color: #b8c3d3; text-transform: uppercase; letter-spacing: .04em; }
+.proposal-summary-chip strong { font-size: 16px; color: #fff; }
+.proposal-summary-chip-arrow { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, .14); color: #fff; flex: none; }
+.proposal-summary-sheet-backdrop {
+  position: fixed; inset: 0; background: rgba(10, 20, 35, .45);
+  display: flex; align-items: flex-end; z-index: 72;
+}
+.proposal-summary-sheet {
+  background: #fff; width: 100%; border-radius: 16px 16px 0 0;
+  padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  max-height: 86dvh; overflow-y: auto;
+}
+.proposal-summary-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
+.proposal-summary-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.proposal-summary-sheet-head b { font-size: 15px; color: var(--ink); }
+.proposal-summary-sheet-head button { color: var(--muted); background: transparent; border: 0; }
+.proposal-summary-sheet-amount { display: flex; align-items: baseline; justify-content: space-between; padding: 7px 2px; font-size: 12px; color: var(--muted); border-bottom: 1px dashed var(--line); }
+.proposal-summary-sheet-amount b { font-size: 13px; color: var(--ink); font-weight: 700; }
+.proposal-summary-sheet-amount.final { border-bottom: 0; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.proposal-summary-sheet-amount.final b { color: var(--blue); font-size: 16px; }
+.proposal-summary-sheet-params { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.proposal-summary-sheet-params label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ink); }
+.proposal-summary-sheet-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.proposal-summary-sheet-actions button {
+  display: flex; align-items: center; gap: 8px; width: 100%; height: 44px; padding: 0 12px;
+  border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  border: 1px solid var(--line-strong); background: var(--surface-subtle); color: var(--ink);
+}
+.proposal-summary-sheet-actions button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.proposal-summary-sheet-actions button.danger { background: var(--status-rejected-bg); border-color: var(--status-rejected-border); color: var(--status-rejected-text); }
+.proposal-summary-sheet-actions button:disabled { opacity: .5; }
 
 /* Impeccable adapt: phone layout, scoped away from desktop and printed proposals. */
 @media screen and (max-width: 767px) {
@@ -165,7 +224,7 @@
   .section-tabs { overflow-x: auto; flex: none; gap: 6px; padding: 8px 12px; }
   .section-tabs button {
     flex: none; min-height: 40px; padding: 0 16px;
-    border: 1px solid var(--line-strong); border-radius: 999px;
+    border: 1px solid var(--line-strong); border-radius: 7px;
     background: #fff; color: var(--ink); font-weight: 600; font-size: 13px;
   }
   .section-tabs button.selected { background: var(--blue); color: #fff; border-color: var(--blue); }
@@ -190,10 +249,11 @@
   }
   .proposal-items-quick-search .quick-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
   .proposal-filter-bar .proposal-filter-search-box { display: none; }
-  /* Inserir/Excluir/Filtrar stay one tap away; the rest (Duplicar, Mover,
-     Importar, colunas) collapse behind "Mais ações" so the toolbar fits
-     one row instead of three -- nothing is removed, only reordered. */
-  .toolbar .icon-button.toolbar-more-toggle { display: inline-grid !important; margin-left: auto; }
+  /* Inserir, Filtrar (categoria) e "Mais acoes" (Importar, Colunas) ficam
+     todos atras do (+) no mobile (.proposal-items-fab-menu) -- a toolbar
+     nao precisa mais desses botoes duplicados. */
+  .toolbar .icon-button.toolbar-more-toggle { display: none !important; }
+  .toolbar .filter-toolbar-btn { display: none; }
   .toolbar-secondary-group { display: none; width: 100%; flex-wrap: wrap; gap: 8px; }
   .toolbar-secondary-group.open { display: flex; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
   .toolbar-secondary-group button { flex: 1 1 calc(50% - 4px); }
@@ -208,7 +268,7 @@
   .add-line { display: none; }
   .proposal-items-cards {
     display: flex; flex-direction: column; gap: 8px;
-    padding: 4px 2px calc(80px + env(safe-area-inset-bottom));
+    padding: 4px 2px calc(150px + env(safe-area-inset-bottom));
     list-style: none; margin: 0;
   }
   .proposal-items-cards-empty { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13px; }
@@ -232,14 +292,22 @@
   .proposal-item-card-value small { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
   .proposal-items-fab {
     display: grid; place-items: center;
-    position: fixed; right: 16px; bottom: calc(74px + env(safe-area-inset-bottom));
+    position: fixed; right: 16px; bottom: calc(144px + env(safe-area-inset-bottom));
     width: 52px; height: 52px; border-radius: 50%;
     background: var(--blue); color: #fff; border: 0;
     box-shadow: 0 8px 20px rgba(8, 92, 229, .4); z-index: 30;
   }
   .proposal-items-fab:disabled { opacity: .5; }
-  .commercial-panel { overflow: visible; height: auto; padding: 16px; border-top: 1px solid var(--line); }
-  .frozen-state { display: none; }
+  /* Sidebar de resumo comercial vira o chip fixo + folha "Resumo & acoes"
+     (definidos fora deste media query, ja que so sao alcancaveis por ele). */
+  .commercial-panel { display: none; }
+  .proposal-summary-chip {
+    display: flex; position: fixed; left: 12px; right: 12px;
+    bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 25;
+    background: var(--ink); border-radius: 20px; padding: 10px 10px 10px 16px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .25);
+  }
+  .proposal-items-fab-menu { bottom: calc(204px + env(safe-area-inset-bottom)); }
   .home-workspace, .management-workspace { display: flex; flex-direction: column; overflow: visible; padding: 0; }
   .home-header, .management-header { flex-wrap: wrap; gap: 12px; padding: 16px; min-height: 0; }
   .home-header-actions, .management-header-actions { flex-wrap: wrap; width: 100%; }
