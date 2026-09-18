@@ -85,6 +85,7 @@ export function ProposalSummaryPanel({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
+  const [actionsCollapsed, setActionsCollapsed] = useState(false);
 
   useEffect(() => {
     if (!deleteModalOpen) return;
@@ -132,9 +133,10 @@ export function ProposalSummaryPanel({
             {taxAmount > 0 && (
               <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
             )}
-            <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
           </>
         )}
+        {/* Item mais importante do painel: fica visível mesmo com "Resumo comercial" recolhido. */}
+        <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
 
         <div className="panel-section">
           <button
@@ -146,8 +148,7 @@ export function ProposalSummaryPanel({
             <h2>Parâmetros internos</h2>
             {paramsCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           </button>
-          {!paramsCollapsed && (
-          <>
+          {/* Item mais importante da seção: fica visível mesmo com "Parâmetros internos" recolhido. */}
           <label>
             Multiplicador BDI{' '}
             <span className="editable-parameter">
@@ -173,6 +174,8 @@ export function ProposalSummaryPanel({
               <span aria-hidden="true">×</span>
             </span>
           </label>
+          {!paramsCollapsed && (
+          <>
           <label>
             Impostos{' '}
             <span className="editable-parameter">
@@ -211,21 +214,36 @@ export function ProposalSummaryPanel({
         </div>
 
         <div className="panel-section actions">
-          <h2>Ações</h2>
-          <button type="button" disabled={!proposal.isLatest || mutationPending} onClick={onCreateRevision}>
-            <Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd>
-          </button>
           <button
             type="button"
-            disabled={mutationPending}
-            onClick={onCloneProposal}
-            title="Clonar este orçamento gerando um novo número"
+            className="panel-section-toggle"
+            aria-expanded={!actionsCollapsed}
+            onClick={() => setActionsCollapsed((v) => !v)}
           >
-            <Copy size={18} /> Clonar proposta
+            <h2>Ações</h2>
+            {actionsCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           </button>
-          <button type="button" disabled={documentPending} onClick={onPreviewProposal}>
-            <Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd>
-          </button>
+          {!actionsCollapsed && (
+            <button type="button" disabled={!proposal.isLatest || mutationPending} onClick={onCreateRevision}>
+              <Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd>
+            </button>
+          )}
+          {!actionsCollapsed && (
+            <button
+              type="button"
+              disabled={mutationPending}
+              onClick={onCloneProposal}
+              title="Clonar este orçamento gerando um novo número"
+            >
+              <Copy size={18} /> Clonar proposta
+            </button>
+          )}
+          {!actionsCollapsed && (
+            <button type="button" disabled={documentPending} onClick={onPreviewProposal}>
+              <Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd>
+            </button>
+          )}
+          {/* Item mais importante da seção: fica visível mesmo com "Ações" recolhida. */}
           <button
             className="primary generate"
             type="button"
@@ -234,7 +252,7 @@ export function ProposalSummaryPanel({
           >
             <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd>
           </button>
-          {onShareProposal && (
+          {!actionsCollapsed && onShareProposal && (
             <button
               type="button"
               className="share-action-btn"
@@ -245,22 +263,26 @@ export function ProposalSummaryPanel({
               <Share2 size={18} /> Compartilhar proposta
             </button>
           )}
-          <ProposalSyncDirectAction
-            proposal={proposal}
-            onProposalUpdate={onProposalUpdate}
-            onNavigateToCentroCustos={onNavigateToCentroCustos}
-            showNotice={showNotice}
-            disabled={mutationPending}
-          />
-          <button
-            type="button"
-            className="danger-action-btn"
-            disabled={mutationPending || proposal.status === 'approved' || proposal.hasApprovedRevision}
-            onClick={() => setDeleteModalOpen(true)}
-            title="Excluir este orçamento definitivamente"
-          >
-            <Trash2 size={16} /> Excluir orçamento
-          </button>
+          {!actionsCollapsed && (
+            <ProposalSyncDirectAction
+              proposal={proposal}
+              onProposalUpdate={onProposalUpdate}
+              onNavigateToCentroCustos={onNavigateToCentroCustos}
+              showNotice={showNotice}
+              disabled={mutationPending}
+            />
+          )}
+          {!actionsCollapsed && (
+            <button
+              type="button"
+              className="danger-action-btn"
+              disabled={mutationPending || proposal.status === 'approved' || proposal.hasApprovedRevision}
+              onClick={() => setDeleteModalOpen(true)}
+              title="Excluir este orçamento definitivamente"
+            >
+              <Trash2 size={16} /> Excluir orçamento
+            </button>
+          )}
         </div>
         <div className="panel-footnote">
           <p className="demo-data-note">Base inicial demonstrativa · salva localmente</p>
