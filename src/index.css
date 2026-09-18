@@ -4385,6 +4385,26 @@ button.btn-gerar-centro svg,
   background: #f3f4f6;
 }
 
+.gerar-centro-modal-body { display: flex; flex-direction: column; gap: 14px; }
+.gerar-centro-summary {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;
+  padding: 12px 14px; background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 6px;
+  font-size: 12px;
+}
+.gerar-centro-summary > div { display: flex; flex-direction: column; gap: 2px; }
+.gerar-centro-summary span { color: var(--muted); }
+.gerar-centro-summary strong { color: var(--ink); font-size: 13px; }
+.gerar-centro-summary-total {
+  grid-column: 1 / -1; padding-top: 8px; border-top: 1px dashed var(--line-strong);
+}
+.gerar-centro-summary-total strong { color: var(--blue); font-size: 16px; }
+.gerar-centro-notice {
+  display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px;
+  background: var(--status-approved-bg); border: 1px solid var(--status-approved-border); border-radius: 6px;
+  font-size: 12px; color: var(--status-approved-text);
+}
+.gerar-centro-notice svg { flex: none; margin-top: 1px; color: var(--status-approved-text); }
+
 .proposal-share-dialog {
   display: flex;
   flex-direction: column;

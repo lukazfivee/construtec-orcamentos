@@ -108,6 +108,9 @@ export type ProposalDetail = {
   updatedAt: string;
   isLatest: boolean;
   hasApprovedRevision?: boolean;
+  costCenterId?: number;
+  contractId?: string;
+  centroCustosUrl?: string;
   items: ProposalLine[];
   laborItems?: ProposalLaborItem[];
   standardMonthlyHours?: number;

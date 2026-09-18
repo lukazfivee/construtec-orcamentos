@@ -37,6 +37,20 @@ export function ProposalSyncDirectAction({
     centerUrl?: string;
   }>({ status: 'idle' });
 
+  useEffect(() => {
+    if (proposal.costCenterId) {
+      setSyncState({
+        status: 'success',
+        costCenterId: proposal.costCenterId,
+        contractId: proposal.contractId,
+        centerUrl: proposal.centroCustosUrl,
+        message: 'Esta revisão já está integrada ao Centro de Custos.',
+      });
+    } else {
+      setSyncState({ status: 'idle' });
+    }
+  }, [proposal.id, proposal.costCenterId, proposal.contractId, proposal.centroCustosUrl]);
+
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [centroUrl, setCentroUrl] = useState('http://localhost:3333');
@@ -79,7 +93,10 @@ export function ProposalSyncDirectAction({
   };
 
   const handleButtonClick = () => {
-    if (proposal.status !== 'approved') {
+    if (syncState.status === 'success') {
+      if (onNavigateToCentroCustos) onNavigateToCentroCustos(syncState.costCenterId);
+      else handleOpenCenter();
+    } else if (proposal.status !== 'approved') {
       setConfirmModalOpen(true);
     } else {
       void executeSync();
@@ -107,7 +124,8 @@ export function ProposalSyncDirectAction({
   };
 
   const handleOpenCenter = () => {
-    const url = syncState.centerUrl || centroUrl;
+    const base = syncState.centerUrl || centroUrl;
+    const url = syncState.costCenterId ? `${base.replace(/\/$/, '')}/#obra=${syncState.costCenterId}` : base;
     if (window.construtec?.openExternal) {
       void window.construtec.openExternal(url);
     } else {
@@ -149,12 +167,12 @@ export function ProposalSyncDirectAction({
         className={`btn-gerar-centro ${isSuccess ? 'success' : ''}`}
         disabled={isSyncing || disabled}
         onClick={handleButtonClick}
-        title="Aprovar proposta e gerar o Centro de Custo no aplicativo de gestão de obras (Etapa 02)"
+        title={isSuccess ? 'Ir para o Centro de Custo desta obra' : 'Aprovar proposta e gerar o Centro de Custo no aplicativo de gestão de obras (Etapa 02)'}
       >
         {isSyncing ? (
           <><RefreshCw size={17} className="spinning" /> <span>Gerando Centro de Custo...</span></>
         ) : isSuccess ? (
-          <><CheckCircle2 size={17} /> <span>Centro de Custo Ativo</span></>
+          <><CheckCircle2 size={17} /> <span>Ir para Centro de Custo</span></>
         ) : (
           <><Building2 size={17} /> <span>Gerar Centro de Custo</span></>
         )}
@@ -233,14 +251,12 @@ export function ProposalSyncDirectAction({
             if (e.target === e.currentTarget && !submitting) setConfirmModalOpen(false);
           }}
         >
-          <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-gerar-centro-title" style={{ maxWidth: '520px' }}>
+          <div className="modal-card gerar-centro-modal" role="dialog" aria-modal="true" aria-labelledby="modal-gerar-centro-title">
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Building2 size={24} color="#047857" />
-                <div>
-                  <h3 id="modal-gerar-centro-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Gerar Centro de Custo</h3>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>Etapa 02 da Esteira Construtec · Gestão da Obra</p>
-                </div>
+              <Building2 size={22} color="var(--status-approved-text)" />
+              <div>
+                <h3 id="modal-gerar-centro-title">Gerar Centro de Custo</h3>
+                <p>Aprova a proposta e cria a obra no Centro de Custos</p>
               </div>
               <button
                 type="button"
@@ -253,32 +269,26 @@ export function ProposalSyncDirectAction({
               </button>
             </div>
 
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.88rem' }}>
-              <p style={{ margin: 0 }}>
-                Ao gerar o centro de custo, a proposta <strong>{proposal.number}</strong> (Revisão {String(proposal.revision).padStart(2, '0')}) será formalmente aprovada e transferida para a esteira de execução da obra.
+            <div className="modal-body gerar-centro-modal-body">
+              <p>
+                A proposta <strong>{proposal.number}</strong> (Revisão {String(proposal.revision).padStart(2, '0')}) será aprovada e a obra correspondente será criada no Centro de Custos.
               </p>
 
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 14px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.82rem' }}>
-                  <div><span style={{ color: '#64748b' }}>Obra:</span> <strong>{proposal.workName}</strong></div>
-                  <div><span style={{ color: '#64748b' }}>Cliente:</span> <strong>{proposal.clientName || 'Cliente comercial'}</strong></div>
-                  <div><span style={{ color: '#64748b' }}>Itens:</span> <strong>{proposal.items.length} itens</strong></div>
-                  <div><span style={{ color: '#64748b' }}>Mão de obra:</span> <strong>{proposal.laborItems?.length ?? 0} funções</strong></div>
-                  <div style={{ gridColumn: 'span 2', paddingTop: '4px', borderTop: '1px dashed #cbd5e1' }}>
-                    <span style={{ color: '#64748b' }}>Valor Total Aprovado:</span> <strong style={{ color: '#0f766e', fontSize: '0.95rem' }}>{money.format(proposal.totals.finalValue ?? proposal.totals.sale)}</strong>
-                  </div>
-                </div>
+              <div className="gerar-centro-summary">
+                <div><span>Obra</span><strong>{proposal.workName}</strong></div>
+                <div><span>Cliente</span><strong>{proposal.clientName || 'Cliente comercial'}</strong></div>
+                <div><span>Itens</span><strong>{proposal.items.length}</strong></div>
+                <div><span>Mão de obra</span><strong>{proposal.laborItems?.length ?? 0} {(proposal.laborItems?.length ?? 0) === 1 ? 'função' : 'funções'}</strong></div>
+                <div className="gerar-centro-summary-total"><span>Valor aprovado</span><strong>{money.format(proposal.totals.finalValue ?? proposal.totals.sale)}</strong></div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '0.8rem', color: '#166534' }}>
-                <ShieldCheck size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>
-                  A proposta receberá o <strong>Selo Canônico RFC 8785 (SHA-256)</strong> e seus dados se tornarão a baseline contratual imutável no Centro de Custos.
-                </span>
+              <div className="gerar-centro-notice">
+                <ShieldCheck size={17} />
+                <span>Depois de aprovada, os valores desta revisão ficam travados — essa passa a ser a versão oficial do contrato.</span>
               </div>
             </div>
 
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <div className="modal-footer">
               <button
                 type="button"
                 className="secondary-btn"
@@ -289,15 +299,14 @@ export function ProposalSyncDirectAction({
               </button>
               <button
                 type="button"
-                className="btn-gerar-centro"
-                style={{ width: 'auto', padding: '8px 16px', margin: 0 }}
+                className="btn-gerar-centro gerar-centro-modal-confirm"
                 disabled={submitting}
                 onClick={() => void handleConfirmApprovalAndSync()}
               >
                 {submitting ? (
-                  <><RefreshCw size={15} className="spinning" /> Aprovando e Gerando...</>
+                  <><RefreshCw size={15} className="spinning" /> Aprovando…</>
                 ) : (
-                  <><CheckCircle2 size={15} /> Aprovar e Gerar Centro de Custo</>
+                  <><CheckCircle2 size={15} /> Aprovar e gerar Centro de Custo</>
                 )}
               </button>
             </div>

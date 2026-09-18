@@ -19,6 +19,7 @@ type ProposalRow = {
   revision: number; client_name: string; work_name: string; scope: string; status: ProposalDetail['status'];
   bdi_multiplier: string; tax_percentage?: string | null; valid_until: string | null; responsible_name: string;
   updated_at: string; is_latest: boolean; has_approved_revision: boolean;
+  cost_center_id: number | null; contract_id: string | null; center_url: string | null;
 };
 
 export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
@@ -32,7 +33,19 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
         SELECT 1 FROM proposals newer
         WHERE newer.proposal_number = p.proposal_number AND newer.revision > p.revision
       ) AS is_latest,
-      EXISTS (SELECT 1 FROM proposals approved WHERE approved.proposal_number = p.proposal_number AND approved.status = 'approved') AS has_approved_revision
+      EXISTS (SELECT 1 FROM proposals approved WHERE approved.proposal_number = p.proposal_number AND approved.status = 'approved') AS has_approved_revision,
+      (SELECT io.cost_center_id FROM integration_outbox io
+        JOIN proposal_approval_snapshots s ON s.id = io.snapshot_id
+        WHERE s.proposal_id = p.id AND io.status = 'delivered'
+        ORDER BY io.delivered_at DESC LIMIT 1) AS cost_center_id,
+      (SELECT io.contract_id FROM integration_outbox io
+        JOIN proposal_approval_snapshots s ON s.id = io.snapshot_id
+        WHERE s.proposal_id = p.id AND io.status = 'delivered'
+        ORDER BY io.delivered_at DESC LIMIT 1) AS contract_id,
+      (SELECT io.center_url FROM integration_outbox io
+        JOIN proposal_approval_snapshots s ON s.id = io.snapshot_id
+        WHERE s.proposal_id = p.id AND io.status = 'delivered'
+        ORDER BY io.delivered_at DESC LIMIT 1) AS center_url
     FROM proposals p
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
@@ -101,6 +114,9 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     updatedAt: proposal.updated_at,
     isLatest: proposal.is_latest,
     hasApprovedRevision: proposal.has_approved_revision,
+    costCenterId: proposal.cost_center_id ?? undefined,
+    contractId: proposal.contract_id ?? undefined,
+    centroCustosUrl: proposal.center_url ?? undefined,
     items,
     laborItems,
     standardMonthlyHours,

@@ -63,16 +63,18 @@ export const syncProposalDirectly = async (
       };
     }
 
+    const isDuplicate = responseBody.status === 'already_imported' || Boolean(responseBody.isDuplicate);
+    const p = envelope.payload?.proposal;
+    const resolvedCenterUrl = new URL('/', centerUrl).href;
+
     // Sucesso ou já importado (200/201)
     await database.query(
       `UPDATE integration_outbox
-       SET attempts = attempts + 1, delivered_at = now(), status = 'delivered', last_error = NULL
+       SET attempts = attempts + 1, delivered_at = now(), status = 'delivered', last_error = NULL,
+         cost_center_id = $2, contract_id = $3, center_url = $4
        WHERE id = $1`,
-      [eventId]
+      [eventId, responseBody.costCenterId ?? null, responseBody.contractId ?? null, resolvedCenterUrl]
     );
-
-    const isDuplicate = responseBody.status === 'already_imported' || Boolean(responseBody.isDuplicate);
-    const p = envelope.payload?.proposal;
 
     return {
       ok: true,
@@ -86,7 +88,7 @@ export const syncProposalDirectly = async (
       message: isDuplicate
         ? 'Esta revisão já estava integrada e vigente no Centro de Custos.'
         : 'Proposta sincronizada com sucesso no Centro de Custos.',
-      centerUrl: new URL('/', centerUrl).href,
+      centerUrl: resolvedCenterUrl,
     };
   } catch (err: unknown) {
     const error = err as { code?: string; name?: string; message?: string };
