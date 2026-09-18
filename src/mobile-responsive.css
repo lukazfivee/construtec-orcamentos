@@ -214,6 +214,7 @@
   }
   .proposal-items-fab:disabled { opacity: .5; }
   .commercial-panel { overflow: visible; height: auto; padding: 16px; border-top: 1px solid var(--line); }
+  .frozen-state { display: none; }
   .home-workspace, .management-workspace { display: flex; flex-direction: column; overflow: visible; padding: 0; }
   .home-header, .management-header { flex-wrap: wrap; gap: 12px; padding: 16px; min-height: 0; }
   .home-header-actions, .management-header-actions { flex-wrap: wrap; width: 100%; }
