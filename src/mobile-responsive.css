@@ -3,7 +3,7 @@
 .sidebar-mobile-only { display: none; }
 .sidebar-desktop-only { display: contents; }
 .mobile-nav-menu, .mobile-nav-scrim { display: none; }
-.proposal-items-cards, .proposal-items-fab { display: none; }
+.proposal-items-cards, .proposal-items-fab, .proposal-items-quick-search { display: none; }
 
 /* Impeccable adapt: tela de itens da proposta em modo "operar" no celular --
    cartoes com swipe (duplicar/excluir) em vez da tabela com scroll
@@ -160,11 +160,36 @@
   .proposal-meta .meta-field > span,
   .proposal-meta .status-field > label { font-size: 10px; }
   .proposal-meta .meta-field button { font-size: 12px; }
-  .section-tabs { overflow-x: auto; flex: none; gap: 20px; padding-inline: 12px; }
-  .section-tabs button { flex: none; min-height: 44px; }
+  /* Impeccable adapt: abas viram pilulas (mesmo padrao visual do prototipo
+     validado com o usuario), em vez do sublinhado do desktop. */
+  .section-tabs { overflow-x: auto; flex: none; gap: 6px; padding: 8px 12px; }
+  .section-tabs button {
+    flex: none; min-height: 40px; padding: 0 16px;
+    border: 1px solid var(--line-strong); border-radius: 999px;
+    background: #fff; color: var(--ink); font-weight: 600; font-size: 13px;
+  }
+  .section-tabs button.selected { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .section-tabs button.selected::after { content: none; }
+  .section-tabs button:disabled { opacity: .5; }
   .toolbar { flex-wrap: wrap; padding: 12px; }
   .toolbar button, .actions button { min-height: 44px; height: auto; white-space: normal; }
   .toolbar .toolbar-space { display: none; }
+  /* Inserir vira responsabilidade so do FAB no mobile (igual ao prototipo);
+     a barra de busca fica sempre visivel em vez de atras de um icone, e o
+     filtro por categoria continua recolhido por padrao (icone de funil). */
+  .toolbar .insert-toolbar-btn { display: none; }
+  .proposal-items-quick-search {
+    display: flex; align-items: center; position: relative;
+    margin: 0 12px 8px;
+  }
+  .proposal-items-quick-search .search-icon { position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
+  .proposal-items-quick-search .quick-search-input {
+    width: 100%; padding: 0 34px 0 36px;
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    background: #fff; color: var(--ink); outline: none;
+  }
+  .proposal-items-quick-search .quick-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
+  .proposal-filter-bar .proposal-filter-search-box { display: none; }
   /* Inserir/Excluir/Filtrar stay one tap away; the rest (Duplicar, Mover,
      Importar, colunas) collapse behind "Mais ações" so the toolbar fits
      one row instead of three -- nothing is removed, only reordered. */

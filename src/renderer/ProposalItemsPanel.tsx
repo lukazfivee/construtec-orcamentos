@@ -6,10 +6,12 @@ import {
   Filter,
   MoreHorizontal,
   Plus,
+  Search,
   Settings,
   SlidersHorizontal,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { ProposalCatalogPopover } from './ProposalCatalogPopover';
@@ -130,7 +132,7 @@ export function ProposalItemsPanel({
   return (
     <div className="proposal-items-panel">
       <div className="toolbar" aria-label="Ações dos itens">
-        <button className="primary compact" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen((v) => !v)}>
+        <button className="primary compact insert-toolbar-btn" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen((v) => !v)}>
           <Plus size={17} /> Inserir <ChevronDown size={14} />
         </button>
         <button className="bulk-only" type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void actions.removeSelectedItems(selectedItemIds)}>
@@ -187,6 +189,27 @@ export function ProposalItemsPanel({
             <Settings size={18} />
           </button>
         </div>
+      </div>
+
+      <div className="proposal-items-quick-search" role="search" aria-label="Buscar item da proposta">
+        <Search size={15} className="search-icon" />
+        <input
+          type="text"
+          className="quick-search-input"
+          placeholder="Buscar item ou código…"
+          value={filterSearch}
+          onChange={(e) => setFilterSearch(e.target.value)}
+        />
+        {filterSearch && (
+          <button
+            type="button"
+            className="filter-clear-input-btn"
+            onClick={() => setFilterSearch('')}
+            aria-label="Limpar busca"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
 
       <ProposalColumnsPopover
