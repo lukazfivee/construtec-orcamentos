@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
-  Building2,
   ExternalLink,
   Layers,
   RotateCw,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
-import { getCentroCustosUrl, isCloudRuntime } from './api';
+import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, isCloudRuntime } from './api';
 
 interface Props {
   activeProposal?: ProposalDetail | null;
@@ -26,7 +25,7 @@ export function CentroCustosWorkspace({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState<boolean | null>(null);
-  const [baseAppUrl, setBaseAppUrl] = useState('http://localhost:3333');
+  const [baseAppUrl, setBaseAppUrl] = useState(CENTRO_CUSTOS_CLOUD_URL);
 
   useEffect(() => {
     void getCentroCustosUrl().then(setBaseAppUrl);
@@ -132,7 +131,7 @@ export function CentroCustosWorkspace({
             <p>
               O serviço do Centro de Custos não foi detectado em <code>{baseAppUrl}</code>.
               <br />
-              Utilize o <strong>INICIAR-SUITE-CONSTRUTEC.bat</strong> ou inicie pelo Portal Hub.
+              Verifique a conexão com a internet e tente novamente.
             </p>
             <div className="cc-offline-actions">
               <button
@@ -142,13 +141,6 @@ export function CentroCustosWorkspace({
                 onClick={handleReload}
               >
                 <RotateCw size={15} /> Tentar reconectar
-              </button>
-              <button
-                type="button"
-                className="gerar-centro-btn-secondary"
-                onClick={() => window.open('http://localhost:3000', '_blank')}
-              >
-                <Building2 size={15} /> Abrir Portal Hub (:3000)
               </button>
             </div>
           </div>
