@@ -1,18 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Filter,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Settings,
-  SlidersHorizontal,
-  Trash2,
-  Upload,
-  X,
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { ProposalCatalogPopover } from './ProposalCatalogPopover';
 import { ProposalImportDialog } from './ProposalImportDialog';
@@ -21,7 +8,9 @@ import {
   ProposalColumnsPopover,
   type ProposalColumnsVisibility,
 } from './ProposalColumnsPopover';
+import { ProposalItemsFabMenu } from './ProposalItemsFabMenu';
 import { ProposalItemsFilterBar } from './ProposalItemsFilterBar';
+import { ProposalItemsQuickSearch, ProposalItemsToolbar } from './ProposalItemsToolbar';
 import { ProposalItemsTableRow } from './ProposalItemsTableRow';
 import { ProposalItemCard } from './ProposalItemCard';
 import { ProposalItemEditSheet } from './ProposalItemEditSheet';
@@ -120,7 +109,6 @@ export function ProposalItemsPanel({
   }, [proposal.items, filterCategory, filterSearch]);
 
   const allSelected = Boolean(filteredItems.length) && selectedItemIds.length === filteredItems.length;
-  const singleItemSelected = selectedItemIds.length === 1;
 
   const divergentCount = isEditable
     ? proposal.items.filter((item) => item.catalogCurrentCost !== null && item.catalogCurrentCost !== undefined && Math.abs(item.catalogCurrentCost - item.unitCost) >= 0.01).length
@@ -132,86 +120,23 @@ export function ProposalItemsPanel({
 
   return (
     <div className="proposal-items-panel">
-      <div className="toolbar" aria-label="Ações dos itens">
-        <button className="primary compact insert-toolbar-btn" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen((v) => !v)}>
-          <Plus size={17} /> Inserir <ChevronDown size={14} />
-        </button>
-        <button className="bulk-only" type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void actions.removeSelectedItems(selectedItemIds)}>
-          <Trash2 size={16} /> Excluir
-        </button>
-        <button
-          className={`icon-button filter-toolbar-btn ${filterBarOpen || hasActiveFilters ? 'active' : ''}`}
-          aria-label="Filtrar itens"
-          type="button"
-          onClick={() => setFilterBarOpen((v) => !v)}
-          title="Filtrar itens da proposta por código, descrição ou categoria"
-        >
-          <Filter size={18} />
-        </button>
-        <span className="toolbar-space" />
-        <button
-          className={`icon-button toolbar-more-toggle ${moreActionsOpen ? 'active' : ''}`}
-          aria-label="Mais ações"
-          aria-expanded={moreActionsOpen}
-          type="button"
-          onClick={() => setMoreActionsOpen((v) => !v)}
-          title="Mais ações: duplicar, mover, importar e colunas"
-        >
-          <MoreHorizontal size={18} />
-        </button>
-        <div className={`toolbar-secondary-group ${moreActionsOpen ? 'open' : ''}`}>
-          <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.duplicateSelectedItem(selectedItemIds)}>
-            <Copy size={16} /> Duplicar
-          </button>
-          <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
-            <ChevronUp size={14} /> Mover
-          </button>
-          <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
-            <ChevronDown size={14} /> Mover
-          </button>
-          <button
-            type="button"
-            disabled={!isEditable || mutationPending}
-            onClick={() => setImportDialogOpen(true)}
-            title="Importar itens via planilha (CSV), de outra proposta ou de um kit"
-          >
-            <Upload size={15} /> Importar
-          </button>
-          <button
-            className={`icon-button ${columnsPopoverOpen ? 'active' : ''}`}
-            aria-label="Configurar colunas"
-            type="button"
-            onClick={() => setColumnsPopoverOpen((v) => !v)}
-            title="Configurar colunas visíveis da tabela"
-          >
-            <SlidersHorizontal size={18} />
-          </button>
-          <button className="icon-button" aria-label="Configurações da tabela (indisponível)" aria-disabled="true" type="button" disabled title="Configurações da tabela serão implementadas em uma próxima etapa.">
-            <Settings size={18} />
-          </button>
-        </div>
-      </div>
+      <ProposalItemsToolbar
+        isEditable={isEditable}
+        mutationPending={mutationPending}
+        selectedItemIds={selectedItemIds}
+        filterBarOpen={filterBarOpen}
+        hasActiveFilters={hasActiveFilters}
+        moreActionsOpen={moreActionsOpen}
+        columnsPopoverOpen={columnsPopoverOpen}
+        actions={actions}
+        onToggleCatalog={() => setCatalogOpen((v) => !v)}
+        onToggleFilterBar={() => setFilterBarOpen((v) => !v)}
+        onToggleMoreActions={() => setMoreActionsOpen((v) => !v)}
+        onOpenImport={() => setImportDialogOpen(true)}
+        onToggleColumnsPopover={() => setColumnsPopoverOpen((v) => !v)}
+      />
 
-      <div className="proposal-items-quick-search" role="search" aria-label="Buscar item da proposta">
-        <Search size={15} className="search-icon" />
-        <input
-          type="text"
-          className="quick-search-input"
-          placeholder="Buscar item ou código…"
-          value={filterSearch}
-          onChange={(e) => setFilterSearch(e.target.value)}
-        />
-        {filterSearch && (
-          <button
-            type="button"
-            className="filter-clear-input-btn"
-            onClick={() => setFilterSearch('')}
-            aria-label="Limpar busca"
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
+      <ProposalItemsQuickSearch filterSearch={filterSearch} setFilterSearch={setFilterSearch} />
 
       <ProposalColumnsPopover
         open={columnsPopoverOpen}
@@ -362,54 +287,17 @@ export function ProposalItemsPanel({
         {loading && <li className="proposal-items-cards-empty">Carregando dados locais…</li>}
       </ul>
 
-      {fabMenuOpen && (
-        <div className="proposal-items-fab-backdrop" onClick={() => setFabMenuOpen(false)} />
-      )}
-
-      {fabMenuOpen && (
-        <div className="proposal-items-fab-menu" role="menu" aria-label="Ações da lista de itens">
-          <button
-            type="button"
-            role="menuitem"
-            disabled={!isEditable || mutationPending}
-            onClick={() => { setCatalogOpen(true); setFabMenuOpen(false); }}
-          >
-            <Search size={16} /> Inserir do catálogo
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { setFilterBarOpen(true); setFabMenuOpen(false); }}
-          >
-            <Filter size={16} /> Filtrar por categoria
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            disabled={!isEditable || mutationPending}
-            onClick={() => { setImportDialogOpen(true); setFabMenuOpen(false); }}
-          >
-            <Upload size={16} /> Importar itens
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { setColumnsPopoverOpen(true); setFabMenuOpen(false); }}
-          >
-            <SlidersHorizontal size={16} /> Configurar colunas
-          </button>
-        </div>
-      )}
-
-      <button
-        className="proposal-items-fab"
-        type="button"
-        aria-label={fabMenuOpen ? 'Fechar ações' : 'Ações da lista de itens'}
-        aria-expanded={fabMenuOpen}
-        onClick={() => setFabMenuOpen((v) => !v)}
-      >
-        {fabMenuOpen ? <X size={24} /> : <Plus size={24} />}
-      </button>
+      <ProposalItemsFabMenu
+        fabMenuOpen={fabMenuOpen}
+        isEditable={isEditable}
+        mutationPending={mutationPending}
+        onToggleFab={() => setFabMenuOpen((v) => !v)}
+        onCloseFab={() => setFabMenuOpen(false)}
+        onOpenCatalog={() => setCatalogOpen(true)}
+        onOpenFilterBar={() => setFilterBarOpen(true)}
+        onOpenImport={() => setImportDialogOpen(true)}
+        onOpenColumns={() => setColumnsPopoverOpen(true)}
+      />
 
       {editingItem && (
         <ProposalItemEditSheet

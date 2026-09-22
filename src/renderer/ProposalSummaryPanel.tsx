@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
   Copy,
@@ -10,32 +9,12 @@ import {
   Save,
   Share2,
   Trash2,
-  X,
 } from 'lucide-react';
 import { calculateProposalTotals } from '../shared/proposalFinancials';
 import type { ProposalDetail } from '../shared/contracts';
 import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
-
-const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-function Amount({
-  label,
-  value,
-  tone,
-  compact = false,
-}: {
-  label: string;
-  value: string;
-  tone?: 'blue' | 'green';
-  compact?: boolean;
-}) {
-  return (
-    <div className={`amount ${tone ?? ''} ${compact ? 'compact' : ''}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
+import { ProposalSummaryMobileSheet, Amount, money } from './ProposalSummaryMobileSheet';
+import { DeleteProposalModal } from './DeleteProposalModal';
 
 type Props = {
   proposal: ProposalDetail;
@@ -314,184 +293,44 @@ export function ProposalSummaryPanel({
       </button>
 
       {mobileSheetOpen && (
-        <div className="proposal-summary-sheet-backdrop" role="presentation" onClick={() => setMobileSheetOpen(false)}>
-          <div
-            className="proposal-summary-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Resumo e ações da proposta"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="proposal-summary-sheet-handle" />
-            <div className="proposal-summary-sheet-head">
-              <b>Resumo &amp; ações</b>
-              <button type="button" aria-label="Fechar" onClick={() => setMobileSheetOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="proposal-summary-sheet-amount"><span>Total de materiais</span><b>R$ {money.format(materialsTotal)}</b></div>
-            <div className="proposal-summary-sheet-amount"><span>Total de mão de obra</span><b>R$ {money.format(laborTotal)}</b></div>
-            <div className="proposal-summary-sheet-amount"><span>Custo base</span><b>R$ {money.format(baseCost)}</b></div>
-            <div className="proposal-summary-sheet-amount"><span>BDI / acréscimos</span><b>R$ {money.format(bdiAdditions)}</b></div>
-            {taxAmount > 0 && (
-              <div className="proposal-summary-sheet-amount"><span>Impostos ({String(taxPercentage).replace('.', ',')}%)</span><b>R$ {money.format(taxAmount)}</b></div>
-            )}
-            <div className="proposal-summary-sheet-amount final"><span>Valor final da proposta</span><b>R$ {money.format(finalValue)}</b></div>
-
-            <div className="proposal-summary-sheet-params">
-              <label>
-                Multiplicador BDI
-                <span className="editable-parameter">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    aria-label="Multiplicador BDI"
-                    value={bdiDraft ?? String(proposal.bdiMultiplier ?? 0).replace('.', ',')}
-                    disabled={!isEditable || mutationPending}
-                    onFocus={() => {
-                      if (bdiDraft === null) setBdiDraft(String(proposal.bdiMultiplier).replace('.', ','));
-                    }}
-                    onChange={(event) => setBdiDraft(event.target.value)}
-                    onBlur={onUpdateBdi}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                      if (event.key === 'Escape') {
-                        setBdiDraft(null);
-                        event.currentTarget.blur();
-                      }
-                    }}
-                  />
-                  <span aria-hidden="true">×</span>
-                </span>
-              </label>
-              <label>
-                Impostos
-                <span className="editable-parameter">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    aria-label="Alíquota de Impostos"
-                    value={taxDraft ?? String(proposal.taxPercentage ?? 0).replace('.', ',')}
-                    disabled={!isEditable || mutationPending}
-                    onFocus={() => {
-                      if (taxDraft === null && setTaxDraft) setTaxDraft(String(proposal.taxPercentage ?? 0).replace('.', ','));
-                    }}
-                    onChange={(event) => setTaxDraft?.(event.target.value)}
-                    onBlur={onUpdateTax}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') event.currentTarget.blur();
-                      if (event.key === 'Escape') {
-                        setTaxDraft?.(null);
-                        event.currentTarget.blur();
-                      }
-                    }}
-                  />
-                  <span aria-hidden="true">%</span>
-                </span>
-              </label>
-            </div>
-
-            <div className="proposal-summary-sheet-actions">
-              <button type="button" disabled={!proposal.isLatest || mutationPending} onClick={() => { onCreateRevision(); setMobileSheetOpen(false); }}>
-                <Save size={16} /> Criar revisão
-              </button>
-              <button type="button" disabled={mutationPending} onClick={() => { onCloneProposal(); setMobileSheetOpen(false); }}>
-                <Copy size={16} /> Clonar proposta
-              </button>
-              <button type="button" disabled={documentPending} onClick={() => { onPreviewProposal(); setMobileSheetOpen(false); }}>
-                <Eye size={16} /> Pré-visualizar
-              </button>
-              <button
-                className="primary"
-                type="button"
-                disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
-                onClick={() => { onExportProposal(); setMobileSheetOpen(false); }}
-              >
-                <FilePlus2 size={16} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'}
-              </button>
-              {onShareProposal && (
-                <button type="button" disabled={documentPending} onClick={() => { onShareProposal(); setMobileSheetOpen(false); }}>
-                  <Share2 size={16} /> Compartilhar
-                </button>
-              )}
-              <ProposalSyncDirectAction
-                proposal={proposal}
-                onProposalUpdate={onProposalUpdate}
-                onNavigateToCentroCustos={onNavigateToCentroCustos}
-                showNotice={showNotice}
-                disabled={mutationPending}
-              />
-              <button
-                className="danger"
-                type="button"
-                disabled={mutationPending || proposal.status === 'approved' || proposal.hasApprovedRevision}
-                onClick={() => { setMobileSheetOpen(false); setDeleteModalOpen(true); }}
-              >
-                <Trash2 size={16} /> Excluir orçamento
-              </button>
-            </div>
-          </div>
-        </div>
+        <ProposalSummaryMobileSheet
+          proposal={proposal}
+          laborTotal={laborTotal}
+          isEditable={isEditable}
+          mutationPending={mutationPending}
+          documentPending={documentPending}
+          bdiDraft={bdiDraft}
+          setBdiDraft={setBdiDraft}
+          onUpdateBdi={onUpdateBdi}
+          taxDraft={taxDraft}
+          setTaxDraft={setTaxDraft}
+          onUpdateTax={onUpdateTax}
+          onCreateRevision={onCreateRevision}
+          onCloneProposal={onCloneProposal}
+          onPreviewProposal={onPreviewProposal}
+          onExportProposal={onExportProposal}
+          onShareProposal={onShareProposal}
+          onProposalUpdate={onProposalUpdate}
+          onNavigateToCentroCustos={onNavigateToCentroCustos}
+          showNotice={showNotice}
+          materialsTotal={materialsTotal}
+          baseCost={baseCost}
+          finalValue={finalValue}
+          bdiAdditions={bdiAdditions}
+          taxAmount={taxAmount}
+          taxPercentage={taxPercentage}
+          onClose={() => setMobileSheetOpen(false)}
+          onRequestDelete={() => setDeleteModalOpen(true)}
+        />
       )}
 
       {deleteModalOpen && (
-        <div
-          className="modal-overlay"
-          role="presentation"
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !mutationPending) setDeleteModalOpen(false);
-          }}
-        >
-          <div className="modal-card delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-proposal-title">
-            <div className="modal-header danger-header">
-              <AlertTriangle size={24} color="#dc2626" />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h3 id="delete-proposal-title">Excluir Orçamento</h3>
-                <p>Confirmação de exclusão permanente</p>
-              </div>
-              <button
-                type="button"
-                className="dialog-close"
-                aria-label="Fechar"
-                disabled={mutationPending}
-                onClick={() => setDeleteModalOpen(false)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>
-                Tem certeza que deseja excluir o orçamento <strong>{proposal.number}</strong> (Cliente: <em>{proposal.clientName}</em>)?
-              </p>
-              <div className="danger-callout">
-                Esta ação removerá todas as revisões, itens, composições de mão de obra e histórico associados a este orçamento do banco de dados local.
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="secondary-btn"
-                disabled={mutationPending}
-                onClick={() => setDeleteModalOpen(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="danger-btn"
-                disabled={mutationPending}
-                onClick={() => {
-                  setDeleteModalOpen(false);
-                  onDeleteProposal();
-                }}
-              >
-                <Trash2 size={16} />
-                {mutationPending ? 'Excluindo...' : 'Sim, excluir definitivamente'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteProposalModal
+          proposal={proposal}
+          mutationPending={mutationPending}
+          onClose={() => setDeleteModalOpen(false)}
+          onDeleteProposal={onDeleteProposal}
+        />
       )}
     </>
   );

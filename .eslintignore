@@ -3,3 +3,5 @@ out/
 dist/
 work/
 outputs/
+qa-header-variants.tsx
+qa-proposals.tsx

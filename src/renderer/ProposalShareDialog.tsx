@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, Copy, Mail, MessageCircle, Send, Share2, Sparkles, X } from 'lucide-react';
+import { Check, Copy, Mail, MessageCircle, Share2, Sparkles, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import {
   commercialLaborTotal,

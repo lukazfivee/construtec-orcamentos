@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, LayoutList, Plus, X } from 'lucide-react';
+import { LayoutList, Plus } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
@@ -11,29 +11,15 @@ import { ProposalItemsPanel } from './ProposalItemsPanel';
 import { ProposalKitsPanel } from './ProposalKitsPanel';
 import { ProposalLaborPanel } from './ProposalLaborPanel';
 import { ProposalMetaBar } from './ProposalMetaBar';
+import { ProposalMobileSheet } from './ProposalMobileSheet';
 import { ProposalSummaryPanel } from './ProposalSummaryPanel';
+import { useProposalMutations } from './useProposalMutations';
 
 const sectionTabs = [
   { label: 'Itens', enabled: true }, { label: 'Mão de obra', enabled: true },
   { label: 'Kits', enabled: true }, { label: 'Condições', enabled: true }, { label: 'Histórico', enabled: true },
 ] as const;
 type ActiveSection = typeof sectionTabs[number]['label'];
-
-const mobileStatusLabels: Record<ProposalDetail['status'], string> = {
-  draft: 'Em edição',
-  review: 'Em revisão',
-  sent: 'Enviada',
-  approved: 'Aprovada',
-  rejected: 'Recusada',
-};
-
-const mobileStatusClasses: Record<ProposalDetail['status'], string> = {
-  draft: 'status-draft',
-  review: 'status-review',
-  sent: 'status-sent',
-  approved: 'status-approved',
-  rejected: 'status-rejected',
-};
 
 type Props = {
   proposal: ProposalDetail;
@@ -50,8 +36,6 @@ type Props = {
   onNewProposal: () => void;
   onManageClients: () => void;
   onCreateRevision: () => void;
-  onPreviewProposal: () => void;
-  onExportProposal: () => void;
   onNavigateToCentroCustos?: (costCenterId?: number) => void;
   showNotice: (message: string) => void;
   setError: (error: string) => void;
@@ -72,21 +56,35 @@ export function ProposalEditorWorkspace({
   onNewProposal,
   onManageClients,
   onCreateRevision,
-  onPreviewProposal,
-  onExportProposal,
   onNavigateToCentroCustos,
   showNotice,
   setError,
 }: Props) {
   const [activeSection, setActiveSection] = useState<ActiveSection>('Itens');
-  const [mobileHeaderOpen, setMobileHeaderOpen] = useState(false);
-  const [mutationPending, setMutationPending] = useState(false);
   const [laborTotal, setLaborTotal] = useState(0);
-  const [bdiDraft, setBdiDraft] = useState<string | null>(null);
-  const [taxDraft, setTaxDraft] = useState<string | null>(null);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const {
+    mutationPending,
+    setMutationPending,
+    bdiDraft,
+    setBdiDraft,
+    taxDraft,
+    setTaxDraft,
+    updateBdi,
+    updateTax,
+    reloadProposalTabs,
+    deleteCurrentProposal,
+  } = useProposalMutations({
+    proposal,
+    onProposalUpdate,
+    onProposalTabsUpdate,
+    onOpenProposal,
+    onViewList,
+    showNotice,
+    setError,
+  });
 
   const isEditable = Boolean(proposal.isLatest && (proposal.status === 'draft' || proposal.status === 'review'));
   const proposalLabel = `${proposal.number} • REV.${String(proposal.revision).padStart(2, '0')}`;
@@ -105,82 +103,6 @@ export function ProposalEditorWorkspace({
       active = false;
     };
   }, [proposal.id, setError]);
-
-  const reloadProposalTabs = async () => {
-    try {
-      const tabsResult = await proposalApi.list();
-      onProposalTabsUpdate(tabsResult.proposals);
-    } catch {
-      // Ignorar falha secundária de listagem
-    }
-  };
-
-  const updateBdi = async () => {
-    if (mutationPending) return;
-    const nextBdi = Number((bdiDraft ?? String(proposal.bdiMultiplier)).trim().replace(',', '.'));
-    if (!Number.isFinite(nextBdi) || nextBdi <= 0 || nextBdi > 100) {
-      setBdiDraft(null);
-      showNotice('Informe um multiplicador BDI maior que zero.');
-      return;
-    }
-    if (proposal.bdiMultiplier === nextBdi) return;
-    setMutationPending(true);
-    setError('');
-    try {
-      const result = await proposalApi.updateBdi(proposal.id, nextBdi);
-      onProposalUpdate(result.proposal);
-      setBdiDraft(null);
-      showNotice('BDI atualizado e preços de venda recalculados.');
-    } catch (mutationError) {
-      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível alterar o BDI.');
-    } finally {
-      setMutationPending(false);
-    }
-  };
-
-  const updateTax = async () => {
-    if (mutationPending) return;
-    const raw = (taxDraft ?? String(proposal.taxPercentage ?? 0)).trim().replace(/%/g, '').replace(',', '.');
-    const nextTax = Number(raw);
-    if (!Number.isFinite(nextTax) || nextTax < 0 || nextTax > 100) {
-      setTaxDraft(null);
-      showNotice('Informe uma alíquota de impostos entre 0 e 100%.');
-      return;
-    }
-    if ((proposal.taxPercentage ?? 0) === nextTax) {
-      setTaxDraft(null);
-      return;
-    }
-    setMutationPending(true);
-    setError('');
-    try {
-      const result = await proposalApi.updateTax(proposal.id, nextTax);
-      onProposalUpdate(result.proposal);
-      setTaxDraft(null);
-      showNotice('Alíquota de impostos atualizada.');
-    } catch (mutationError) {
-      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível alterar o imposto.');
-    } finally {
-      setMutationPending(false);
-    }
-  };
-
-  const deleteCurrentProposal = async () => {
-    if (mutationPending) return;
-    setMutationPending(true);
-    setError('');
-    try {
-      const result = await proposalApi.delete(proposal.id, 'all');
-      showNotice(`Orçamento ${proposal.number} excluído com sucesso.`);
-      await reloadProposalTabs();
-      if (result.nextProposalId) await onOpenProposal(result.nextProposalId);
-      else onViewList();
-    } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Não foi possível excluir a proposta.');
-    } finally {
-      setMutationPending(false);
-    }
-  };
 
   return (
     <main className="workspace">
@@ -211,90 +133,22 @@ export function ProposalEditorWorkspace({
         </button>
       </div>
 
-      {/* Mobile: abas abertas + Cliente/Obra/Status/Validade/Responsavel viram
-          uma barra compacta (numero + status) que abre uma folha unica com
-          tudo empilhado -- elimina o scroll horizontal duplo que existia
-          nas duas faixas acima. Desktop continua usando as faixas de cima. */}
-      <button
-        type="button"
-        className="proposal-mobile-header"
-        onClick={() => setMobileHeaderOpen(true)}
-        aria-haspopup="dialog"
-      >
-        <span className="proposal-mobile-header-number">{proposal.number} · REV.{String(proposal.revision).padStart(2, '0')}</span>
-        <span className={`status-tag ${mobileStatusClasses[proposal.status ?? 'draft']}`}>{mobileStatusLabels[proposal.status ?? 'draft']}</span>
-        <span className="proposal-mobile-header-chevron" aria-hidden="true"><ChevronDown size={16} /></span>
-      </button>
-
-      {mobileHeaderOpen && (
-        <div className="proposal-mobile-sheet-backdrop" role="presentation" onClick={() => setMobileHeaderOpen(false)}>
-          <div
-            className="proposal-mobile-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Abas abertas e detalhes da proposta"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="proposal-mobile-sheet-handle" />
-            <div className="proposal-mobile-sheet-head">
-              <b>Proposta</b>
-              <button type="button" aria-label="Fechar" onClick={() => setMobileHeaderOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <h3 className="proposal-mobile-sheet-section">Abas abertas</h3>
-            {proposalTabs.map((tab) => {
-              const selected = tab.id === proposal.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`proposal-mobile-tab-row ${selected ? 'active' : ''}`}
-                  disabled={loading}
-                  onClick={() => {
-                    setMobileHeaderOpen(false);
-                    void onOpenProposal(tab.id);
-                  }}
-                >
-                  <LayoutList size={16} />
-                  <span>
-                    <b>{tab.number} · REV.{String(tab.revision).padStart(2, '0')}</b>
-                    <small>{tab.clientName} · {tab.workName}</small>
-                  </span>
-                  {selected && <span className="current-tag">Aberta</span>}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              className="proposal-mobile-tab-row new"
-              onClick={() => {
-                setMobileHeaderOpen(false);
-                onNewProposal();
-              }}
-            >
-              <Plus size={16} /> Nova proposta
-            </button>
-
-            <h3 className="proposal-mobile-sheet-section">Detalhes da proposta</h3>
-            <div className="proposal-mobile-meta">
-              <ProposalMetaBar
-                proposal={proposal}
-                isEditable={isEditable}
-                mutationPending={mutationPending}
-                setMutationPending={setMutationPending}
-                onProposalUpdate={onProposalUpdate}
-                onProposalTabsReload={() => void reloadProposalTabs()}
-                onManageClients={onManageClients}
-                showNotice={showNotice}
-                setError={setError}
-                setCatalogOpen={(open) => setCatalogOpen(open)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <ProposalMobileSheet
+        proposal={proposal}
+        proposalTabs={proposalTabs}
+        loading={loading}
+        isEditable={isEditable}
+        mutationPending={mutationPending}
+        setMutationPending={setMutationPending}
+        onOpenProposal={onOpenProposal}
+        onProposalUpdate={onProposalUpdate}
+        onProposalTabsReload={() => void reloadProposalTabs()}
+        onNewProposal={onNewProposal}
+        onManageClients={onManageClients}
+        setCatalogOpen={(open) => setCatalogOpen(open)}
+        showNotice={showNotice}
+        setError={setError}
+      />
 
       <section className="proposal-editor" aria-label={`Editor da proposta ${proposalLabel}`} aria-busy={loading || mutationPending}>
         {error && (

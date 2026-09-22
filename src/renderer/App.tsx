@@ -1,17 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Box,
-  ChevronLeft,
-  FileText,
-  Grid2X2,
-  Layers3,
-  LogOut,
-  Menu,
-  Settings,
-  Users,
-} from 'lucide-react';
 import type { AuthUser, ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { kitsApi, proposalApi } from './api';
+import { AppSidebar } from './AppSidebar';
+import type { NavSection } from './AppSidebar';
 import { AppTopbar } from './AppTopbar';
 import { CatalogWorkspace } from './CatalogWorkspace';
 import { CentroCustosWorkspace } from './CentroCustosWorkspace';
@@ -22,32 +13,6 @@ import { NewProposalDialog } from './NewProposalDialog';
 import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
-
-type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações';
-
-type NavItem = { label: NavSection; icon: typeof Grid2X2 };
-
-/* Desktop mantem a navegacao completa na lateral. */
-const navItems: NavItem[] = [
-  { label: 'Início', icon: Grid2X2 },
-  { label: 'Propostas', icon: FileText },
-  { label: 'Catálogo', icon: Box },
-  { label: 'Clientes', icon: Users },
-  { label: 'Kits', icon: Layers3 },
-  { label: 'Configurações', icon: Settings },
-];
-
-/* Barra inferior no celular: tres destinos de uso diario. Espelha o padrao do
-   Centro de Custos, onde a barra carrega poucos itens largos em vez de uma
-   tira comprimida com todos. */
-const mobilePrimaryNav: NavItem[] = [
-  { label: 'Início', icon: Grid2X2 },
-  { label: 'Propostas', icon: FileText },
-  { label: 'Kits', icon: Layers3 },
-];
-
-/* "Menu" desliza o mesmo painel completo de navegacao usado no desktop,
-   igual ao Centro de Custos: nao um subconjunto separado. */
 
 export interface AppProps {
   user?: AuthUser | null;
@@ -214,124 +179,23 @@ export function App({ user, onLogout }: AppProps = {}) {
         showNotice={showNotice}
       />
 
-      <aside className="sidebar" aria-label="Navegação principal">
-        <nav>
-          <span className="sidebar-mobile-only" aria-hidden="true">
-            {mobilePrimaryNav.map(({ label, icon: Icon }) => {
-              const active = label === activeNav;
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  className={active ? 'active' : ''}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => {
-                    setActiveNav(label);
-                    setCatalogOpen(false);
-                    setMobileMenuOpen(false);
-                    setError('');
-                  }}
-                >
-                  <Icon size={22} />
-                  <span>{label}</span>
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              className={mobileMenuOpen ? 'active' : ''}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-nav-menu"
-              onClick={() => {
-                setCatalogOpen(false);
-                setMobileMenuOpen((open) => !open);
-              }}
-            >
-              <Menu size={22} />
-              <span>Menu</span>
-            </button>
-          </span>
-          <span className="sidebar-desktop-only">
-            {navItems.map(({ label, icon: Icon }) => {
-              const active = label === activeNav;
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  className={active ? 'active' : ''}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => {
-                    setActiveNav(label);
-                    setCatalogOpen(false);
-                    setMobileMenuOpen(false);
-                    setError('');
-                  }}
-                >
-                  <Icon size={22} />
-                  <span>{label}</span>
-                </button>
-              );
-            })}
-          </span>
-        </nav>
-      {mobileMenuOpen && (
-        <button
-          type="button"
-          className="mobile-nav-scrim"
-          aria-label="Fechar menu"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-      <div
-        className={`mobile-nav-menu ${mobileMenuOpen ? 'open' : ''}`}
-        id="mobile-nav-menu"
-        role="menu"
-        aria-label="Navegação completa"
-        aria-hidden={!mobileMenuOpen}
-      >
-        {navItems.map(({ label, icon: Icon }) => {
-          const active = label === activeNav;
-          return (
-            <button
-              key={label}
-              type="button"
-              role="menuitem"
-              className={active ? 'active' : ''}
-              aria-current={active ? 'page' : undefined}
-              tabIndex={mobileMenuOpen ? 0 : -1}
-              onClick={() => {
-                setActiveNav(label);
-                setCatalogOpen(false);
-                setMobileMenuOpen(false);
-                setError('');
-              }}
-            >
-              <Icon size={20} />
-              <span>{label}</span>
-            </button>
-          );
-        })}
-        {user && onLogout && (
-          <button
-            type="button"
-            role="menuitem"
-            className="mobile-nav-logout"
-            tabIndex={mobileMenuOpen ? 0 : -1}
-            onClick={() => {
-              setMobileMenuOpen(false);
-              onLogout();
-            }}
-          >
-            <LogOut size={20} />
-            <span>Sair ({user.name})</span>
-          </button>
-        )}
-      </div>
-      <button className="collapse" type="button">
-          <ChevronLeft size={17} />
-          <span>Recolher</span>
-        </button>
-      </aside>
+      <AppSidebar
+        activeNav={activeNav}
+        mobileMenuOpen={mobileMenuOpen}
+        onToggleMobileMenu={() => {
+          setCatalogOpen(false);
+          setMobileMenuOpen((open) => !open);
+        }}
+        onCloseMobileMenu={() => setMobileMenuOpen(false)}
+        onSelectNav={(label) => {
+          setActiveNav(label);
+          setCatalogOpen(false);
+          setMobileMenuOpen(false);
+          setError('');
+        }}
+        user={user}
+        onLogout={onLogout}
+      />
 
       {activeNav !== 'Propostas' && error && (
         <div className="global-error" role="alert">
@@ -377,8 +241,6 @@ export function App({ user, onLogout }: AppProps = {}) {
             setError('');
           }}
           onCreateRevision={() => void createRevision()}
-          onPreviewProposal={() => void previewProposal()}
-          onExportProposal={() => void exportProposal()}
           onNavigateToCentroCustos={(ccId) => {
             setTargetCostCenterId(ccId ?? null);
             setActiveNav('Centro de Custos');
