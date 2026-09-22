@@ -123,7 +123,7 @@ export function ProposalItemEditSheet({
             type="button"
             className={`catalog-cost-badge ${item.catalogCurrentCost > item.unitCost ? 'cost-up' : 'cost-down'}`}
             disabled={mutationPending}
-            onClick={() => onUpdateMoney(item.id, 'unitCost', formatDecimal(item.catalogCurrentCost!))}
+            onClick={() => onUpdateMoney(item.id, 'unitCost', formatDecimal(item.catalogCurrentCost ?? item.unitCost))}
           >
             Catálogo atual: {item.catalogCurrentCost > item.unitCost ? '▲' : '▼'} R$ {money.format(item.catalogCurrentCost)} · toque para sincronizar
           </button>

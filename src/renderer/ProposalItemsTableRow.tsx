@@ -131,7 +131,7 @@ export function ProposalItemsTableRow({
               className={`catalog-cost-badge ${item.catalogCurrentCost > item.unitCost ? 'cost-up' : 'cost-down'}`}
               title={`Catálogo atual: R$ ${money.format(item.catalogCurrentCost)}. Clique para atualizar.`}
               disabled={mutationPending}
-              onClick={() => onUpdateMoney(item.id, 'unitCost', formatDecimal(item.catalogCurrentCost!))}
+              onClick={() => onUpdateMoney(item.id, 'unitCost', formatDecimal(item.catalogCurrentCost ?? item.unitCost))}
             >
               {item.catalogCurrentCost > item.unitCost ? '▲' : '▼'} {money.format(item.catalogCurrentCost)}
             </button>

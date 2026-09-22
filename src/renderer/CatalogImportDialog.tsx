@@ -45,12 +45,6 @@ export function CatalogImportDialog({ open, onClose, onImported, onError }: Prop
   const [exsatFailures, setExsatFailures] = useState<ExsatPageFailure[]>([]);
   const [syncInfo, setSyncInfo] = useState<ExsatSyncInfo>({ history: [] });
   const validRows = useMemo(() => rows.filter((row) => row.code.trim().length >= 2 && row.description.trim().length >= 3 && row.category.trim().length >= 2 && row.unit.trim()), [rows]);
-  const previewSummary = useMemo(() => ({
-    new: rows.filter((row) => row.status === 'new').length,
-    updated: rows.filter((row) => row.status === 'updated').length,
-    unchanged: rows.filter((row) => row.status === 'unchanged').length,
-    noPrice: rows.filter((row) => row.status === 'no_price').length,
-  }), [rows]);
   const exsatSummary = useMemo(() => ({
     confirmed: rows.filter((row) => row.status === 'confirmed').length,
     divergent: rows.filter((row) => row.status === 'divergent').length,

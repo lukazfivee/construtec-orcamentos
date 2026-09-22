@@ -195,7 +195,7 @@ export function KitsWorkspace({
     }
 
     const sanitizedItems = Array.from(itemMap.entries())
-      .filter(([_, qty]) => qty > 0)
+      .filter(([, qty]) => qty > 0)
       .map(([productId, quantity]) => ({ productId, quantity }));
 
     if (sanitizedItems.length === 0) return onError('Adicione pelo menos um item válido ao kit.');

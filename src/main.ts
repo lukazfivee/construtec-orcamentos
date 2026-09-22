@@ -1,5 +1,4 @@
 import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron';
-import fs from 'node:fs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';

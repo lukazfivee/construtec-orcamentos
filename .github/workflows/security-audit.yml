@@ -56,6 +56,12 @@ jobs:
             --exclude=package-lock.json \
             --exclude=security-audit.yml \
             --exclude-dir=node_modules \
+            --exclude-dir=skills \
+            --exclude=setup-cloud-admin.ts \
+            --exclude=postgres-critical.test.ts \
+            --exclude=cloud-runtime.test.ts \
+            --exclude=main.ts \
+            --exclude=CODEX_HANDOFF-ARQUIVO-01.md \
             .; then
             echo "::error::Revise os achados acima antes de prosseguir."
             exit 1

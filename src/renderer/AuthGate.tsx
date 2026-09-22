@@ -14,7 +14,7 @@ type AuthMode = 'checking' | 'setup' | 'login' | 'ready';
 
 export function AuthGate() {
   const [mode, setMode] = useState<AuthMode>('checking');
-  const [requiresSetup, setRequiresSetup] = useState(false);
+  const [, setRequiresSetup] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
