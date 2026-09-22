@@ -108,13 +108,15 @@ const wranglerLocal = path.join(
   'bin',
   'wrangler.js',
 );
-const wranglerArgs = fs.existsSync(wranglerLocal)
-  ? [wranglerLocal]
-  : ['--yes', 'wrangler@4.131.2'];
+const useLocalWrangler = fs.existsSync(wranglerLocal);
+const wranglerCommand = useLocalWrangler
+  ? process.execPath
+  : (process.platform === 'win32' ? 'npx.cmd' : 'npx');
+const wranglerArgs = useLocalWrangler ? [wranglerLocal] : ['--yes', 'wrangler@4.131.2'];
 
 run(
   dryRun ? 'Validando o Worker...' : 'Publicando construtec-orcamentos-cloud...',
-  process.execPath,
+  wranglerCommand,
   [
     ...wranglerArgs,
     'deploy',
