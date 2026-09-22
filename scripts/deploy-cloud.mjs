@@ -108,20 +108,28 @@ const wranglerLocal = path.join(
   'bin',
   'wrangler.js',
 );
-const wranglerArgs = fs.existsSync(wranglerLocal)
-  ? [wranglerLocal]
-  : ['--yes', 'wrangler@4.131.2'];
+const useLocalWrangler = fs.existsSync(wranglerLocal);
+const wranglerCommand = useLocalWrangler
+  ? process.execPath
+  : (process.platform === 'win32' ? 'npx.cmd' : 'npx');
+const wranglerArgs = useLocalWrangler ? [wranglerLocal] : ['--yes', 'wrangler@4.131.2'];
 
 run(
   dryRun ? 'Validando o Worker...' : 'Publicando construtec-orcamentos-cloud...',
-  process.execPath,
+  wranglerCommand,
   [
     ...wranglerArgs,
     'deploy',
     `--config=${path.join(configDir, 'wrangler.jsonc')}`,
     ...(dryRun ? ['--dry-run'] : []),
   ],
-  { cwd: configDir },
+  {
+    cwd: configDir,
+    // npx.cmd no Windows nao e um executavel direto (precisa de shell pra
+    // interpretar o .cmd); sem isso o spawnSync falha com ENOENT/EINVAL
+    // antes mesmo de tentar publicar.
+    ...(!useLocalWrangler && process.platform === 'win32' ? { shell: true } : {}),
+  },
 );
 
 console.log(
