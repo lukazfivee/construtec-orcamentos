@@ -123,7 +123,13 @@ run(
     `--config=${path.join(configDir, 'wrangler.jsonc')}`,
     ...(dryRun ? ['--dry-run'] : []),
   ],
-  { cwd: configDir },
+  {
+    cwd: configDir,
+    // npx.cmd no Windows nao e um executavel direto (precisa de shell pra
+    // interpretar o .cmd); sem isso o spawnSync falha com ENOENT/EINVAL
+    // antes mesmo de tentar publicar.
+    ...(!useLocalWrangler && process.platform === 'win32' ? { shell: true } : {}),
+  },
 );
 
 console.log(
