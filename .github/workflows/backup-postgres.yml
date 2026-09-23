@@ -53,7 +53,7 @@ jobs:
           sha256sum "orcamentos-${STAMP}.dump.gpg" > "orcamentos-${STAMP}.dump.gpg.sha256"
           shred -u orcamentos.dump orcamentos.list
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: orcamentos-postgres-${{ env.STAMP }}
           path: orcamentos-${{ env.STAMP }}.dump.gpg*
