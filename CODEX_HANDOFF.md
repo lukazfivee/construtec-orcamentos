@@ -1,5 +1,18 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-22 20:15 BRT — Deploy manual de produção + fix real no script de deploy
+
+Usuário pediu para colocar o que estava no GitHub em produção de verdade (o app cloud nunca teve deploy automático). Passo a passo:
+
+- `cloudflare/api-container/` nunca tinha rodado `npm install` neste ambiente — `wrangler` (devDependency já declarada) estava ausente, então `scripts/deploy-cloud.mjs` caía no fallback via `npx`. Rodei `npm ci` lá pra instalar o wrangler local.
+- Achado um bug real nesse fallback: quando o wrangler local não existe, o script montava argumentos de `npx` (`--yes wrangler@4.131.2`) mas invocava `process.execPath` (node) em vez de `npx` — resultava em `bad option: --yes`. Corrigido para usar `npx`/`npx.cmd` como comando nesse caso (PR #85).
+- Revisão automática do bot (`chatgpt-codex-connector`) no PR pegou um segundo bug real na minha própria correção: `spawnSync('npx.cmd', ..., {shell:false})` falha no Windows (`.cmd` não é executável direto, precisa de shell) — corrigido com `shell:true` (args são estáticos/controlados, sem entrada de usuário, seguro). Testado isoladamente antes de comitar.
+- Docker Desktop precisou ser iniciado manualmente (não estava rodando).
+- **Deploy real publicado com sucesso**: `construtec-orcamentos-cloud`, versão `65964ee4-43f6-4f83-a71d-8c7bf3f21f8b`. `/health` confirmado 200 `{"ok":true,"storage":"postgresql"}` de forma independente. Confirmei também via `wrangler deployments list` que nenhum deploy acidental extra aconteceu durante a depuração do fallback.
+- PR #85 (fix do fallback) mesclado em `main` sem bypass, checks 100% verdes: `70034d5`.
+
+**Estado**: `main` em `70034d5`, produção cloud rodando o build correspondente ao PR #84 (o deploy publicou o `dist/` gerado a partir desse estado do `main`). Nenhuma pendência nova conhecida no fluxo de deploy manual.
+
 ## 2026-09-21 19:10 BRT — Desbloqueio parcial + correção de 2 achados do Codex (LEAD ORCHESTRATOR)
 
 Continuação da entrada abaixo. Codex (`ORQUESTRADOR-ASTRA`) tentou desbloquear 3 dos bloqueadores listados; revisei e testei cada um antes de aceitar. Nada commitado ainda.
