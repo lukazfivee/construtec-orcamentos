@@ -16,9 +16,9 @@ const SERVICE_KEY = 'k'.repeat(40);
 // Centro de Custos de mentira: mesmos contratos /v1 do diretorio central.
 const startStubCentro = async () => {
   const users: StubUser[] = [
-    { id: 'c-admin', name: 'Admin Centro', email: 'admin@rcconstrutec.com.br', role: 'admin', active: true, password: 'senha-admin-123' },
-    { id: 'c-gestor', name: 'Gestor', email: 'gestor@rcconstrutec.com.br', role: 'gestor', active: true, password: 'senha-gestor-123' },
-    { id: 'c-legado', name: 'Legado', email: 'legado@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-legado-123' },
+    { id: 'c-admin', name: 'Admin Centro', email: 'admin@rcconstrutec.com.br', role: 'admin', active: true, password: 'senha-adm1' },
+    { id: 'c-gestor', name: 'Gestor', email: 'gestor@rcconstrutec.com.br', role: 'gestor', active: true, password: 'senha-ges1' },
+    { id: 'c-legado', name: 'Legado', email: 'legado@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-leg1' },
   ];
   const sessions = new Map<string, string>();
   let created = 0;
@@ -90,18 +90,18 @@ test('identidade delegada ao Centro de Custos', async context => {
   const { database } = fixture;
 
   await context.test('admin do Centro entra como admin; demais como viewer', async () => {
-    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-admin-123', '198.51.100.7');
+    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-adm1', '198.51.100.7');
     assert.equal(admin.user.role, 'admin');
     const login = stub.seen.find(entry => entry.path === '/v1/auth/login');
     assert.equal(login?.clientIp, '198.51.100.7');
-    const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-gestor-123');
+    const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
     assert.equal(gestor.user.role, 'viewer');
     await assert.rejects(loginUser(database, 'gestor@rcconstrutec.com.br', 'errada-123456'), /AUTH_INVALID_CREDENTIALS/);
   });
 
   await context.test('linha local antiga nao transfere papel de admin', async () => {
     await database.query("INSERT INTO users (id,name,email,password_hash,role,active) VALUES (gen_random_uuid(),'Legado','legado@rcconstrutec.com.br','x','admin',true)");
-    const legado = await loginUser(database, 'legado@rcconstrutec.com.br', 'senha-legado-123');
+    const legado = await loginUser(database, 'legado@rcconstrutec.com.br', 'senha-leg1');
     assert.equal(legado.user.role, 'viewer');
   });
 
@@ -114,10 +114,10 @@ test('identidade delegada ao Centro de Custos', async context => {
   });
 
   await context.test('sessao revalidada e conta excluida perde o acesso', async () => {
-    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-admin-123');
-    const created = await createUser(database, admin.token, { name: 'Vendedor', email: 'vendedor@rcconstrutec.com.br', password: 'senha-vendedor-1', role: 'commercial' });
+    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-adm1');
+    const created = await createUser(database, admin.token, { name: 'Vendedor', email: 'vendedor@rcconstrutec.com.br', password: 'senha-vd1', role: 'commercial' });
     assert.equal(created.role, 'commercial');
-    const vendedor = await loginUser(database, 'vendedor@rcconstrutec.com.br', 'senha-vendedor-1');
+    const vendedor = await loginUser(database, 'vendedor@rcconstrutec.com.br', 'senha-vd1');
     assert.equal(vendedor.user.role, 'commercial');
     assert.ok(stub.seen.filter(entry => entry.path === '/v1/users').every(entry => entry.serviceKey === SERVICE_KEY));
 
@@ -127,7 +127,7 @@ test('identidade delegada ao Centro de Custos', async context => {
     const listed = await listUsers(database, admin.token);
     assert.equal(listed.some(user => user.email === 'vendedor@rcconstrutec.com.br'), false);
 
-    const again = await createUser(database, admin.token, { name: 'Vendedor 2', email: 'vendedor@rcconstrutec.com.br', password: 'senha-vendedor-2', role: 'viewer' });
+    const again = await createUser(database, admin.token, { name: 'Vendedor 2', email: 'vendedor@rcconstrutec.com.br', password: 'senha-vd2', role: 'viewer' });
     assert.notEqual(again.id, created.id);
     const rows = (await database.query<{ deleted_at: string | null }>("SELECT deleted_at FROM users WHERE email = 'vendedor@rcconstrutec.com.br'")).rows;
     assert.equal(rows.length, 2);
@@ -135,7 +135,7 @@ test('identidade delegada ao Centro de Custos', async context => {
   });
 
   await context.test('desativar nao exclui: conta segue listada e pode ser reativada', async () => {
-    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-admin-123');
+    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-adm1');
     const target = (await listUsers(database, admin.token)).find(user => user.email === 'gestor@rcconstrutec.com.br');
     assert.ok(target);
     await updateUser(database, admin.token, admin.user.id, target.id, { role: 'commercial', active: false });
@@ -149,7 +149,7 @@ test('identidade delegada ao Centro de Custos', async context => {
   });
 
   await context.test('desktop sem internet aceita sessao ja confirmada; nuvem nao', async () => {
-    const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-gestor-123');
+    const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
     const savedUrl = process.env.CENTRO_CUSTOS_IDENTITY_URL;
     process.env.CENTRO_CUSTOS_IDENTITY_URL = 'http://127.0.0.1:9';
     const savedDb = process.env.DATABASE_URL;
@@ -168,7 +168,7 @@ test('identidade delegada ao Centro de Custos', async context => {
   });
 
   await context.test('admin nao remove o proprio acesso', async () => {
-    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-admin-123');
+    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-adm1');
     await assert.rejects(updateUser(database, admin.token, admin.user.id, admin.user.id, { role: 'viewer', active: true }), /USER_SELF_LOCKOUT/);
     await assert.rejects(deleteUser(database, admin.token, admin.user.id, admin.user.id), /USER_SELF_LOCKOUT/);
   });
