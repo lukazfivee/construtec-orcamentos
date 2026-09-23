@@ -18,6 +18,11 @@ Cadastrar com `npx wrangler secret put NOME`, sem versionar valores:
 - `CONSTRUTEC_SETUP_TOKEN`: valor aleatório com pelo menos 32 caracteres.
 - `CONSTRUTEC_ALLOWED_ORIGINS`: origens HTTPS exatas separadas por vírgula,
   incluindo o endereço final do Worker.
+- `CONSTRUTEC_INTEGRATION_KEY`: valor aleatório com pelo menos 32 caracteres,
+  **igual** ao do Worker `centro-custos-api`. Sem ele, o envio de propostas
+  aprovadas ao Centro de Custos fica desligado na nuvem.
+- `CONSTRUTEC_IDENTITY_KEY`: valor aleatório com pelo menos 32 caracteres,
+  **igual** ao do Worker `centro-custos-api` (contas pelo diretório central).
 
 `POST /api/auth/setup` requer o token de setup em Authorization Bearer no modo
 remoto. Provisionar o administrador por canal administrativo; não inserir esse
