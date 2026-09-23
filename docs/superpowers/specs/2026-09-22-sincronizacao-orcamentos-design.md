@@ -1,7 +1,7 @@
 # Sincronização Orçamentos ↔ Centro de Custos (sub-projeto 2)
 
-Status: **rascunho para aprovação do usuário**. Nada aqui foi implementado,
-exceto o reenvio da outbox por Cron (seção "Já feito").
+Status: **aprovado pelo usuário em 22/09/2026 e implementado** (retorno de totais,
+Cron de hora em hora, perfil Consulta também vê o bloco).
 
 Substitui a referência a `2026-09-19-sincronizacao-orcamentos-design.md` citada
 na spec de identidade compartilhada (repositório do Centro de Custos). Esse
@@ -70,8 +70,8 @@ a tela "Orçado vs realizado" do Centro já usa; nenhuma regra nova de negócio.
   o Centro.
 - A resposta traz apenas totais da obra ligada à proposta, sem lançamentos
   individuais nem dados de fornecedores.
-- Só perfis `admin` e `commercial` do Orçamentos veem o bloco. `viewer` também
-  vê, se o usuário decidir assim (ver "Decisões pendentes").
+- Todos os perfis do Orçamentos veem o bloco, `viewer` inclusive (decisão do
+  usuário).
 
 ### Testes
 
@@ -94,10 +94,19 @@ a tela "Orçado vs realizado" do Centro já usa; nenhuma regra nova de negócio.
 - Qualquer escrita do Orçamentos no Centro além do envelope selado que já existe.
 - Presença em tempo real e propostas privadas/rascunho (sub-projetos 4 e 5).
 
-## Decisões pendentes do usuário
+## Decisões do usuário (22/09/2026)
 
-1. Aprovar o escopo acima (retorno de totais para a proposta integrada).
-2. O perfil `viewer` do Orçamentos vê o bloco de acompanhamento?
-3. A frequência do Cron (hoje de hora em hora) é suficiente para o acompanhamento?
-   Cada disparo acorda o Container do Orçamentos por alguns minutos, e o do Centro
-   quando há algo a enviar ou atualizar.
+1. Escopo aprovado: retorno dos totais da obra para a proposta integrada.
+2. O perfil `viewer` também vê o bloco de acompanhamento.
+3. O Cron roda de hora em hora. A tela também atualiza ao abrir a proposta e pelo
+   botão "Atualizar".
+
+## Implementação
+
+- Centro: `GET /api/integracao/orcamentos/contratos/:id/resumo`
+  (`services/budgets/budgetContractSummary.js`).
+- Orçamentos: migração 013 (`proposal_center_snapshots`),
+  `services/integration/centerTracking.ts`, rota
+  `GET /api/proposals/:id/center-tracking`, a passada do Cron em
+  `runScheduledIntegrationPass` e o bloco `CenterTrackingCard` na proposta
+  integrada.

@@ -250,3 +250,28 @@ export type ProposalExportOptions = {
   customNotes?: string;
 };
 
+
+// Acompanhamento da obra no Centro de Custos (somente leitura, centavos).
+export type CenterSummary = {
+  contractId: string;
+  costCenterId: number;
+  costCenterCode?: string;
+  costCenterName?: string;
+  costCenterStatus: 'planejamento' | 'execucao' | 'pausado' | 'concluido';
+  hasBudget: boolean;
+  baseline?: { id: string; version: number; contractValueCents: number; baseCostCents: number; sealedAt: string | null };
+  realizedCents?: number;
+  realizedPercent?: number;
+  balanceCents?: number;
+  overBudget?: boolean;
+  unlinkedExpenseCents?: number;
+  updatedAt: string;
+};
+
+export type CenterTracking = {
+  integrated: boolean;
+  summary: CenterSummary | null;
+  fetchedAt: string | null;
+  stale: boolean;
+  centerUrl: string | null;
+};

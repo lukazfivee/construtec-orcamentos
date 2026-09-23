@@ -7,13 +7,14 @@ import { createClientsRouter } from './routes/clients';
 import { createDashboardRouter } from './routes/dashboard';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
+import { createProposalTrackingRouter } from './routes/proposalTracking';
 import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
 import type { LocalDatabase } from './services/database';
 import { resolveIntegrationKey } from './services/integration/proposalSync';
-import { runOutboxRetryPass } from './services/outboxRetryWorker';
+import { runScheduledIntegrationPass } from './services/outboxRetryWorker';
 
 const getSessionToken = (request: express.Request) => {
   const value = request.headers['x-construtec-session'];
@@ -121,7 +122,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       return;
     }
     try {
-      response.json({ attempted: await runOutboxRetryPass(database) });
+      response.json(await runScheduledIntegrationPass(database));
     } catch {
       response.status(503).json({ error: 'Reenvio indisponível.' });
     }
@@ -173,6 +174,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
 
   api.use('/api/catalog', createCatalogRouter(database));
   api.use('/api/clients', createClientsRouter(database));
+  api.use('/api/proposals', createProposalTrackingRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));
