@@ -42,7 +42,7 @@ const getRuntime = async () => {
   const defaultApiUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://127.0.0.1:5173';
   const apiUrl = (typeof window !== 'undefined' && (window as unknown as { __CONSTRUTEC_API_URL__?: string }).__CONSTRUTEC_API_URL__)
     || defaultApiUrl;
-  const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || 'web-session';
+  const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || '';
   const centroCustosUrl = 'https://centro-custos-api.construtec-reports.workers.dev';
   runtimePromise = Promise.resolve({ apiUrl, apiToken, centroCustosUrl });
   return runtimePromise;
@@ -53,7 +53,7 @@ export const getCentroCustosUrl = async () => (await getRuntime()).centroCustosU
 export const isCloudRuntime = () => typeof window === 'undefined' || !window.construtec?.runtime;
 
 const requestHeaders = (apiToken: string, hasBody = false) => ({
-  Authorization: `Bearer ${apiToken}`,
+  ...(apiToken ? { Authorization: `Bearer ${apiToken}` } : {}),
   ...(authSessionToken ? { 'X-Construtec-Session': authSessionToken } : {}),
   ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
 });

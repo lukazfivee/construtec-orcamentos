@@ -107,8 +107,8 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     }
   });
   api.use((request, response, next) => {
-    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`
-      || request.headers.authorization === 'Bearer web-session';
+    // Token local so existe no desktop (processo Electron); na web vale a sessao.
+    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`;
     const hasUserSession = Boolean(getSessionToken(request));
     const isPublicAuth = request.path.toLowerCase().startsWith('/api/auth');
     if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {
