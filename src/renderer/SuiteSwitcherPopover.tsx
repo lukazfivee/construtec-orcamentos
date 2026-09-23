@@ -5,9 +5,8 @@ import {
   FileSpreadsheet,
   Headset,
   Layers,
-  LayoutGrid,
 } from 'lucide-react';
-import { getCentroCustosUrl } from './api';
+import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
 
 /* Dominio oficial do ChamadoPro na Suite Construtec. */
 const CHAMADOPRO_URL = 'https://chamadopro-app.lucas-coelho5923.workers.dev/';
@@ -24,7 +23,7 @@ export function SuiteSwitcherPopover({
   onClose,
 }: SuiteSwitcherPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [centroUrl, setCentroUrl] = useState('http://localhost:3333');
+  const [centroUrl, setCentroUrl] = useState(CENTRO_CUSTOS_CLOUD_URL);
 
   useEffect(() => {
     void getCentroCustosUrl().then(setCentroUrl);
@@ -79,11 +78,6 @@ export function SuiteSwitcherPopover({
     }
   };
 
-  const handleSuiteHome = () => {
-    if (window.location.pathname.startsWith('/orcamentos')) window.location.assign('/');
-    else handleOpenUrl('http://localhost:3000');
-  };
-
   return (
     <div
       className="suite-dropdown-menu"
@@ -95,24 +89,6 @@ export function SuiteSwitcherPopover({
         <Layers size={12} style={{ display: 'inline', marginRight: 5, verticalAlign: '-1px' }} />
         Esteira Operacional Construtec
       </div>
-
-      <button
-        type="button"
-        className="suite-dropdown-item hub-link"
-        onClick={handleSuiteHome}
-        role="menuitem"
-      >
-        <span className="suite-item-icon">
-          <LayoutGrid size={15} />
-        </span>
-        <div className="suite-item-text">
-          <strong>Portal Hub</strong>
-          <small>Launcher e esteira de trabalho</small>
-        </div>
-        <ExternalLink size={12} className="suite-item-ext" />
-      </button>
-
-      <div className="suite-dropdown-sep" />
 
       {activeApp === 'orcamentos' ? (
         <div className="suite-dropdown-item current-system" role="menuitem" aria-current="page">
