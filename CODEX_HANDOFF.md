@@ -1,6 +1,6 @@
 # Construtec Orçamentos — handoff operacional
 
-## 2026-09-22 — Deploy manual de produção + fix real no script de deploy
+## 2026-09-22 20:15 BRT — Deploy manual de produção + fix real no script de deploy
 
 Usuário pediu para colocar o que estava no GitHub em produção de verdade (o app cloud nunca teve deploy automático). Passo a passo:
 
