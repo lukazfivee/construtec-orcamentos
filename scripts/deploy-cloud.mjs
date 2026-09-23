@@ -23,7 +23,9 @@ const distDir = path.join(appRoot, 'dist');
 const dryRun = process.argv.includes('--dry-run');
 const skipBuild = process.argv.includes('--skip-build');
 
+// Docker Desktop instalado por usuario fica em %LOCALAPPDATA%\Programs.
 const DOCKER_HINTS = [
+  ...(process.env.LOCALAPPDATA ? [path.join(process.env.LOCALAPPDATA, 'Programs', 'DockerDesktop', 'resources', 'bin')] : []),
   'C:\\Program Files\\Docker\\Docker\\resources\\bin',
   'C:\\Program Files\\Docker\\Docker\\resources',
   '/usr/local/bin',
