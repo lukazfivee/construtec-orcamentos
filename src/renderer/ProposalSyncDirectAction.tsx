@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
-import { getCentroCustosUrl, proposalApi } from './api';
+import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, proposalApi } from './api';
 
 interface Props {
   proposal: ProposalDetail;
@@ -52,7 +52,7 @@ export function ProposalSyncDirectAction({
 
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [centroUrl, setCentroUrl] = useState('http://localhost:3333');
+  const [centroUrl, setCentroUrl] = useState(CENTRO_CUSTOS_CLOUD_URL);
 
   useEffect(() => {
     void getCentroCustosUrl().then(setCentroUrl);
@@ -75,7 +75,7 @@ export function ProposalSyncDirectAction({
         setSyncState({
           status: 'offline',
           message: res.error || `O Centro de Custos não está acessível em ${centroUrl}.`,
-          centerUrl: 'http://localhost:3000',
+          centerUrl: centroUrl,
         });
       } else {
         setSyncState({
@@ -149,15 +149,6 @@ export function ProposalSyncDirectAction({
     }
   };
 
-  const handleOpenHub = () => {
-    const url = 'http://localhost:3000';
-    if (window.construtec?.openExternal) {
-      void window.construtec.openExternal(url);
-    } else {
-      window.open(url, '_blank', 'noopener');
-    }
-  };
-
   const handleDownloadFallback = async () => {
     try {
       const envelope = await proposalApi.integrationExport(proposal.id);
@@ -217,9 +208,6 @@ export function ProposalSyncDirectAction({
           </div>
           <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
           <div className="gerar-centro-actions-row">
-            <button type="button" className="gerar-centro-btn-secondary" onClick={handleOpenHub}>
-              <ExternalLink size={13} /> Abrir Hub (:3000)
-            </button>
             <button type="button" className="gerar-centro-btn-secondary" onClick={handleDownloadFallback} title="Baixar contingência JSON">
               <Download size={13} /> Baixar JSON
             </button>
