@@ -43,10 +43,12 @@ const getRuntime = async () => {
   const apiUrl = (typeof window !== 'undefined' && (window as unknown as { __CONSTRUTEC_API_URL__?: string }).__CONSTRUTEC_API_URL__)
     || defaultApiUrl;
   const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || '';
-  const centroCustosUrl = 'https://centro-custos-api.construtec-reports.workers.dev';
+  const centroCustosUrl = CENTRO_CUSTOS_CLOUD_URL;
   runtimePromise = Promise.resolve({ apiUrl, apiToken, centroCustosUrl });
   return runtimePromise;
 };
+
+export const CENTRO_CUSTOS_CLOUD_URL = 'https://centro-custos-api.construtec-reports.workers.dev';
 
 export const getCentroCustosUrl = async () => (await getRuntime()).centroCustosUrl;
 

@@ -1,0 +1,63 @@
+name: Backup PostgreSQL (nuvem)
+
+# Dump diario do banco Neon do Construtec Orçamentos. O repositorio e publico e
+# artifacts podem ser baixados por qualquer usuario logado no GitHub, por isso
+# o arquivo sai sempre criptografado (GPG simetrico, AES256) antes do upload.
+# Segredos: ORCAMENTOS_BACKUP_DATABASE_URL (usuario somente leitura) e
+# BACKUP_PASSPHRASE. Restauracao: docs/BACKUP-NUVEM.md (repositorio do Centro de Custos).
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-postgres
+  cancel-in-progress: false
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.ORCAMENTOS_BACKUP_DATABASE_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Verificar segredos
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::error::Configure ORCAMENTOS_BACKUP_DATABASE_URL e BACKUP_PASSPHRASE."
+            exit 1
+          fi
+
+      - name: Gerar dump
+        run: |
+          set -euo pipefail
+          stamp=$(date -u +%Y%m%dT%H%M%SZ)
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          # Roda como o usuario do runner: arquivos criados como root nao
+          # poderiam ser apagados com shred depois.
+          docker run --rm --user "$(id -u):$(id -g)" -e DATABASE_URL -v "$PWD:/out" postgres:17-alpine \
+            sh -c 'pg_dump --format=custom --no-owner --no-privileges --dbname="$DATABASE_URL" --file=/out/orcamentos.dump \
+              && pg_restore --list /out/orcamentos.dump > /out/orcamentos.list'
+          test -s orcamentos.dump
+          echo "Objetos no dump: $(grep -vc '^;' orcamentos.list)"
+
+      - name: Criptografar
+        run: |
+          set -euo pipefail
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
+            --symmetric --cipher-algo AES256 \
+            --output "orcamentos-${STAMP}.dump.gpg" orcamentos.dump 3<<<"$BACKUP_PASSPHRASE"
+          sha256sum "orcamentos-${STAMP}.dump.gpg" > "orcamentos-${STAMP}.dump.gpg.sha256"
+          shred -u orcamentos.dump orcamentos.list
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: orcamentos-postgres-${{ env.STAMP }}
+          path: orcamentos-${{ env.STAMP }}.dump.gpg*
+          retention-days: 30
+          if-no-files-found: error
