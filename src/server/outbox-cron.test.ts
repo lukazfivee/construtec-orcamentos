@@ -35,3 +35,12 @@ test('reenvio da outbox pelo Cron exige a chave de integracao', async context =>
   assert.equal(ok.status, 200);
   assert.deepEqual(await ok.json(), { attempted: 0 });
 });
+
+test('passada do Cron considera pendencias que o laco de 30s esgotou', async () => {
+  const { runOutboxRetryPass, CRON_MAX_ATTEMPTS } = await import('./services/outboxRetryWorker');
+  const seen: unknown[][] = [];
+  const database = { query: async (_sql: string, params: unknown[]) => { seen.push(params); return { rows: [] }; }, exec: async () => undefined } as unknown as LocalDatabase;
+  await runOutboxRetryPass(database);
+  await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS);
+  assert.deepEqual(seen.map(params => params[0]), [5, 72]);
+});

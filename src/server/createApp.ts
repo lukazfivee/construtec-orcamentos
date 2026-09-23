@@ -13,7 +13,7 @@ import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
 import type { LocalDatabase } from './services/database';
 import { resolveIntegrationKey } from './services/integration/proposalSync';
-import { runOutboxRetryPass } from './services/outboxRetryWorker';
+import { CRON_MAX_ATTEMPTS, runOutboxRetryPass } from './services/outboxRetryWorker';
 
 const getSessionToken = (request: express.Request) => {
   const value = request.headers['x-construtec-session'];
@@ -121,7 +121,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       return;
     }
     try {
-      response.json({ attempted: await runOutboxRetryPass(database) });
+      response.json({ attempted: await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS) });
     } catch {
       response.status(503).json({ error: 'Reenvio indisponível.' });
     }
