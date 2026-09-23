@@ -17,6 +17,7 @@ const sessionToken = (request: { headers: Record<string, unknown> }) => {
 // IP real do usuario (repassado pela borda da Cloudflare) para o limite de
 // tentativas de login do diretorio central nao ser compartilhado por todos.
 const clientIp = (request: { headers: Record<string, unknown>; ip?: string }) => {
+  if (!process.env.DATABASE_URL) return undefined;
   const value = request.headers['cf-connecting-ip'];
   return typeof value === 'string' && value ? value : undefined;
 };

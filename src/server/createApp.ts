@@ -110,7 +110,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`
       || request.headers.authorization === 'Bearer web-session';
     const hasUserSession = Boolean(getSessionToken(request));
-    const isPublicAuth = request.path.startsWith('/api/auth');
+    const isPublicAuth = request.path.toLowerCase().startsWith('/api/auth');
     if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {
       response.status(401).json({ error: 'Sessão local inválida.' });
       return;
@@ -138,20 +138,21 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       return;
     }
     response.locals.authUser = user;
+    const path = request.path.toLowerCase();
     response.locals.sessionToken = getSessionToken(request);
     if (user.role === 'viewer' && request.method !== 'GET') {
       response.status(403).json({ error: 'Seu perfil possui acesso somente para consulta.' });
       return;
     }
-    if (request.path.startsWith('/api/users') && user.role !== 'admin') {
+    if (path.startsWith('/api/users') && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem gerenciar usuários.' });
       return;
     }
-    if (request.path.startsWith('/api/system') && user.role !== 'admin') {
+    if (path.startsWith('/api/system') && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem executar operações de backup e restauração.' });
       return;
     }
-    if (request.path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
+    if (path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem alterar as configurações.' });
       return;
     }

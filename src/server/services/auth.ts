@@ -11,6 +11,9 @@ import { CentroIdentityError, centroLogin, centroLogout, centroSession, type Cen
 const SESSION_CACHE_MS = 60 * 1000;
 const MAX_CACHE_ENTRIES = 1000;
 const sessionCache = new Map<string, { user: AuthUser; until: number }>();
+// Incrementado a cada mudanca de papel: verificacoes iniciadas antes nao
+// repovoam o cache com o papel antigo.
+let cacheGeneration = 0;
 
 type MirrorRow = { id: string; name: string; email: string; role: AuthRole; active: boolean; centro_user_id: string | null };
 type Queryable = Pick<LocalDatabase, 'query'>;
@@ -32,7 +35,18 @@ export const retireLocalUsers = async (database: Queryable, ids: string[]) => {
 
 // Upsert da conta central no espelho local. Admin do Centro e sempre admin
 // aqui; as demais contas entram como viewer ate um admin do Orcamentos mudar.
+// Dois primeiros acessos simultaneos podem disputar o indice unico; a segunda
+// tentativa encontra a linha criada pela primeira.
 export const mirrorCentroUser = async (database: Queryable, remote: CentroUser, initialRole?: AuthRole): Promise<MirrorRow> => {
+  try {
+    return await mirrorOnce(database, remote, initialRole);
+  } catch (error) {
+    if (!/duplicate key|unique constraint/i.test(String((error as Error)?.message))) throw error;
+    return mirrorOnce(database, remote, initialRole);
+  }
+};
+
+const mirrorOnce = async (database: Queryable, remote: CentroUser, initialRole?: AuthRole): Promise<MirrorRow> => {
   const email = remote.email.trim().toLowerCase();
   const byId = await database.query<MirrorRow>(
     'SELECT id, name, email, role, active, centro_user_id FROM users WHERE centro_user_id = $1 AND deleted_at IS NULL LIMIT 1',
@@ -53,13 +67,15 @@ export const mirrorCentroUser = async (database: Queryable, remote: CentroUser, 
   }
   const promoted = remote.role === 'admin' ? 'admin' : null;
   if (existing) {
+    // Linha local antiga (sem conta central) nao transfere o papel antigo.
+    const role = existing.centro_user_id ? (promoted ?? existing.role) : (promoted ?? initialRole ?? 'viewer');
     const updated = await database.query<MirrorRow>(`
       UPDATE users SET name = $2, email = $3, active = $4, centro_user_id = $5,
-        role = COALESCE($6, role), password_hash = NULL, updated_at = now()
-      WHERE id = $1
+        role = $6, password_hash = NULL, updated_at = now()
+      WHERE id = $1 AND deleted_at IS NULL
       RETURNING id, name, email, role, active, centro_user_id
-    `, [existing.id, remote.name, email, remote.active !== false, remote.id, promoted]);
-    return updated.rows[0];
+    `, [existing.id, remote.name, email, remote.active !== false, remote.id, role]);
+    if (updated.rows[0]) return updated.rows[0];
   }
   const inserted = await database.query<MirrorRow>(`
     INSERT INTO users (id, name, email, password_hash, role, active, centro_user_id)
@@ -95,13 +111,16 @@ export const verifyUserSession = async (database: LocalDatabase, token: string):
   if (!token) return null;
   const cached = sessionCache.get(token);
   if (cached && cached.until > Date.now()) return cached.user;
+  const generation = cacheGeneration;
   try {
     const remote = await centroSession(token);
     const row = await mirrorCentroUser(database, remote.user);
     if (!row.active) return null;
     const user = toAuthUser(row);
-    if (sessionCache.size >= MAX_CACHE_ENTRIES) sessionCache.clear();
-    sessionCache.set(token, { user, until: Date.now() + SESSION_CACHE_MS });
+    if (generation === cacheGeneration) {
+      if (sessionCache.size >= MAX_CACHE_ENTRIES) sessionCache.clear();
+      sessionCache.set(token, { user, until: Date.now() + SESSION_CACHE_MS });
+    }
     return user;
   } catch (error) {
     sessionCache.delete(token);
@@ -116,4 +135,7 @@ export const logoutUser = async (token: string) => {
 };
 
 // Papel local mudou (tela de usuarios): descarta caches com o papel antigo.
-export const forgetCachedSessions = () => sessionCache.clear();
+export const forgetCachedSessions = () => {
+  cacheGeneration += 1;
+  sessionCache.clear();
+};

@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { createServer, type IncomingMessage } from 'node:http';
 import { once } from 'node:events';
 import { test } from 'node:test';
+import { PGlite } from '@electric-sql/pglite';
+import { initialMigration } from '../migrations/001-initial';
+import { sharedIdentityMigration } from '../migrations/012-shared-identity';
 import { createCriticalTestDatabase } from './criticalTestDatabase';
 import { forgetCachedSessions, loginUser, verifyUserSession } from './auth';
 import { createUser, deleteUser, listUsers, updateUser } from './users';
@@ -15,6 +18,7 @@ const startStubCentro = async () => {
   const users: StubUser[] = [
     { id: 'c-admin', name: 'Admin Centro', email: 'admin@rcconstrutec.com.br', role: 'admin', active: true, password: 'senha-admin-123' },
     { id: 'c-gestor', name: 'Gestor', email: 'gestor@rcconstrutec.com.br', role: 'gestor', active: true, password: 'senha-gestor-123' },
+    { id: 'c-legado', name: 'Legado', email: 'legado@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-legado-123' },
   ];
   const sessions = new Map<string, string>();
   let created = 0;
@@ -95,6 +99,12 @@ test('identidade delegada ao Centro de Custos', async context => {
     await assert.rejects(loginUser(database, 'gestor@rcconstrutec.com.br', 'errada-123456'), /AUTH_INVALID_CREDENTIALS/);
   });
 
+  await context.test('linha local antiga nao transfere papel de admin', async () => {
+    await database.query("INSERT INTO users (id,name,email,password_hash,role,active) VALUES (gen_random_uuid(),'Legado','legado@rcconstrutec.com.br','x','admin',true)");
+    const legado = await loginUser(database, 'legado@rcconstrutec.com.br', 'senha-legado-123');
+    assert.equal(legado.user.role, 'viewer');
+  });
+
   await context.test('senha local antiga nunca autentica', async () => {
     const row = (await database.query<{ password_hash: string | null; active: boolean }>(
       "SELECT password_hash, active FROM users WHERE email = 'fixture@example.invalid'",
@@ -129,4 +139,20 @@ test('identidade delegada ao Centro de Custos', async context => {
     await assert.rejects(updateUser(database, admin.token, admin.user.id, admin.user.id, { role: 'viewer', active: true }), /USER_SELF_LOCKOUT/);
     await assert.rejects(deleteUser(database, admin.token, admin.user.id, admin.user.id), /USER_SELF_LOCKOUT/);
   });
+});
+
+test('migracao 012 sobre dados existentes', async context => {
+  const database = new PGlite();
+  context.after(() => database.close());
+  await database.exec(initialMigration);
+  await database.query("INSERT INTO users (id,name,email,password_hash,role) VALUES ('00000000-0000-4000-8000-000000000001','Antigo','antigo@example.invalid','hash-antigo','admin')");
+  await database.exec(sharedIdentityMigration);
+  await database.exec(sharedIdentityMigration);
+  const legacy = (await database.query<{ password_hash: string | null; active: boolean }>('SELECT password_hash, active FROM users')).rows[0];
+  assert.equal(legacy.password_hash, null);
+  assert.equal(legacy.active, false);
+  await assert.rejects(database.query("INSERT INTO users (id,name,email,role) VALUES (gen_random_uuid(),'Dup','antigo@example.invalid','viewer')"));
+  await database.query("UPDATE users SET deleted_at = now() WHERE email = 'antigo@example.invalid'");
+  await database.query("INSERT INTO users (id,name,email,role,centro_user_id) VALUES (gen_random_uuid(),'Novo','antigo@example.invalid','viewer','c-1')");
+  assert.equal((await database.query('SELECT id FROM users')).rows.length, 2);
 });

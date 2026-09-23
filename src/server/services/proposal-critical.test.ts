@@ -192,6 +192,9 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
       const id = await makeProposal();
       await addLabor(id);
       assert.equal((await request(`/proposals/${id}/status`, session(viewerId), 'PATCH', { status: 'approved' })).status, 403);
+      // Express nao diferencia maiusculas: a checagem de admin tambem nao pode.
+      assert.equal((await request('/Users', session(viewerId), 'GET')).status, 403);
+      assert.equal((await request('/USERS/authorized-emails', session(viewerId), 'POST', { email: 'x@example.com' })).status, 403);
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'approved' })).status, 200);
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'draft' })).status, 409);
       assert.equal((await request(`/proposals/${id}`, session(userId), 'DELETE')).status, 409);
