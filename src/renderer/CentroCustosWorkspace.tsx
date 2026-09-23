@@ -26,9 +26,14 @@ export function CentroCustosWorkspace({
   const [loading, setLoading] = useState(true);
   const [online, setOnline] = useState<boolean | null>(null);
   const [baseAppUrl, setBaseAppUrl] = useState(CENTRO_CUSTOS_CLOUD_URL);
+  // So checa a saude depois de saber a URL real (no desktop pode ser local).
+  const [urlReady, setUrlReady] = useState(false);
 
   useEffect(() => {
-    void getCentroCustosUrl().then(setBaseAppUrl);
+    void getCentroCustosUrl().then((url) => {
+      setBaseAppUrl(url);
+      setUrlReady(true);
+    });
   }, []);
   const iframeUrl = targetCostCenterId
     ? `${baseAppUrl}/#obra=${targetCostCenterId}`
@@ -48,11 +53,11 @@ export function CentroCustosWorkspace({
     // (fetch entre origens) e' bloqueado por CORS mesmo quando o outro
     // servico esta no ar, e a mensagem de ".bat local"/"Portal Hub" nao
     // se aplica -- o iframe carrega direto, sem esse gate.
-    if (isCloudRuntime()) return undefined;
+    if (isCloudRuntime() || !urlReady) return undefined;
     void checkHealth();
     const timer = setInterval(() => void checkHealth(), 10000);
     return () => clearInterval(timer);
-  }, []);
+  }, [urlReady, baseAppUrl]);
 
   const handleReload = () => {
     setLoading(true);
