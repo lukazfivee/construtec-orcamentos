@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { createServer } from 'node:http';
 import { test } from 'node:test';
-import { sign } from 'jsonwebtoken';
 import { documentTotal } from '../../documents/proposalDocumentCommon';
 import { computeFinancialDelta } from '../../renderer/proposalDiffHelpers';
 import { getProposalFinancials } from '../../shared/proposalFinancials';
 import { createApp } from '../createApp';
 import { approvedProposalGuardsMigration } from '../migrations/008-approved-proposal-guards';
+import { forgetCachedSessions } from './auth';
 import { createCriticalTestDatabase } from './criticalTestDatabase';
 import { getDashboardSummary } from './dashboard';
 import { createProposalLaborItem } from './proposalLabor';
@@ -159,14 +160,28 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
   });
 
   await context.test('HTTP mantém RBAC, 409 para aprovação bloqueada e autoria atômica', async () => {
-    const secret = randomUUID();
-    const server = createApp(database, 'test-only-local-token', secret).listen(0, '127.0.0.1');
+    // Sessoes validadas por um diretorio central de mentira (token -> conta).
+    const centroUsers: Record<string, { id: string; name: string; email: string; role: string; active: boolean }> = {
+      'tok-admin': { id: 'c-fixture', name: 'Teste', email: 'fixture@example.invalid', role: 'admin', active: true },
+      'tok-reader': { id: 'c-reader', name: 'Leitor', email: 'reader@example.invalid', role: 'gestor', active: true },
+    };
+    const centro = createServer((incoming, outgoing) => {
+      const user = centroUsers[String(incoming.headers.authorization || '').replace(/^Bearer /, '')];
+      outgoing.writeHead(user ? 200 : 401, { 'Content-Type': 'application/json' });
+      outgoing.end(JSON.stringify(user ? { user } : { error: 'Sessao invalida.' }));
+    }).listen(0, '127.0.0.1');
+    await new Promise<void>(resolve => centro.once('listening', resolve));
+    const centroAddress = centro.address();
+    assert.ok(centroAddress && typeof centroAddress !== 'string');
+    const previousIdentityUrl = process.env.CENTRO_CUSTOS_IDENTITY_URL;
+    process.env.CENTRO_CUSTOS_IDENTITY_URL = `http://127.0.0.1:${centroAddress.port}`;
+    forgetCachedSessions();
+    const server = createApp(database, 'test-only-local-token').listen(0, '127.0.0.1');
     await new Promise<void>(resolve => server.once('listening', resolve));
     const address = server.address();
     assert.ok(address && typeof address !== 'string');
     const base = `http://127.0.0.1:${address.port}/api`;
-    const session = (id: string) => sign({}, secret, { algorithm: 'HS256', subject: id,
-      issuer: 'construtec-orcamentos', audience: 'local-api', expiresIn: '1h' });
+    const session = (id: string) => (id === userId ? 'tok-admin' : 'tok-reader');
     const request = (path: string, token: string, method = 'POST', body?: unknown) => fetch(base + path, {
       method, headers: { 'Content-Type': 'application/json', 'X-Construtec-Session': token },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -192,6 +207,10 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
       }, userId), /PROPOSAL_LOCKED/);
     } finally {
       await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+      await new Promise<void>(resolve => centro.close(() => resolve()));
+      if (previousIdentityUrl === undefined) delete process.env.CENTRO_CUSTOS_IDENTITY_URL;
+      else process.env.CENTRO_CUSTOS_IDENTITY_URL = previousIdentityUrl;
+      forgetCachedSessions();
     }
   });
 });

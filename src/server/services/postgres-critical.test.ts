@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { Pool } from 'pg';
 import { createDatabase, type LocalDatabase } from './database';
 import { createPostgresDatabase } from './postgresDatabase';
-import { setupFirstAdmin, loginUser } from './auth';
+import { mirrorCentroUser } from './auth';
 import { createClient, createWork, listClients } from './clients';
 import { createProposal, getProposalById } from './proposals';
 
@@ -46,9 +46,10 @@ test('PostgreSQL real: migrations, transações, serviços e persistência', {
     assert.deepEqual((await database.query("SELECT '2026-09-15'::date AS date, 1.25::numeric AS money, true AS flag, NULL::text AS missing, '{\"a\":1}'::jsonb AS json")).rows[0],
       { date: '2026-09-15', money: '1.25', flag: true, missing: null, json: { a: 1 } });
 
-    const secret = randomUUID();
-    const session = await setupFirstAdmin(database, secret, { name: 'Teste', email: 'teste@example.invalid', password: 'test-password-123' });
-    assert.equal((await loginUser(database, secret, 'teste@example.invalid', 'test-password-123')).user.id, session.user.id);
+    const centroId = randomUUID();
+    const mirrored = await mirrorCentroUser(database, { id: centroId, name: 'Teste', email: 'teste@example.invalid', role: 'admin', active: true });
+    assert.equal((await mirrorCentroUser(database, { id: centroId, name: 'Teste', email: 'teste@example.invalid', role: 'admin', active: true })).id, mirrored.id);
+    assert.equal(mirrored.role, 'admin');
     const clientId = await createClient(database, { legalName: 'Cliente de teste' });
     const workId = await createWork(database, clientId, { name: 'Obra de teste' });
     const proposalId = await createProposal(database, { clientId, workId, scope: 'Teste', validUntil: '2026-12-31' });

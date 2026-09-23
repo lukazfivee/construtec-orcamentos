@@ -16,6 +16,7 @@ const entryPoints = [
   'src/server/services/calculations.test.ts',
   'src/main/exsatValidation.test.ts',
   'src/server/services/integration/integration-key.test.ts',
+  'src/server/services/centro-identity.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',
   format: 'cjs', packages: 'external', outbase: 'src', outExtension: { '.js': '.cjs' } });
