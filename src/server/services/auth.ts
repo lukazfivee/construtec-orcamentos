@@ -14,6 +14,10 @@ const sessionCache = new Map<string, { user: AuthUser; until: number }>();
 // Incrementado a cada mudanca de papel: verificacoes iniciadas antes nao
 // repovoam o cache com o papel antigo.
 let cacheGeneration = 0;
+// Desktop sem internet: sessao ja confirmada pelo diretorio continua valida
+// por um tempo limitado. Nunca na nuvem, e nunca depois de um 401.
+const OFFLINE_GRACE_MS = 12 * 60 * 60 * 1000;
+const lastConfirmed = new Map<string, { user: AuthUser; at: number }>();
 
 type MirrorRow = { id: string; name: string; email: string; role: AuthRole; active: boolean; centro_user_id: string | null };
 type Queryable = Pick<LocalDatabase, 'query'>;
@@ -104,6 +108,7 @@ export const loginUser = async (
   if (!row.active) throw new Error('AUTH_INVALID_CREDENTIALS');
   const user = toAuthUser(row);
   sessionCache.set(remote.sessionToken, { user, until: Date.now() + SESSION_CACHE_MS });
+  lastConfirmed.set(remote.sessionToken, { user, at: Date.now() });
   return { token: remote.sessionToken, user };
 };
 
@@ -120,17 +125,26 @@ export const verifyUserSession = async (database: LocalDatabase, token: string):
     if (generation === cacheGeneration) {
       if (sessionCache.size >= MAX_CACHE_ENTRIES) sessionCache.clear();
       sessionCache.set(token, { user, until: Date.now() + SESSION_CACHE_MS });
+      if (lastConfirmed.size >= MAX_CACHE_ENTRIES) lastConfirmed.clear();
+      lastConfirmed.set(token, { user, at: Date.now() });
     }
     return user;
   } catch (error) {
     sessionCache.delete(token);
-    if (error instanceof CentroIdentityError && error.status === 401) return null;
+    if (error instanceof CentroIdentityError && error.status === 401) {
+      lastConfirmed.delete(token);
+      return null;
+    }
+    const confirmed = lastConfirmed.get(token);
+    const offlineDesktop = !process.env.DATABASE_URL && error instanceof CentroIdentityError && error.code === 'IDENTITY_UNAVAILABLE';
+    if (offlineDesktop && confirmed && Date.now() - confirmed.at < OFFLINE_GRACE_MS && generation === cacheGeneration) return confirmed.user;
     throw error;
   }
 };
 
 export const logoutUser = async (token: string) => {
   sessionCache.delete(token);
+  lastConfirmed.delete(token);
   if (token) await centroLogout(token).catch(() => undefined);
 };
 
@@ -138,4 +152,8 @@ export const logoutUser = async (token: string) => {
 export const forgetCachedSessions = () => {
   cacheGeneration += 1;
   sessionCache.clear();
+  lastConfirmed.clear();
 };
+
+// Testes: expira o cache de 60s sem descartar as sessoes ja confirmadas.
+export const expireSessionCacheForTests = () => sessionCache.clear();

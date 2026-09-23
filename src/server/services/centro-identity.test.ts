@@ -6,7 +6,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { initialMigration } from '../migrations/001-initial';
 import { sharedIdentityMigration } from '../migrations/012-shared-identity';
 import { createCriticalTestDatabase } from './criticalTestDatabase';
-import { forgetCachedSessions, loginUser, verifyUserSession } from './auth';
+import { expireSessionCacheForTests as forgetSessionCacheOnlyForTest, forgetCachedSessions, loginUser, verifyUserSession } from './auth';
 import { createUser, deleteUser, listUsers, updateUser } from './users';
 
 type StubUser = { id: string; name: string; email: string; role: 'admin' | 'gestor' | 'supervisor'; active: boolean; password: string };
@@ -46,7 +46,7 @@ const startStubCentro = async () => {
     if (!actor) return send(401, { error: 'Sessao invalida ou expirada.' });
     if (path === '/v1/auth/session') return send(200, { user: publicUser(actor) });
     if (request.headers['x-construtec-identity-key'] !== SERVICE_KEY) return send(403, { error: 'Sem permissao.' });
-    if (path === '/v1/users' && request.method === 'GET') return send(200, { users: users.filter(user => user.active).map(publicUser) });
+    if (path === '/v1/users' && request.method === 'GET') return send(200, { users: users.map(publicUser) });
     if (path === '/v1/users' && request.method === 'POST') {
       const user: StubUser = { id: `c-${++created}`, name: body.name, email: body.email, role: 'supervisor', active: true, password: body.password };
       users.push(user);
@@ -132,6 +132,39 @@ test('identidade delegada ao Centro de Custos', async context => {
     const rows = (await database.query<{ deleted_at: string | null }>("SELECT deleted_at FROM users WHERE email = 'vendedor@rcconstrutec.com.br'")).rows;
     assert.equal(rows.length, 2);
     assert.equal(rows.filter(row => row.deleted_at).length, 1);
+  });
+
+  await context.test('desativar nao exclui: conta segue listada e pode ser reativada', async () => {
+    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-admin-123');
+    const target = (await listUsers(database, admin.token)).find(user => user.email === 'gestor@rcconstrutec.com.br');
+    assert.ok(target);
+    await updateUser(database, admin.token, admin.user.id, target.id, { role: 'commercial', active: false });
+    const after = (await listUsers(database, admin.token)).find(user => user.email === 'gestor@rcconstrutec.com.br');
+    assert.equal(after?.id, target.id);
+    assert.equal(after?.active, false);
+    await updateUser(database, admin.token, admin.user.id, target.id, { role: 'commercial', active: true });
+    const back = (await listUsers(database, admin.token)).find(user => user.email === 'gestor@rcconstrutec.com.br');
+    assert.equal(back?.id, target.id);
+    assert.equal(back?.role, 'commercial');
+  });
+
+  await context.test('desktop sem internet aceita sessao ja confirmada; nuvem nao', async () => {
+    const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-gestor-123');
+    const savedUrl = process.env.CENTRO_CUSTOS_IDENTITY_URL;
+    process.env.CENTRO_CUSTOS_IDENTITY_URL = 'http://127.0.0.1:9';
+    const savedDb = process.env.DATABASE_URL;
+    try {
+      delete process.env.DATABASE_URL;
+      await new Promise(resolve => setTimeout(resolve, 5));
+      forgetSessionCacheOnlyForTest();
+      assert.equal((await verifyUserSession(database, gestor.token))?.email, 'gestor@rcconstrutec.com.br');
+      process.env.DATABASE_URL = 'postgres://nuvem';
+      forgetSessionCacheOnlyForTest();
+      await assert.rejects(verifyUserSession(database, gestor.token), /conectar/);
+    } finally {
+      process.env.CENTRO_CUSTOS_IDENTITY_URL = savedUrl;
+      if (savedDb === undefined) delete process.env.DATABASE_URL; else process.env.DATABASE_URL = savedDb;
+    }
   });
 
   await context.test('admin nao remove o proprio acesso', async () => {
