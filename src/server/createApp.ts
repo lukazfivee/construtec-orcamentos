@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import express from 'express';
 import { ZodError } from 'zod';
 import { createAuthRouter } from './routes/auth';
@@ -12,6 +13,8 @@ import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
 import { CentroIdentityError } from './services/centroIdentity';
 import type { LocalDatabase } from './services/database';
+import { resolveIntegrationKey } from './services/integration/proposalSync';
+import { CRON_MAX_ATTEMPTS, runOutboxRetryPass } from './services/outboxRetryWorker';
 
 const getSessionToken = (request: express.Request) => {
   const value = request.headers['x-construtec-session'];
@@ -104,6 +107,23 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.json({ ok: true, storage: cloud ? 'postgresql' : 'local' });
     } catch {
       response.status(503).json({ ok: false, error: 'Banco de dados indisponível.' });
+    }
+  });
+  // Disparado pelo Cron do Worker (nao ha rota publica: o Worker so encaminha
+  // /api/* e /health). Protegido tambem pela chave de integracao.
+  api.post('/internal/outbox/retry', async (request, response) => {
+    const expected = cloud ? resolveIntegrationKey() : null;
+    const provided = request.headers['x-construtec-integration-key'];
+    const valid = typeof expected === 'string' && typeof provided === 'string'
+      && provided.length === expected.length && timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+    if (!valid) {
+      response.status(404).end();
+      return;
+    }
+    try {
+      response.json({ attempted: await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS) });
+    } catch {
+      response.status(503).json({ error: 'Reenvio indisponível.' });
     }
   });
   api.use((request, response, next) => {
