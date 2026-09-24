@@ -35,4 +35,14 @@ export default {
     }
     return bindings.ASSETS.fetch(request);
   },
+
+  // Reenvio da outbox para o Centro de Custos mesmo com o Container dormindo
+  // (sleepAfter): o Cron acorda o Container e dispara uma passada.
+  async scheduled(_controller, bindings, ctx) {
+    if (!bindings.DATABASE_URL || !bindings.CONSTRUTEC_INTEGRATION_KEY) return;
+    ctx.waitUntil(bindings.API.getByName('production').fetch('http://container/internal/outbox/retry', {
+      method: 'POST',
+      headers: { 'X-Construtec-Integration-Key': bindings.CONSTRUTEC_INTEGRATION_KEY },
+    }));
+  },
 };
