@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { test } from 'node:test';
-import { PGlite } from '@electric-sql/pglite';
 import { createApp, getCloudSecurity } from './createApp';
-import { initialMigration } from './migrations/001-initial';
-import { setupFirstAdmin, verifyUserSession } from './services/auth';
 import type { LocalDatabase } from './services/database';
 
 const cloudEnv = {
@@ -22,23 +19,6 @@ test('cloud requires persistent secrets and exact HTTPS origins', () => {
     assert.throws(() => getCloudSecurity({ ...cloudEnv, CONSTRUTEC_ALLOWED_ORIGINS: origin }), /ALLOWED_ORIGINS/);
   }
   assert.equal(getCloudSecurity(cloudEnv)?.sessionSecret, cloudEnv.SESSION_SECRET);
-});
-
-test('initial admin is unique and persistent secret keeps session valid across apps', async context => {
-  const database = new PGlite();
-  context.after(() => database.close());
-  await database.exec(initialMigration);
-  const results = await Promise.allSettled(['one', 'two'].map(name => setupFirstAdmin(database, cloudEnv.SESSION_SECRET, {
-    name, email: `${name}@example.invalid`, password: 'test-password-long-enough',
-  })));
-  const sessions = results.filter(result => result.status === 'fulfilled');
-  assert.equal(sessions.length, 1);
-  const rejected = results.find(result => result.status === 'rejected');
-  assert.ok(rejected?.status === 'rejected' && rejected.reason.message === 'AUTH_SETUP_COMPLETE');
-  const session = sessions[0];
-  assert.ok(session.status === 'fulfilled');
-  assert.equal((await verifyUserSession(database, cloudEnv.SESSION_SECRET, session.value.token))?.role, 'admin');
-  assert.equal(await verifyUserSession(database, 'different-startup-secret', session.value.token), null);
 });
 
 test('cloud HTTP protects bootstrap, checks database and hides internal errors', async context => {
@@ -59,7 +39,7 @@ test('cloud HTTP protects bootstrap, checks database and hides internal errors',
       return { rows: [{ now: 'test', count: '0' }] };
     },
   } as unknown as LocalDatabase;
-  const app = createApp(database, 'local-token', 'ignored-random-secret');
+  const app = createApp(database, 'local-token');
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   context.after(() => new Promise<void>((resolve, reject) => {
@@ -84,12 +64,12 @@ test('cloud HTTP protects bootstrap, checks database and hides internal errors',
   const authorizedSetup = await fetch(`${base}/api/auth/setup`, {
     method: 'POST', headers: { Authorization: `Bearer ${cloudEnv.CONSTRUTEC_SETUP_TOKEN}`, 'Content-Type': 'application/json' }, body: '{}',
   });
-  assert.equal(authorizedSetup.status, 400); // Reaches input validation only with the server-held token.
+  assert.equal(authorizedSetup.status, 410); // Primeiro acesso agora e uma conta do Centro de Custos.
   unavailable = true;
   const unhealthy = await fetch(`${base}/health`);
   assert.equal(unhealthy.status, 503);
   assert.doesNotMatch(await unhealthy.text(), /private-password|secret-host/);
-  const authFailure = await fetch(`${base}/api/auth/setup-status`);
+  const authFailure = await fetch(`${base}/api/health`, { headers: { Authorization: 'Bearer local-token' } });
   assert.equal(authFailure.status, 500);
   assert.doesNotMatch(await authFailure.text(), /private-password|secret-host/);
 });

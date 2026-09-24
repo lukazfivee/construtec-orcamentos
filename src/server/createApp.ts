@@ -11,6 +11,7 @@ import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
+import { CentroIdentityError } from './services/centroIdentity';
 import type { LocalDatabase } from './services/database';
 import { resolveIntegrationKey } from './services/integration/proposalSync';
 import { CRON_MAX_ATTEMPTS, runOutboxRetryPass } from './services/outboxRetryWorker';
@@ -58,10 +59,9 @@ export const getCloudSecurity = (env: NodeJS.ProcessEnv = process.env): CloudSec
 
 const CLOUD_SETUP_PATH = /^\/api\/auth\/setup\/?$/i;
 
-export const createApp = (database: LocalDatabase, apiToken: string, sessionSecret: string) => {
+export const createApp = (database: LocalDatabase, apiToken: string) => {
   const api = express();
   const cloud = getCloudSecurity();
-  const effectiveSessionSecret = cloud?.sessionSecret ?? sessionSecret;
 
   api.disable('x-powered-by');
   api.use((request, response, next) => {
@@ -127,10 +127,10 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     }
   });
   api.use((request, response, next) => {
-    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`
-      || request.headers.authorization === 'Bearer web-session';
+    // Token local so existe no desktop (processo Electron); na web vale a sessao.
+    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`;
     const hasUserSession = Boolean(getSessionToken(request));
-    const isPublicAuth = request.path.startsWith('/api/auth');
+    const isPublicAuth = request.path.toLowerCase().startsWith('/api/auth');
     if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {
       response.status(401).json({ error: 'Sessão local inválida.' });
       return;
@@ -143,28 +143,36 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     const result = await database.query<{ now: string }>('SELECT now()::text AS now');
     response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', databaseTime: result.rows[0]?.now });
   });
-  api.use('/api/auth', createAuthRouter(database, effectiveSessionSecret));
+  api.use('/api/auth', createAuthRouter(database));
 
   api.use(async (request, response, next) => {
-    const user = await verifyUserSession(database, effectiveSessionSecret, getSessionToken(request));
+    let user;
+    try {
+      user = await verifyUserSession(database, getSessionToken(request));
+    } catch (error) {
+      next(error);
+      return;
+    }
     if (!user) {
       response.status(401).json({ error: 'Sessão de usuário inválida ou expirada.' });
       return;
     }
     response.locals.authUser = user;
+    const path = request.path.toLowerCase();
+    response.locals.sessionToken = getSessionToken(request);
     if (user.role === 'viewer' && request.method !== 'GET') {
       response.status(403).json({ error: 'Seu perfil possui acesso somente para consulta.' });
       return;
     }
-    if (request.path.startsWith('/api/users') && user.role !== 'admin') {
+    if (path.startsWith('/api/users') && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem gerenciar usuários.' });
       return;
     }
-    if (request.path.startsWith('/api/system') && user.role !== 'admin') {
+    if (path.startsWith('/api/system') && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem executar operações de backup e restauração.' });
       return;
     }
-    if (request.path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
+    if (path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem alterar as configurações.' });
       return;
     }
@@ -188,6 +196,16 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
         ? issues.map((i) => `${i.path.length ? i.path.join('.') + ': ' : ''}${i.message}`).join(', ')
         : 'Dados inválidos.';
       response.status(400).json({ error: `Dados inválidos: ${details}` });
+      return;
+    }
+    if (error instanceof CentroIdentityError) {
+      const messages: Record<string, string> = {
+        EMAIL_NOT_AUTHORIZED: 'E-mail não autorizado. Autorize o e-mail externo antes de criar a conta.',
+        IDENTITY_UNAVAILABLE: error.message,
+        IDENTITY_NOT_CONFIGURED: error.message,
+      };
+      const status = [400, 401, 403, 404, 409, 429].includes(error.status) ? error.status : 503;
+      response.status(status).json({ error: messages[error.code] || error.message });
       return;
     }
     if (error instanceof Error && error.message === 'AUTH_INVALID_CREDENTIALS') {

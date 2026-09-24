@@ -141,6 +141,7 @@ export type AuthUser = { id: string; name: string; email: string; role: AuthRole
 export type AuthSession = { token: string; user: AuthUser };
 export type AuthSetupStatus = { requiresSetup: boolean };
 export type UserRecord = AuthUser & { active: boolean; updatedAt: string };
+export type AuthorizedEmailRecord = { email: string; note: string | null; authorizedAt: string; authorizedByName: string | null };
 
 export type KitItemSummary = {
   id: string;
