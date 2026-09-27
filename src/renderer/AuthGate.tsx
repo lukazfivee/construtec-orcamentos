@@ -13,6 +13,8 @@ const isCloud = isCloudRuntime();
 // Login e conta sao do Centro de Custos (identidade compartilhada): nao ha
 // mais cadastro de primeiro administrador aqui.
 type AuthMode = 'checking' | 'login' | 'ready';
+// Dentro do app Suite Construtec a entrada e a saida sao do app (suite://).
+const inApp = typeof navigator !== 'undefined' && /SuiteConstrutec\//.test(navigator.userAgent);
 
 export function AuthGate() {
   const [mode, setMode] = useState<AuthMode>('checking');
@@ -62,6 +64,18 @@ export function AuthGate() {
       const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
       if (savedEmail) setEmail(savedEmail);
 
+      const handoff = new URLSearchParams(window.location.hash.slice(1)).get('handoff');
+      if (handoff) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        try {
+          const session = await authApi.handoff(handoff);
+          if (active) finishSession(session.token, session.user, false);
+          return;
+        } catch (handoffError) {
+          if (active) setError(handoffError instanceof Error ? handoffError.message : 'Não foi possível entrar pelo aplicativo.');
+        }
+      }
+
       const storedToken = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
       if (storedToken) {
         setAuthSessionToken(storedToken);
@@ -106,7 +120,7 @@ export function AuthGate() {
   };
 
   if (mode === 'ready' && user) {
-    return <App user={user} onLogout={() => void clearSession(true)} />;
+    return <App user={user} onLogout={() => void clearSession(true).then(() => { if (inApp) window.location.href = 'suite://sair'; })} />;
   }
 
   if (mode === 'checking') {
@@ -115,6 +129,28 @@ export function AuthGate() {
         <img src={brandLogo} alt="Construtec Orçamentos" className="auth-loading-logo" />
         <LoaderCircle className="spinning" size={26} />
         <strong>{isCloud ? 'Conectando…' : 'Preparando ambiente local…'}</strong>
+      </main>
+    );
+  }
+
+  if (inApp) {
+    return (
+      <main className="auth-shell">
+        <section className="auth-card">
+          <div className="auth-card-brand">
+            <img src={brandLogo} alt="Construtec Orçamentos" className="auth-logo" />
+          </div>
+          <header className="auth-card-header">
+            <span className="auth-brand-icon"><LockKeyhole size={22} /></span>
+            <div>
+              <span className="auth-eyebrow">CONSTRUTEC ORÇAMENTOS</span>
+              <h1>Entrar</h1>
+              <p>Sua sessão terminou. Entre de novo no aplicativo para continuar.</p>
+            </div>
+          </header>
+          {error && <div className="auth-error" role="alert">{error}</div>}
+          <a className="auth-submit" href="suite://entrar" style={{ textDecoration: 'none' }}><KeyRound size={17} />Entrar</a>
+        </section>
       </main>
     );
   }

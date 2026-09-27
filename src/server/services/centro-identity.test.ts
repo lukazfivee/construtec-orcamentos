@@ -6,7 +6,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { initialMigration } from '../migrations/001-initial';
 import { sharedIdentityMigration } from '../migrations/012-shared-identity';
 import { createCriticalTestDatabase } from './criticalTestDatabase';
-import { expireSessionCacheForTests as forgetSessionCacheOnlyForTest, forgetCachedSessions, loginUser, verifyUserSession } from './auth';
+import { consumeHandoff, expireSessionCacheForTests as forgetSessionCacheOnlyForTest, forgetCachedSessions, loginUser, verifyUserSession } from './auth';
 import { createUser, deleteUser, listUsers, updateUser } from './users';
 
 type StubUser = { id: string; name: string; email: string; role: 'admin' | 'gestor' | 'supervisor'; active: boolean; password: string };
@@ -21,6 +21,7 @@ const startStubCentro = async () => {
     { id: 'c-legado', name: 'Legado', email: 'legado@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-leg1' },
   ];
   const sessions = new Map<string, string>();
+  const handoffs = new Map<string, string>();
   let created = 0;
   const seen: { path: string; serviceKey: string | undefined; clientIp: string | undefined }[] = [];
   const publicUser = ({ password: _password, ...user }: StubUser) => { void _password; return user; };
@@ -42,6 +43,16 @@ const startStubCentro = async () => {
       const sessionToken = `tok-${user.id}-${sessions.size}`;
       sessions.set(sessionToken, user.id);
       return send(200, { sessionToken, expiresAt: 0, user: publicUser(user) });
+    }
+    if (path === '/v1/auth/handoff/consume') {
+      if (request.headers['x-construtec-identity-key'] !== SERVICE_KEY) return send(403, { code: 'FORBIDDEN', error: 'Sem permissao.' });
+      const userId = body.target === 'orcamentos' ? handoffs.get(body.code) : undefined;
+      const user = users.find(item => item.id === userId && item.active);
+      if (!user) return send(400, { code: 'HANDOFF_INVALID', error: 'Codigo invalido ou expirado.' });
+      handoffs.delete(body.code);
+      const sessionToken = `tok-handoff-${user.id}-${sessions.size}`;
+      sessions.set(sessionToken, user.id);
+      return send(200, { ok: true, sessionToken, expiresAt: 0, user: publicUser(user) });
     }
     if (!actor) return send(401, { error: 'Sessao invalida ou expirada.' });
     if (path === '/v1/auth/session') return send(200, { user: publicUser(actor) });
@@ -71,7 +82,7 @@ const startStubCentro = async () => {
   await once(server, 'listening');
   const address = server.address();
   assert.ok(address && typeof address !== 'string');
-  return { url: `http://127.0.0.1:${address.port}`, users, seen, close: () => new Promise<void>(resolve => server.close(() => resolve())) };
+  return { url: `http://127.0.0.1:${address.port}`, users, seen, handoffs, close: () => new Promise<void>(resolve => server.close(() => resolve())) };
 };
 
 test('identidade delegada ao Centro de Custos', async context => {
@@ -183,6 +194,18 @@ test('identidade delegada ao Centro de Custos', async context => {
     assert.equal(user?.id, troca.user.id);
     const live = (await database.query("SELECT id FROM users WHERE email = 'novo.email@rcconstrutec.com.br' AND deleted_at IS NULL")).rows;
     assert.equal(live.length, 1);
+  });
+
+  await context.test('codigo do app vira sessao uma unica vez', async () => {
+    const code = 'a'.repeat(43);
+    stub.handoffs.set(code, 'c-gestor');
+    const session = await consumeHandoff(database, code);
+    assert.equal(session.user.email, 'gestor@rcconstrutec.com.br');
+    const seenConsume = stub.seen.find(entry => entry.path === '/v1/auth/handoff/consume');
+    assert.equal(seenConsume?.serviceKey, SERVICE_KEY);
+    forgetSessionCacheOnlyForTest();
+    assert.equal((await verifyUserSession(database, session.token))?.email, 'gestor@rcconstrutec.com.br');
+    await assert.rejects(consumeHandoff(database, code), /AUTH_HANDOFF_INVALID/);
   });
 
   await context.test('desktop sem internet aceita sessao ja confirmada; nuvem nao', async () => {

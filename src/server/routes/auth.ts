@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { LocalDatabase } from '../services/database';
-import { getAuthSetupStatus, loginUser, logoutUser, verifyUserSession } from '../services/auth';
+import { consumeHandoff, getAuthSetupStatus, loginUser, logoutUser, verifyUserSession } from '../services/auth';
 
 const credentialsSchema = z.object({
   email: z.string().trim().email().max(254),
   password: z.string().min(1).max(128),
   rememberMe: z.boolean().optional(),
 });
+
+const handoffSchema = z.object({ code: z.string().regex(/^[A-Za-z0-9_-]{43}$/) });
 
 const sessionToken = (request: { headers: Record<string, unknown> }) => {
   const value = request.headers['x-construtec-session'];
@@ -40,6 +42,14 @@ export const createAuthRouter = (database: LocalDatabase) => {
     try {
       const input = credentialsSchema.parse(request.body);
       response.json(await loginUser(database, input.email, input.password, clientIp(request)));
+    } catch (error) { next(error); }
+  });
+
+  // Codigo de uso unico entregue pelo app Suite Construtec (#handoff=).
+  router.post('/handoff', async (request, response, next) => {
+    try {
+      const input = handoffSchema.parse(request.body);
+      response.json(await consumeHandoff(database, input.code));
     } catch (error) { next(error); }
   });
 

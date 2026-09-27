@@ -92,6 +92,7 @@ export const authApi = {
   ),
   me: () => request<{ user: AuthUser }>('/api/auth/me'),
   logout: () => request<{ success: boolean }>('/api/auth/logout', { method: 'POST' }),
+  handoff: (code: string) => request<AuthSession>('/api/auth/handoff', { method: 'POST', body: JSON.stringify({ code }) }),
 };
 
 export const proposalApi = {
