@@ -1,5 +1,14 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-27 03:40 BRT — Suíte mobile, passo 4: seletor, link direto e comparativo no celular (Claude Code)
+
+- Seletor "Suíte" no celular: a pílula da topbar abre a folha "Esteira Operacional Construtec" (`MobileSuiteSheet.tsx`, renderizada em portal no `body`, senão fica atrás do conteúdo). Itens: Orçamentos (atual), Centro de Custos (no app, `suite://app/centro-custos`; fora, `/m/` do Centro em outra aba) e ChamadoPro (sempre no navegador). No desktop continua o popover.
+- "Ir direto para": com `proposal.costCenterId`, a folha mostra "Obra gerada desta proposta" (`?obra=<id>` no app, `#obra=<id>` fora).
+- Link direto `#proposta=<id>` (`useProposalDeepLink.ts`): abre a proposta ao terminar a carga e em `hashchange` (o app troca só o fragmento da WebView aberta). O `AuthGate` preserva o `#proposta=` ao consumir o `#handoff=`.
+- Comparativo de revisões no celular: cartões por item e por mão de obra (`ProposalDiffCards.tsx`) no lugar das tabelas, diálogo em tela cheia acima da barra inferior (`mobile-suite.css`).
+- Saiu o item temporário "Trocar para o Centro de Custos" do menu mobile.
+- `npm run verify`: 38 de 39 (PostgreSQL real pulado); teste novo `proposal-deep-link.test.ts`. Conferido no navegador em 375x812 com o servidor local isolado (APPDATA temporário) e o mock de identidade do Centro: folha, link direto por hashchange (REV.01 para REV.00) e comparativo.
+
 ## 2026-09-27 02:10 BRT — Fase 3 da Suíte mobile: entrada pelo app (Claude Code)
 
 - `POST /api/auth/handoff` troca o código de uso único do app Suite Construtec por uma sessão: o servidor chama `/v1/auth/handoff/consume` do Centro com `target: "orcamentos"` e `X-Construtec-Identity-Key` (contrato §6 do Centro). A sessão é central, filha da sessão do app, e o "Sair" do app também a encerra.

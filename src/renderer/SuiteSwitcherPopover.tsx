@@ -9,7 +9,7 @@ import {
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
 
 /* Dominio oficial do ChamadoPro na Suite Construtec. */
-const CHAMADOPRO_URL = 'https://chamadopro-app.lucas-coelho5923.workers.dev/';
+export const CHAMADOPRO_URL = 'https://chamadopro-app.lucas-coelho5923.workers.dev/';
 
 interface SuiteSwitcherPopoverProps {
   activeApp?: 'orcamentos' | 'centro-custos';
