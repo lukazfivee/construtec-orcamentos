@@ -27,7 +27,8 @@ export class CentroIdentityError extends Error {
 const identityUrl = () => String(process.env.CENTRO_CUSTOS_IDENTITY_URL || DEFAULT_IDENTITY_URL).replace(/\/+$/, '');
 
 const serviceKey = () => {
-  const key = process.env.CONSTRUTEC_IDENTITY_KEY || '';
+  // Segredo colado com BOM (U+FEFF) ou espacos quebra o cabecalho HTTP; o Centro normaliza igual.
+  const key = (process.env.CONSTRUTEC_IDENTITY_KEY || '').replace(/^\uFEFF/, '').trim();
   return key.length >= MIN_SERVICE_KEY_LENGTH ? key : '';
 };
 
@@ -53,7 +54,13 @@ const call = async <T>(path: string, options: CallOptions = {}): Promise<T> => {
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-  } catch {
+  } catch (error) {
+    // Codigo de rede (ex.: ENOTFOUND, ECONNREFUSED, TimeoutError) para diagnostico; nunca inclui dados da requisicao.
+    const inner = (error as { cause?: { name?: string; code?: string; message?: string; errors?: { code?: string }[] } })?.cause;
+    const cause = inner
+      ? [inner.name, inner.code, inner.errors?.map(item => item.code).join('/'), inner.message].filter(Boolean).join(' ').slice(0, 160)
+      : String((error as Error)?.message || (error as Error)?.name || 'erro').slice(0, 160);
+    console.error('[centro-identity] sem conexao', path, cause);
     throw new CentroIdentityError('Não foi possível conectar ao Centro de Custos para validar o acesso. Verifique a internet e tente novamente.', 503, 'IDENTITY_UNAVAILABLE');
   }
   const data = await response.json().catch(() => ({})) as Record<string, unknown>;
