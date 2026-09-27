@@ -12,7 +12,7 @@ import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
 import { CentroIdentityError } from './services/centroIdentity';
-import { identityHealStatus } from './services/database';
+import { identityHealStatus, identityLayout } from './services/database';
 import type { LocalDatabase } from './services/database';
 import { resolveIntegrationKey } from './services/integration/proposalSync';
 import { CRON_MAX_ATTEMPTS, runOutboxRetryPass } from './services/outboxRetryWorker';
@@ -112,7 +112,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.get('/health', async (_request, response) => {
     try {
       await database.query('SELECT now()::text AS now');
-      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', identity: identityHealStatus });
+      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', identity: identityHealStatus, layout: identityLayout });
     } catch {
       response.status(503).json({ ok: false, error: 'Banco de dados indisponível.' });
     }

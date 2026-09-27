@@ -134,6 +134,7 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
 
 // Resultado da conferencia das colunas da identidade (exposto no /health).
 export let identityHealStatus = 'pending';
+export let identityLayout = '';
 
 const migrateDatabase = async (database: DatabaseQueries) => {
   await database.exec(`
@@ -203,6 +204,23 @@ const migrateDatabase = async (database: DatabaseQueries) => {
     const target = /(?:column|relation) "([\w.]+)"/.exec(String((error as Error)?.message))?.[1] ?? '';
     identityHealStatus = `error:${typeof code === 'string' ? code : 'unknown'}${target ? `:${target}` : ''};${identityHealStatus}`;
     console.error('[identity-heal]', error);
+  }
+  // Diagnostico temporario: so estrutura (esquemas, colunas, versoes), nunca dados.
+  try {
+    const layout = await database.query<{ info: string }>(`
+      SELECT concat_ws(' | ',
+        'db=' || current_database(),
+        'user=' || current_user,
+        'path=' || array_to_string(current_schemas(false), ','),
+        'users=' || (SELECT string_agg(table_schema || ':' || cols, ' ; ') FROM (
+          SELECT table_schema, string_agg(column_name, ',' ORDER BY ordinal_position) AS cols
+          FROM information_schema.columns WHERE table_name = 'users' GROUP BY table_schema) t),
+        'migr=' || (SELECT string_agg(version::text, ',' ORDER BY version) FROM schema_migrations),
+        'proposals=' || coalesce(to_regclass('proposals')::text, '-')
+      ) AS info`);
+    identityLayout = layout.rows[0]?.info ?? '';
+  } catch (error) {
+    identityLayout = `layout-error:${String((error as { code?: unknown }).code ?? '')}`;
   }
 
   // Self-heal: garante coluna snapshot_category e que description em kits seja opcional
