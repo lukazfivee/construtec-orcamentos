@@ -36,6 +36,7 @@ import './auth.css';
 import './exsat-feedback.css';
 import './suite-bolder.css';
 import './mobile-responsive.css';
+import './mobile-suite.css';
 
 const rootElement = document.getElementById('root');
 

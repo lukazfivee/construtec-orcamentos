@@ -4,6 +4,7 @@ import type { AuthUser } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
 import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
+import { proposalFromHash } from './useProposalDeepLink';
 
 const SESSION_KEY = 'construtec.auth.session';
 const REMEMBERED_EMAIL_KEY = 'construtec.auth.remembered_email';
@@ -66,7 +67,9 @@ export function AuthGate() {
 
       const handoff = new URLSearchParams(window.location.hash.slice(1)).get('handoff');
       if (handoff) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        // Tira so o codigo; um #proposta= junto continua para o App abrir a proposta.
+        const proposta = proposalFromHash(window.location.hash);
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + (proposta ? `#proposta=${proposta}` : ''));
         try {
           const session = await authApi.handoff(handoff);
           if (active) finishSession(session.token, session.user, false);
