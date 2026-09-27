@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   Box,
   ChevronLeft,
   FileText,
@@ -14,6 +15,10 @@ import type { AuthUser } from '../shared/contracts';
 export type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações';
 
 type NavItem = { label: NavSection; icon: typeof Grid2X2 };
+
+// Dentro do app Suite Construtec: troca para o Centro de Custos sem sair do app
+// (ate o seletor "Suite" do passo 4).
+const inSuiteApp = typeof navigator !== 'undefined' && /SuiteConstrutec\//.test(navigator.userAgent);
 
 /* Desktop mantem a navegacao completa na lateral. */
 const navItems: NavItem[] = [
@@ -136,6 +141,20 @@ export function AppSidebar({
           </button>
         );
       })}
+      {inSuiteApp && (
+        <button
+          type="button"
+          role="menuitem"
+          tabIndex={mobileMenuOpen ? 0 : -1}
+          onClick={() => {
+            onCloseMobileMenu();
+            window.location.href = 'suite://app/centro-custos';
+          }}
+        >
+          <ArrowLeftRight size={20} />
+          <span>Trocar para o Centro de Custos</span>
+        </button>
+      )}
       {user && onLogout && (
         <button
           type="button"

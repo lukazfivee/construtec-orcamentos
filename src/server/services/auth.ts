@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { AuthRole, AuthSession, AuthSetupStatus, AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
-import { CentroIdentityError, centroLogin, centroLogout, centroSession, type CentroUser } from './centroIdentity';
+import { CentroIdentityError, centroConsumeHandoff, centroLogin, centroLogout, centroSession, type CentroUser } from './centroIdentity';
 
 // Login e sessao sao do diretorio central (Centro de Custos). O token de
 // sessao do Orcamentos e o proprio token central; cada requisicao revalida
@@ -116,6 +116,23 @@ export const loginUser = async (
     remote = await centroLogin(email.trim().toLowerCase(), password, clientIp);
   } catch (error) {
     if (error instanceof CentroIdentityError && [400, 401].includes(error.status)) throw new Error('AUTH_INVALID_CREDENTIALS');
+    throw error;
+  }
+  const row = await mirrorCentroUser(database, remote.user);
+  if (!row.active) throw new Error('AUTH_INVALID_CREDENTIALS');
+  const user = toAuthUser(row);
+  sessionCache.set(remote.sessionToken, { user, until: Date.now() + SESSION_CACHE_MS });
+  lastConfirmed.set(remote.sessionToken, { user, at: Date.now() });
+  return { token: remote.sessionToken, user };
+};
+
+// Entrada pelo app Suite Construtec: o codigo de uso unico vira a sessao.
+export const consumeHandoff = async (database: LocalDatabase, code: string): Promise<AuthSession> => {
+  let remote: Awaited<ReturnType<typeof centroConsumeHandoff>>;
+  try {
+    remote = await centroConsumeHandoff(code);
+  } catch (error) {
+    if (error instanceof CentroIdentityError && error.status === 400) throw new Error('AUTH_HANDOFF_INVALID');
     throw error;
   }
   const row = await mirrorCentroUser(database, remote.user);

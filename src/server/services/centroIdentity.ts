@@ -71,6 +71,13 @@ export const centroLogin = (email: string, password: string, clientIp?: string) 
 export const centroSession = (token: string) =>
   call<{ user: CentroUser; expiresAt: number }>('/v1/auth/session', { token, service: Boolean(serviceKey()) });
 
+// Handoff do app Suite Construtec (contrato §6): so o servidor do Orcamentos,
+// com a chave de servico, troca o codigo por uma sessao central filha.
+export const centroConsumeHandoff = (code: string) =>
+  call<{ sessionToken: string; expiresAt: number; user: CentroUser }>('/v1/auth/handoff/consume', {
+    method: 'POST', service: true, body: { code, target: 'orcamentos' },
+  });
+
 export const centroLogout = (token: string) => call<{ ok: boolean }>('/v1/auth/logout', { method: 'POST', token });
 
 export const centroListUsers = (token: string) => call<{ users: CentroUser[] }>('/v1/users', { token, service: true });

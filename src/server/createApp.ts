@@ -208,6 +208,10 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.status(status).json({ error: messages[error.code] || error.message });
       return;
     }
+    if (error instanceof Error && error.message === 'AUTH_HANDOFF_INVALID') {
+      response.status(400).json({ error: 'Código de acesso do aplicativo inválido ou expirado.' });
+      return;
+    }
     if (error instanceof Error && error.message === 'AUTH_INVALID_CREDENTIALS') {
       response.status(401).json({ error: 'E-mail ou senha inválidos.' });
       return;
