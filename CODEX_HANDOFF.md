@@ -7,7 +7,7 @@
 - Menu mobile, só dentro do app: "Trocar para o Centro de Custos" (`suite://app/centro-custos`), até o seletor Suíte do passo 4.
 - `viewport-fit=cover` no `index.html`, para os `env(safe-area-inset-*)` do `mobile-responsive.css` valerem no WebView.
 - `npm run verify`: 37 de 38 (PostgreSQL real pulado). Teste novo: código vira sessão uma única vez.
-- Deploy do #90 feito às 01:50 BRT (versão `504a5c4c`). O backup diário do Neon falha desde pelo menos 24/09: faltam os segredos `ORCAMENTOS_BACKUP_DATABASE_URL` e `BACKUP_PASSPHRASE` no GitHub (pendência do Lucas).
+- Deploy do #90 às 01:45 BRT (versão `504a5c4c`). **Queda do login de 01:45 a 02:26 BRT:** todo login respondia 503 porque o segredo `CONSTRUTEC_IDENTITY_KEY` estava gravado com BOM (U+FEFF) e o `fetch` recusava o cabeçalho. Corrigido no PR #92 (chave normalizada; chamadas ao Centro pelo service binding `CENTRO`) e no Centro (PR #39 de lá). Não houve como voltar a versão: a migração 012 já tinha desativado as contas locais. O backup diário do Neon falha desde pelo menos 24/09: faltam os segredos `ORCAMENTOS_BACKUP_DATABASE_URL` e `BACKUP_PASSPHRASE` no GitHub (pendência do Lucas).
 
 ## 2026-09-27 01:25 BRT — PR #90: CI e dois achados da revisão (Claude Code)
 
