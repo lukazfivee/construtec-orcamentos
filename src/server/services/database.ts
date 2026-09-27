@@ -216,7 +216,11 @@ const migrateDatabase = async (database: DatabaseQueries) => {
           SELECT table_schema, string_agg(column_name, ',' ORDER BY ordinal_position) AS cols
           FROM information_schema.columns WHERE table_name = 'users' GROUP BY table_schema) t),
         'migr=' || (SELECT string_agg(version::text, ',' ORDER BY version) FROM schema_migrations),
-        'proposals=' || coalesce(to_regclass('proposals')::text, '-')
+        'proposals=' || coalesce(to_regclass('proposals')::text, '-'),
+        'tables=' || (SELECT string_agg(n.nspname || '.' || c.relname || '(' || c.reltuples::bigint || ')', ',' ORDER BY n.nspname, c.relname)
+          FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+          WHERE c.relkind IN ('r', 'p') AND n.nspname NOT IN ('pg_catalog', 'information_schema') AND n.nspname NOT LIKE 'pg_toast%'),
+        'centro_cols=' || (SELECT string_agg(table_schema || '.' || table_name, ',') FROM information_schema.columns WHERE column_name = 'centro_user_id')
       ) AS info`);
     identityLayout = layout.rows[0]?.info ?? '';
   } catch (error) {
