@@ -18,6 +18,8 @@ type UserRow = {
   active: boolean;
   updated_at: string;
   centro_user_id: string | null;
+  centro_admin: boolean;
+  local_role: AuthRole | null;
 };
 
 const toUserRecord = (row: UserRow): UserRecord => ({
@@ -27,10 +29,11 @@ const toUserRecord = (row: UserRow): UserRecord => ({
   role: row.role,
   active: row.active,
   updatedAt: row.updated_at,
+  centroAdmin: Boolean(row.centro_admin),
 });
 
 const liveUsers = async (database: LocalDatabase) => (await database.query<UserRow>(`
-  SELECT id, name, email, role, active, updated_at::text AS updated_at, centro_user_id
+  SELECT id, name, email, role, active, updated_at::text AS updated_at, centro_user_id, centro_admin, local_role
   FROM users
   WHERE deleted_at IS NULL AND centro_user_id IS NOT NULL
   ORDER BY active DESC, lower(name), lower(email)
@@ -50,7 +53,7 @@ export const listUsers = async (database: LocalDatabase, token: string): Promise
 
 const findTarget = async (database: LocalDatabase, userId: string) => {
   const result = await database.query<UserRow>(`
-    SELECT id, name, email, role, active, updated_at::text AS updated_at, centro_user_id
+    SELECT id, name, email, role, active, updated_at::text AS updated_at, centro_user_id, centro_admin, local_role
     FROM users WHERE id::text = $1 AND deleted_at IS NULL LIMIT 1
   `, [userId]);
   const target = result.rows[0];
@@ -86,13 +89,15 @@ export const updateUser = async (
 ) => {
   const target = await findTarget(database, userId);
   if (actorUserId === userId && (!input.active || input.role !== 'admin')) throw new Error('USER_SELF_LOCKOUT');
+  // Admin do Centro e admin aqui; esse papel so muda no Centro.
+  if (target.centro_admin && input.role !== 'admin') throw new Error('USER_ROLE_FROM_CENTRO');
   if (!input.active || input.role !== 'admin') await assertKeepsAdmin(database, target);
   if (input.active !== target.active) await centroSetUserStatus(token, target.email, input.active, target.centro_user_id);
   const result = await database.query<UserRow>(`
-    UPDATE users SET role = $2, active = $3, updated_at = now()
+    UPDATE users SET role = $2, active = $3, local_role = $4, updated_at = now()
     WHERE id = $1 AND deleted_at IS NULL
-    RETURNING id, name, email, role, active, updated_at::text AS updated_at, centro_user_id
-  `, [target.id, input.role, input.active]);
+    RETURNING id, name, email, role, active, updated_at::text AS updated_at, centro_user_id, centro_admin, local_role
+  `, [target.id, input.role, input.active, target.centro_admin ? target.local_role : input.role]);
   forgetCachedSessions();
   return toUserRecord(result.rows[0]);
 };

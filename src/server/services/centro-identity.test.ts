@@ -88,6 +88,11 @@ test('identidade delegada ao Centro de Custos', async context => {
     await stub.close();
   });
   const { database } = fixture;
+  const stubUser = (id: string) => {
+    const user = stub.users.find(item => item.id === id);
+    assert.ok(user);
+    return user;
+  };
 
   await context.test('admin do Centro entra como admin; demais como viewer', async () => {
     const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-adm1', '198.51.100.7');
@@ -146,6 +151,38 @@ test('identidade delegada ao Centro de Custos', async context => {
     const back = (await listUsers(database, admin.token)).find(user => user.email === 'gestor@rcconstrutec.com.br');
     assert.equal(back?.id, target.id);
     assert.equal(back?.role, 'commercial');
+  });
+
+  await context.test('quem deixa de ser admin no Centro volta ao papel escolhido aqui', async () => {
+    const admin = await loginUser(database, 'admin@rcconstrutec.com.br', 'senha-adm1');
+    stub.users.push({ id: 'c-promo', name: 'Promovido', email: 'promo@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-pro1' });
+    const promo = await loginUser(database, 'promo@rcconstrutec.com.br', 'senha-pro1');
+    assert.equal(promo.user.role, 'viewer');
+    await updateUser(database, admin.token, admin.user.id, promo.user.id, { role: 'commercial', active: true });
+
+    stubUser('c-promo').role = 'admin';
+    forgetSessionCacheOnlyForTest();
+    assert.equal((await verifyUserSession(database, promo.token))?.role, 'admin');
+    await assert.rejects(updateUser(database, admin.token, admin.user.id, promo.user.id, { role: 'viewer', active: true }), /USER_ROLE_FROM_CENTRO/);
+    // Salvar com o papel admin (ex.: so mudar "Ativo") nao grava admin como papel local.
+    await updateUser(database, admin.token, admin.user.id, promo.user.id, { role: 'admin', active: true });
+
+    stubUser('c-promo').role = 'gestor';
+    forgetSessionCacheOnlyForTest();
+    assert.equal((await verifyUserSession(database, promo.token))?.role, 'commercial');
+  });
+
+  await context.test('e-mail trocado no Centro para o de uma linha antiga', async () => {
+    await database.query("INSERT INTO users (id,name,email,password_hash,role,active) VALUES (gen_random_uuid(),'Antigo','novo.email@rcconstrutec.com.br',NULL,'viewer',false)");
+    stub.users.push({ id: 'c-troca', name: 'Troca', email: 'troca@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-tro1' });
+    const troca = await loginUser(database, 'troca@rcconstrutec.com.br', 'senha-tro1');
+    stubUser('c-troca').email = 'novo.email@rcconstrutec.com.br';
+    forgetSessionCacheOnlyForTest();
+    const user = await verifyUserSession(database, troca.token);
+    assert.equal(user?.email, 'novo.email@rcconstrutec.com.br');
+    assert.equal(user?.id, troca.user.id);
+    const live = (await database.query("SELECT id FROM users WHERE email = 'novo.email@rcconstrutec.com.br' AND deleted_at IS NULL")).rows;
+    assert.equal(live.length, 1);
   });
 
   await context.test('desktop sem internet aceita sessao ja confirmada; nuvem nao', async () => {

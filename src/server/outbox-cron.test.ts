@@ -22,7 +22,7 @@ test('reenvio da outbox pelo Cron exige a chave de integracao', async context =>
     }
   });
   const database = { query: async () => ({ rows: [] }), exec: async () => undefined } as unknown as LocalDatabase;
-  const server = createApp(database, 'local-token', 'ignored-secret').listen(0, '127.0.0.1');
+  const server = createApp(database, 'local-token').listen(0, '127.0.0.1');
   await once(server, 'listening');
   context.after(() => new Promise<void>(resolve => server.close(() => resolve())));
   const address = server.address();

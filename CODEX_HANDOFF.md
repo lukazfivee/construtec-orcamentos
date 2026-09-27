@@ -1,5 +1,16 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-27 01:25 BRT — PR #90: CI e dois achados da revisão (Claude Code)
+
+Revisão do PR #90 (identidade compartilhada) antes do merge, pedida pelo Lucas como primeiro passo da Fase 3 da Suíte mobile.
+
+- CI vermelha no typecheck: `outbox-cron.test.ts` chamava `createApp` com o terceiro argumento (`sessionSecret`) que o PR removeu. Corrigido.
+- Admin rebaixado no Centro continuava admin aqui para sempre (o espelho usava `promoted ?? existing.role`). Migração 013 (`centro_admin`, `local_role`): admin do Centro é admin aqui; quem deixa de ser volta ao papel escolhido no Orçamentos. A tela de usuários trava o perfil dessas contas ("pelo Centro") e a API responde 409 `USER_ROLE_FROM_CENTRO`. Migração nova em vez de editar a 012, porque bancos locais de teste podem já ter rodado a 012.
+- E-mail trocado no Centro para um e-mail ainda preso numa linha antiga dava 500 em toda requisição (índice único). Agora a linha antiga é aposentada (`deleted_at`) antes da atualização; o histórico continua apontando para ela.
+- Testes novos em `centro-identity.test.ts` para os dois casos. `npm run verify`: typecheck, lint sem avisos, 36 de 37 (o PostgreSQL real é pulado sem banco).
+
+**Pendente**: merge do #90 (a proteção do `main` exige aprovação de code owner) e deploy, ambos com o Lucas.
+
 ## 2026-09-22 20:15 BRT — Deploy manual de produção + fix real no script de deploy
 
 Usuário pediu para colocar o que estava no GitHub em produção de verdade (o app cloud nunca teve deploy automático). Passo a passo:

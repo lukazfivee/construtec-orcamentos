@@ -19,7 +19,11 @@ let cacheGeneration = 0;
 const OFFLINE_GRACE_MS = 12 * 60 * 60 * 1000;
 const lastConfirmed = new Map<string, { user: AuthUser; at: number }>();
 
-type MirrorRow = { id: string; name: string; email: string; role: AuthRole; active: boolean; centro_user_id: string | null };
+type MirrorRow = {
+  id: string; name: string; email: string; role: AuthRole; active: boolean;
+  centro_user_id: string | null; centro_admin: boolean; local_role: AuthRole | null;
+};
+const MIRROR_COLUMNS = 'id, name, email, role, active, centro_user_id, centro_admin, local_role';
 type Queryable = Pick<LocalDatabase, 'query'>;
 
 const toAuthUser = (row: Pick<MirrorRow, 'id' | 'name' | 'email' | 'role'>): AuthUser => ({
@@ -38,7 +42,9 @@ export const retireLocalUsers = async (database: Queryable, ids: string[]) => {
 };
 
 // Upsert da conta central no espelho local. Admin do Centro e sempre admin
-// aqui; as demais contas entram como viewer ate um admin do Orcamentos mudar.
+// aqui (centro_admin); as demais contas usam o papel escolhido no Orcamentos
+// (local_role), viewer ate um admin mudar. Quem deixa de ser admin no Centro
+// volta para o local_role.
 // Dois primeiros acessos simultaneos podem disputar o indice unico; a segunda
 // tentativa encontra a linha criada pela primeira.
 export const mirrorCentroUser = async (database: Queryable, remote: CentroUser, initialRole?: AuthRole): Promise<MirrorRow> => {
@@ -53,13 +59,13 @@ export const mirrorCentroUser = async (database: Queryable, remote: CentroUser, 
 const mirrorOnce = async (database: Queryable, remote: CentroUser, initialRole?: AuthRole): Promise<MirrorRow> => {
   const email = remote.email.trim().toLowerCase();
   const byId = await database.query<MirrorRow>(
-    'SELECT id, name, email, role, active, centro_user_id FROM users WHERE centro_user_id = $1 AND deleted_at IS NULL LIMIT 1',
+    `SELECT ${MIRROR_COLUMNS} FROM users WHERE centro_user_id = $1 AND deleted_at IS NULL LIMIT 1`,
     [remote.id],
   );
   let existing: MirrorRow | undefined = byId.rows[0];
   if (!existing) {
     const byEmail = await database.query<MirrorRow>(
-      'SELECT id, name, email, role, active, centro_user_id FROM users WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1',
+      `SELECT ${MIRROR_COLUMNS} FROM users WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1`,
       [email],
     );
     existing = byEmail.rows[0];
@@ -69,23 +75,31 @@ const mirrorOnce = async (database: Queryable, remote: CentroUser, initialRole?:
       existing = undefined;
     }
   }
-  const promoted = remote.role === 'admin' ? 'admin' : null;
+  const centroAdmin = remote.role === 'admin';
   if (existing) {
     // Linha local antiga (sem conta central) nao transfere o papel antigo.
-    const role = existing.centro_user_id ? (promoted ?? existing.role) : (promoted ?? initialRole ?? 'viewer');
+    const localRole = existing.centro_user_id ? existing.local_role : (initialRole ?? null);
+    // E-mail trocado no Centro para um que ainda esta numa linha antiga:
+    // aposenta a linha antiga para liberar o indice unico.
+    if (existing.email.toLowerCase() !== email) {
+      await database.query(
+        'UPDATE users SET deleted_at = now(), active = false, updated_at = now() WHERE lower(email) = $1 AND id <> $2 AND deleted_at IS NULL',
+        [email, existing.id],
+      );
+    }
     const updated = await database.query<MirrorRow>(`
       UPDATE users SET name = $2, email = $3, active = $4, centro_user_id = $5,
-        role = $6, password_hash = NULL, updated_at = now()
+        role = $6, centro_admin = $7, local_role = $8, password_hash = NULL, updated_at = now()
       WHERE id = $1 AND deleted_at IS NULL
-      RETURNING id, name, email, role, active, centro_user_id
-    `, [existing.id, remote.name, email, remote.active !== false, remote.id, role]);
+      RETURNING ${MIRROR_COLUMNS}
+    `, [existing.id, remote.name, email, remote.active !== false, remote.id, centroAdmin ? 'admin' : (localRole ?? 'viewer'), centroAdmin, localRole]);
     if (updated.rows[0]) return updated.rows[0];
   }
   const inserted = await database.query<MirrorRow>(`
-    INSERT INTO users (id, name, email, password_hash, role, active, centro_user_id)
-    VALUES ($1, $2, $3, NULL, $4, $5, $6)
-    RETURNING id, name, email, role, active, centro_user_id
-  `, [randomUUID(), remote.name, email, promoted ?? initialRole ?? 'viewer', remote.active !== false, remote.id]);
+    INSERT INTO users (id, name, email, password_hash, role, active, centro_user_id, centro_admin, local_role)
+    VALUES ($1, $2, $3, NULL, $4, $5, $6, $7, $8)
+    RETURNING ${MIRROR_COLUMNS}
+  `, [randomUUID(), remote.name, email, centroAdmin ? 'admin' : (initialRole ?? 'viewer'), remote.active !== false, remote.id, centroAdmin, initialRole ?? null]);
   return inserted.rows[0];
 };
 

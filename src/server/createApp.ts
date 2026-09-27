@@ -224,6 +224,10 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.status(409).json({ error: 'Você não pode desativar ou remover o perfil administrativo da própria conta.' });
       return;
     }
+    if (error instanceof Error && error.message === 'USER_ROLE_FROM_CENTRO') {
+      response.status(409).json({ error: 'Esta conta é administradora no Centro de Custos. O perfil dela só muda lá.' });
+      return;
+    }
     if (error instanceof Error && error.message === 'USER_LAST_ADMIN') {
       response.status(409).json({ error: 'É necessário manter pelo menos um administrador ativo.' });
       return;
