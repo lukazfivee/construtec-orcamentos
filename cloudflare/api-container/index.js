@@ -57,7 +57,8 @@ export default {
     if (!bindings.DATABASE_URL || !bindings.CONSTRUTEC_INTEGRATION_KEY) return;
     ctx.waitUntil(bindings.API.getByName('production').fetch('http://container/internal/outbox/retry', {
       method: 'POST',
-      headers: { 'X-Construtec-Integration-Key': bindings.CONSTRUTEC_INTEGRATION_KEY },
+      // Sem BOM/espacos: o Headers recusa o U+FEFF e o Container compara a chave limpa.
+      headers: { 'X-Construtec-Integration-Key': String(bindings.CONSTRUTEC_INTEGRATION_KEY).replace(/^\uFEFF/, '').trim() },
     }));
   },
 };
