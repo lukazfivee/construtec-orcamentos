@@ -17,6 +17,7 @@ const entryPoints = [
   'src/main/exsatValidation.test.ts',
   'src/server/services/integration/integration-key.test.ts',
   'src/server/services/centro-identity.test.ts',
+  'src/server/services/identity-self-heal.test.ts',
   'src/server/outbox-cron.test.ts',
   'src/renderer/proposal-deep-link.test.ts',
 ];

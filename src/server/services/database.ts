@@ -167,6 +167,18 @@ const migrateDatabase = async (database: DatabaseQueries) => {
     }
   }
 
+  // Self-heal: um branch antigo (acompanhamento da obra) registrou outra
+  // migracao com o numero 13 no banco da nuvem; a 012/013 da identidade ficou
+  // marcada como aplicada sem as colunas e o login falhava com 42703.
+  const identityColumns = await database.query<{ column_name: string }>(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_schema = current_schema() AND table_name = 'users'
+       AND column_name IN ('centro_user_id', 'deleted_at', 'centro_admin', 'local_role')`,
+  );
+  const present = new Set(identityColumns.rows.map(row => row.column_name));
+  if (!present.has('centro_user_id') || !present.has('deleted_at')) await database.exec(sharedIdentityMigration);
+  if (!present.has('centro_admin') || !present.has('local_role')) await database.exec(centroAdminMigration);
+
   // Self-heal: garante coluna snapshot_category e que description em kits seja opcional
   await database.exec("ALTER TABLE proposal_items ADD COLUMN IF NOT EXISTS snapshot_category text NOT NULL DEFAULT 'Outros'");
   await database.exec('ALTER TABLE kits ALTER COLUMN description DROP NOT NULL');
