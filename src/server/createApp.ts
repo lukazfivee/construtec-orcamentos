@@ -59,6 +59,13 @@ export const getCloudSecurity = (env: NodeJS.ProcessEnv = process.env): CloudSec
 
 const CLOUD_SETUP_PATH = /^\/api\/auth\/setup\/?$/i;
 
+// Codigo do erro (SQLSTATE do PostgreSQL ou codigo de rede do Node) para
+// diagnostico na nuvem, onde a mensagem fica generica; nunca inclui dados.
+const errorReference = (error: Error) => {
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' && /^[A-Z0-9_]{2,40}$/.test(code) ? ` (código ${code})` : '';
+};
+
 export const createApp = (database: LocalDatabase, apiToken: string) => {
   const api = express();
   const cloud = getCloudSecurity();
@@ -290,7 +297,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
         return;
       }
       console.error(error);
-      response.status(500).json({ error: cloud ? 'Não foi possível concluir a operação.' : (error.message || 'Não foi possível concluir a operação local.') });
+      response.status(500).json({ error: cloud ? `Não foi possível concluir a operação.${errorReference(error)}` : (error.message || 'Não foi possível concluir a operação local.') });
       return;
     }
     console.error(error);
