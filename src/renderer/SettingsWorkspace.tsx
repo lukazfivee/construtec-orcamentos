@@ -3,28 +3,19 @@ import {
   Building2,
   Database,
   Download,
-  KeyRound,
   Percent,
   Save,
   Settings,
   ShieldCheck,
   Upload,
-  UserPlus,
-  Users,
 } from 'lucide-react';
-import type { AppSettings, AuthRole, AuthUser, UserRecord } from '../shared/contracts';
-import { authApi, settingsApi, systemApi, usersApi } from './api';
+import type { AppSettings, AuthUser } from '../shared/contracts';
+import { authApi, settingsApi, systemApi } from './api';
+import { UsersAdminPanel } from './UsersAdminPanel';
 
 type SettingsWorkspaceProps = {
   onNotice: (message: string) => void;
   onError: (message: string) => void;
-};
-
-type NewUserDraft = {
-  name: string;
-  email: string;
-  password: string;
-  role: AuthRole;
 };
 
 const initialSettings: AppSettings = {
@@ -40,18 +31,12 @@ const initialSettings: AppSettings = {
   defaultValidityDays: 15,
 };
 
-const emptyUser: NewUserDraft = { name: '', email: '', password: '', role: 'commercial' };
-const roleLabels: Record<AuthRole, string> = { admin: 'Administrador', commercial: 'Comercial', viewer: 'Consulta' };
 
 export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps) {
   const [settings, setSettings] = useState<AppSettings>(initialSettings);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  const [users, setUsers] = useState<UserRecord[]>([]);
-  const [newUser, setNewUser] = useState<NewUserDraft>(emptyUser);
-  const [passwordDrafts, setPasswordDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [userPending, setUserPending] = useState(false);
   const [backupPending, setBackupPending] = useState(false);
   const [restorePending, setRestorePending] = useState(false);
 
@@ -66,10 +51,6 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
         if (!active) return;
         setSettings(settingsResult.settings);
         setCurrentUser(meResult.user);
-        if (meResult.user.role === 'admin') {
-          const usersResult = await usersApi.list();
-          if (active) setUsers(usersResult.users);
-        }
       } catch (error) {
         if (active) onError(error instanceof Error ? error.message : 'Não foi possível carregar as configurações.');
       } finally {
@@ -92,67 +73,6 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
       onError(error instanceof Error ? error.message : 'Não foi possível salvar as configurações.');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const createUser = async (event: FormEvent) => {
-    event.preventDefault();
-    if (userPending || !isAdmin) return;
-    setUserPending(true);
-    try {
-      const result = await usersApi.create(newUser);
-      setUsers(result.users);
-      setNewUser(emptyUser);
-      onNotice('Usuário criado com sucesso.');
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Não foi possível criar o usuário.');
-    } finally {
-      setUserPending(false);
-    }
-  };
-
-  const updateUserDraft = (userId: string, changes: Partial<UserRecord>) => {
-    setUsers((current) => current.map((user) => user.id === userId ? { ...user, ...changes } : user));
-  };
-
-  const saveUser = async (user: UserRecord) => {
-    if (userPending || !isAdmin) return;
-    setUserPending(true);
-    try {
-      const result = await usersApi.update(user.id, {
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        active: user.active,
-      });
-      setUsers(result.users);
-      onNotice('Usuário atualizado.');
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Não foi possível atualizar o usuário.');
-      try {
-        const result = await usersApi.list();
-        setUsers(result.users);
-      } catch { /* mantém o erro original */ }
-    } finally {
-      setUserPending(false);
-    }
-  };
-
-  const resetPassword = async (user: UserRecord) => {
-    const password = passwordDrafts[user.id] ?? '';
-    if (userPending || !isAdmin || password.length < 10) {
-      onError('Informe uma nova senha com pelo menos 10 caracteres.');
-      return;
-    }
-    setUserPending(true);
-    try {
-      await usersApi.resetPassword(user.id, password);
-      setPasswordDrafts((current) => ({ ...current, [user.id]: '' }));
-      onNotice(`Senha de ${user.name} redefinida.`);
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Não foi possível redefinir a senha.');
-    } finally {
-      setUserPending(false);
     }
   };
 
@@ -288,36 +208,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
             </div>
           </form>
 
-          {isAdmin && (
-            <section className="settings-card" style={{ background: '#fff', border: '1px solid #e4e6ea', borderRadius: '8px', padding: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
-                <Users size={19} color="#12a9d1" />
-                <div><h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Usuários e Permissões</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Contas locais deste computador. Usuários são desativados em vez de excluídos para preservar o histórico.</p></div>
-              </div>
-
-              <form onSubmit={(event) => void createUser(event)} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.25fr .9fr .85fr auto', gap: '8px', alignItems: 'end', padding: '12px', background: '#f8fafc', border: '1px solid #e4e6ea', borderRadius: '6px', marginBottom: '14px' }}>
-                <label style={{ display: 'grid', gap: '5px', fontSize: '10px' }}><span>Nome</span><input required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
-                <label style={{ display: 'grid', gap: '5px', fontSize: '10px' }}><span>E-mail</span><input required type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>
-                <label style={{ display: 'grid', gap: '5px', fontSize: '10px' }}><span>Senha inicial</span><input required type="password" minLength={10} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} /></label>
-                <label style={{ display: 'grid', gap: '5px', fontSize: '10px' }}><span>Perfil</span><select value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value as AuthRole })}><option value="commercial">Comercial</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
-                <button type="submit" className="primary" disabled={userPending} style={{ height: '36px', border: '1px solid #12a9d1', borderRadius: '6px', padding: '0 12px' }}><UserPlus size={15} /> Criar</button>
-              </form>
-
-              <div style={{ display: 'grid', gap: '10px' }}>
-                {users.map((user) => (
-                  <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.25fr .82fr auto', gap: '8px 10px', padding: '12px', border: '1px solid #e4e6ea', borderRadius: '6px', background: user.active ? '#fff' : '#fafafa', opacity: user.active ? 1 : .72 }}>
-                    <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>Nome {user.id === currentUser?.id ? '• Você' : ''}</span><input value={user.name} onChange={(e) => updateUserDraft(user.id, { name: e.target.value })} /></label>
-                    <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>E-mail</span><input type="email" value={user.email} onChange={(e) => updateUserDraft(user.id, { email: e.target.value })} /></label>
-                    <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>Perfil</span><select value={user.role} onChange={(e) => updateUserDraft(user.id, { role: e.target.value as AuthRole })}>{Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-                    <div style={{ display: 'flex', alignItems: 'end', gap: '7px' }}><label style={{ display: 'flex', alignItems: 'center', gap: '5px', height: '36px', fontSize: '10px' }}><input type="checkbox" checked={user.active} onChange={(e) => updateUserDraft(user.id, { active: e.target.checked })} /> Ativo</label><button type="button" onClick={() => void saveUser(user)} disabled={userPending} style={{ height: '34px', padding: '0 10px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: 'pointer' }}><Save size={14} /> Salvar</button></div>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px', borderTop: '1px solid #f0f2f5' }}>
-                      <KeyRound size={14} color="#5d7480" /><span style={{ color: '#5d7480', fontSize: '9px' }}>Nova senha</span><input type="password" minLength={10} value={passwordDrafts[user.id] ?? ''} onChange={(e) => setPasswordDrafts((current) => ({ ...current, [user.id]: e.target.value }))} placeholder="Mínimo 10 caracteres" style={{ width: '220px', height: '30px' }} /><button type="button" onClick={() => void resetPassword(user)} disabled={userPending} style={{ height: '30px', padding: '0 9px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '5px', cursor: 'pointer' }}>Redefinir senha</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {isAdmin && currentUser && <UsersAdminPanel currentUser={currentUser} onNotice={onNotice} onError={onError} />}
         </div>
       </div>
     </main>

@@ -6,7 +6,7 @@ import { startOutboxRetryWorker } from './services/outboxRetryWorker';
 export const createSuiteApi = async (userDataPath: string) => {
   const database = await createDatabase(userDataPath);
   const worker = startOutboxRetryWorker(database);
-  const app = createApp(database, randomUUID(), `${randomUUID()}${randomUUID()}`);
+  const app = createApp(database, randomUUID());
   return {
     app,
     close: async () => {

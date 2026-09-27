@@ -3,7 +3,6 @@ import type {
   AppSettings,
   AuthRole,
   AuthSession,
-  AuthSetupStatus,
   AuthUser,
   CatalogImportItem,
   CatalogImportPreview,
@@ -21,6 +20,7 @@ import type {
   ProposalRevisionSummary,
   ProposalSummary,
   UserRecord,
+  AuthorizedEmailRecord,
 } from '../shared/contracts';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string; centroCustosUrl: string }> | undefined;
@@ -42,7 +42,7 @@ const getRuntime = async () => {
   const defaultApiUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://127.0.0.1:5173';
   const apiUrl = (typeof window !== 'undefined' && (window as unknown as { __CONSTRUTEC_API_URL__?: string }).__CONSTRUTEC_API_URL__)
     || defaultApiUrl;
-  const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || 'web-session';
+  const apiToken = (typeof localStorage !== 'undefined' && localStorage.getItem('construtec_api_token')) || '';
   const centroCustosUrl = CENTRO_CUSTOS_CLOUD_URL;
   runtimePromise = Promise.resolve({ apiUrl, apiToken, centroCustosUrl });
   return runtimePromise;
@@ -55,7 +55,7 @@ export const getCentroCustosUrl = async () => (await getRuntime()).centroCustosU
 export const isCloudRuntime = () => typeof window === 'undefined' || !window.construtec?.runtime;
 
 const requestHeaders = (apiToken: string, hasBody = false) => ({
-  Authorization: `Bearer ${apiToken}`,
+  ...(apiToken ? { Authorization: `Bearer ${apiToken}` } : {}),
   ...(authSessionToken ? { 'X-Construtec-Session': authSessionToken } : {}),
   ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
 });
@@ -87,14 +87,11 @@ const requestBinary = async (path: string): Promise<Uint8Array> => {
 };
 
 export const authApi = {
-  setupStatus: () => request<AuthSetupStatus>('/api/auth/setup-status'),
-  setup: (input: { name: string; email: string; password: string; rememberMe?: boolean }) => request<AuthSession>(
-    '/api/auth/setup', { method: 'POST', body: JSON.stringify(input) },
-  ),
   login: (input: { email: string; password: string; rememberMe?: boolean }) => request<AuthSession>(
     '/api/auth/login', { method: 'POST', body: JSON.stringify(input) },
   ),
   me: () => request<{ user: AuthUser }>('/api/auth/me'),
+  logout: () => request<{ success: boolean }>('/api/auth/logout', { method: 'POST' }),
 };
 
 export const proposalApi = {
@@ -258,11 +255,16 @@ export const usersApi = {
   create: (input: { name: string; email: string; password: string; role: AuthRole }) => request<{ user: UserRecord; users: UserRecord[] }>('/api/users', {
     method: 'POST', body: JSON.stringify(input),
   }),
-  update: (userId: string, input: { name: string; email: string; role: AuthRole; active: boolean }) => request<{ user: UserRecord; users: UserRecord[] }>(`/api/users/${userId}`, {
+  update: (userId: string, input: { role: AuthRole; active: boolean }) => request<{ user: UserRecord; users: UserRecord[] }>(`/api/users/${userId}`, {
     method: 'PATCH', body: JSON.stringify(input),
   }),
-  resetPassword: (userId: string, password: string) => request<{ success: boolean }>(`/api/users/${userId}/password`, {
-    method: 'POST', body: JSON.stringify({ password }),
+  remove: (userId: string) => request<{ users: UserRecord[] }>(`/api/users/${userId}`, { method: 'DELETE' }),
+  authorizedEmails: () => request<{ emails: AuthorizedEmailRecord[] }>('/api/users/authorized-emails/list'),
+  authorizeEmail: (email: string, note: string) => request<{ emails: AuthorizedEmailRecord[] }>('/api/users/authorized-emails', {
+    method: 'POST', body: JSON.stringify({ email, note }),
+  }),
+  revokeEmail: (email: string) => request<{ emails: AuthorizedEmailRecord[] }>('/api/users/authorized-emails/revoke', {
+    method: 'POST', body: JSON.stringify({ email }),
   }),
 };
 

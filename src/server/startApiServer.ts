@@ -21,8 +21,7 @@ export const startApiServer = async (
   const cloud = getCloudSecurity();
   const database = await createDatabase(userDataPath, packagedModulePath);
   const token = process.env.CONSTRUTEC_API_TOKEN || randomUUID();
-  const sessionSecret = cloud?.sessionSecret || process.env.SESSION_SECRET || `${randomUUID()}${randomUUID()}`;
-  const api = createApp(database, token, sessionSecret);
+  const api = createApp(database, token);
 
   const server = await new Promise<Server>((resolve, reject) => {
     const host = process.env.CONSTRUTEC_API_HOST || '127.0.0.1';
@@ -57,7 +56,7 @@ export const startApiServer = async (
       return new Uint8Array(await dump.arrayBuffer());
     },
     isAdminSession: async (sessionToken: string) => {
-      const user = await verifyUserSession(database, sessionSecret, sessionToken);
+      const user = await verifyUserSession(database, sessionToken).catch(() => null);
       return user?.role === 'admin';
     },
     close: async () => {
