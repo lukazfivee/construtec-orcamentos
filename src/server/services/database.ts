@@ -184,6 +184,7 @@ const migrateDatabase = async (database: DatabaseQueries) => {
          AND column_name IN ('centro_user_id', 'deleted_at', 'centro_admin', 'local_role')`,
     );
     const present = new Set(identityColumns.rows.map(row => row.column_name));
+    identityHealStatus = `checked:${[...present].sort().join(',') || 'none'}`;
     const missing = ['centro_user_id', 'deleted_at', 'centro_admin', 'local_role'].filter(column => !present.has(column));
     if (missing.includes('centro_user_id') || missing.includes('deleted_at')) {
       await database.exec(`
@@ -198,7 +199,9 @@ const migrateDatabase = async (database: DatabaseQueries) => {
   } catch (error) {
     await database.exec('ROLLBACK TO SAVEPOINT identity_heal');
     const code = (error as { code?: unknown }).code;
-    identityHealStatus = `error:${typeof code === 'string' ? code : 'unknown'}`;
+    // So o nome da coluna/objeto, nunca dados.
+    const target = /(?:column|relation) "([\w.]+)"/.exec(String((error as Error)?.message))?.[1] ?? '';
+    identityHealStatus = `error:${typeof code === 'string' ? code : 'unknown'}${target ? `:${target}` : ''};${identityHealStatus}`;
     console.error('[identity-heal]', error);
   }
 
