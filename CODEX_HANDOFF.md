@@ -1,5 +1,12 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-28 17:10 BRT — Cores e fonte da Suíte no site de computador (Claude Code)
+
+- Combinado com o Lucas: celular com o design do protótipo; computador só com as cores e a fonte da Suíte (não há protótipo desktop do Orçamentos, só do Centro).
+- Paleta trocada por equivalência (azul-marinho/azul elétrico/cinzas frios para petróleo/ciano/neutros da Suíte, os mesmos de `docs/suite-desktop/prototipo/desktop-base.css` do Centro) nos CSS de `src/` e em estilos inline de `src/renderer`. Layout igual. O documento do cliente (PDF/Word, `src/main`) não foi tocado.
+- IBM Plex Sans embutida (`src/fonts`, `src/suite-fonts.css`); antes caía na Segoe UI. `theme-color` #031f29.
+- `npm run verify` 44/44. Conferido no navegador em 1440x900 (Início e editor de proposta).
+
 ## 2026-09-28 16:40 BRT — Notificações no celular (`/m/`) (Claude Code)
 
 - `src/server/routes/notifications.ts` (`/api/notifications`, `/read`, `/prefs`, `/test`): repassa a sessão central do usuário para a central do Worker do Centro (`/v1/notifications*`, Fase 4). O token do Orçamentos já é a sessão central (login ou handoff, ambas em `cloud_sessions`). Um 401 do Centro nessa rota vira 503 para não deslogar o celular. Consulta (viewer) pode marcar lidas e mudar preferências (a regra de somente leitura não vale para `/api/notifications`).

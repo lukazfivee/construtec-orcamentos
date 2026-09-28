@@ -137,7 +137,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
           )}
 
           <form id="settings-form" onSubmit={(e) => void saveSettings(e)} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div className="settings-card" style={{ background: '#fff', border: '1px solid #e4e6ea', borderRadius: '8px', padding: '20px' }}>
+            <div className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
                 <Building2 size={19} color="#12a9d1" />
                 <div>
@@ -156,7 +156,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
               </div>
             </div>
 
-            <div className="settings-card" style={{ background: '#fff', border: '1px solid #e4e6ea', borderRadius: '8px', padding: '20px' }}>
+            <div className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
                 <Percent size={19} color="#12a9d1" />
                 <div>
@@ -173,24 +173,24 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
               </div>
             </div>
 
-            <div className="settings-card" style={{ background: '#f8fafc', border: '1px solid #e4e6ea', borderRadius: '8px', padding: '20px' }}>
+            <div className="settings-card" style={{ background: '#f2f8fa', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
                 <Database size={19} color="#178442" />
                 <div><h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>Ambiente e Armazenamento Local</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Arquitetura Local-First Construtec Orçamentos.</p></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px', fontSize: '11px' }}>
-                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e4e6ea' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Versão do App</span><b style={{ color: '#0b2530', fontSize: '13px' }}>v1.0.5</b></div>
-                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e4e6ea' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Banco Local</span><b style={{ color: '#178442', fontSize: '13px' }}>PGlite / PostgreSQL</b></div>
-                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e4e6ea' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Modo de Operação</span><b style={{ color: '#12a9d1', fontSize: '13px' }}>Offline Local-First</b></div>
+                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Versão do App</span><b style={{ color: '#0b2530', fontSize: '13px' }}>v1.0.5</b></div>
+                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Banco Local</span><b style={{ color: '#178442', fontSize: '13px' }}>PGlite / PostgreSQL</b></div>
+                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Modo de Operação</span><b style={{ color: '#12a9d1', fontSize: '13px' }}>Offline Local-First</b></div>
               </div>
               {isAdmin && (
-                <div style={{ display: 'grid', gap: '10px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #e4e6ea' }}>
+                <div style={{ display: 'grid', gap: '10px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #d6e4e9' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
                     <div>
                       <b style={{ display: 'block', color: '#0b2530', fontSize: '11px' }}>Backup do banco local</b>
                       <span style={{ color: '#5d7480', fontSize: '9px' }}>Gera um tar.gz consistente pelo mecanismo oficial do PGlite. O arquivo pode ser guardado fora deste computador.</span>
                     </div>
-                    <button type="button" onClick={() => void createBackup()} disabled={backupPending || restorePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: backupPending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
+                    <button type="button" onClick={() => void createBackup()} disabled={backupPending || restorePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #bad0d8', borderRadius: '6px', cursor: backupPending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
                       <Download size={14} /> {backupPending ? 'Gerando…' : 'Criar backup'}
                     </button>
                   </div>
@@ -199,7 +199,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
                       <b style={{ display: 'block', color: '#0b2530', fontSize: '11px' }}>Restaurar banco local</b>
                       <span style={{ color: '#5d7480', fontSize: '9px' }}>Valida o backup antes da troca, cria uma cópia de emergência do banco atual e reinicia o aplicativo.</span>
                     </div>
-                    <button type="button" onClick={() => void restoreBackup()} disabled={backupPending || restorePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: restorePending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
+                    <button type="button" onClick={() => void restoreBackup()} disabled={backupPending || restorePending} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 11px', background: '#fff', border: '1px solid #bad0d8', borderRadius: '6px', cursor: restorePending ? 'wait' : 'pointer', whiteSpace: 'nowrap' }}>
                       <Upload size={14} /> {restorePending ? 'Validando…' : 'Restaurar backup'}
                     </button>
                   </div>
