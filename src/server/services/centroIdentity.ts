@@ -106,3 +106,10 @@ export const centroAuthorizeEmail = (token: string, email: string, note: string)
 
 export const centroRevokeEmail = (token: string, email: string) =>
   call<{ ok: boolean }>('/v1/authorized-emails/revoke', { method: 'POST', token, service: true, body: { email } });
+
+// Central de notificacoes da Suite (Worker do Centro, Fase 4): o Orcamentos so repassa
+// a sessao central do usuario; a lista, as lidas e as preferencias vivem la.
+export type CentroNotification = { id: string; type: string; app: string; title: string; body: string; link: string | null; createdAt: string; read: boolean };
+type NotificationPath = '/v1/notifications' | '/v1/notifications/read' | '/v1/notifications/prefs' | '/v1/notifications/test';
+export const centroNotifications = <T>(token: string, path: NotificationPath, method = 'GET', body?: unknown, query = '') =>
+  call<T>(`${path}${query}`, { method, token, body });

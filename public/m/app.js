@@ -3,7 +3,7 @@
   const { esc, icon } = OC;
   OC.screens = OC.screens || {};
   const TABS = [
-    ['home', 'Início', 'squares-four', ['home', 'painel']],
+    ['home', 'Início', 'squares-four', ['home', 'painel', 'avisos']],
     ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor']],
     ['kits', 'Kits', 'stack', ['kits', 'kit']],
     ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli']],
@@ -56,7 +56,7 @@
   OC.back = function () {
     const prev = stack.pop();
     if (prev) OC.go(prev[0], prev[1], { back: true });
-    else OC.go({ kit: 'kits', painel: 'home', cfg: 'menu', cat: 'menu', cli: 'menu' }[current] || 'props');
+    else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cat: 'menu', cli: 'menu' }[current] || 'props');
   };
   OC.reload = () => OC.go(current, currentParams, { back: true });
   document.addEventListener('click', (event) => { if (event.target.closest('[data-back]')) OC.back(); });
@@ -116,6 +116,7 @@
   function start() {
     if (started) return OC.go('home');
     started = true;
+    if (OC.notif) OC.notif.refresh();
     // #proposta=<id> (seletor Suite e avisos) ou #prop=<id> ao recarregar.
     const route = () => {
       const target = new URLSearchParams(location.hash.slice(1));

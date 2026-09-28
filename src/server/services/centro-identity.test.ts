@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
 import { initialMigration } from '../migrations/001-initial';
 import { sharedIdentityMigration } from '../migrations/012-shared-identity';
+import { createApp } from '../createApp';
 import { createCriticalTestDatabase } from './criticalTestDatabase';
 import { consumeHandoff, expireSessionCacheForTests as forgetSessionCacheOnlyForTest, forgetCachedSessions, loginUser, verifyUserSession } from './auth';
 import { createUser, deleteUser, listUsers, updateUser } from './users';
@@ -56,6 +57,15 @@ const startStubCentro = async () => {
     }
     if (!actor) return send(401, { error: 'Sessao invalida ou expirada.' });
     if (path === '/v1/auth/session') return send(200, { user: publicUser(actor) });
+    // Central de notificacoes (Fase 4): so a sessao do usuario, sem chave de servico.
+    if (path.startsWith('/v1/notifications')) {
+      if (path === '/v1/notifications?limit=7') return send(401, { error: 'Sessao invalida.' });
+      const items = [{ id: '00000000-0000-4000-8000-000000000001', type: 'proposta_aprovada', app: 'orcamentos', title: 'Proposta aprovada', body: 'PA-1', link: 'orcamentos?proposta=x', createdAt: '2026-09-28T10:00:00Z', read: path === '/v1/notifications/read' }];
+      if (path.startsWith('/v1/notifications?')) return send(200, { ok: true, unread: 1, items, user: actor.id });
+      if (path === '/v1/notifications/read') return send(200, { ok: true, unread: 0, items, body });
+      if (path === '/v1/notifications/prefs') return send(200, { ok: true, prefs: { proposta_aprovada: request.method === 'PUT' ? body.enabled : true } });
+      return send(404, { error: 'Rota nao encontrada.' });
+    }
     if (request.headers['x-construtec-identity-key'] !== SERVICE_KEY) return send(403, { error: 'Sem permissao.' });
     if (path === '/v1/users' && request.method === 'GET') return send(200, { users: users.map(publicUser) });
     if (path === '/v1/users' && request.method === 'POST') {
@@ -232,6 +242,43 @@ test('identidade delegada ao Centro de Custos', async context => {
     await assert.rejects(updateUser(database, admin.token, admin.user.id, admin.user.id, { role: 'viewer', active: true }), /USER_SELF_LOCKOUT/);
     await assert.rejects(deleteUser(database, admin.token, admin.user.id, admin.user.id), /USER_SELF_LOCKOUT/);
   });
+});
+
+test('avisos do celular repassam a sessao central', async context => {
+  const stub = await startStubCentro();
+  const fixture = await createCriticalTestDatabase();
+  const saved = process.env.CENTRO_CUSTOS_IDENTITY_URL;
+  process.env.CENTRO_CUSTOS_IDENTITY_URL = stub.url;
+  const server = createApp(fixture.database, 'local-token').listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  context.after(async () => {
+    if (saved === undefined) delete process.env.CENTRO_CUSTOS_IDENTITY_URL; else process.env.CENTRO_CUSTOS_IDENTITY_URL = saved;
+    forgetCachedSessions();
+    await new Promise<void>(resolve => server.close(() => resolve()));
+    await fixture.database.close();
+    await stub.close();
+  });
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+  const base = `http://127.0.0.1:${address.port}/api`;
+  const gestor = await loginUser(fixture.database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
+  assert.equal(gestor.user.role, 'viewer');
+  const call = (path: string, init: RequestInit = {}) => fetch(`${base}${path}`, { ...init, headers: { 'Content-Type': 'application/json', 'X-Construtec-Session': gestor.token } });
+
+  const list = await call('/notifications?limit=5');
+  assert.equal(list.status, 200);
+  const data = await list.json() as { unread: number; items: unknown[]; user: string };
+  assert.equal(data.unread, 1);
+  assert.equal(data.user, 'c-gestor');
+  // Consulta (viewer) tambem marca como lida: o aviso e da conta.
+  const read = await call('/notifications/read', { method: 'POST', body: JSON.stringify({ ids: ['00000000-0000-4000-8000-000000000001'] }) });
+  assert.equal(read.status, 200);
+  assert.deepEqual(((await read.json()) as { body: unknown }).body, { ids: ['00000000-0000-4000-8000-000000000001'] });
+  assert.equal((await call('/notifications/read', { method: 'POST', body: JSON.stringify({ ids: ['nao-e-uuid'] }) })).status, 400);
+  const pref = await call('/notifications/prefs', { method: 'PUT', body: JSON.stringify({ type: 'proposta_aprovada', enabled: false }) });
+  assert.equal(((await pref.json()) as { prefs: Record<string, boolean> }).prefs.proposta_aprovada, false);
+  // 401 do Centro nesta rota nao pode deslogar o celular.
+  assert.equal((await call('/notifications?limit=7')).status, 503);
 });
 
 test('migracao 012 sobre dados existentes', async context => {

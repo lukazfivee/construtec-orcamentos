@@ -1,5 +1,11 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-28 16:40 BRT — Notificações no celular (`/m/`) (Claude Code)
+
+- `src/server/routes/notifications.ts` (`/api/notifications`, `/read`, `/prefs`, `/test`): repassa a sessão central do usuário para a central do Worker do Centro (`/v1/notifications*`, Fase 4). O token do Orçamentos já é a sessão central (login ou handoff, ambas em `cloud_sessions`). Um 401 do Centro nessa rota vira 503 para não deslogar o celular. Consulta (viewer) pode marcar lidas e mudar preferências (a regra de somente leitura não vale para `/api/notifications`).
+- `/m/`: sino com contador no Início (`screen-avisos.js`), lista por dia, filtro por app, marcar como lidas, preferências e teste; o aviso abre a proposta aqui ou a obra/pedidos no Centro (troca de app dentro do Suíte).
+- Teste novo em `centro-identity.test.ts` ("avisos do celular repassam a sessao central"). `npm run verify` 44/44.
+
 ## 2026-09-28 16:00 BRT — Orçamentos no celular (`/m/`), etapa 2 (Claude Code)
 
 - Telas novas do protótipo: Nova proposta (`screen-nova.js`: cliente ou novo cliente, obra, cidade, validade 15/30/45/60, começar em branco, copiando itens de outra proposta ou com um kit; repetir após erro não duplica cliente, obra nem proposta), Mão de obra (`screen-labor.js`: funções em cartões, profissionais, horas em passos de 40 h, salário, alimentação, transporte, encargos; o servidor calcula custo mensal, custo/hora e total), Editar kit (salva sozinho com PUT, adicionar e tirar itens, "Usar em proposta" numa proposta em edição ou numa nova), Novo kit, Painel (dashboard + validades perto do fim), Configurações da empresa (BDI padrão, horas/mês, validade; só admin salva), Catálogo (consulta), Clientes e obras (cartões com obras, propostas e "Nova proposta"). Menu com Segurança e Rever o tour só dentro do app (`suite://seguranca`, `suite://tour`).
