@@ -14,7 +14,14 @@ test('migracao recria colunas da identidade marcadas como aplicadas sem existir'
   const dir = await mkdtemp(path.join(os.tmpdir(), 'orc-heal-'));
   try {
     const first = await createDatabase(dir);
-    await first.exec('ALTER TABLE users DROP COLUMN centro_admin; ALTER TABLE users DROP COLUMN local_role;');
+    // Estrutura encontrada em producao: sem role e sem as colunas da 012/013,
+    // com senha local obrigatoria.
+    await first.exec(`
+      DROP INDEX IF EXISTS users_centro_user_id_unique;
+      ALTER TABLE users DROP COLUMN centro_admin, DROP COLUMN local_role, DROP COLUMN centro_user_id, DROP COLUMN role;
+      ALTER TABLE users ADD COLUMN password_salt text NOT NULL DEFAULT 'x', ADD COLUMN password_iterations integer NOT NULL DEFAULT 1;
+      ALTER TABLE users ALTER COLUMN password_salt DROP DEFAULT, ALTER COLUMN password_iterations DROP DEFAULT;
+    `);
     await first.close();
 
     const database = await createDatabase(dir);
