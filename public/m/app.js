@@ -3,10 +3,10 @@
   const { esc, icon } = OC;
   OC.screens = OC.screens || {};
   const TABS = [
-    ['home', 'Início', 'squares-four', ['home']],
-    ['props', 'Propostas', 'file-text', ['props', 'prop']],
+    ['home', 'Início', 'squares-four', ['home', 'painel']],
+    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor']],
     ['kits', 'Kits', 'stack', ['kits', 'kit']],
-    ['menu', 'Menu', 'list', ['menu']],
+    ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli']],
   ];
   let current = 'home', currentParams = {};
   let lensTimer;
@@ -56,7 +56,7 @@
   OC.back = function () {
     const prev = stack.pop();
     if (prev) OC.go(prev[0], prev[1], { back: true });
-    else OC.go(current === 'kit' ? 'kits' : 'props');
+    else OC.go({ kit: 'kits', painel: 'home', cfg: 'menu', cat: 'menu', cli: 'menu' }[current] || 'props');
   };
   OC.reload = () => OC.go(current, currentParams, { back: true });
   document.addEventListener('click', (event) => { if (event.target.closest('[data-back]')) OC.back(); });
@@ -127,8 +127,10 @@
     });
     const id = route();
     if (id) return OC.go('prop', { id });
-    const first = location.hash.slice(1).split('=')[0];
-    return OC.go(OC.screens[first] && !['prop', 'kit'].includes(first) ? first : 'home');
+    // Recarregar numa tela interna (#kit=<id>, #labor=<id>) volta para ela.
+    const [first, param] = location.hash.slice(1).split('=');
+    if (['kit', 'labor'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
+    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova'].includes(first) ? first : 'home');
   }
 
   document.addEventListener('DOMContentLoaded', boot);

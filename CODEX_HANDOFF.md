@@ -1,5 +1,13 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-28 16:00 BRT — Orçamentos no celular (`/m/`), etapa 2 (Claude Code)
+
+- Telas novas do protótipo: Nova proposta (`screen-nova.js`: cliente ou novo cliente, obra, cidade, validade 15/30/45/60, começar em branco, copiando itens de outra proposta ou com um kit; repetir após erro não duplica cliente, obra nem proposta), Mão de obra (`screen-labor.js`: funções em cartões, profissionais, horas em passos de 40 h, salário, alimentação, transporte, encargos; o servidor calcula custo mensal, custo/hora e total), Editar kit (salva sozinho com PUT, adicionar e tirar itens, "Usar em proposta" numa proposta em edição ou numa nova), Novo kit, Painel (dashboard + validades perto do fim), Configurações da empresa (BDI padrão, horas/mês, validade; só admin salva), Catálogo (consulta), Clientes e obras (cartões com obras, propostas e "Nova proposta"). Menu com Segurança e Rever o tour só dentro do app (`suite://seguranca`, `suite://tour`).
+- Folhas comuns no `core.js`: `OC.sheet`, `OC.confirm`, `OC.ask`; busca no catálogo em `OC.pickProduct`.
+- Recarregar em `#kit=<id>` ou `#labor=<id>` volta para a tela.
+- `npm run verify` 43/43. Conferido no navegador em 375x812 com API isolada e Centro falso: nova proposta com kit, função de mão de obra (3 × R$ 3.900 × 176 h = R$ 11.700), kit salvo e aplicado, painel, menu, configurações, catálogo e clientes.
+- Falta: notificações no `/m/` (a central fica no Worker do Centro; precisa de rota no servidor do Orçamentos repassando a sessão central).
+
 ## 2026-09-28 14:30 BRT — Orçamentos no celular (`/m/`), etapa 1, design do protótipo (Claude Code)
 
 - Pedido do Lucas: o Orçamentos no celular com o design novo, igual ao `/m/` do Centro. Fonte do visual: `centro-custos-construtec-v3/docs/suite-mobile/prototipo/Main.dc.html` (telas `sOrcHome`, `sOrcProps`, `orcScr: 'prop'`, `sOrcKits`, `sKit`, `sOrcMenu`).

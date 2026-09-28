@@ -120,6 +120,46 @@
     toastTimer = setTimeout(() => el.remove(), 2600);
   };
 
+  // Folhas inferiores (mesmo desenho do seletor Suite): confirmar, perguntar um texto.
+  OC.sheet = function (html) {
+    const el = document.createElement('div');
+    el.className = 'sheet-backdrop';
+    el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div>${html}</div>`;
+    const close = () => el.remove();
+    el.addEventListener('click', (event) => { if (event.target === el || event.target.closest('.sheet-x')) close(); });
+    document.body.appendChild(el);
+    return { el, close };
+  };
+  OC.sheetHead = (title, ic) => `<div class="sheet-head"><b>${OC.icon(ic, 18)}${OC.esc(title)}</b><button type="button" class="sheet-x" aria-label="Fechar">${OC.icon('x', 20)}</button></div>`;
+  OC.confirm = function (title, text, label, onYes) {
+    const s = OC.sheet(`${OC.sheetHead(title, 'info')}<p class="sheet-text">${OC.esc(text)}</p>
+      <div class="sheet-actions"><button class="btn2" type="button" data-no>Cancelar</button><button class="btn" type="button" data-yes>${OC.esc(label)}</button></div>`);
+    OC.$('[data-no]', s.el).addEventListener('click', s.close);
+    OC.$('[data-yes]', s.el).addEventListener('click', async (event) => {
+      const b = event.currentTarget;
+      b.disabled = true;
+      try { await onYes(); s.close(); } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
+    });
+  };
+  // Pede um texto; onDone recebe o valor e pode lancar erro para manter a folha aberta.
+  OC.ask = function (title, label, placeholder, onDone, value) {
+    const s = OC.sheet(`${OC.sheetHead(title, 'pencil-simple')}<label class="field" style="margin-top:12px"><span>${OC.esc(label)}</span>
+      <input type="text" data-ask placeholder="${OC.esc(placeholder || '')}" value="${OC.esc(value || '')}" autocomplete="off"></label>
+      <div class="sheet-actions"><button class="btn2" type="button" data-no>Cancelar</button><button class="btn" type="button" data-yes>Salvar</button></div>`);
+    const field = OC.$('[data-ask]', s.el);
+    OC.$('[data-no]', s.el).addEventListener('click', s.close);
+    const go = async () => {
+      const text = field.value.trim();
+      if (text.length < 2) { field.focus(); return; }
+      const b = OC.$('[data-yes]', s.el);
+      b.disabled = true;
+      try { await onDone(text); s.close(); } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
+    };
+    OC.$('[data-yes]', s.el).addEventListener('click', go);
+    field.addEventListener('keydown', (event) => { if (event.key === 'Enter') go(); });
+    setTimeout(() => field.focus(), 50);
+  };
+
   // Tema: escolha salva, depois ?tema= (o app Android pode mandar), depois o do aparelho.
   OC.theme = {
     get() {
