@@ -1,5 +1,15 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-28 14:30 BRT — Orçamentos no celular (`/m/`), etapa 1, design do protótipo (Claude Code)
+
+- Pedido do Lucas: o Orçamentos no celular com o design novo, igual ao `/m/` do Centro. Fonte do visual: `centro-custos-construtec-v3/docs/suite-mobile/prototipo/Main.dc.html` (telas `sOrcHome`, `sOrcProps`, `orcScr: 'prop'`, `sOrcKits`, `sKit`, `sOrcMenu`).
+- Site estático em `public/m/` (sem build, mesma estrutura do Centro): `m.css`, `anim.css`, fontes IBM Plex e símbolo copiados do Centro; `orc.css` com o que é só do Orçamentos; `icons.js` gerado do `@phosphor-icons/core` 2.1.1 (MIT).
+- Telas: Entrar (conta do Centro; "Esqueci minha senha" abre o `/m/` do Centro), Início (tarefas por situação e resumo), Propostas (busca e filtros), Proposta (Resumo com etapas e próximo passo, Itens com quantidade, BDI e impostos, Adicionar do catálogo, Revisões), Kits, Kit e Menu (tema, versão completa, sair). Seletor Suíte com "Obra desta proposta".
+- Entrada: o `index.html` da raiz manda o app Suíte (`SuiteConstrutec/`) e celulares (≤767 px, toque) para `/m/`, levando `#handoff=` e `#proposta=`. Sem RC nova do app. "Versão completa" no Menu vale até fechar a aba (`sessionStorage.orc_versao`).
+- Sessão: mesmo token do web (`construtec.auth.session`), usuário em `construtec.m.user` (vem do `/api/auth/me` se faltar).
+- Teste novo `src/renderer/mobile-site.test.ts`. `npm run verify` 43/43. Conferido no navegador em 375x812, claro e escuro, com API isolada e Centro falso local.
+- Próximas etapas: Nova proposta, mão de obra, aplicar kit, painel do mês, catálogo, clientes, configurações e notificações (telas do protótipo ainda não feitas); PDF segue na versão completa.
+
 ## 2026-09-27 03:40 BRT — Suíte mobile, passo 4: seletor, link direto e comparativo no celular (Claude Code)
 
 - Seletor "Suíte" no celular: a pílula da topbar abre a folha "Esteira Operacional Construtec" (`MobileSuiteSheet.tsx`, renderizada em portal no `body`, senão fica atrás do conteúdo). Itens: Orçamentos (atual), Centro de Custos (no app, `suite://app/centro-custos`; fora, `/m/` do Centro em outra aba) e ChamadoPro (sempre no navegador). No desktop continua o popover.
