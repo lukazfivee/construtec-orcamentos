@@ -38,7 +38,7 @@
     const sum = (rows) => rows.reduce((total, p) => total + (Number(p.totalSale) || 0), 0);
     const user = OC.session.user() || {};
     const title = todo.length ? `${todo.length} ${todo.length > 1 ? 'propostas precisam de ação' : 'proposta precisa de ação'}` : 'Nenhuma proposta pendente';
-    const el = OC.render(`${OC.header('')}
+    const el = OC.render(`${OC.header('', { extra: OC.bellBtn ? OC.bellBtn() : '' })}
       <p class="hello">${esc(OC.greeting())}${user.name ? `, ${esc(OC.firstName(user.name))}` : ''}</p>
       <h1 class="title">${esc(title)}</h1>
       <button class="summary" type="button" id="h-sum" aria-label="Ver propostas em andamento">
