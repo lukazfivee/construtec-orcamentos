@@ -14,26 +14,7 @@
   };
   const editable = (p) => p.status === 'draft' && p.isLatest && OC.canEdit();
 
-  function sheet(html) {
-    const el = document.createElement('div');
-    el.className = 'sheet-backdrop';
-    el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div>${html}</div>`;
-    const close = () => el.remove();
-    el.addEventListener('click', (event) => { if (event.target === el || event.target.closest('.sheet-x')) close(); });
-    document.body.appendChild(el);
-    return { el, close };
-  }
-  const sheetHead = (title, ic) => `<div class="sheet-head"><b>${icon(ic, 18)}${esc(title)}</b><button type="button" class="sheet-x" aria-label="Fechar">${icon('x', 20)}</button></div>`;
-
-  function confirmSheet(title, text, label, onYes) {
-    const s = sheet(`${sheetHead(title, 'info')}<p class="sheet-text">${esc(text)}</p>
-      <div class="sheet-actions"><button class="btn2" type="button" data-no>Cancelar</button><button class="btn" type="button" data-yes>${esc(label)}</button></div>`);
-    OC.$('[data-no]', s.el).addEventListener('click', s.close);
-    OC.$('[data-yes]', s.el).addEventListener('click', async (event) => {
-      event.currentTarget.disabled = true;
-      try { await onYes(); s.close(); } catch (error) { OC.toast(error.message, 'warning-circle'); event.currentTarget.disabled = false; }
-    });
-  }
+  const { sheet, sheetHead, confirm: confirmSheet } = OC;
 
   // Proximo passo da proposta, pelas regras do prototipo; o servidor confere a transicao.
   function nextStep(p, ctx) {
@@ -109,7 +90,7 @@
     const can = editable(p);
     const labor = p.laborItems || [];
     return {
-      html: `<div class="card labor-card">${icon('hard-hat', 20)}<span class="grow"><b>Mão de obra · ${labor.length} ${labor.length === 1 ? 'função' : 'funções'}</b><small>Salário, encargos e horas</small></span><b>${esc(OC.money0(t.labor))}</b></div>
+      html: `<button class="card labor-card" type="button" data-labor>${icon('hard-hat', 20)}<span class="grow"><b>Mão de obra · ${labor.length} ${labor.length === 1 ? 'função' : 'funções'}</b><small>Salário, encargos e horas</small></span><b>${esc(OC.money0(t.labor))}</b>${icon('caret-right', 18)}</button>
         <div class="sec-row"><span class="label">Materiais e equipamentos · ${p.items.length}</span><span class="label">${esc(OC.money0(t.materials))}</span></div>
         <div class="items">${p.items.length ? p.items.map((it) => `<div class="item" data-item="${esc(it.id)}">
             <div class="item-top"><b>${esc(it.description)}</b><b class="val">${esc(OC.money0(it.totalSale))}</b></div>
@@ -123,6 +104,7 @@
           <div class="tb-mid"><b class="big">${esc(OC.money0(t.final))}</b><small>Margem ${esc(OC.pct(t.margin))}</small></div>
           ${can ? `<div class="tb-btns"><button class="btn2" type="button" data-bdi>${icon('percent', 18)}BDI e impostos</button><button class="btn" type="button" data-add>${icon('plus', 18)}Adicionar</button></div>` : ''}</div>`,
       bind(el) {
+        OC.$('[data-labor]', el).addEventListener('click', () => OC.open('labor', { id: p.id }));
         if (!can) return;
         const timers = {};
         const save = (id, quantity) => {
@@ -171,36 +153,11 @@
   }
 
   function addSheet(p, ctx) {
-    const s = sheet(`${sheetHead('Adicionar do catálogo', 'plus')}
-      <label class="search">${icon('magnifying-glass', 18)}<input id="a-q" type="search" placeholder="Código ou descrição" autocomplete="off"></label>
-      <div class="rows" id="a-rows"><div class="empty">Digite para buscar no catálogo.</div></div>`);
-    const rows = OC.$('#a-rows', s.el);
-    let timer = 0, seq = 0;
-    OC.$('#a-q', s.el).addEventListener('input', (event) => {
-      clearTimeout(timer);
-      const q = event.target.value.trim();
-      timer = setTimeout(async () => {
-        const mine = ++seq;
-        if (q.length < 2) { rows.innerHTML = '<div class="empty">Digite para buscar no catálogo.</div>'; return; }
-        try {
-          const data = await OC.api(`/catalog?q=${encodeURIComponent(q)}&limit=30`);
-          if (mine !== seq) return;
-          const list = (data.products || []).filter((x) => x.active !== false);
-          rows.innerHTML = list.length ? list.map((x) => `<button class="prow" type="button" data-pid="${esc(x.id)}"><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.category)}</small></span><span class="end"><b>${esc(OC.money(x.currentCost))}</b><small>custo/${esc(x.unit)}</small></span>${icon('plus', 18)}</button>`).join('')
-            : '<div class="empty">Nada encontrado.</div>';
-          OC.$$('[data-pid]', rows).forEach((b) => b.addEventListener('click', async () => {
-            b.disabled = true;
-            try {
-              const res = await OC.api(`/proposals/${p.id}/items`, { method: 'POST', body: { productId: b.dataset.pid, quantity: 1 } });
-              OC.toast('Item adicionado');
-              if (res.proposal) ctx.update(res.proposal); else ctx.reload();
-              s.close();
-            } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
-          }));
-        } catch (error) { if (mine === seq) rows.innerHTML = `<div class="empty">${esc(error.message)}</div>`; }
-      }, 300);
+    OC.pickProduct('Adicionar do catálogo', async (x) => {
+      const res = await OC.api(`/proposals/${p.id}/items`, { method: 'POST', body: { productId: x.id, quantity: 1 } });
+      OC.toast('Item adicionado');
+      if (res.proposal) ctx.update(res.proposal); else ctx.reload();
     });
-    setTimeout(() => OC.$('#a-q', s.el).focus(), 50);
   }
 
   async function revisoes(p) {

@@ -51,7 +51,7 @@
           <small>${esc(k.s)}</small>
           <button class="chip-act" type="button" data-task="${i}">${esc(k.cta)}${icon('arrow-right', 16)}</button></div></div>`).join('')
         : `<div class="empty">${icon('check-circle', 28)}Tudo em dia. As propostas que precisarem de você aparecem aqui.</div>`}`, false, params);
-    OC.$('#h-sum', el).addEventListener('click', () => OC.go('props', { filter: 'and' }));
+    OC.$('#h-sum', el).addEventListener('click', () => OC.open('painel'));
     OC.$$('[data-task]', el).forEach((b) => b.addEventListener('click', () => {
       const k = todo[Number(b.dataset.task)];
       OC.open('prop', { id: k.id, tab: k.tab });
@@ -63,7 +63,7 @@
     let filter = params.filter || null;
     let query = params.q || '';
     const el = OC.render(`${OC.header('')}
-      <div class="title-row"><h1 class="title">Propostas</h1></div>
+      <div class="title-row"><h1 class="title">Propostas</h1>${OC.canEdit() ? `<button class="chip-act" type="button" id="p-new">${icon('plus', 16)}Nova</button>` : ''}</div>
       <label class="search">${icon('magnifying-glass', 18)}<input id="p-q" type="search" placeholder="Buscar obra, cliente ou número" autocomplete="off" value="${esc(query)}"></label>
       <div class="chips wrap" id="p-chips"></div>
       <span class="group" id="p-count"></span>
@@ -80,7 +80,35 @@
       OC.$$('[data-f]', el).forEach((b) => b.addEventListener('click', () => { filter = filter === b.dataset.f ? null : b.dataset.f; paint(); }));
       OC.$$('[data-id]', el).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.id })));
     };
+    const nova = OC.$('#p-new', el);
+    if (nova) nova.addEventListener('click', () => OC.open('nova'));
     OC.$('#p-q', el).addEventListener('input', (event) => { query = event.target.value; paint(); });
     paint();
+  };
+  // Painel (prototipo: orcScr 'painel'): numeros do /api/dashboard e validades perto do fim.
+  OC.screens.painel = async function (params) {
+    const [summary, list] = await Promise.all([OC.api('/dashboard').then((d) => d.summary || {}), OC.loadProposals()]);
+    const intel = summary.intelligence || {};
+    const stages = intel.pipeline || [];
+    const max = Math.max(1, ...stages.map((x) => Number(x.totalValue) || 0));
+    const neg = list.filter(GROUPS.and), apr = list.filter(GROUPS.apr);
+    const ending = list.filter((p) => p.status === 'sent' && OC.daysUntil(p.validUntil) !== null && OC.daysUntil(p.validUntil) <= 7)
+      .sort((a, b) => OC.daysUntil(a.validUntil) - OC.daysUntil(b.validUntil));
+    const el = OC.render(`${OC.header('Painel', { back: true })}
+      <p class="sub" style="margin:-6px 0 0">Todas as propostas atuais</p>
+      <div class="grid2">
+        <div class="card stat"><small>Em negociação</small><b>${esc(OC.money0(summary.totalInNegotiation))}</b><small>${neg.length} ${neg.length === 1 ? 'proposta aberta' : 'propostas abertas'}</small></div>
+        <div class="card stat"><small>Aprovadas</small><b>${esc(OC.money0(summary.totalApproved))}</b><small>${apr.length} ${apr.length === 1 ? 'aprovada' : 'aprovadas'} · conversão ${esc(OC.pct(intel.conversionRate))}</small></div>
+      </div>
+      <div class="card"><span class="label">Funil por status</span>
+        ${stages.map((x) => `<div class="funnel"><div class="line">${OC.pill(x.status)}<small>${x.count} ${x.count === 1 ? 'proposta' : 'propostas'}</small><b>${esc(OC.money0(x.totalValue))}</b></div>
+          <div class="bar"><span style="width:${Math.round((Number(x.totalValue) || 0) / max * 100)}%"></span></div></div>`).join('') || '<div class="empty">Sem propostas ainda.</div>'}</div>
+      <div class="card"><div class="kv"><span>Ticket médio aprovado</span><b>${esc(OC.money0(intel.averageTicketApproved))}</b></div>
+        <div class="kv"><span>Ticket médio em negociação</span><b>${esc(OC.money0(intel.averageTicketNegotiation))}</b></div>
+        <div class="kv"><span>Clientes · kits · itens no catálogo</span><b>${summary.totalClientsCount || 0} · ${summary.totalKitsCount || 0} · ${summary.totalProductsCount || 0}</b></div></div>
+      ${ending.length ? `<span class="group">Validade perto do fim</span><div class="rows">${ending.map((p) => { const d = OC.daysUntil(p.validUntil); return `<button class="prow" type="button" data-id="${esc(p.id)}">
+          <span class="ic-warn">${icon('hourglass-medium', 18)}</span><span class="grow"><b>${esc(place(p))}</b><small class="warn">${esc(p.number)} · ${esc(OC.dateFull(p.validUntil))} · ${d < 0 ? 'vencida' : (d === 0 ? 'termina hoje' : `termina em ${d} ${d === 1 ? 'dia' : 'dias'}`)}</small></span>
+          <span class="end"><b>${esc(OC.money0(p.totalSale))}</b></span>${icon('caret-right', 18)}</button>`; }).join('')}</div>` : ''}`, true, params);
+    OC.$$('[data-id]', el).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.id })));
   };
 })(window.OC = window.OC || {});
