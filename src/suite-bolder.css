@@ -2,10 +2,10 @@
 
 /* Delight: preenchimento preciso e retorno discreto, sem alterar o fluxo. */
 @media screen {
-  ::selection { background: #085ce5; color: #fff; }
-  :is(input, textarea):not(:disabled):not([readonly]) { caret-color: var(--blue, #085ce5); }
+  ::selection { background: #0d7f9f; color: #fff; }
+  :is(input, textarea):not(:disabled):not([readonly]) { caret-color: var(--blue, #0d7f9f); }
   :is(input, textarea, select):not(:disabled):focus-visible {
-    outline: 2px solid var(--blue, #085ce5);
+    outline: 2px solid var(--blue, #0d7f9f);
     outline-offset: 2px;
   }
   .toast {
@@ -14,7 +14,7 @@
     overflow-wrap: anywhere;
     line-height: 1.5;
   }
-  .toast:not(.error) { border-inline-start: 1px solid #01b7f1; }
+  .toast:not(.error) { border-inline-start: 1px solid #12a9d1; }
 }
 @media screen and (prefers-reduced-motion: no-preference) {
   /* Avisos assentam no lugar: texto legível desde o primeiro quadro. */
@@ -37,8 +37,8 @@
   }
   .btn.primary, .primary-btn, .actions .generate,
   .new-proposal-dialog button.primary {
-    background:#085ce5!important; color:#fff!important;
-    border-color:#085ce5; font-weight:700;
+    background:#0d7f9f!important; color:#fff!important;
+    border-color:#0d7f9f; font-weight:700;
   }
   .btn.primary:not(:disabled):hover, .primary-btn:not(:disabled):hover,
   .actions .generate:not(:disabled):hover,
@@ -52,7 +52,7 @@
     font-weight:700!important;
   }
   .sidebar nav button.active svg, #app .sidebar nav .nav-item.ativo svg {
-    color:#01b7f1;
+    color:#12a9d1;
   }
   .section-tabs button.selected, .proposal-tabs button.selected,
   .filter-chip.active { font-weight:700; }

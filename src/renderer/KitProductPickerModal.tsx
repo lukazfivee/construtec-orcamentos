@@ -140,7 +140,7 @@ export function KitProductPickerModal({
             />
           </label>
 
-          <div style={{ maxHeight: '320px', overflowY: 'auto', border: '1px solid #e4e6ea', borderRadius: '6px' }}>
+          <div style={{ maxHeight: '320px', overflowY: 'auto', border: '1px solid #d6e4e9', borderRadius: '6px' }}>
             <div
               style={{
                 display: 'flex',
@@ -148,7 +148,7 @@ export function KitProductPickerModal({
                 alignItems: 'center',
                 padding: '8px 14px',
                 background: '#f8f9fb',
-                borderBottom: '1px solid #e4e6ea',
+                borderBottom: '1px solid #d6e4e9',
                 fontSize: '11px',
               }}
             >

@@ -6,7 +6,7 @@
   padding: 28px;
   color: var(--ink);
   background:
-    linear-gradient(135deg, rgba(8, 92, 229, .05), transparent 38%),
+    linear-gradient(135deg, rgba(13, 127, 159, .05), transparent 38%),
     var(--surface-subtle);
 }
 
@@ -33,7 +33,7 @@
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  box-shadow: 0 24px 70px rgba(18, 32, 54, .14);
+  box-shadow: 0 24px 70px rgba(3, 31, 41, .14);
 }
 
 .auth-card-brand {
@@ -123,12 +123,12 @@
 }
 
 .auth-card input:hover {
-  border-color: #aeb8c6;
+  border-color: #8fa6b0;
 }
 
 .auth-card input:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 2px rgba(8, 92, 229, .12);
+  box-shadow: 0 0 0 2px rgba(13, 127, 159, .12);
 }
 
 .auth-remember-row {
@@ -221,7 +221,7 @@
   gap: 8px;
   padding: 12px 24px;
   color: var(--muted);
-  background: #f8fafc;
+  background: #f2f8fa;
   border-top: 1px solid var(--line);
   font-size: 9px;
 }

@@ -94,8 +94,8 @@ export function ProposalKitsPanel({
   return (
     <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', height: '100%', minHeight: 0, background: '#fff', overflow: 'hidden' }}>
       {/* Kits List */}
-      <div style={{ borderRight: '1px solid #e4e6ea', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
-        <div style={{ padding: '12px', borderBottom: '1px solid #e4e6ea', flexShrink: 0 }}>
+      <div style={{ borderRight: '1px solid #d6e4e9', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
+        <div style={{ padding: '12px', borderBottom: '1px solid #d6e4e9', flexShrink: 0 }}>
           <label className="management-search" style={{ margin: 0, height: '32px' }}>
             <Search size={14} />
             <input
@@ -175,7 +175,7 @@ export function ProposalKitsPanel({
               Itens incluídos no Kit ({selectedKitDetail.items.length})
             </h3>
 
-            <div style={{ border: '1px solid #e4e6ea', borderRadius: '6px', overflow: 'hidden' }}>
+            <div style={{ border: '1px solid #d6e4e9', borderRadius: '6px', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead style={{ background: '#f8f9fb' }}>
                   <tr>
@@ -189,7 +189,7 @@ export function ProposalKitsPanel({
                 </thead>
                 <tbody>
                   {selectedKitDetail.items.map((item) => (
-                    <tr key={item.id} style={{ borderTop: '1px solid #e4e6ea' }}>
+                    <tr key={item.id} style={{ borderTop: '1px solid #d6e4e9' }}>
                       <td style={{ padding: '6px 10px' }}><b>{item.code}</b></td>
                       <td style={{ padding: '6px 10px' }}>{item.description}</td>
                       <td style={{ padding: '6px 10px', textAlign: 'center' }}>{item.unit}</td>

@@ -11,9 +11,9 @@ type NewUserDraft = { name: string; email: string; password: string; role: AuthR
 
 const emptyUser: NewUserDraft = { name: '', email: '', password: '', role: 'commercial' };
 const roleLabels: Record<AuthRole, string> = { admin: 'Administrador', commercial: 'Comercial', viewer: 'Consulta' };
-const card = { background: '#fff', border: '1px solid #e4e6ea', borderRadius: '8px', padding: '20px' } as const;
+const card = { background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' } as const;
 const field = { display: 'grid', gap: '5px', fontSize: '10px' } as const;
-const secondaryButton = { height: '34px', padding: '0 10px', background: '#fff', border: '1px solid #cfd5de', borderRadius: '6px', cursor: 'pointer' } as const;
+const secondaryButton = { height: '34px', padding: '0 10px', background: '#fff', border: '1px solid #bad0d8', borderRadius: '6px', cursor: 'pointer' } as const;
 
 type Props = {
   currentUser: AuthUser;
@@ -109,7 +109,7 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
         <div><h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Usuários e Permissões</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.</p></div>
       </div>
 
-      <form onSubmit={createUser} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.25fr .9fr .85fr auto', gap: '8px', alignItems: 'end', padding: '12px', background: '#f8fafc', border: '1px solid #e4e6ea', borderRadius: '6px', marginBottom: '14px' }}>
+      <form onSubmit={createUser} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.25fr .9fr .85fr auto', gap: '8px', alignItems: 'end', padding: '12px', background: '#f2f8fa', border: '1px solid #d6e4e9', borderRadius: '6px', marginBottom: '14px' }}>
         <label style={field}><span>Nome</span><input required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
         <label style={field}><span>E-mail</span><input required type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>
         <label style={field}><span>Senha inicial</span><input required type="password" minLength={10} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} /></label>
@@ -119,7 +119,7 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
 
       <div style={{ display: 'grid', gap: '10px' }}>
         {users.map((user) => (
-          <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.25fr .82fr auto', gap: '8px 10px', alignItems: 'end', padding: '12px', border: '1px solid #e4e6ea', borderRadius: '6px', background: user.active ? '#fff' : '#fafafa', opacity: user.active ? 1 : .72 }}>
+          <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.25fr .82fr auto', gap: '8px 10px', alignItems: 'end', padding: '12px', border: '1px solid #d6e4e9', borderRadius: '6px', background: user.active ? '#fff' : '#fafafa', opacity: user.active ? 1 : .72 }}>
             <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>Nome {user.id === currentUser.id ? '• Você' : ''}</span><strong style={{ fontSize: '12px', color: '#1f2a33' }}>{user.name}</strong></div>
             <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>E-mail</span><span style={{ fontSize: '12px', color: '#1f2a33' }}>{user.email}</span></div>
             <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }} title={user.centroAdmin ? 'Administrador no Centro de Custos: o perfil muda lá.' : undefined}><span>Perfil{user.centroAdmin ? ' · pelo Centro' : ''}</span><select disabled={user.centroAdmin} value={user.role} onChange={(e) => updateDraft(user.id, { role: e.target.value as AuthRole })}>{Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>

@@ -153,7 +153,7 @@ export function CentroCustosWorkspace({
           <>
             {loading && (
               <div className="cc-frame-loading">
-                <RotateCw size={24} className="spinning" color="#01b7f1" />
+                <RotateCw size={24} className="spinning" color="#12a9d1" />
                 <span>Carregando Centro de Custos integrado…</span>
               </div>
             )}

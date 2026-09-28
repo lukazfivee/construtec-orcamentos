@@ -30,6 +30,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthGate } from './renderer/AuthGate';
 import '@fontsource-variable/ibm-plex-sans';
+import './suite-fonts.css';
 import './index.css';
 import './impeccable-audit.css';
 import './auth.css';
