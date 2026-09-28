@@ -50,7 +50,7 @@
   position: fixed; right: 16px; bottom: calc(134px + env(safe-area-inset-bottom));
   z-index: 29; display: flex; flex-direction: column; gap: 4px;
   background: #fff; border: 1px solid var(--line); border-radius: 12px;
-  padding: 6px; box-shadow: 0 10px 26px rgba(18, 32, 54, .18);
+  padding: 6px; box-shadow: 0 10px 26px rgba(3, 31, 41, .18);
   min-width: 220px;
 }
 .proposal-items-fab-menu button {
@@ -68,7 +68,7 @@
   align-items: center; justify-content: space-between; gap: 10px;
   border: 0; text-align: left; cursor: pointer;
 }
-.proposal-summary-chip small { display: block; font-size: 10px; color: #b8c3d3; text-transform: uppercase; letter-spacing: .04em; }
+.proposal-summary-chip small { display: block; font-size: 10px; color: #b9d4dd; text-transform: uppercase; letter-spacing: .04em; }
 .proposal-summary-chip strong { font-size: 16px; color: #fff; }
 .proposal-summary-chip-arrow { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, .14); color: #fff; flex: none; }
 .proposal-summary-sheet-backdrop {
@@ -318,7 +318,7 @@
     border: 1px solid var(--line-strong); border-radius: 8px;
     background: #fff; color: var(--ink); outline: none;
   }
-  .proposal-items-quick-search .quick-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(8, 92, 229, .12); }
+  .proposal-items-quick-search .quick-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(13, 127, 159, .12); }
   .proposal-filter-bar .proposal-filter-search-box { display: none; }
   /* Inserir, Filtrar (categoria) e "Mais acoes" (Importar, Colunas) ficam
      todos atras do (+) no mobile (.proposal-items-fab-menu) -- a toolbar
@@ -366,7 +366,7 @@
     position: fixed; right: 16px; bottom: calc(144px + env(safe-area-inset-bottom));
     width: 52px; height: 52px; border-radius: 50%;
     background: var(--blue); color: #fff; border: 0;
-    box-shadow: 0 8px 20px rgba(8, 92, 229, .4); z-index: 30;
+    box-shadow: 0 8px 20px rgba(13, 127, 159, .4); z-index: 30;
   }
   .proposal-items-fab:disabled { opacity: .5; }
   /* Sidebar de resumo comercial vira o chip fixo + folha "Resumo & acoes"

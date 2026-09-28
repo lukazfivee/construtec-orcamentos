@@ -16,7 +16,11 @@ const entryPoints = [
   'src/server/services/calculations.test.ts',
   'src/main/exsatValidation.test.ts',
   'src/server/services/integration/integration-key.test.ts',
+  'src/server/services/centro-identity.test.ts',
+  'src/server/services/identity-self-heal.test.ts',
   'src/server/outbox-cron.test.ts',
+  'src/renderer/proposal-deep-link.test.ts',
+  'src/renderer/mobile-site.test.ts',
   'src/server/services/integration/center-tracking.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',

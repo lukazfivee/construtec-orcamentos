@@ -105,7 +105,7 @@ a tela "Orçado vs realizado" do Centro já usa; nenhuma regra nova de negócio.
 
 - Centro: `GET /api/integracao/orcamentos/contratos/:id/resumo`
   (`services/budgets/budgetContractSummary.js`).
-- Orçamentos: migração 013 (`proposal_center_snapshots`),
+- Orçamentos: migração 014 (`proposal_center_snapshots`; a 013 é a `centro_admin`),
   `services/integration/centerTracking.ts`, rota
   `GET /api/proposals/:id/center-tracking`, a passada do Cron em
   `runScheduledIntegrationPass` e o bloco `CenterTrackingCard` na proposta

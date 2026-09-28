@@ -13,6 +13,7 @@ import { NewProposalDialog } from './NewProposalDialog';
 import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
+import { useProposalDeepLink } from './useProposalDeepLink';
 
 export interface AppProps {
   user?: AuthUser | null;
@@ -70,6 +71,10 @@ export function App({ user, onLogout }: AppProps = {}) {
       setLoading(false);
     }
   }, [loading]);
+
+  useProposalDeepLink(!loading, (id) => {
+    void openProposal(id).then(() => { setActiveNav('Propostas'); setProposalViewMode('editor'); });
+  });
 
   const proposalCreated = useCallback(async (created: ProposalDetail) => {
     setProposal(created);

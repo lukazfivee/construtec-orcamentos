@@ -12,7 +12,7 @@ const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL
 
 const stageConfig: Record<string, { barColor: string; badgeClass: string }> = {
   draft: { barColor: 'var(--muted)', badgeClass: 'status-draft' },
-  review: { barColor: '#0284c7', badgeClass: 'status-review' },
+  review: { barColor: '#0d7f9f', badgeClass: 'status-review' },
   sent: { barColor: '#d97706', badgeClass: 'status-sent' },
   approved: { barColor: '#16a34a', badgeClass: 'status-approved' },
   rejected: { barColor: '#dc2626', badgeClass: 'status-rejected' },

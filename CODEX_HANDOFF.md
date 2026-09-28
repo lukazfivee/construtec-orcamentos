@@ -1,5 +1,65 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-28 17:10 BRT — Cores e fonte da Suíte no site de computador (Claude Code)
+
+- Combinado com o Lucas: celular com o design do protótipo; computador só com as cores e a fonte da Suíte (não há protótipo desktop do Orçamentos, só do Centro).
+- Paleta trocada por equivalência (azul-marinho/azul elétrico/cinzas frios para petróleo/ciano/neutros da Suíte, os mesmos de `docs/suite-desktop/prototipo/desktop-base.css` do Centro) nos CSS de `src/` e em estilos inline de `src/renderer`. Layout igual. O documento do cliente (PDF/Word, `src/main`) não foi tocado.
+- IBM Plex Sans embutida (`src/fonts`, `src/suite-fonts.css`); antes caía na Segoe UI. `theme-color` #031f29.
+- `npm run verify` 44/44. Conferido no navegador em 1440x900 (Início e editor de proposta).
+
+## 2026-09-28 16:40 BRT — Notificações no celular (`/m/`) (Claude Code)
+
+- `src/server/routes/notifications.ts` (`/api/notifications`, `/read`, `/prefs`, `/test`): repassa a sessão central do usuário para a central do Worker do Centro (`/v1/notifications*`, Fase 4). O token do Orçamentos já é a sessão central (login ou handoff, ambas em `cloud_sessions`). Um 401 do Centro nessa rota vira 503 para não deslogar o celular. Consulta (viewer) pode marcar lidas e mudar preferências (a regra de somente leitura não vale para `/api/notifications`).
+- `/m/`: sino com contador no Início (`screen-avisos.js`), lista por dia, filtro por app, marcar como lidas, preferências e teste; o aviso abre a proposta aqui ou a obra/pedidos no Centro (troca de app dentro do Suíte).
+- Teste novo em `centro-identity.test.ts` ("avisos do celular repassam a sessao central"). `npm run verify` 44/44.
+
+## 2026-09-28 16:00 BRT — Orçamentos no celular (`/m/`), etapa 2 (Claude Code)
+
+- Telas novas do protótipo: Nova proposta (`screen-nova.js`: cliente ou novo cliente, obra, cidade, validade 15/30/45/60, começar em branco, copiando itens de outra proposta ou com um kit; repetir após erro não duplica cliente, obra nem proposta), Mão de obra (`screen-labor.js`: funções em cartões, profissionais, horas em passos de 40 h, salário, alimentação, transporte, encargos; o servidor calcula custo mensal, custo/hora e total), Editar kit (salva sozinho com PUT, adicionar e tirar itens, "Usar em proposta" numa proposta em edição ou numa nova), Novo kit, Painel (dashboard + validades perto do fim), Configurações da empresa (BDI padrão, horas/mês, validade; só admin salva), Catálogo (consulta), Clientes e obras (cartões com obras, propostas e "Nova proposta"). Menu com Segurança e Rever o tour só dentro do app (`suite://seguranca`, `suite://tour`).
+- Folhas comuns no `core.js`: `OC.sheet`, `OC.confirm`, `OC.ask`; busca no catálogo em `OC.pickProduct`.
+- Recarregar em `#kit=<id>` ou `#labor=<id>` volta para a tela.
+- `npm run verify` 43/43. Conferido no navegador em 375x812 com API isolada e Centro falso: nova proposta com kit, função de mão de obra (3 × R$ 3.900 × 176 h = R$ 11.700), kit salvo e aplicado, painel, menu, configurações, catálogo e clientes.
+- Falta: notificações no `/m/` (a central fica no Worker do Centro; precisa de rota no servidor do Orçamentos repassando a sessão central).
+
+## 2026-09-28 14:30 BRT — Orçamentos no celular (`/m/`), etapa 1, design do protótipo (Claude Code)
+
+- Pedido do Lucas: o Orçamentos no celular com o design novo, igual ao `/m/` do Centro. Fonte do visual: `centro-custos-construtec-v3/docs/suite-mobile/prototipo/Main.dc.html` (telas `sOrcHome`, `sOrcProps`, `orcScr: 'prop'`, `sOrcKits`, `sKit`, `sOrcMenu`).
+- Site estático em `public/m/` (sem build, mesma estrutura do Centro): `m.css`, `anim.css`, fontes IBM Plex e símbolo copiados do Centro; `orc.css` com o que é só do Orçamentos; `icons.js` gerado do `@phosphor-icons/core` 2.1.1 (MIT).
+- Telas: Entrar (conta do Centro; "Esqueci minha senha" abre o `/m/` do Centro), Início (tarefas por situação e resumo), Propostas (busca e filtros), Proposta (Resumo com etapas e próximo passo, Itens com quantidade, BDI e impostos, Adicionar do catálogo, Revisões), Kits, Kit e Menu (tema, versão completa, sair). Seletor Suíte com "Obra desta proposta".
+- Entrada: o `index.html` da raiz manda o app Suíte (`SuiteConstrutec/`) e celulares (≤767 px, toque) para `/m/`, levando `#handoff=` e `#proposta=`. Sem RC nova do app. "Versão completa" no Menu vale até fechar a aba (`sessionStorage.orc_versao`).
+- Sessão: mesmo token do web (`construtec.auth.session`), usuário em `construtec.m.user` (vem do `/api/auth/me` se faltar).
+- Teste novo `src/renderer/mobile-site.test.ts`. `npm run verify` 43/43. Conferido no navegador em 375x812, claro e escuro, com API isolada e Centro falso local.
+- Próximas etapas: Nova proposta, mão de obra, aplicar kit, painel do mês, catálogo, clientes, configurações e notificações (telas do protótipo ainda não feitas); PDF segue na versão completa.
+
+## 2026-09-27 03:40 BRT — Suíte mobile, passo 4: seletor, link direto e comparativo no celular (Claude Code)
+
+- Seletor "Suíte" no celular: a pílula da topbar abre a folha "Esteira Operacional Construtec" (`MobileSuiteSheet.tsx`, renderizada em portal no `body`, senão fica atrás do conteúdo). Itens: Orçamentos (atual), Centro de Custos (no app, `suite://app/centro-custos`; fora, `/m/` do Centro em outra aba) e ChamadoPro (sempre no navegador). No desktop continua o popover.
+- "Ir direto para": com `proposal.costCenterId`, a folha mostra "Obra gerada desta proposta" (`?obra=<id>` no app, `#obra=<id>` fora).
+- Link direto `#proposta=<id>` (`useProposalDeepLink.ts`): abre a proposta ao terminar a carga e em `hashchange` (o app troca só o fragmento da WebView aberta). O `AuthGate` preserva o `#proposta=` ao consumir o `#handoff=`.
+- Comparativo de revisões no celular: cartões por item e por mão de obra (`ProposalDiffCards.tsx`) no lugar das tabelas, diálogo em tela cheia acima da barra inferior (`mobile-suite.css`).
+- Saiu o item temporário "Trocar para o Centro de Custos" do menu mobile.
+- `npm run verify`: 38 de 39 (PostgreSQL real pulado); teste novo `proposal-deep-link.test.ts`. Conferido no navegador em 375x812 com o servidor local isolado (APPDATA temporário) e o mock de identidade do Centro: folha, link direto por hashchange (REV.01 para REV.00) e comparativo.
+
+## 2026-09-27 02:10 BRT — Fase 3 da Suíte mobile: entrada pelo app (Claude Code)
+
+- `POST /api/auth/handoff` troca o código de uso único do app Suite Construtec por uma sessão: o servidor chama `/v1/auth/handoff/consume` do Centro com `target: "orcamentos"` e `X-Construtec-Identity-Key` (contrato §6 do Centro). A sessão é central, filha da sessão do app, e o "Sair" do app também a encerra.
+- `AuthGate` lê `#handoff=`, limpa o fragmento e entra. Dentro do app (user agent `SuiteConstrutec/`), a tela de login vira um botão que chama `suite://entrar`, e "Sair" chama `suite://sair`.
+- Menu mobile, só dentro do app: "Trocar para o Centro de Custos" (`suite://app/centro-custos`), até o seletor Suíte do passo 4.
+- `viewport-fit=cover` no `index.html`, para os `env(safe-area-inset-*)` do `mobile-responsive.css` valerem no WebView.
+- `npm run verify`: 37 de 38 (PostgreSQL real pulado). Teste novo: código vira sessão uma única vez.
+- Deploy do #90 às 01:45 BRT (versão `504a5c4c`). **Queda do login de 01:45 a 02:26 BRT:** todo login respondia 503 porque o segredo `CONSTRUTEC_IDENTITY_KEY` estava gravado com BOM (U+FEFF) e o `fetch` recusava o cabeçalho. Corrigido no PR #92 (chave normalizada; chamadas ao Centro pelo service binding `CENTRO`) e no Centro (PR #39 de lá). Não houve como voltar a versão: a migração 012 já tinha desativado as contas locais. O backup diário do Neon falha desde pelo menos 24/09: faltam os segredos `ORCAMENTOS_BACKUP_DATABASE_URL` e `BACKUP_PASSPHRASE` no GitHub (pendência do Lucas).
+
+## 2026-09-27 01:25 BRT — PR #90: CI e dois achados da revisão (Claude Code)
+
+Revisão do PR #90 (identidade compartilhada) antes do merge, pedida pelo Lucas como primeiro passo da Fase 3 da Suíte mobile.
+
+- CI vermelha no typecheck: `outbox-cron.test.ts` chamava `createApp` com o terceiro argumento (`sessionSecret`) que o PR removeu. Corrigido.
+- Admin rebaixado no Centro continuava admin aqui para sempre (o espelho usava `promoted ?? existing.role`). Migração 013 (`centro_admin`, `local_role`): admin do Centro é admin aqui; quem deixa de ser volta ao papel escolhido no Orçamentos. A tela de usuários trava o perfil dessas contas ("pelo Centro") e a API responde 409 `USER_ROLE_FROM_CENTRO`. Migração nova em vez de editar a 012, porque bancos locais de teste podem já ter rodado a 012.
+- E-mail trocado no Centro para um e-mail ainda preso numa linha antiga dava 500 em toda requisição (índice único). Agora a linha antiga é aposentada (`deleted_at`) antes da atualização; o histórico continua apontando para ela.
+- Testes novos em `centro-identity.test.ts` para os dois casos. `npm run verify`: typecheck, lint sem avisos, 36 de 37 (o PostgreSQL real é pulado sem banco).
+
+**Pendente**: merge do #90 (a proteção do `main` exige aprovação de code owner) e deploy, ambos com o Lucas.
+
 ## 2026-09-22 20:15 BRT — Deploy manual de produção + fix real no script de deploy
 
 Usuário pediu para colocar o que estava no GitHub em produção de verdade (o app cloud nunca teve deploy automático). Passo a passo:

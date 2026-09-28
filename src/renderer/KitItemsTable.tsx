@@ -51,7 +51,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
         <div
           className="kit-table-wrapper"
           style={{
-            border: '1px solid #e2e8f0',
+            border: '1px solid #d6e4e9',
             borderRadius: '8px',
             overflowX: 'auto',
             overflowY: 'hidden',
@@ -95,7 +95,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.productId} className="kit-item-row" style={{ borderTop: '1px solid #e4e6ea' }}>
+                <tr key={item.productId} className="kit-item-row" style={{ borderTop: '1px solid #d6e4e9' }}>
                   <td style={{ padding: '6px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <b>{item.code}</b>
                   </td>
@@ -116,7 +116,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                         height: '26px',
                         padding: '0 6px',
                         textAlign: 'right',
-                        border: '1px solid #cfd5de',
+                        border: '1px solid #bad0d8',
                         borderRadius: '4px',
                       }}
                     />

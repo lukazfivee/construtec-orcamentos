@@ -78,13 +78,13 @@ export function ProposalExtendValidityDialog({
         aria-labelledby="extend-validity-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="proposal-export-header" style={{ padding: '16px 20px', borderBottom: '1px solid #e4e6ea' }}>
+        <header className="proposal-export-header" style={{ padding: '16px 20px', borderBottom: '1px solid #d6e4e9' }}>
           <div className="title-group" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span className="icon-badge" style={{ width: '38px', height: '38px', background: '#e8f8fc', color: '#09738a', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CalendarClock size={20} />
             </span>
             <div>
-              <h2 id="extend-validity-title" style={{ fontSize: '15px', margin: 0, fontWeight: 700, color: '#163d69' }}>
+              <h2 id="extend-validity-title" style={{ fontSize: '15px', margin: 0, fontWeight: 700, color: '#0b4a5c' }}>
                 Prorrogar Validade da Proposta
               </h2>
               <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#5d7480' }}>
@@ -104,7 +104,7 @@ export function ProposalExtendValidityDialog({
               <small style={{ display: 'block', fontSize: '10px', color: '#5d7480', textTransform: 'uppercase', fontWeight: 600 }}>
                 Situação Atual
               </small>
-              <strong style={{ fontSize: '12px', color: '#1e293b' }}>
+              <strong style={{ fontSize: '12px', color: '#0b2530' }}>
                 {currentStatus.formattedDate === '—' ? 'Sem data estipulada' : `Até ${currentStatus.formattedDate}`}
               </strong>
             </div>
@@ -114,7 +114,7 @@ export function ProposalExtendValidityDialog({
           </div>
 
           {/* Presets */}
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#34505a', marginBottom: '8px' }}>
             Extensões rápidas:
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
@@ -132,7 +132,7 @@ export function ProposalExtendValidityDialog({
           </div>
 
           {/* Custom Date Input */}
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#34505a', marginBottom: '6px' }}>
             Ou selecione a data limite:
           </label>
           <input
@@ -142,7 +142,7 @@ export function ProposalExtendValidityDialog({
             style={{
               width: '100%',
               height: '38px',
-              border: '1px solid #cbd5e1',
+              border: '1px solid #bad0d8',
               borderRadius: '6px',
               padding: '0 12px',
               fontSize: '13px',
@@ -159,7 +159,7 @@ export function ProposalExtendValidityDialog({
           )}
         </div>
 
-        <footer style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', padding: '12px 20px', background: '#f8f9fb', borderTop: '1px solid #e4e6ea' }}>
+        <footer style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', padding: '12px 20px', background: '#f8f9fb', borderTop: '1px solid #d6e4e9' }}>
           <button type="button" className="secondary-btn" onClick={onClose} disabled={loading}>
             Cancelar
           </button>

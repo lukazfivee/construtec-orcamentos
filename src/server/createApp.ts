@@ -5,6 +5,7 @@ import { createAuthRouter } from './routes/auth';
 import { createCatalogRouter } from './routes/catalog';
 import { createClientsRouter } from './routes/clients';
 import { createDashboardRouter } from './routes/dashboard';
+import { createNotificationsRouter } from './routes/notifications';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
 import { createProposalTrackingRouter } from './routes/proposalTracking';
@@ -12,9 +13,11 @@ import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
+import { CentroIdentityError } from './services/centroIdentity';
+import { identityHealStatus } from './services/database';
 import type { LocalDatabase } from './services/database';
 import { resolveIntegrationKey } from './services/integration/proposalSync';
-import { runScheduledIntegrationPass } from './services/outboxRetryWorker';
+import { CRON_MAX_ATTEMPTS, runScheduledIntegrationPass } from './services/outboxRetryWorker';
 
 const getSessionToken = (request: express.Request) => {
   const value = request.headers['x-construtec-session'];
@@ -59,10 +62,16 @@ export const getCloudSecurity = (env: NodeJS.ProcessEnv = process.env): CloudSec
 
 const CLOUD_SETUP_PATH = /^\/api\/auth\/setup\/?$/i;
 
-export const createApp = (database: LocalDatabase, apiToken: string, sessionSecret: string) => {
+// Codigo do erro (SQLSTATE do PostgreSQL ou codigo de rede do Node) para
+// diagnostico na nuvem, onde a mensagem fica generica; nunca inclui dados.
+const errorReference = (error: Error) => {
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' && /^[A-Z0-9_]{2,40}$/.test(code) ? ` (código ${code})` : '';
+};
+
+export const createApp = (database: LocalDatabase, apiToken: string) => {
   const api = express();
   const cloud = getCloudSecurity();
-  const effectiveSessionSecret = cloud?.sessionSecret ?? sessionSecret;
 
   api.disable('x-powered-by');
   api.use((request, response, next) => {
@@ -105,7 +114,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
   api.get('/health', async (_request, response) => {
     try {
       await database.query('SELECT now()::text AS now');
-      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local' });
+      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', identity: identityHealStatus });
     } catch {
       response.status(503).json({ ok: false, error: 'Banco de dados indisponível.' });
     }
@@ -122,16 +131,16 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
       return;
     }
     try {
-      response.json(await runScheduledIntegrationPass(database));
+      response.json(await runScheduledIntegrationPass(database, CRON_MAX_ATTEMPTS));
     } catch {
       response.status(503).json({ error: 'Reenvio indisponível.' });
     }
   });
   api.use((request, response, next) => {
-    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`
-      || request.headers.authorization === 'Bearer web-session';
+    // Token local so existe no desktop (processo Electron); na web vale a sessao.
+    const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`;
     const hasUserSession = Boolean(getSessionToken(request));
-    const isPublicAuth = request.path.startsWith('/api/auth');
+    const isPublicAuth = request.path.toLowerCase().startsWith('/api/auth');
     if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {
       response.status(401).json({ error: 'Sessão local inválida.' });
       return;
@@ -144,28 +153,37 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     const result = await database.query<{ now: string }>('SELECT now()::text AS now');
     response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', databaseTime: result.rows[0]?.now });
   });
-  api.use('/api/auth', createAuthRouter(database, effectiveSessionSecret));
+  api.use('/api/auth', createAuthRouter(database));
 
   api.use(async (request, response, next) => {
-    const user = await verifyUserSession(database, effectiveSessionSecret, getSessionToken(request));
+    let user;
+    try {
+      user = await verifyUserSession(database, getSessionToken(request));
+    } catch (error) {
+      next(error);
+      return;
+    }
     if (!user) {
       response.status(401).json({ error: 'Sessão de usuário inválida ou expirada.' });
       return;
     }
     response.locals.authUser = user;
-    if (user.role === 'viewer' && request.method !== 'GET') {
+    const path = request.path.toLowerCase();
+    response.locals.sessionToken = getSessionToken(request);
+    // Avisos sao da conta (lidas e preferencias), nao dos dados do Orcamentos.
+    if (user.role === 'viewer' && request.method !== 'GET' && !path.startsWith('/api/notifications')) {
       response.status(403).json({ error: 'Seu perfil possui acesso somente para consulta.' });
       return;
     }
-    if (request.path.startsWith('/api/users') && user.role !== 'admin') {
+    if (path.startsWith('/api/users') && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem gerenciar usuários.' });
       return;
     }
-    if (request.path.startsWith('/api/system') && user.role !== 'admin') {
+    if (path.startsWith('/api/system') && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem executar operações de backup e restauração.' });
       return;
     }
-    if (request.path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
+    if (path.startsWith('/api/settings') && request.method !== 'GET' && user.role !== 'admin') {
       response.status(403).json({ error: 'Apenas administradores podem alterar as configurações.' });
       return;
     }
@@ -181,6 +199,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
   api.use('/api/users', createUsersRouter(database));
   api.use('/api/system', createSystemRouter(database));
   api.use('/api/dashboard', createDashboardRouter(database));
+  api.use('/api/notifications', createNotificationsRouter());
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
     void _next;
@@ -190,6 +209,20 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
         ? issues.map((i) => `${i.path.length ? i.path.join('.') + ': ' : ''}${i.message}`).join(', ')
         : 'Dados inválidos.';
       response.status(400).json({ error: `Dados inválidos: ${details}` });
+      return;
+    }
+    if (error instanceof CentroIdentityError) {
+      const messages: Record<string, string> = {
+        EMAIL_NOT_AUTHORIZED: 'E-mail não autorizado. Autorize o e-mail externo antes de criar a conta.',
+        IDENTITY_UNAVAILABLE: error.message,
+        IDENTITY_NOT_CONFIGURED: error.message,
+      };
+      const status = [400, 401, 403, 404, 409, 429].includes(error.status) ? error.status : 503;
+      response.status(status).json({ error: messages[error.code] || error.message });
+      return;
+    }
+    if (error instanceof Error && error.message === 'AUTH_HANDOFF_INVALID') {
+      response.status(400).json({ error: 'Código de acesso do aplicativo inválido ou expirado.' });
       return;
     }
     if (error instanceof Error && error.message === 'AUTH_INVALID_CREDENTIALS') {
@@ -206,6 +239,10 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
     }
     if (error instanceof Error && error.message === 'USER_SELF_LOCKOUT') {
       response.status(409).json({ error: 'Você não pode desativar ou remover o perfil administrativo da própria conta.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'USER_ROLE_FROM_CENTRO') {
+      response.status(409).json({ error: 'Esta conta é administradora no Centro de Custos. O perfil dela só muda lá.' });
       return;
     }
     if (error instanceof Error && error.message === 'USER_LAST_ADMIN') {
@@ -266,7 +303,7 @@ export const createApp = (database: LocalDatabase, apiToken: string, sessionSecr
         return;
       }
       console.error(error);
-      response.status(500).json({ error: cloud ? 'Não foi possível concluir a operação.' : (error.message || 'Não foi possível concluir a operação local.') });
+      response.status(500).json({ error: cloud ? `Não foi possível concluir a operação.${errorReference(error)}` : (error.message || 'Não foi possível concluir a operação local.') });
       return;
     }
     console.error(error);

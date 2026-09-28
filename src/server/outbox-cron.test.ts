@@ -22,7 +22,7 @@ test('reenvio da outbox pelo Cron exige a chave de integracao', async context =>
     }
   });
   const database = { query: async () => ({ rows: [] }), exec: async () => undefined } as unknown as LocalDatabase;
-  const server = createApp(database, 'local-token', 'ignored-secret').listen(0, '127.0.0.1');
+  const server = createApp(database, 'local-token').listen(0, '127.0.0.1');
   await once(server, 'listening');
   context.after(() => new Promise<void>(resolve => server.close(() => resolve())));
   const address = server.address();
@@ -34,4 +34,13 @@ test('reenvio da outbox pelo Cron exige a chave de integracao', async context =>
   const ok = await fetch(url, { method: 'POST', headers: { 'X-Construtec-Integration-Key': cloudEnv.CONSTRUTEC_INTEGRATION_KEY } });
   assert.equal(ok.status, 200);
   assert.deepEqual(await ok.json(), { attempted: 0, refreshed: 0 });
+});
+
+test('passada do Cron considera pendencias que o laco de 30s esgotou', async () => {
+  const { runOutboxRetryPass, CRON_MAX_ATTEMPTS } = await import('./services/outboxRetryWorker');
+  const seen: unknown[][] = [];
+  const database = { query: async (_sql: string, params: unknown[]) => { seen.push(params); return { rows: [] }; }, exec: async () => undefined } as unknown as LocalDatabase;
+  await runOutboxRetryPass(database);
+  await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS);
+  assert.deepEqual(seen.map(params => params[0]), [5, 72]);
 });

@@ -3,6 +3,7 @@
   "main": "index.js",
   "compatibility_date": "2026-09-15",
   "workers_dev": true,
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": true } },
   "triggers": { "crons": ["0 * * * *"] },
   "assets": {
     "directory": "../../dist",
@@ -16,6 +17,7 @@
     "instance_type": "basic",
     "max_instances": 1
   }],
+  "services": [{ "binding": "CENTRO", "service": "centro-custos-api" }],
   "durable_objects": { "bindings": [{ "name": "API", "class_name": "OrcamentosApi" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OrcamentosApi"] }]
 }

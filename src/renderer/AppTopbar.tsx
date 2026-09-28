@@ -11,9 +11,11 @@ import {
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
 import { isCloudRuntime } from './api';
 import { HelpModal } from './HelpModal';
+import { MobileSuiteSheet } from './MobileSuiteSheet';
 import { NotificationsPopover } from './NotificationsPopover';
 import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
 import { UserProfilePopover } from './UserProfilePopover';
+import { useIsMobile } from './useIsMobile';
 
 const brandLogo = new URL('../assets/logo-branca.png', import.meta.url).href;
 const brandIcon = new URL('../assets/logo-icon.png', import.meta.url).href;
@@ -49,6 +51,7 @@ export function AppTopbar({
   showNotice,
 }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
+  const mobile = useIsMobile();
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -117,7 +120,8 @@ export function AppTopbar({
                 <span className="suite-label">Suíte</span>
                 <ChevronDown size={11} className="suite-caret" />
               </button>
-              {suiteOpen && (
+              {suiteOpen && mobile && <MobileSuiteSheet proposal={proposal} onClose={() => setSuiteOpen(false)} />}
+              {suiteOpen && !mobile && (
                 <SuiteSwitcherPopover
                   activeApp={activeNav === 'Centro de Custos' ? 'centro-custos' : 'orcamentos'}
                   onSelectApp={onSelectApp}

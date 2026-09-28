@@ -40,4 +40,8 @@ test('chave de integração: desktop usa padrão local, nuvem exige segredo fort
   withEnv({ DATABASE_URL: 'postgres://x', CONSTRUTEC_INTEGRATION_KEY: strong }, () => {
     assert.equal(resolveIntegrationKey(), strong);
   });
+  // Segredo gravado com BOM (U+FEFF) ou quebra de linha: vale a chave limpa.
+  withEnv({ DATABASE_URL: 'postgres://x', CONSTRUTEC_INTEGRATION_KEY: `\uFEFF${strong}\n` }, () => {
+    assert.equal(resolveIntegrationKey(), strong);
+  });
 });

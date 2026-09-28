@@ -23,8 +23,11 @@ const DEFAULT_CENTER_URL = 'https://centro-custos-api.construtec-reports.workers
 const DEFAULT_INTEGRATION_KEY = 'construtec-internal-integration-secret-2026';
 const MIN_CLOUD_KEY_LENGTH = 32;
 
+// Segredo colado com BOM (U+FEFF) ou espacos quebra o cabecalho HTTP; o Centro normaliza igual.
+export const normalizeServiceKey = (value: string | undefined) => (value || '').replace(/^\uFEFF/, '').trim();
+
 export const resolveIntegrationKey = (): string | null => {
-  const configured = process.env.CONSTRUTEC_INTEGRATION_KEY || '';
+  const configured = normalizeServiceKey(process.env.CONSTRUTEC_INTEGRATION_KEY);
   if (!process.env.DATABASE_URL) return configured || DEFAULT_INTEGRATION_KEY;
   if (configured.length < MIN_CLOUD_KEY_LENGTH || configured === DEFAULT_INTEGRATION_KEY) return null;
   return configured;

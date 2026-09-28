@@ -2,9 +2,9 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light" />
-    <meta name="theme-color" content="#0c4456" />
+    <meta name="theme-color" content="#031f29" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Construtec" />
@@ -12,6 +12,19 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' file:; style-src 'self' 'unsafe-inline' file:; font-src 'self' file: data:; connect-src 'self' file: https://construtec-orcamentos-cloud.construtec-reports.workers.dev http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; img-src 'self' file: data:" />
     <title>Construtec Orçamentos</title>
+    <script>
+      // App Suite e celular abrem o Orcamentos do celular (/m/), levando o #handoff= e o #proposta=.
+      // "Versao completa" no /m/ vale ate fechar a aba (sessionStorage).
+      (function () {
+        try {
+          if (!/^https?:$/.test(location.protocol) || !/^\/(index\.html)?$/.test(location.pathname)) return;
+          if (sessionStorage.getItem('orc_versao') === 'completa' || new URLSearchParams(location.search).has('completa')) return;
+          var app = /SuiteConstrutec\//.test(navigator.userAgent);
+          var phone = matchMedia('(max-width: 767px)').matches && matchMedia('(pointer: coarse)').matches;
+          if (app || phone) location.replace('/m/' + location.search + location.hash);
+        } catch (e) { /* segue na versao completa */ }
+      })();
+    </script>
   </head>
   <body>
     <!--

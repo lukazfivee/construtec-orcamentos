@@ -1,5 +1,7 @@
 import { CheckCircle2 } from 'lucide-react';
+import { ProposalDiffCards } from './ProposalDiffCards';
 import type { ProposalItemDiff, ProposalLaborDiff, DiffStatus } from './proposalDiffHelpers';
+import { useIsMobile } from './useIsMobile';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -17,6 +19,8 @@ interface Props {
 }
 
 export function ProposalDiffTables({ activeTab, filteredItems, laborDiffData }: Props) {
+  const mobile = useIsMobile();
+  if (mobile) return <ProposalDiffCards activeTab={activeTab} filteredItems={filteredItems} laborDiffData={laborDiffData} />;
   if (activeTab === 'labor') {
     return (
       <div className="diff-table-container">

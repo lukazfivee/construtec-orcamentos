@@ -147,7 +147,7 @@ button:not(:disabled):active {
 .work-form input:not([type="checkbox"]):hover,
 .new-proposal-dialog input:hover,
 .new-proposal-dialog select:hover {
-  border-color: #aeb8c6;
+  border-color: #8fa6b0;
 }
 
 /* Home / dashboard */
@@ -169,7 +169,7 @@ button:not(:disabled):active {
 }
 
 .kpi-card:hover {
-  box-shadow: 0 4px 12px rgba(18, 32, 54, .07);
+  box-shadow: 0 4px 12px rgba(3, 31, 41, .07);
 }
 
 .kpi-icon {
@@ -224,10 +224,10 @@ button:not(:disabled):active {
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
   .kpi-card:hover,
-  .home-section-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(18, 32, 54, .10); border-color: var(--line-strong); }
-  .kpi-card:hover { background: radial-gradient(circle at 50% 0%, rgba(8, 92, 229, .12), transparent 72%), #fff; }
+  .home-section-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(3, 31, 41, .10); border-color: var(--line-strong); }
+  .kpi-card:hover { background: radial-gradient(circle at 50% 0%, rgba(13, 127, 159, .12), transparent 72%), #fff; }
   .proposals-filter-bar:focus-within,
-  .proposal-filter-bar:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(8, 92, 229, .10); }
+  .proposal-filter-bar:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(13, 127, 159, .10); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -255,7 +255,7 @@ button:not(:disabled):active {
 
 .search-box:focus-within {
   border-color: var(--blue);
-  box-shadow: 0 0 0 2px rgba(8, 92, 229, .12);
+  box-shadow: 0 0 0 2px rgba(13, 127, 159, .12);
 }
 
 .filter-chips {
@@ -403,7 +403,7 @@ button:not(:disabled):active {
 
 .kit-item-row:hover td,
 .kit-items-section tbody tr:hover td {
-  background: #f8fafc;
+  background: #f2f8fa;
 }
 
 .kit-item-remove-btn:hover {
@@ -455,11 +455,11 @@ button:not(:disabled):active {
 .exsat-source button:hover,
 .import-dialog > footer button:hover {
   background: #f7f9fb;
-  border-color: #aeb8c6;
+  border-color: #8fa6b0;
 }
 
 .import-table tbody tr:hover td {
-  background: #f8fafc;
+  background: #f2f8fa;
 }
 
 .import-table tr.invalid:hover td {
