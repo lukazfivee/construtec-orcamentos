@@ -11,7 +11,7 @@ import { approvedProposalGuardsMigration } from '../migrations/008-approved-prop
 import { proposalIntegrationMigration } from '../migrations/009-proposal-integration';
 import { proposalTaxMigration } from '../migrations/010-proposal-tax';
 import { integrationOutboxResultMigration } from '../migrations/011-integration-outbox-result';
-import { proposalCenterSnapshotsMigration } from '../migrations/013-proposal-center-snapshots';
+import { proposalCenterSnapshotsMigration } from '../migrations/014-proposal-center-snapshots';
 import { createProposal } from './proposals';
 import { createProposalLaborItem } from './proposalLabor';
 

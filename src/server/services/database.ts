@@ -7,7 +7,7 @@ import type * as NodeFsModule from '@electric-sql/pglite/nodefs';
 import { approvedProposalGuardsMigration } from '../migrations/008-approved-proposal-guards';
 import { proposalIntegrationMigration } from '../migrations/009-proposal-integration';
 import { integrationOutboxResultMigration } from '../migrations/011-integration-outbox-result';
-import { proposalCenterSnapshotsMigration } from '../migrations/013-proposal-center-snapshots';
+import { proposalCenterSnapshotsMigration } from '../migrations/014-proposal-center-snapshots';
 import { proposalTaxMigration } from '../migrations/010-proposal-tax';
 import { initialMigration } from '../migrations/001-initial';
 import { clientsAndWorksMigration } from '../migrations/002-clients-works';
@@ -151,7 +151,7 @@ const migrateDatabase = async (database: DatabaseQueries) => {
     [9, proposalIntegrationMigration],
     [10, proposalTaxMigration],
     [11, integrationOutboxResultMigration],
-    [13, proposalCenterSnapshotsMigration],
+    [14, proposalCenterSnapshotsMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {
