@@ -132,6 +132,9 @@ export const createDatabase = async (userDataPath: string, packagedModulePath?: 
   }
 };
 
+// Resultado da conferencia das colunas da identidade (exposto no /health).
+export let identityHealStatus = 'pending';
+
 const migrateDatabase = async (database: DatabaseQueries) => {
   await database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -170,14 +173,57 @@ const migrateDatabase = async (database: DatabaseQueries) => {
   // Self-heal: um branch antigo (acompanhamento da obra) registrou outra
   // migracao com o numero 13 no banco da nuvem; a 012/013 da identidade ficou
   // marcada como aplicada sem as colunas e o login falhava com 42703.
-  const identityColumns = await database.query<{ column_name: string }>(
-    `SELECT column_name FROM information_schema.columns
-     WHERE table_schema = current_schema() AND table_name = 'users'
-       AND column_name IN ('centro_user_id', 'deleted_at', 'centro_admin', 'local_role')`,
-  );
-  const present = new Set(identityColumns.rows.map(row => row.column_name));
-  if (!present.has('centro_user_id') || !present.has('deleted_at')) await database.exec(sharedIdentityMigration);
-  if (!present.has('centro_admin') || !present.has('local_role')) await database.exec(centroAdminMigration);
+  // Em savepoint e sem derrubar a inicializacao: se falhar, o servidor sobe
+  // e o /health mostra o codigo. So acrescenta colunas; nada e apagado.
+  // Em producao (27/09/2026) a tabela users do esquema orcamentos foi trocada
+  // por outra estrutura fora do codigo (sem role e sem as colunas da 012/013).
+  identityHealStatus = 'ok';
+  await database.exec('SAVEPOINT identity_heal');
+  try {
+    const identityColumns = await database.query<{ column_name: string }>(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = (SELECT n.nspname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE c.oid = to_regclass('users'))
+         AND table_name = 'users'`,
+    );
+    const present = new Set(identityColumns.rows.map(row => row.column_name));
+    const missing = ['role', 'centro_user_id', 'deleted_at', 'centro_admin', 'local_role'].filter(column => !present.has(column));
+    if (missing.length) {
+      await database.exec(`
+        ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'viewer' CHECK (role IN ('admin', 'commercial', 'viewer'));
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS centro_user_id text;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS centro_admin boolean NOT NULL DEFAULT false;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS local_role text;
+      `);
+      // Colunas da outra estrutura: a senha vive no Centro, o espelho nao as preenche.
+      for (const column of ['password_salt', 'password_iterations']) {
+        if (present.has(column)) await database.exec(`ALTER TABLE users ALTER COLUMN ${column} DROP NOT NULL`);
+      }
+      identityHealStatus = `healed:${missing.join(',')}`;
+    }
+    await database.exec('RELEASE SAVEPOINT identity_heal');
+  } catch (error) {
+    await database.exec('ROLLBACK TO SAVEPOINT identity_heal');
+    const code = (error as { code?: unknown }).code;
+    // So o nome da coluna/objeto, nunca dados.
+    const target = /(?:column|relation) "([\w.]+)"/.exec(String((error as Error)?.message))?.[1] ?? '';
+    identityHealStatus = `error:${typeof code === 'string' ? code : 'unknown'}${target ? `:${target}` : ''}`;
+    console.error('[identity-heal]', error);
+  }
+  // Indices unicos em savepoint proprio: duplicatas antigas nao podem impedir o login.
+  await database.exec('SAVEPOINT identity_indexes');
+  try {
+    await database.exec(`
+      CREATE UNIQUE INDEX IF NOT EXISTS users_email_live_unique ON users (lower(email)) WHERE deleted_at IS NULL;
+      CREATE UNIQUE INDEX IF NOT EXISTS users_centro_user_id_unique ON users (centro_user_id) WHERE centro_user_id IS NOT NULL AND deleted_at IS NULL;
+    `);
+    await database.exec('RELEASE SAVEPOINT identity_indexes');
+  } catch (error) {
+    await database.exec('ROLLBACK TO SAVEPOINT identity_indexes');
+    identityHealStatus += `;index:${String((error as { code?: unknown }).code ?? 'unknown')}`;
+    console.error('[identity-heal] indices', error);
+  }
 
   // Self-heal: garante coluna snapshot_category e que description em kits seja opcional
   await database.exec("ALTER TABLE proposal_items ADD COLUMN IF NOT EXISTS snapshot_category text NOT NULL DEFAULT 'Outros'");
