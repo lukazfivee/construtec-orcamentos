@@ -20,6 +20,7 @@ import type {
   ProposalRevisionSummary,
   ProposalSummary,
   UserRecord,
+  CenterTracking,
   AuthorizedEmailRecord,
 } from '../shared/contracts';
 
@@ -177,6 +178,7 @@ export const proposalApi = {
   updateLaborSettings: (proposalId: string, standardMonthlyHours: number) => request<{ standardMonthlyHours: number }>(
     `/api/proposals/${proposalId}/labor-settings`, { method: 'PATCH', body: JSON.stringify({ standardMonthlyHours }) },
   ),
+  centerTracking: (proposalId: string) => request<CenterTracking>(`/api/proposals/${proposalId}/center-tracking`),
   directSync: (proposalId: string) => request<DirectSyncResult>(
     `/api/proposals/${proposalId}/direct-sync`, { method: 'POST' },
   ),

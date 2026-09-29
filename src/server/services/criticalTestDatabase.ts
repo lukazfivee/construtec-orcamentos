@@ -13,6 +13,7 @@ import { proposalTaxMigration } from '../migrations/010-proposal-tax';
 import { integrationOutboxResultMigration } from '../migrations/011-integration-outbox-result';
 import { sharedIdentityMigration } from '../migrations/012-shared-identity';
 import { centroAdminMigration } from '../migrations/013-centro-admin';
+import { proposalCenterSnapshotsMigration } from '../migrations/014-proposal-center-snapshots';
 import { createProposal } from './proposals';
 import { createProposalLaborItem } from './proposalLabor';
 
@@ -24,6 +25,7 @@ export const createCriticalTestDatabase = async (protectApproved = true) => {
     integrationOutboxResultMigration,
     sharedIdentityMigration,
     centroAdminMigration,
+    proposalCenterSnapshotsMigration,
     protectApproved ? approvedProposalGuardsMigration : ''].join('\n'));
   const userId = randomUUID(), clientId = randomUUID(), workId = randomUUID();
   await database.query("INSERT INTO users (id,name,email,password_hash,role) VALUES ($1,'Teste','fixture@example.invalid','not-a-password','admin')", [userId]);

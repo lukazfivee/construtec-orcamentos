@@ -8,6 +8,7 @@ import { createDashboardRouter } from './routes/dashboard';
 import { createNotificationsRouter } from './routes/notifications';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
+import { createProposalTrackingRouter } from './routes/proposalTracking';
 import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
@@ -16,7 +17,7 @@ import { CentroIdentityError } from './services/centroIdentity';
 import { identityHealStatus } from './services/database';
 import type { LocalDatabase } from './services/database';
 import { resolveIntegrationKey } from './services/integration/proposalSync';
-import { CRON_MAX_ATTEMPTS, runOutboxRetryPass } from './services/outboxRetryWorker';
+import { CRON_MAX_ATTEMPTS, runScheduledIntegrationPass } from './services/outboxRetryWorker';
 
 const getSessionToken = (request: express.Request) => {
   const value = request.headers['x-construtec-session'];
@@ -130,7 +131,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       return;
     }
     try {
-      response.json({ attempted: await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS) });
+      response.json(await runScheduledIntegrationPass(database, CRON_MAX_ATTEMPTS));
     } catch {
       response.status(503).json({ error: 'Reenvio indisponível.' });
     }
@@ -191,6 +192,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
 
   api.use('/api/catalog', createCatalogRouter(database));
   api.use('/api/clients', createClientsRouter(database));
+  api.use('/api/proposals', createProposalTrackingRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));

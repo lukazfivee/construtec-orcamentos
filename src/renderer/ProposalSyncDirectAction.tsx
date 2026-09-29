@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, proposalApi } from './api';
+import { CenterTrackingCard } from './CenterTrackingCard';
 
 interface Props {
   proposal: ProposalDetail;
@@ -199,6 +200,8 @@ export function ProposalSyncDirectAction({
           </div>
         </div>
       )}
+
+      {isSuccess && <CenterTrackingCard proposalId={proposal.id} />}
 
       {syncState.status === 'offline' && (
         <div className="gerar-centro-feedback offline">

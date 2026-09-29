@@ -33,7 +33,7 @@ test('reenvio da outbox pelo Cron exige a chave de integracao', async context =>
   assert.equal((await fetch(url, { method: 'POST', headers: { 'X-Construtec-Integration-Key': 'x'.repeat(40) } })).status, 404);
   const ok = await fetch(url, { method: 'POST', headers: { 'X-Construtec-Integration-Key': cloudEnv.CONSTRUTEC_INTEGRATION_KEY } });
   assert.equal(ok.status, 200);
-  assert.deepEqual(await ok.json(), { attempted: 0 });
+  assert.deepEqual(await ok.json(), { attempted: 0, refreshed: 0 });
 });
 
 test('passada do Cron considera pendencias que o laco de 30s esgotou', async () => {

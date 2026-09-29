@@ -1,4 +1,5 @@
 import type { LocalDatabase } from './database';
+import { refreshCenterTracking } from './integration/centerTracking';
 import { syncProposalDirectly } from './integration/proposalSync';
 
 const MAX_ATTEMPTS = 5;
@@ -34,6 +35,12 @@ export const runOutboxRetryPass = async (
   }
   return attempted;
 };
+
+// Passada completa do Cron: reenvio pendente e atualizacao do acompanhamento.
+export const runScheduledIntegrationPass = async (database: Pick<LocalDatabase, 'query' | 'exec'>, maxAttempts = MAX_ATTEMPTS) => ({
+  attempted: await runOutboxRetryPass(database, maxAttempts),
+  refreshed: await refreshCenterTracking(database),
+});
 
 export const startOutboxRetryWorker = (database: LocalDatabase): ReturnType<typeof setInterval> => {
   return setInterval(async () => {

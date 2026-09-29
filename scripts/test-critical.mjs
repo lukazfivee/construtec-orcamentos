@@ -21,6 +21,7 @@ const entryPoints = [
   'src/server/outbox-cron.test.ts',
   'src/renderer/proposal-deep-link.test.ts',
   'src/renderer/mobile-site.test.ts',
+  'src/server/services/integration/center-tracking.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',
   format: 'cjs', packages: 'external', outbase: 'src', outExtension: { '.js': '.cjs' } });
