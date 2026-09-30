@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Box, CircleDollarSign, Import, PackagePlus, Save, Search, Trash2 } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { seesCost } from './SuitePermissions';
 import { catalogApi } from './api';
 import { CatalogImportDialog } from './CatalogImportDialog';
 
@@ -88,7 +89,7 @@ export function CatalogWorkspace({ onNotice, onError }: Props) {
         <label><span>Fabricante</span><input value={draft.manufacturer} maxLength={120} onChange={(event) => setDraft({ ...draft, manufacturer: event.target.value })} /></label>
         <label><span>Modelo</span><input value={draft.model} maxLength={120} onChange={(event) => setDraft({ ...draft, model: event.target.value })} /></label>
         <label><span>Unidade <b>*</b></span><input value={draft.unit} maxLength={20} placeholder="un, m, cj, sv" onChange={(event) => setDraft({ ...draft, unit: event.target.value })} /></label>
-        <label><span><CircleDollarSign size={14} /> Custo atual <b>*</b></span><input value={draft.currentCost} inputMode="decimal" onChange={(event) => setDraft({ ...draft, currentCost: event.target.value })} /></label>
+        {seesCost() && <label><span><CircleDollarSign size={14} /> Custo atual <b>*</b></span><input value={draft.currentCost} inputMode="decimal" onChange={(event) => setDraft({ ...draft, currentCost: event.target.value })} /></label>}
         <label><span>Fonte</span><input value={draft.source} maxLength={120} onChange={(event) => setDraft({ ...draft, source: event.target.value })} /></label>
         <label className="work-active"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Item ativo e disponível para novas propostas</span></label>
       </div></form> : <div className="editor-empty"><Box size={34} /><h2>Selecione um item</h2><p>Consulte ou altere os dados comerciais do catálogo.</p></div>}</section>

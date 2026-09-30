@@ -1,5 +1,6 @@
 import { Layers3, Search } from 'lucide-react';
 import type { KitSummary } from '../shared/contracts';
+import { costText } from './SuitePermissions';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -45,7 +46,7 @@ export function KitSidebar({
               <b>{kit.name}</b>
               <small>{kit.itemCount} itens • {kit.category}</small>
             </span>
-            <em>{money.format(kit.totalEstimatedCost)}</em>
+            <em>{costText(money.format(kit.totalEstimatedCost))}</em>
           </button>
         ))}
         {!loading && kits.length === 0 && (

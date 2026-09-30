@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Layers3, Search, Send } from 'lucide-react';
 import type { KitDetail, KitSummary } from '../shared/contracts';
+import { costText } from './SuitePermissions';
 import { kitsApi } from './api';
 
 type ProposalKitsPanelProps = {
@@ -120,7 +121,7 @@ export function ProposalKitsPanel({
                 <b style={{ fontSize: '11px' }}>{kit.name}</b>
                 <small style={{ fontSize: '9px' }}>{kit.itemCount} itens • {kit.category}</small>
               </span>
-              <em style={{ fontSize: '10px' }}>{money.format(kit.totalEstimatedCost)}</em>
+              <em style={{ fontSize: '10px' }}>{costText(money.format(kit.totalEstimatedCost))}</em>
             </button>
           ))}
           {!loading && kits.length === 0 && (
@@ -147,7 +148,7 @@ export function ProposalKitsPanel({
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'right', minWidth: '120px' }}>
                   <span style={{ display: 'block', fontSize: '10px', color: '#5d7480' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
-                  <strong style={{ fontSize: '16px', color: '#12a9d1' }}>{money.format(estimatedSaleTotal)}</strong>
+                  <strong style={{ fontSize: '16px', color: '#12a9d1' }}>{costText(money.format(estimatedSaleTotal))}</strong>
                 </div>
                 <button
                   type="button"
@@ -194,9 +195,9 @@ export function ProposalKitsPanel({
                       <td style={{ padding: '6px 10px' }}>{item.description}</td>
                       <td style={{ padding: '6px 10px', textAlign: 'center' }}>{item.unit}</td>
                       <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>{item.quantity}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'right' }}>{money.format(item.currentCost)}</td>
+                      <td style={{ padding: '6px 10px', textAlign: 'right' }}>{costText(money.format(item.currentCost))}</td>
                       <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>
-                        {money.format(item.totalCost)}
+                        {costText(money.format(item.totalCost))}
                       </td>
                     </tr>
                   ))}

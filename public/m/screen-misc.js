@@ -18,7 +18,7 @@
       const rows = list.filter((k) => !q || `${k.name} ${k.category}`.toLowerCase().includes(q));
       OC.$('#k-rows', el).innerHTML = rows.length ? rows.map((k) => `<button class="card kit-row" type="button" data-id="${esc(k.id)}">${icon('stack', 20)}
           <span class="grow"><b>${esc(k.name)}</b><small>${k.itemCount} ${k.itemCount === 1 ? 'item' : 'itens'}${k.description ? ` · ${esc(k.description)}` : ''}</small></span>
-          <b>${esc(OC.money0(k.totalEstimatedCost))}</b>${icon('caret-right', 18)}</button>`).join('')
+          <b>${esc(OC.costText(OC.money0(k.totalEstimatedCost)))}</b>${icon('caret-right', 18)}</button>`).join('')
         : `<div class="empty">${icon('stack', 28)}${list.length ? 'Nenhum kit com esse nome.' : 'Nenhum kit cadastrado.'}</div>`;
       OC.$$('[data-id]', el).forEach((b) => b.addEventListener('click', () => OC.open('kit', { id: b.dataset.id })));
     };
@@ -61,14 +61,14 @@
     function paintTotals() {
       OC.$('#k-count', el).textContent = `Itens · ${kit.items.length}`;
       OC.$('#k-sum', el).textContent = OC.money0(total());
-      OC.$('#k-total', el).textContent = OC.money0(total());
+      OC.$('#k-total', el).textContent = OC.costText(OC.money0(total()));
       OC.$('#k-n', el).textContent = `Itens · ${kit.items.length}`;
-      kit.items.forEach((it) => { const v = OC.$(`[data-item="${it.productId}"] .val`, el); if (v) v.textContent = OC.money0(it.quantity * it.currentCost); });
+      kit.items.forEach((it) => { const v = OC.$(`[data-item="${it.productId}"] .val`, el); if (v) v.textContent = OC.costText(OC.money0(it.quantity * it.currentCost)); });
     }
     function paint() {
       OC.$('#k-items', el).innerHTML = kit.items.length ? kit.items.map((it) => `<div class="item" data-item="${esc(it.productId)}">
           <div class="item-top"><b>${esc(it.description)}</b><b class="val"></b></div>
-          <small>${esc(it.code)} · ${esc(OC.money(it.currentCost))}/${esc(it.unit)}</small>
+          <small>${esc(it.code)} · ${esc(OC.costText(OC.money(it.currentCost)))}/${esc(it.unit)}</small>
           ${can ? `<div class="qty qty-del"><button class="qbtn" type="button" data-dec aria-label="Diminuir">${icon('minus', 18)}</button>
             <label class="qval"><input type="text" inputmode="decimal" value="${esc(OC.num(it.quantity))}" aria-label="Quantidade"><span>${esc(it.unit)}</span></label>
             <button class="qbtn" type="button" data-inc aria-label="Aumentar">${icon('plus', 18)}</button>
@@ -140,7 +140,7 @@
         try {
           const list = ((await OC.api(`/catalog?q=${encodeURIComponent(q)}&limit=30`)).products || []).filter((x) => x.active !== false);
           if (mine !== seq) return;
-          rows.innerHTML = list.length ? list.map((x) => `<button class="prow" type="button" data-pid="${esc(x.id)}"><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.category)}</small></span><span class="end"><b>${esc(OC.money(x.currentCost))}</b><small>custo/${esc(x.unit)}</small></span>${icon('plus', 18)}</button>`).join('')
+          rows.innerHTML = list.length ? list.map((x) => `<button class="prow" type="button" data-pid="${esc(x.id)}"><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.category)}</small></span><span class="end"><b>${esc(OC.costText(OC.money(x.currentCost)))}</b><small>custo/${esc(x.unit)}</small></span>${icon('plus', 18)}</button>`).join('')
             : '<div class="empty">Nada encontrado.</div>';
           OC.$$('[data-pid]', rows).forEach((b) => b.addEventListener('click', async () => {
             b.disabled = true;
@@ -172,7 +172,7 @@
       <h1 class="title">Menu</h1>
       <div class="card who"><span class="avatar" style="--a:44px">${esc(initials(u.name))}</span><span class="grow"><b>${esc(u.name || '')}</b><small>${esc(roles[u.role] || '')} · ${esc(u.email || '')}</small></span></div>
       <div class="card menu-card">
-        ${item('m-cfg', 'gear-six', 'Configurações da empresa', `BDI padrão ${esc(OC.dec2(settings.defaultBdi || 0))} · validade ${settings.defaultValidityDays || 30} dias`)}
+        ${item('m-cfg', 'gear-six', 'Configurações da empresa', `BDI padrão ${OC.can('p10') ? esc(OC.dec2(settings.defaultBdi || 0)) : '—'} · validade ${settings.defaultValidityDays || 30} dias`)}
         ${item('m-cat', 'package', 'Catálogo', `${summary.totalProductsCount || 0} itens`)}
         ${item('m-cli', 'users', 'Clientes e obras', `${summary.totalClientsCount || 0} clientes${proposals ? ` · ${summary.activeProposalsCount || 0} propostas abertas` : ''}`)}
         ${inApp() ? item('m-seg', 'shield-check', 'Segurança', 'PIN, digital e bloqueio automático', 'suite://seguranca') : ''}
@@ -243,7 +243,7 @@
         const list = (await OC.api(`/catalog?q=${encodeURIComponent(q)}&limit=50`)).products || [];
         if (mine !== seq) return;
         rows.innerHTML = list.length ? list.map((x) => `<div class="prow static"><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.unit)} · ${esc(x.category)}${x.active === false ? ' · inativo' : ''}</small></span>
-          <span class="end"><b>${esc(OC.money(x.currentCost))}</b><small>custo</small></span></div>`).join('') : '<div class="empty">Nada encontrado.</div>';
+          <span class="end"><b>${esc(OC.costText(OC.money(x.currentCost)))}</b><small>custo</small></span></div>`).join('') : '<div class="empty">Nada encontrado.</div>';
       } catch (error) { if (mine === seq) rows.innerHTML = `<div class="empty">${esc(error.message)}</div>`; }
     };
     OC.$('#c-q', el).addEventListener('input', (event) => { clearTimeout(timer); timer = setTimeout(() => load(event.target.value.trim()), 300); });

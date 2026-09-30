@@ -70,6 +70,7 @@
   };
   OC.canEdit = () => { const u = OC.session.user(); return !!u && u.role !== 'viewer'; };
   // Permissao da Suite (p10: custo, BDI e margem; p11: enviar e aprovar). Sem a lista (sessao antiga) nada some; o servidor recusa.
+  OC.costText = (text) => (OC.can('p10') ? text : '—');
   OC.can = (permission) => { const u = OC.session.user(); return !u || !Array.isArray(u.permissions) || u.permissions.includes(permission); };
 
   class ApiError extends Error {

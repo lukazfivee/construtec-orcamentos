@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Search } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { seesCost } from './SuitePermissions';
 import { proposalApi } from './api';
 
 const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -107,7 +108,7 @@ export function ProposalCatalogPopover({
             <span className="code">{item.code}</span>
             <span title={item.description}>{item.description}</span>
             <small>Unid.: {item.unit}</small>
-            <small>Custo: R$ {money.format(item.currentCost)}</small>
+            {seesCost() && <small>Custo: R$ {money.format(item.currentCost)}</small>}
           </button>
         ))}
         {catalogLoading && <p className="catalog-message">Pesquisando no catálogo local…</p>}

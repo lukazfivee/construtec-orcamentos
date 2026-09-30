@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Plus, Search, X } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { costText } from './SuitePermissions';
 import { catalogApi } from './api';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -216,7 +217,7 @@ export function KitProductPickerModal({
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '11px' }}>{money.format(product.currentCost)}</span>
+                    <span style={{ fontWeight: 600, fontSize: '11px' }}>{costText(money.format(product.currentCost))}</span>
                     <button
                       type="button"
                       className={isSelected ? 'secondary' : 'primary'}

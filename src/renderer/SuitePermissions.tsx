@@ -7,6 +7,12 @@ const SuiteUserContext = createContext<AuthUser | null>(null);
 
 export const SuiteUserProvider = SuiteUserContext.Provider;
 
+// Fora de hooks (celulas de tabela, textos): a conta nao muda durante a sessao, entao basta guardar a atual.
+let currentUser: AuthUser | null = null;
+export const setCurrentSuiteUser = (user: AuthUser | null) => { currentUser = user; };
+export const seesCost = (): boolean => !currentUser || !Array.isArray(currentUser.permissions) || currentUser.permissions.includes('p10');
+export const costText = (formatted: string): string => (seesCost() ? formatted : '—');
+
 export const useSuitePermission = (permission: string): boolean => {
   const user = useContext(SuiteUserContext);
   return !user || !Array.isArray(user.permissions) || user.permissions.includes(permission);

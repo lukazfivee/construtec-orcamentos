@@ -8,6 +8,7 @@ import { hasPermission } from './services/suiteAccess';
 const COST_KEYS = new Set([
   'unitCost', 'totalCost', 'baseCost', 'cost', 'materials', 'labor', 'additions', 'grossResult', 'marginPercent', 'bdiMultiplier',
   'monthlyCost', 'hourlyRate', 'monthlySalary', 'monthlyFood', 'monthlyTransport', 'monthlyOtherCosts', 'catalogCurrentCost',
+  'currentCost', 'totalEstimatedCost', 'defaultBdi',
 ]);
 
 export const maskCosts = (value: unknown): unknown => {
@@ -24,18 +25,32 @@ export const maskCosts = (value: unknown): unknown => {
 
 const deny = (response: Response, error: string) => response.status(403).json({ error });
 
+const maskJson = (response: Response) => {
+  const json = response.json.bind(response);
+  response.json = ((body?: unknown) => json(maskCosts(body))) as Response['json'];
+};
+
 export const suiteGuard = (request: Request, response: Response, next: NextFunction) => {
   const user = response.locals.authUser as AuthUser;
   const path = request.path.toLowerCase();
   if (user.apps && !user.apps.includes('orcamentos') && !path.startsWith('/api/notifications')) {
     return deny(response, 'Seu acesso não inclui o Orçamentos.');
   }
+  const canSee = hasPermission(user, 'p10');
+  // Catalogo e kits carregam o custo do item. Sem p10 saem zerados e nao se grava (gravar devolveria o zero).
+  if (path.startsWith('/api/catalog') || path.startsWith('/api/kits')) {
+    const appliesKit = /^\/api\/kits\/[^/]+\/apply-to-proposal$/.test(path);
+    if (!canSee && request.method !== 'GET' && !appliesKit) return deny(response, 'Seu papel não permite alterar catálogo e kits, que carregam o custo.');
+    if (!canSee) maskJson(response);
+    return next();
+  }
+  // BDI padrao das configuracoes: so quem ve BDI.
+  if (path.startsWith('/api/settings') && !canSee && request.method === 'GET') maskJson(response);
   if (!path.startsWith('/api/proposals')) return next();
 
   const write = request.method !== 'GET';
   const action = /^\/api\/proposals\/[^/]+\/([^/]+)/.exec(path)?.[1] ?? '';
   const status = String((request.body as { status?: unknown } | undefined)?.status ?? '');
-  const canSee = hasPermission(user, 'p10');
   const canSend = hasPermission(user, 'p11');
 
   if (!canSend) {
@@ -46,8 +61,7 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
   if (!canSee) {
     const costWrite = write && ['bdi', 'tax', 'labor', 'labor-settings'].includes(action);
     if (costWrite || action === 'center-tracking') return deny(response, 'Seu papel não permite ver custo, BDI e margem.');
-    const json = response.json.bind(response);
-    response.json = ((body?: unknown) => json(maskCosts(body))) as Response['json'];
+    maskJson(response);
   }
   return next();
 };
