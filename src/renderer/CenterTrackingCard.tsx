@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Activity, RefreshCw } from 'lucide-react';
 import type { CenterTracking } from '../shared/contracts';
+import { useSuitePermission } from './SuitePermissions';
 import { proposalApi } from './api';
 
 // Acompanhamento da obra no Centro de Custos para a proposta integrada.
@@ -22,6 +23,7 @@ const formatDate = (value: string | null) => {
 };
 
 export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
+  const canSeeCost = useSuitePermission('p10');
   const [tracking, setTracking] = useState<CenterTracking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,6 +42,7 @@ export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
 
   useEffect(() => { void load(); }, [proposalId]);
 
+  if (!canSeeCost) return null;
   if (loading && !tracking) return <div className="gerar-centro-feedback" aria-busy="true"><RefreshCw size={13} className="spinning" /> Carregando acompanhamento da obra…</div>;
   if (error) return <div className="gerar-centro-feedback error" role="alert">{error}</div>;
   if (!tracking?.integrated) return null;

@@ -7,6 +7,7 @@ import {
   Search,
 } from 'lucide-react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
+import { useSuitePermission } from './SuitePermissions';
 import { clientsApi, proposalApi } from './api';
 
 const statusClasses: Record<ProposalDetail['status'], string> = {
@@ -79,6 +80,7 @@ export function ProposalMetaBar({
   setError,
   setCatalogOpen,
 }: Props) {
+  const canSend = useSuitePermission('p11');
   const [contextOpen, setContextOpen] = useState(false);
   const [contextQuery, setContextQuery] = useState('');
   const [contextClients, setContextClients] = useState<ClientRecord[]>([]);
@@ -169,8 +171,8 @@ export function ProposalMetaBar({
           >
             <option value="draft">Em edição</option>
             <option value="review">Em revisão</option>
-            <option value="sent">Enviada</option>
-            <option value="approved">Aprovada</option>
+            <option value="sent" disabled={!canSend}>Enviada</option>
+            <option value="approved" disabled={!canSend}>Aprovada</option>
             <option value="rejected">Recusada</option>
           </select>
         </div>

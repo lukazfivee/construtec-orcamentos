@@ -137,7 +137,8 @@ export type ProposalSummary = { id: string; number: string; revision: number; cl
 export type ApiErrorPayload = { error: string; details?: unknown };
 
 export type AuthRole = 'admin' | 'commercial' | 'viewer';
-export type AuthUser = { id: string; name: string; email: string; role: AuthRole };
+/** suiteRole, apps e permissions (p1 a p12) vem do diretorio central; ausentes em sessoes antigas. */
+export type AuthUser = { id: string; name: string; email: string; role: AuthRole; suiteRole?: string; apps?: string[]; permissions?: string[] };
 export type AuthSession = { token: string; user: AuthUser };
 export type AuthSetupStatus = { requiresSetup: boolean };
 export type UserRecord = AuthUser & { active: boolean; updatedAt: string; centroAdmin?: boolean };

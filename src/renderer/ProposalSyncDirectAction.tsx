@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { useSuitePermission } from './SuitePermissions';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, proposalApi } from './api';
 import { CenterTrackingCard } from './CenterTrackingCard';
 
@@ -29,6 +30,8 @@ export function ProposalSyncDirectAction({
   showNotice,
   disabled = false,
 }: Props) {
+  // Aprovar e gerar o Centro de Custo: p11, e p10 porque o envio mostra o custo base.
+  const canSend = useSuitePermission('p11') && useSuitePermission('p10');
   const [syncState, setSyncState] = useState<{
     status: 'idle' | 'syncing' | 'success' | 'offline' | 'error';
     message?: string;
@@ -168,6 +171,7 @@ export function ProposalSyncDirectAction({
   const isSyncing = syncState.status === 'syncing' || submitting;
   const isSuccess = syncState.status === 'success';
 
+  if (!canSend) return null;
   return (
     <div style={{ width: '100%' }}>
       <button

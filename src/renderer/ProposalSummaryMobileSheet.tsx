@@ -8,6 +8,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { useSuitePermission } from './SuitePermissions';
 import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
 
 export const money = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -90,6 +91,8 @@ export function ProposalSummaryMobileSheet({
   onClose,
   onRequestDelete,
 }: Props) {
+  const canSeeCost = useSuitePermission('p10');
+  const canSend = useSuitePermission('p11') && canSeeCost;
   return (
     <div className="proposal-summary-sheet-backdrop" role="presentation" onClick={onClose}>
       <div
@@ -107,16 +110,20 @@ export function ProposalSummaryMobileSheet({
           </button>
         </div>
 
-        <div className="proposal-summary-sheet-amount"><span>Total de materiais</span><b>R$ {money.format(materialsTotal)}</b></div>
-        <div className="proposal-summary-sheet-amount"><span>Total de mão de obra</span><b>R$ {money.format(laborTotal)}</b></div>
-        <div className="proposal-summary-sheet-amount"><span>Custo base</span><b>R$ {money.format(baseCost)}</b></div>
-        <div className="proposal-summary-sheet-amount"><span>BDI / acréscimos</span><b>R$ {money.format(bdiAdditions)}</b></div>
+        {canSeeCost && (
+          <>
+            <div className="proposal-summary-sheet-amount"><span>Total de materiais</span><b>R$ {money.format(materialsTotal)}</b></div>
+            <div className="proposal-summary-sheet-amount"><span>Total de mão de obra</span><b>R$ {money.format(laborTotal)}</b></div>
+            <div className="proposal-summary-sheet-amount"><span>Custo base</span><b>R$ {money.format(baseCost)}</b></div>
+            <div className="proposal-summary-sheet-amount"><span>BDI / acréscimos</span><b>R$ {money.format(bdiAdditions)}</b></div>
+          </>
+        )}
         {taxAmount > 0 && (
           <div className="proposal-summary-sheet-amount"><span>Impostos ({String(taxPercentage).replace('.', ',')}%)</span><b>R$ {money.format(taxAmount)}</b></div>
         )}
         <div className="proposal-summary-sheet-amount final"><span>Valor final da proposta</span><b>R$ {money.format(finalValue)}</b></div>
 
-        <div className="proposal-summary-sheet-params">
+        <div className="proposal-summary-sheet-params" style={canSeeCost ? undefined : { display: 'none' }}>
           <label>
             Multiplicador BDI
             <span className="editable-parameter">
@@ -176,18 +183,19 @@ export function ProposalSummaryMobileSheet({
           <button type="button" disabled={mutationPending} onClick={() => { onCloneProposal(); onClose(); }}>
             <Copy size={16} /> Clonar proposta
           </button>
-          <button type="button" disabled={documentPending} onClick={() => { onPreviewProposal(); onClose(); }}>
+          <button type="button" disabled={documentPending} style={canSeeCost ? undefined : { display: 'none' }} onClick={() => { onPreviewProposal(); onClose(); }}>
             <Eye size={16} /> Pré-visualizar
           </button>
           <button
             className="primary"
             type="button"
             disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
+            style={canSend ? undefined : { display: 'none' }}
             onClick={() => { onExportProposal(); onClose(); }}
           >
             <FilePlus2 size={16} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'}
           </button>
-          {onShareProposal && (
+          {canSend && onShareProposal && (
             <button type="button" disabled={documentPending} onClick={() => { onShareProposal(); onClose(); }}>
               <Share2 size={16} /> Compartilhar
             </button>

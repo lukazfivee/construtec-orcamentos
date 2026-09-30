@@ -14,6 +14,7 @@ import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
 import { useProposalDeepLink } from './useProposalDeepLink';
+import { SuiteUserProvider } from './SuitePermissions';
 
 export interface AppProps {
   user?: AuthUser | null;
@@ -165,6 +166,7 @@ export function App({ user, onLogout }: AppProps = {}) {
   }, [activeNav, createRevision, exportProposal, previewProposal, proposal?.isLatest]);
 
   return (
+    <SuiteUserProvider value={user ?? null}>
     <div className="app-shell">
       <AppTopbar
         user={user}
@@ -317,5 +319,6 @@ export function App({ user, onLogout }: AppProps = {}) {
         onError={setError}
       />
     </div>
+    </SuiteUserProvider>
   );
 }

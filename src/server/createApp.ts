@@ -13,6 +13,7 @@ import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
+import { suiteGuard } from './suiteGuard';
 import { CentroIdentityError } from './services/centroIdentity';
 import { identityHealStatus } from './services/database';
 import type { LocalDatabase } from './services/database';
@@ -187,7 +188,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.status(403).json({ error: 'Apenas administradores podem alterar as configurações.' });
       return;
     }
-    next();
+    suiteGuard(request, response, next);
   });
 
   api.use('/api/catalog', createCatalogRouter(database));

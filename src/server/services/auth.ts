@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { AuthRole, AuthSession, AuthSetupStatus, AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 import { CentroIdentityError, centroConsumeHandoff, centroLogin, centroLogout, centroSession, type CentroUser } from './centroIdentity';
+import { resolveSuiteAccess } from './suiteAccess';
 
 // Login e sessao sao do diretorio central (Centro de Custos). O token de
 // sessao do Orcamentos e o proprio token central; cada requisicao revalida
@@ -26,11 +27,12 @@ type MirrorRow = {
 const MIRROR_COLUMNS = 'id, name, email, role, active, centro_user_id, centro_admin, local_role';
 type Queryable = Pick<LocalDatabase, 'query'>;
 
-const toAuthUser = (row: Pick<MirrorRow, 'id' | 'name' | 'email' | 'role'>): AuthUser => ({
+const toAuthUser = (row: Pick<MirrorRow, 'id' | 'name' | 'email' | 'role'>, access: Pick<AuthUser, 'suiteRole' | 'apps' | 'permissions'> = {}): AuthUser => ({
   id: String(row.id),
   name: row.name,
   email: row.email,
   role: row.role,
+  ...access,
 });
 
 export const retireLocalUsers = async (database: Queryable, ids: string[]) => {
@@ -120,7 +122,7 @@ export const loginUser = async (
   }
   const row = await mirrorCentroUser(database, remote.user);
   if (!row.active) throw new Error('AUTH_INVALID_CREDENTIALS');
-  const user = toAuthUser(row);
+  const user = toAuthUser(row, await resolveSuiteAccess(remote.user, remote.sessionToken));
   sessionCache.set(remote.sessionToken, { user, until: Date.now() + SESSION_CACHE_MS });
   lastConfirmed.set(remote.sessionToken, { user, at: Date.now() });
   return { token: remote.sessionToken, user };
@@ -137,7 +139,7 @@ export const consumeHandoff = async (database: LocalDatabase, code: string): Pro
   }
   const row = await mirrorCentroUser(database, remote.user);
   if (!row.active) throw new Error('AUTH_INVALID_CREDENTIALS');
-  const user = toAuthUser(row);
+  const user = toAuthUser(row, await resolveSuiteAccess(remote.user, remote.sessionToken));
   sessionCache.set(remote.sessionToken, { user, until: Date.now() + SESSION_CACHE_MS });
   lastConfirmed.set(remote.sessionToken, { user, at: Date.now() });
   return { token: remote.sessionToken, user };
@@ -152,7 +154,7 @@ export const verifyUserSession = async (database: LocalDatabase, token: string):
     const remote = await centroSession(token);
     const row = await mirrorCentroUser(database, remote.user);
     if (!row.active) return null;
-    const user = toAuthUser(row);
+    const user = toAuthUser(row, await resolveSuiteAccess(remote.user, token));
     if (generation === cacheGeneration) {
       if (sessionCache.size >= MAX_CACHE_ENTRIES) sessionCache.clear();
       sessionCache.set(token, { user, until: Date.now() + SESSION_CACHE_MS });
