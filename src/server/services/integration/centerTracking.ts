@@ -37,6 +37,24 @@ const fetchSummary = async (contractId: string): Promise<CenterSummary> => {
   return await response.json() as CenterSummary;
 };
 
+// Movimento da obra no Centro (lancamentos, notas, medicoes...), para decidir se a proposta pode ser descartada.
+// 404 (obra ja removida) conta como sem movimento; qualquer falha de rede ou configuracao, como indisponivel.
+export const fetchContractMovement = async (contractId: string): Promise<number | 'unavailable'> => {
+  const key = resolveIntegrationKey();
+  if (!key) return 'unavailable';
+  try {
+    const response = await fetch(`${centerBase()}/api/integracao/orcamentos/contratos/${encodeURIComponent(contractId)}/resumo`, {
+      headers: { 'X-Construtec-Integration-Key': key },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (response.status === 404) return 0;
+    if (!response.ok) return 'unavailable';
+    const summary = await response.json() as { movementCount?: unknown };
+    // Centro antigo (sem o campo) nao permite garantir que a obra esta vazia.
+    return typeof summary.movementCount === 'number' ? summary.movementCount : 'unavailable';
+  } catch { return 'unavailable'; }
+};
+
 const saveSnapshot = async (database: Queryable, proposalId: string, contractId: string, summary: CenterSummary) => {
   await database.query(`
     INSERT INTO proposal_center_snapshots (proposal_id, contract_id, payload, fetched_at)
