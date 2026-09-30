@@ -1,5 +1,16 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-30 BRT — Papéis da Suíte no Orçamentos: p10 e p11 (Claude Code)
+
+- Base: `main` em `1367a41`, branch `feat/papeis-suite`. Junto com a D6 do Centro de Custos (papéis `admin|gestor|financeiro|engenharia|tecnico|comercial`, apps por conta e matriz de 12 permissões no diretório central; Worker e migração 012 precisam estar publicados antes).
+- `src/shared/suitePermissions.ts` (matriz padrão, igual à do Centro), `src/server/services/suiteAccess.ts` (papel, apps e permissões da conta; matriz do Centro em `/v1/permissions` com cache de 60 s; sem ela vale o padrão), `src/server/suiteGuard.ts` (roda depois da checagem de perfil local em `createApp.ts`). `AuthUser` ganhou `suiteRole`, `apps`, `permissions` (opcionais).
+- Regras no servidor: conta sem o app `orcamentos` leva 403 (avisos continuam). Sem p10 (ver custo, BDI e margem): respostas de `/api/proposals*` saem com custo, BDI, margem e salários zerados (preço de venda intacto), 403 ao alterar BDI, imposto e mão de obra e ao abrir o acompanhamento. Sem p11 (enviar e aprovar): 403 em status `approved` ou `sent`, `integration-export` e `direct-sync`. O perfil local (`admin|commercial|viewer`, escrita) não mudou.
+- Tela: `SuitePermissions.tsx` (contexto e `useSuitePermission`) esconde custo, BDI, parâmetros, colunas de custo, acompanhamento, pré-visualizar, gerar PDF/Word, compartilhar e aprovar/enviar. Sem p10 também não se gera documento, porque o cálculo do PDF usa o custo. Sem a lista de permissões (sessão antiga) nada some; o servidor decide.
+- p12 (horas e medições) não se aplica aqui: o Orçamentos não registra horas nem medições.
+- Teste: `src/server/suiteGuard.test.ts` (entrou em `scripts/test-critical.mjs`). `npm run verify` 49/49 (1 ignorado).
+- Limites: o site do celular (`public/m/`) não foi adaptado; sem p10 ele mostra zero nos campos de custo e BDI. Nada publicado.
+- Próximo passo: PR, depois deploy (`npm run deploy:cloud`, pela pasta principal, não por worktree).
+
 ## 2026-09-28 17:10 BRT — Cores e fonte da Suíte no site de computador (Claude Code)
 
 - Combinado com o Lucas: celular com o design do protótipo; computador só com as cores e a fonte da Suíte (não há protótipo desktop do Orçamentos, só do Centro).

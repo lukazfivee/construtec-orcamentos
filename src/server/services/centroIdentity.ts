@@ -12,6 +12,9 @@ export type CentroUser = {
   name: string;
   email: string;
   role: 'admin' | 'gestor' | 'supervisor';
+  /** Papel novo e apps (D6); contas e Centro antigos nao os enviam. */
+  suiteRole?: string;
+  apps?: string[];
   active: boolean;
 };
 
@@ -84,6 +87,9 @@ export const centroConsumeHandoff = (code: string) =>
   call<{ sessionToken: string; expiresAt: number; user: CentroUser }>('/v1/auth/handoff/consume', {
     method: 'POST', service: true, body: { code, target: 'orcamentos' },
   });
+
+export const centroPermissions = (token: string) =>
+  call<{ ok: boolean; matrix: Record<string, Record<string, boolean>> }>('/v1/permissions', { token });
 
 export const centroLogout = (token: string) => call<{ ok: boolean }>('/v1/auth/logout', { method: 'POST', token });
 

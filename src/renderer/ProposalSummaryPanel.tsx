@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { calculateProposalTotals } from '../shared/proposalFinancials';
 import type { ProposalDetail } from '../shared/contracts';
+import { useSuitePermission } from './SuitePermissions';
 import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
 import { ProposalSummaryMobileSheet, Amount, money } from './ProposalSummaryMobileSheet';
 import { DeleteProposalModal } from './DeleteProposalModal';
@@ -66,6 +67,9 @@ export function ProposalSummaryPanel({
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
   const [actionsCollapsed, setActionsCollapsed] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  // p10 (custo, BDI e margem) e p11 (enviar e aprovar). Documentos saem do calculo de custo: sem p10 nao se gera.
+  const canSeeCost = useSuitePermission('p10');
+  const canSend = useSuitePermission('p11') && canSeeCost;
 
   useEffect(() => {
     if (!deleteModalOpen) return;
@@ -83,7 +87,8 @@ export function ProposalSummaryPanel({
     : (proposal.taxPercentage ?? 0);
   const parsedDraftBdi = bdiDraft != null ? Number(bdiDraft.trim().replace(/[xX]/g, '').replace(',', '.')) : NaN;
   const bdiMultiplier = Number.isFinite(parsedDraftBdi) && parsedDraftBdi > 0 ? parsedDraftBdi : (proposal.bdiMultiplier ?? 1);
-  const { baseCost, finalValue } = calculateProposalTotals(materialsTotal, laborTotal, bdiMultiplier, taxPercentage);
+  const { baseCost, finalValue: computedFinalValue } = calculateProposalTotals(materialsTotal, laborTotal, bdiMultiplier, taxPercentage);
+  const finalValue = canSeeCost ? computedFinalValue : (proposal.totals.finalValue ?? 0);
   const subtotalWithBdi = Math.round((baseCost * bdiMultiplier + Number.EPSILON) * 100) / 100;
   const bdiAdditions = Math.round((subtotalWithBdi - baseCost + Number.EPSILON) * 100) / 100;
   const taxAmount = taxPercentage > 0 ? Math.round((subtotalWithBdi * (taxPercentage / 100) + Number.EPSILON) * 100) / 100 : 0;
@@ -106,10 +111,14 @@ export function ProposalSummaryPanel({
         </button>
         {!summaryCollapsed && (
           <>
-            <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
-            <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
-            <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
-            <Amount label="BDI / acréscimos" value={`R$ ${money.format(bdiAdditions)}`} />
+            {canSeeCost && (
+              <>
+                <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
+                <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
+                <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
+                <Amount label="BDI / acréscimos" value={`R$ ${money.format(bdiAdditions)}`} />
+              </>
+            )}
             {taxAmount > 0 && (
               <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
             )}
@@ -118,7 +127,7 @@ export function ProposalSummaryPanel({
         {/* Item mais importante do painel: fica visível mesmo com "Resumo comercial" recolhido. */}
         <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
 
-        <div className="panel-section">
+        <div className="panel-section" style={canSeeCost ? undefined : { display: 'none' }}>
           <button
             type="button"
             className="panel-section-toggle"
@@ -218,7 +227,7 @@ export function ProposalSummaryPanel({
               <Copy size={18} /> Clonar proposta
             </button>
           )}
-          {!actionsCollapsed && (
+          {!actionsCollapsed && canSeeCost && (
             <button type="button" disabled={documentPending} onClick={onPreviewProposal}>
               <Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd>
             </button>
@@ -229,10 +238,11 @@ export function ProposalSummaryPanel({
             type="button"
             disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
             onClick={onExportProposal}
+            style={canSend ? undefined : { display: 'none' }}
           >
             <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd>
           </button>
-          {!actionsCollapsed && onShareProposal && (
+          {!actionsCollapsed && canSend && onShareProposal && (
             <button
               type="button"
               className="share-action-btn"

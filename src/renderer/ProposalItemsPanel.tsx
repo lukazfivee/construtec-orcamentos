@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { useSuitePermission } from './SuitePermissions';
 import { ProposalCatalogPopover } from './ProposalCatalogPopover';
 import { ProposalImportDialog } from './ProposalImportDialog';
 import {
@@ -55,7 +56,9 @@ export function ProposalItemsPanel({
 }: Props) {
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
-  const [columns, setColumns] = useState<ProposalColumnsVisibility>(loadSavedColumns);
+  const [savedColumns, setColumns] = useState<ProposalColumnsVisibility>(loadSavedColumns);
+  const canSeeCost = useSuitePermission('p10');
+  const columns = canSeeCost ? savedColumns : { ...savedColumns, unitCost: false, totalCost: false };
   const [columnsPopoverOpen, setColumnsPopoverOpen] = useState(false);
   const [filterBarOpen, setFilterBarOpen] = useState(false);
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
