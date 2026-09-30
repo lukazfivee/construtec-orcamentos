@@ -38,6 +38,7 @@ import './exsat-feedback.css';
 import './suite-bolder.css';
 import './mobile-responsive.css';
 import './mobile-suite.css';
+import './menu-lateral.css';
 
 const rootElement = document.getElementById('root');
 

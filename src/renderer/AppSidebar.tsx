@@ -9,7 +9,14 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { AuthUser } from '../shared/contracts';
+
+const MENU_KEY = 'orc_menu_recolhido';
+
+function lerRecolhido(): boolean {
+  try { return localStorage.getItem(MENU_KEY) === '1'; } catch { return false; }
+}
 
 export type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações';
 
@@ -56,6 +63,25 @@ export function AppSidebar({
   user,
   onLogout,
 }: AppSidebarProps) {
+  const [recolhido, setRecolhido] = useState(lerRecolhido);
+
+  /* A largura da coluna fica no .app-shell (App.tsx); o atributo na raiz evita passar estado por props. */
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-menu-recolhido', recolhido);
+    try { localStorage.setItem(MENU_KEY, recolhido ? '1' : '0'); } catch { /* segue sem guardar */ }
+  }, [recolhido]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setRecolhido((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <aside className="sidebar" aria-label="Navegação principal">
       <nav>
@@ -95,6 +121,8 @@ export function AppSidebar({
                 type="button"
                 className={active ? 'active' : ''}
                 aria-current={active ? 'page' : undefined}
+                aria-label={label}
+                data-rot={label}
                 onClick={() => onSelectNav(label)}
               >
                 <Icon size={22} />
@@ -152,7 +180,14 @@ export function AppSidebar({
         </button>
       )}
     </div>
-    <button className="collapse" type="button">
+    <button
+        className="collapse"
+        type="button"
+        aria-expanded={!recolhido}
+        aria-label={recolhido ? 'Expandir menu' : 'Recolher menu'}
+        title={(recolhido ? 'Expandir menu' : 'Recolher menu') + ' (Ctrl B)'}
+        onClick={() => setRecolhido((v) => !v)}
+      >
         <ChevronLeft size={17} />
         <span>Recolher</span>
       </button>
