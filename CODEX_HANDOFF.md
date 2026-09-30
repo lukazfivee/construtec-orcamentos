@@ -1,5 +1,10 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-30 BRT — Papéis da Suíte no celular (`/m/`) (Claude Code)
+
+- Base: `main` em `33ef5e8`, branch `feat/m-papeis`. `OC.can(permissao)` em `core.js` (lista `permissions` vem do `/api/auth/me`; sem ela nada some). Sem p10 a proposta no celular esconde margem, materiais, mão de obra, custo base, BDI, o cartão de mão de obra e "BDI e impostos"; o valor final e os impostos ficam. Sem p11 (ou sem p10) o próximo passo de enviar, aprovar e gerar o Centro de Custo vira aviso. O servidor continua recusando.
+- Limite: o catálogo e os kits (`/api/catalog`, `/api/kits`) mostram custo atual do item e não entram na p10 (que cobre o detalhe das propostas). Não conferido no navegador; `npm run verify` 49/49.
+
 ## 2026-09-30 BRT — Papéis da Suíte no Orçamentos: p10 e p11 (Claude Code)
 
 - Base: `main` em `1367a41`, branch `feat/papeis-suite`. Junto com a D6 do Centro de Custos (papéis `admin|gestor|financeiro|engenharia|tecnico|comercial`, apps por conta e matriz de 12 permissões no diretório central; Worker e migração 012 precisam estar publicados antes).

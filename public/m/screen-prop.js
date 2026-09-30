@@ -20,6 +20,8 @@
   function nextStep(p, ctx) {
     if (!OC.canEdit()) return { hint: 'Seu acesso é só para consulta.' };
     if (!p.isLatest) return { hint: `Esta é uma revisão antiga (${OC.rev(p.revision)}).` };
+    const sends = p.status === 'review' || p.status === 'sent' || (p.status === 'approved' && !p.costCenterId);
+    if (sends && !(OC.can('p11') && OC.can('p10'))) return { hint: 'Seu papel não permite enviar ou aprovar propostas.' };
     const status = (s, msg) => async () => { await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: s } }); OC.toast(msg); ctx.reload(); };
     if (p.status === 'draft' && p.items.length) return { hint: 'Próximo passo: revisão interna do orçamento', prim: ['Enviar para revisão', 'paper-plane-tilt', status('review', 'Enviada para revisão interna')] };
     if (p.status === 'draft') return { hint: 'A proposta ainda não tem itens', prim: ['Adicionar itens', 'plus', () => ctx.tab('itens')] };
@@ -52,6 +54,7 @@
 
   function resumo(p, ctx) {
     const t = totals(p);
+    const cost = OC.can('p10');
     const cur = p.status === 'approved' ? (p.costCenterId ? 5 : 4) : ORDER.indexOf(p.status);
     const days = OC.daysUntil(p.validUntil);
     const next = nextStep(p, ctx);
@@ -62,11 +65,11 @@
     return {
       html: `${stepper}
         <div class="card"><div class="kv top-kv"><span><small>Valor final</small><b class="big">${esc(OC.money0(t.final))}</b></span>
-          <span class="right"><small>Margem</small><b>${esc(OC.pct(t.margin))}</b></span></div>
-          <div class="kv"><span>Materiais</span><b>${esc(OC.money0(t.materials))}</b></div>
+          ${cost ? `<span class="right"><small>Margem</small><b>${esc(OC.pct(t.margin))}</b></span>` : ''}</div>
+          ${cost ? `<div class="kv"><span>Materiais</span><b>${esc(OC.money0(t.materials))}</b></div>
           <div class="kv"><span>Mão de obra</span><b>${esc(OC.money0(t.labor))}</b></div>
           <div class="kv sep"><span class="strong">Custo base</span><b>${esc(OC.money0(t.base))}</b></div>
-          <div class="kv"><span>+ BDI ${esc(OC.dec2(p.bdiMultiplier))} ×</span><b>${esc(OC.money0(t.additions))}</b></div>
+          <div class="kv"><span>+ BDI ${esc(OC.dec2(p.bdiMultiplier))} ×</span><b>${esc(OC.money0(t.additions))}</b></div>` : ''}
           <div class="kv"><span>+ Impostos ${esc(OC.dec2(p.taxPercentage || 0))}%</span><b>${esc(OC.money0(t.tax))}</b></div></div>
         <div class="card">
           <div class="kv"><span>Validade</span><b>${p.validUntil ? `${esc(OC.dateFull(p.validUntil))}${days !== null ? ` · ${days < 0 ? 'vencida' : `${days} ${days === 1 ? 'dia' : 'dias'}`}` : ''}` : 'Sem validade'}</b></div>
@@ -89,9 +92,10 @@
     const t = totals(p);
     const can = editable(p);
     const labor = p.laborItems || [];
+    const cost = OC.can('p10');
     return {
-      html: `<button class="card labor-card" type="button" data-labor>${icon('hard-hat', 20)}<span class="grow"><b>Mão de obra · ${labor.length} ${labor.length === 1 ? 'função' : 'funções'}</b><small>Salário, encargos e horas</small></span><b>${esc(OC.money0(t.labor))}</b>${icon('caret-right', 18)}</button>
-        <div class="sec-row"><span class="label">Materiais e equipamentos · ${p.items.length}</span><span class="label">${esc(OC.money0(t.materials))}</span></div>
+      html: `${cost ? `<button class="card labor-card" type="button" data-labor>${icon('hard-hat', 20)}<span class="grow"><b>Mão de obra · ${labor.length} ${labor.length === 1 ? 'função' : 'funções'}</b><small>Salário, encargos e horas</small></span><b>${esc(OC.money0(t.labor))}</b>${icon('caret-right', 18)}</button>` : ''}
+        <div class="sec-row"><span class="label">Materiais e equipamentos · ${p.items.length}</span>${cost ? `<span class="label">${esc(OC.money0(t.materials))}</span>` : ''}</div>
         <div class="items">${p.items.length ? p.items.map((it) => `<div class="item" data-item="${esc(it.id)}">
             <div class="item-top"><b>${esc(it.description)}</b><b class="val">${esc(OC.money0(it.totalSale))}</b></div>
             <small>${esc(it.code || it.category || '')} · ${esc(OC.money(it.unitSale))}/${esc(it.unit)}</small>
@@ -100,11 +104,12 @@
               <button class="qbtn" type="button" data-inc aria-label="Aumentar">${icon('plus', 18)}</button></div>`
               : `<small class="qty-ro">${esc(OC.num(it.quantity))} ${esc(it.unit)}</small>`}</div>`).join('')
           : `<div class="empty">${icon('package', 28)}Nenhum item ainda.</div>`}</div>
-        <div class="actions total-bar"><div class="tb-top"><small>Valor final · BDI ${esc(OC.dec2(p.bdiMultiplier))} · imp. ${esc(OC.dec2(p.taxPercentage || 0))}%</small></div>
-          <div class="tb-mid"><b class="big">${esc(OC.money0(t.final))}</b><small>Margem ${esc(OC.pct(t.margin))}</small></div>
-          ${can ? `<div class="tb-btns"><button class="btn2" type="button" data-bdi>${icon('percent', 18)}BDI e impostos</button><button class="btn" type="button" data-add>${icon('plus', 18)}Adicionar</button></div>` : ''}</div>`,
+        <div class="actions total-bar"><div class="tb-top"><small>Valor final${cost ? ` · BDI ${esc(OC.dec2(p.bdiMultiplier))}` : ''} · imp. ${esc(OC.dec2(p.taxPercentage || 0))}%</small></div>
+          <div class="tb-mid"><b class="big">${esc(OC.money0(t.final))}</b>${cost ? `<small>Margem ${esc(OC.pct(t.margin))}</small>` : ''}</div>
+          ${can ? `<div class="tb-btns">${cost ? `<button class="btn2" type="button" data-bdi>${icon('percent', 18)}BDI e impostos</button>` : ''}<button class="btn" type="button" data-add>${icon('plus', 18)}Adicionar</button></div>` : ''}</div>`,
       bind(el) {
-        OC.$('[data-labor]', el).addEventListener('click', () => OC.open('labor', { id: p.id }));
+        const laborButton = OC.$('[data-labor]', el);
+        if (laborButton) laborButton.addEventListener('click', () => OC.open('labor', { id: p.id }));
         if (!can) return;
         const timers = {};
         const save = (id, quantity) => {
@@ -124,7 +129,8 @@
           OC.$('[data-inc]', row).addEventListener('click', () => set(current() + 1));
           input.addEventListener('change', () => { if (current() > 0) set(current()); else ctx.reload(); });
         });
-        OC.$('[data-bdi]', el).addEventListener('click', () => bdiSheet(p, ctx));
+        const bdiButton = OC.$('[data-bdi]', el);
+        if (bdiButton) bdiButton.addEventListener('click', () => bdiSheet(p, ctx));
         OC.$('[data-add]', el).addEventListener('click', () => addSheet(p, ctx));
       },
     };

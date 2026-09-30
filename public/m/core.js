@@ -69,6 +69,8 @@
     clear() { try { [TOKEN_KEY, USER_KEY].forEach((k) => { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch { /* nada */ } },
   };
   OC.canEdit = () => { const u = OC.session.user(); return !!u && u.role !== 'viewer'; };
+  // Permissao da Suite (p10: custo, BDI e margem; p11: enviar e aprovar). Sem a lista (sessao antiga) nada some; o servidor recusa.
+  OC.can = (permission) => { const u = OC.session.user(); return !u || !Array.isArray(u.permissions) || u.permissions.includes(permission); };
 
   class ApiError extends Error {
     constructor(status, message) { super(message); this.status = status; }
