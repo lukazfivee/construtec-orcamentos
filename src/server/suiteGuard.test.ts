@@ -37,8 +37,8 @@ test('papeis da Suite: mapeamento do papel antigo e matriz padrao', () => {
 });
 
 test('mascara custo, BDI e margem e deixa o preco de venda', () => {
-  const masked = maskCosts({ items: [{ unitCost: 10, unitSale: 20, catalogCurrentCost: null }], totals: { cost: 5, sale: 9, labor: 3, marginPercent: 30 }, bdiMultiplier: 1.4, label: 'x' });
-  assert.deepEqual(masked, { items: [{ unitCost: 0, unitSale: 20, catalogCurrentCost: null }], totals: { cost: 0, sale: 9, labor: 0, marginPercent: 0 }, bdiMultiplier: 0, label: 'x' });
+  const masked = maskCosts({ items: [{ unitCost: 10, unitSale: 20, catalogCurrentCost: null, currentCost: 7 }], totals: { cost: 5, sale: 9, labor: 3, marginPercent: 30 }, bdiMultiplier: 1.4, totalEstimatedCost: 50, label: 'x' });
+  assert.deepEqual(masked, { items: [{ unitCost: 0, unitSale: 20, catalogCurrentCost: null, currentCost: 0 }], totals: { cost: 0, sale: 9, labor: 0, marginPercent: 0 }, bdiMultiplier: 0, totalEstimatedCost: 0, label: 'x' });
 });
 
 test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps limita o acesso', () => {
@@ -60,6 +60,19 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/direct-sync').status, 403);
   assert.equal(run(user('comercial'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 200);
   assert.equal(run(user('gestor'), 'POST', '/api/proposals/abc/integration-export').status, 200);
+
+  // Catalogo e kits: sem p10 o custo do item sai zerado e nao se grava; aplicar um kit na proposta segue liberado.
+  const catalogo = run(user('financeiro'), 'GET', '/api/catalog');
+  assert.equal(catalogo.status, 200);
+  assert.equal(run(user('financeiro'), 'PATCH', '/api/catalog/p1', { currentCost: 0 }).status, 403);
+  assert.equal(run(user('financeiro'), 'POST', '/api/catalog/import/bulk').status, 403);
+  assert.equal(run(user('tecnico'), 'PUT', '/api/kits/k1').status, 403);
+  assert.equal(run(user('tecnico'), 'POST', '/api/kits/k1/apply-to-proposal', { proposalId: 'p' }).status, 200);
+  assert.equal(run(user('comercial'), 'PATCH', '/api/catalog/p1', { currentCost: 10 }).status, 200);
+  assert.equal(run(user('engenharia'), 'PUT', '/api/kits/k1').status, 200);
+
+  assert.equal((run(user('financeiro'), 'GET', '/api/settings').sent as { bdiMultiplier?: number }).bdiMultiplier, 0);
+  assert.equal(run(user('gestor'), 'GET', '/api/settings').sent?.bdiMultiplier, 1.4);
 
   // Sem o app Orcamentos na conta, nada abre (avisos da conta continuam).
   const semApp = user('admin', ['centro']);

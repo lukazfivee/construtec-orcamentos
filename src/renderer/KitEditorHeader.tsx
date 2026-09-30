@@ -1,5 +1,6 @@
 import { Save, Send, Trash2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { costText } from './SuitePermissions';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -42,7 +43,7 @@ export function KitEditorHeader({
       <div style={{ flex: '1 1 220px', minWidth: 0 }}>
         <h2 style={{ overflowWrap: 'anywhere' }}>{creating ? 'Novo kit' : draftName}</h2>
         <p style={{ overflowWrap: 'anywhere' }}>
-          Composição estimada: <b>{money.format(totalEstimatedCost)}</b> ({itemsCount} itens)
+          Composição estimada: <b>{costText(money.format(totalEstimatedCost))}</b> ({itemsCount} itens)
         </p>
       </div>
       <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>

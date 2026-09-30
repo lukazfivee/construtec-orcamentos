@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react';
+import { costText } from './SuitePermissions';
 
 export type KitItemDraft = {
   productId: string;
@@ -103,7 +104,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                     {item.description}
                   </td>
                   <td style={{ padding: '6px 8px', textAlign: 'center' }}>{item.unit}</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>{money.format(item.currentCost)}</td>
+                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>{costText(money.format(item.currentCost))}</td>
                   <td style={{ padding: '6px 10px', textAlign: 'right' }}>
                     <input
                       type="number"
@@ -122,7 +123,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                     />
                   </td>
                   <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>
-                    {money.format(item.currentCost * item.quantity)}
+                    {costText(money.format(item.currentCost * item.quantity))}
                   </td>
                   <td
                     style={{

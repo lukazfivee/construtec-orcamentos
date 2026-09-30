@@ -14,7 +14,7 @@ import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
 import { useProposalDeepLink } from './useProposalDeepLink';
-import { SuiteUserProvider } from './SuitePermissions';
+import { SuiteUserProvider, setCurrentSuiteUser } from './SuitePermissions';
 
 export interface AppProps {
   user?: AuthUser | null;
@@ -22,6 +22,7 @@ export interface AppProps {
 }
 
 export function App({ user, onLogout }: AppProps = {}) {
+  setCurrentSuiteUser(user ?? null);
   const [activeNav, setActiveNav] = useState<NavSection>('Início');
   const [targetCostCenterId, setTargetCostCenterId] = useState<number | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);

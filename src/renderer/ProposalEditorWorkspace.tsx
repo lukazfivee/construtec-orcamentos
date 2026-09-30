@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LayoutList, Plus } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+import { seesCost } from './SuitePermissions';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
 import { ProposalExportDialog } from './ProposalExportDialog';
@@ -174,7 +175,7 @@ export function ProposalEditorWorkspace({
         />
 
         <div className="section-tabs" role="tablist" aria-label="Seções da proposta">
-          {sectionTabs.map((tab) => (
+          {sectionTabs.filter((tab) => tab.label !== 'Mão de obra' || seesCost()).map((tab) => (
             <button
               key={tab.label}
               type="button"
