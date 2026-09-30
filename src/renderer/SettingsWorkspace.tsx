@@ -10,6 +10,7 @@ import {
   Upload,
 } from 'lucide-react';
 import type { AppSettings, AuthUser } from '../shared/contracts';
+import { DiscardedProposalsPanel } from './DiscardedProposalsPanel';
 import { authApi, settingsApi, systemApi } from './api';
 import { UsersAdminPanel } from './UsersAdminPanel';
 
@@ -209,6 +210,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
           </form>
 
           {isAdmin && currentUser && <UsersAdminPanel currentUser={currentUser} onNotice={onNotice} onError={onError} />}
+          {isAdmin && <DiscardedProposalsPanel onNotice={onNotice} onError={onError} />}
         </div>
       </div>
     </main>

@@ -16,6 +16,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+import { isAdminNow } from './SuitePermissions';
 import { getProposalValidityStatus } from './proposalValidityHelpers';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -249,7 +250,7 @@ export function ProposalsListTable({
                       type="button"
                       className="table-action-btn danger"
                       title="Excluir proposta"
-                      disabled={actionPending || item.status === 'approved' || item.hasApprovedRevision}
+                      disabled={actionPending || ((item.status === 'approved' || item.hasApprovedRevision) && !isAdminNow())}
                       onClick={() => onDeleteRequest(item)}
                     >
                       <Trash2 size={15} />

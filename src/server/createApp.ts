@@ -9,6 +9,7 @@ import { createNotificationsRouter } from './routes/notifications';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
 import { createProposalTrackingRouter } from './routes/proposalTracking';
+import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
@@ -193,6 +194,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
 
   api.use('/api/catalog', createCatalogRouter(database));
   api.use('/api/clients', createClientsRouter(database));
+  api.use('/api/proposals', createProposalDiscardRouter(database));
   api.use('/api/proposals', createProposalTrackingRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
@@ -252,6 +254,26 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     }
     if (error instanceof Error && error.message.endsWith('_NOT_FOUND')) {
       response.status(404).json({ error: 'Registro não encontrado.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'DISCARD_CONFIRMATION') {
+      response.status(400).json({ error: 'Digite o número da proposta exatamente como aparece para confirmar o descarte.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'DISCARD_CENTER_HAS_MOVEMENT') {
+      response.status(409).json({ error: 'A obra desta proposta no Centro de Custos já tem lançamentos, notas ou medições. Só proposta sem movimento pode ser descartada.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'DISCARD_CENTER_UNAVAILABLE') {
+      response.status(503).json({ error: 'Não foi possível conferir a obra no Centro de Custos agora. Tente de novo em instantes.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'DISCARD_ALREADY_RESTORED') {
+      response.status(409).json({ error: 'Esta proposta já foi restaurada.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'DISCARD_NUMBER_IN_USE') {
+      response.status(409).json({ error: 'Já existe uma proposta com este número. Exclua ou renumere a existente antes de restaurar.' });
       return;
     }
     if (error instanceof Error && error.message === 'PROPOSAL_LOCKED') {

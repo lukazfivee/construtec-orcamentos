@@ -1,5 +1,13 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-09-30 BRT — Descartar e recuperar proposta aprovada (Claude Code)
+
+- Base: `main` em `0752fb6`, branch `feat/desfazer-aprovacao`. Pedido do Lucas: não conseguia excluir orçamento e obra de teste (aprovação é definitiva por regra: gatilhos em `008`/`009` e cópia selada imutável). Escolhido o **descarte administrativo com registro e com recuperação**.
+- `015-discarded-proposals.ts` (`discarded_proposals`, JSON da proposta inteira, quem/quando/motivo permanentes). `proposalDiscard.ts`: só admin, confirma digitando o número, e só descarta se o Centro confirmar `movementCount = 0` da obra (`fetchContractMovement` em `centerTracking.ts`; Centro antigo sem o campo ou fora do ar recusa). Dentro da transação desliga os gatilhos de aprovação e da cópia selada, apaga tudo do número (todas as revisões) e religa. `restoreProposal` devolve as linhas (`jsonb_populate_recordset`), mesmo aprovada, e as travas voltam.
+- Rotas (`routes/proposalDiscard.ts`, montada antes de `/api/proposals`): `POST /:id/discard`, `GET /discarded`, `POST /discarded/:id/restore`. Tela: nos modais de excluir (editor e lista) o admin vê "Descartar com registro"; proposta aprovada só tem essa opção. Configurações > "Propostas descartadas" restaura.
+- Teste: `proposal-discard.test.ts` (confirmação errada, obra com movimento, Centro fora do ar, descarte, recuperação, travas de volta). Conferido no navegador (API isolada): descartar PA aprovada, listar e restaurar voltam com itens e valor final. `npm run verify` 50/51 (1 ignorado). Par no Centro: `movementCount` no resumo e descarte de obra sem movimento.
+- Publicar o Centro antes (o resumo precisa trazer `movementCount`). Nada publicado ainda.
+
 ## 2026-09-30 BRT — p10 também no catálogo, kits e configurações (Claude Code)
 
 - Base: `main` em `c1b9a43`, branch `feat/p10-catalogo`. `suiteGuard.ts`: sem p10, `/api/catalog`, `/api/kits` e `/api/settings` (GET) saem com custo do item, custo estimado do kit e BDI padrão zerados; gravar catálogo e kits (inclui importação) dá 403, porque a tela reenviaria o zero; aplicar kit na proposta (`apply-to-proposal`) segue liberado.

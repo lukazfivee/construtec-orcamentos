@@ -1,5 +1,6 @@
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { ProposalDiscardBox } from './ProposalDiscardBox';
 
 type Props = {
   proposal: ProposalDetail;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function DeleteProposalModal({ proposal, mutationPending, onClose, onDeleteProposal }: Props) {
+  const locked = proposal.status === 'approved' || proposal.hasApprovedRevision === true;
   return (
     <div
       className="modal-overlay"
@@ -21,8 +23,8 @@ export function DeleteProposalModal({ proposal, mutationPending, onClose, onDele
         <div className="modal-header danger-header">
           <AlertTriangle size={24} color="#dc2626" />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 id="delete-proposal-title">Excluir Orçamento</h3>
-            <p>Confirmação de exclusão permanente</p>
+            <h3 id="delete-proposal-title">{locked ? 'Descartar Orçamento aprovado' : 'Excluir Orçamento'}</h3>
+            <p>{locked ? 'Aprovação é definitiva: só o descarte com registro é possível' : 'Confirmação de exclusão permanente'}</p>
           </div>
           <button
             type="button"
@@ -36,11 +38,14 @@ export function DeleteProposalModal({ proposal, mutationPending, onClose, onDele
         </div>
         <div className="modal-body">
           <p>
-            Tem certeza que deseja excluir o orçamento <strong>{proposal.number}</strong> (Cliente: <em>{proposal.clientName}</em>)?
+            {locked ? 'O orçamento ' : 'Tem certeza que deseja excluir o orçamento '}<strong>{proposal.number}</strong> (Cliente: <em>{proposal.clientName}</em>){locked ? ' está aprovado e não pode ser excluído.' : '?'}
           </p>
-          <div className="danger-callout">
-            Esta ação removerá todas as revisões, itens, composições de mão de obra e histórico associados a este orçamento do banco de dados local.
-          </div>
+          {!locked && (
+            <div className="danger-callout">
+              Esta ação removerá todas as revisões, itens, composições de mão de obra e histórico associados a este orçamento do banco de dados local.
+            </div>
+          )}
+          <ProposalDiscardBox proposalId={proposal.id} number={proposal.number} approved={locked} />
         </div>
         <div className="modal-footer">
           <button
@@ -51,7 +56,7 @@ export function DeleteProposalModal({ proposal, mutationPending, onClose, onDele
           >
             Cancelar
           </button>
-          <button
+          {!locked && <button
             type="button"
             className="danger-btn"
             disabled={mutationPending}
@@ -62,7 +67,7 @@ export function DeleteProposalModal({ proposal, mutationPending, onClose, onDele
           >
             <Trash2 size={16} />
             {mutationPending ? 'Excluindo...' : 'Sim, excluir definitivamente'}
-          </button>
+          </button>}
         </div>
       </div>
     </div>

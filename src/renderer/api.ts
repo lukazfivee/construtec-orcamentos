@@ -96,6 +96,12 @@ export const authApi = {
   handoff: (code: string) => request<AuthSession>('/api/auth/handoff', { method: 'POST', body: JSON.stringify({ code }) }),
 };
 
+export type DiscardedProposalRecord = {
+  id: string; proposal_number: string; client_name: string | null; work_name: string | null; revision_count: number;
+  had_approval: boolean; reason: string | null; discarded_by_name: string | null; discarded_at: string;
+  restored_at: string | null; restored_by_name: string | null;
+};
+
 export const proposalApi = {
   list: () => request<{ proposals: ProposalSummary[] }>('/api/proposals'),
   current: () => request<{ proposal: ProposalDetail }>('/api/proposals/current'),
@@ -105,6 +111,13 @@ export const proposalApi = {
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
   delete: (proposalId: string, mode: 'all' | 'revision' = 'all') => request<{ success: boolean; nextProposalId?: string }>(
     `/api/proposals/${proposalId}?mode=${mode}`, { method: 'DELETE' },
+  ),
+  discard: (proposalId: string, input: { confirmNumber: string; reason?: string }) => request<{ discardId: string; proposalNumber: string }>(
+    `/api/proposals/${proposalId}/discard`, { method: 'POST', body: JSON.stringify(input) },
+  ),
+  discarded: () => request<{ discarded: DiscardedProposalRecord[] }>('/api/proposals/discarded'),
+  restoreDiscarded: (discardId: string) => request<{ proposalId: string | null; proposalNumber: string }>(
+    `/api/proposals/discarded/${discardId}/restore`, { method: 'POST', body: '{}' },
   ),
   updateStatus: (proposalId: string, status: ProposalDetail['status']) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) },

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { calculateProposalTotals } from '../shared/proposalFinancials';
 import type { ProposalDetail } from '../shared/contracts';
-import { useSuitePermission } from './SuitePermissions';
+import { isAdminNow , useSuitePermission } from './SuitePermissions';
 import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
 import { ProposalSummaryMobileSheet, Amount, money } from './ProposalSummaryMobileSheet';
 import { DeleteProposalModal } from './DeleteProposalModal';
@@ -266,7 +266,7 @@ export function ProposalSummaryPanel({
             <button
               type="button"
               className="danger-action-btn"
-              disabled={mutationPending || proposal.status === 'approved' || proposal.hasApprovedRevision}
+              disabled={mutationPending || ((proposal.status === 'approved' || proposal.hasApprovedRevision) && !isAdminNow())}
               onClick={() => setDeleteModalOpen(true)}
               title="Excluir este orçamento definitivamente"
             >
