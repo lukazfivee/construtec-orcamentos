@@ -3,7 +3,7 @@
 ## 2026-09-30 BRT — p10 também no catálogo, kits e configurações (Claude Code)
 
 - Base: `main` em `c1b9a43`, branch `feat/p10-catalogo`. `suiteGuard.ts`: sem p10, `/api/catalog`, `/api/kits` e `/api/settings` (GET) saem com custo do item, custo estimado do kit e BDI padrão zerados; gravar catálogo e kits (inclui importação) dá 403, porque a tela reenviaria o zero; aplicar kit na proposta (`apply-to-proposal`) segue liberado.
-- Tela (`SuitePermissions.tsx`: `seesCost`, `costText`) e `/m/` (`OC.costText`) mostram "—" no lugar do custo no catálogo, kits, seletor de itens e BDI padrão. `npm run verify` 49/49. Não conferido no navegador.
+- Tela (`SuitePermissions.tsx`: `seesCost`, `costText`) e `/m/` (`OC.costText`) mostram "—" no lugar do custo no catálogo, kits, seletor de itens e BDI padrão. Sem p10 a aba Mão de obra some. Conferido no navegador (API isolada com Centro de mentira, contas admin e financeiro): o financeiro vê só o valor final, sem custo, BDI, mão de obra, PDF, Word nem compartilhar, e o catálogo mostra traço no custo; o admin segue vendo tudo. `npm run verify` 49/49.
 
 ## 2026-09-30 BRT — Papéis da Suíte no celular (`/m/`) (Claude Code)
 
