@@ -4,7 +4,7 @@
   OC.screens = OC.screens || {};
   const TABS = [
     ['home', 'Início', 'squares-four', ['home', 'painel', 'avisos']],
-    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor']],
+    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor', 'pdf', 'cmp']],
     ['kits', 'Kits', 'stack', ['kits', 'kit']],
     ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli']],
   ];
@@ -130,8 +130,8 @@
     if (id) return OC.go('prop', { id });
     // Recarregar numa tela interna (#kit=<id>, #labor=<id>) volta para ela.
     const [first, param] = location.hash.slice(1).split('=');
-    if (['kit', 'labor'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
-    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova'].includes(first) ? first : 'home');
+    if (['kit', 'labor', 'pdf', 'cmp'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
+    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova', 'pdf', 'cmp'].includes(first) ? first : 'home');
   }
 
   document.addEventListener('DOMContentLoaded', boot);

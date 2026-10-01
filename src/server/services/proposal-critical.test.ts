@@ -195,6 +195,17 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
       // Express nao diferencia maiusculas: a checagem de admin tambem nao pode.
       assert.equal((await request('/Users', session(viewerId), 'GET')).status, 403);
       assert.equal((await request('/USERS/authorized-emails', session(viewerId), 'POST', { email: 'x@example.com' })).status, 403);
+      // Documento do celular: so preco de venda (custo do item e R$ 10,00), capa e validade conforme a escolha.
+      await addMaterial(id);
+      const doc = await request(`/proposals/${id}/document?modelo=resumido&capa=1&validade=0`, session(viewerId), 'GET');
+      assert.equal(doc.status, 200);
+      assert.match(doc.headers.get('content-type') || '', /text\/html/);
+      const html = await doc.text();
+      assert.match(html, /m-cover/);
+      assert.match(html, /R\$\s1\.250,00/);
+      for (const leak of [/R\$\s10,00/, /BDI/, /[Mm]argem/, /m-validity/]) assert.doesNotMatch(html.replace(/<style>[\s\S]*?<\/style>/g, ''), leak, String(leak));
+      assert.doesNotMatch(await (await request(`/proposals/${id}/document?capa=0`, session(viewerId), 'GET')).text(), /class="m-cover"/);
+      assert.equal((await request(`/proposals/${randomUUID()}/document`, session(viewerId), 'GET')).status, 404);
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'approved' })).status, 200);
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'draft' })).status, 409);
       assert.equal((await request(`/proposals/${id}`, session(userId), 'DELETE')).status, 409);
