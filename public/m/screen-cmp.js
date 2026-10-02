@@ -6,6 +6,12 @@
   const same = (a, b) => Math.abs((Number(a) || 0) - (Number(b) || 0)) < 0.005;
   const signed = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${OC.money0(Math.abs(v))}`;
 
+  // A mao de obra entra como uma linha de venda por revisao, como no PDF do cliente.
+  const withLabor = (P) => {
+    const labor = OC.laborSale(P);
+    return labor > 0 ? { ...P, items: [...P.items, { code: '', description: 'Mão de obra e serviços técnicos', category: 'Mão de obra', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor }] } : P;
+  };
+
   // Linhas por sistema: entrou, saiu, quantidade ou preco mudou, igual.
   function diff(A, B) {
     const mapA = new Map(A.items.map((it) => [key(it), it]));
@@ -27,11 +33,12 @@
     const up = r.d > 0.004, down = r.d < -0.004;
     const meta = r.kind === 'add' ? `Incluído · ${OC.num(r.it.quantity)} ${r.it.unit}`
       : r.kind === 'del' ? `Removido · era ${OC.num(r.it.quantity)} ${r.it.unit}`
-      : r.kind === 'same' ? `${OC.num(r.it.quantity)} ${r.it.unit} · sem mudança`
+      : r.kind === 'same' ? `${OC.num(r.it.quantity)} ${r.it.unit} · ${OC.money(r.it.unitSale)} por ${r.it.unit}`
       : [r.qty ? `${OC.num(r.a.quantity)} → ${OC.num(r.it.quantity)} ${r.it.unit}` : '', r.price ? `${OC.money(r.a.unitSale)} → ${OC.money(r.it.unitSale)}/${r.it.unit}` : ''].filter(Boolean).join(' · ');
-    const ic = r.kind === 'add' ? 'plus' : r.kind === 'del' ? 'minus' : up ? 'caret-up' : down ? 'caret-down' : 'check';
-    return `<div class="cmp-row ${up ? 'up' : down ? 'down' : 'eq'}${r.kind === 'same' ? ' same' : ''}"><span class="cmp-ic">${icon(ic, 14)}</span>
-      <span class="grow"><b>${esc(r.it.description)}</b><small>${esc(meta)}</small></span><b class="val">${r.kind === 'same' ? '' : esc(signed(r.d))}</b></div>`;
+    const ic = r.kind === 'add' ? 'plus' : r.kind === 'del' ? 'minus' : r.kind === 'same' ? 'equals' : 'pencil-simple';
+    const tag = r.kind === 'add' ? 'Incluído' : r.kind === 'del' ? 'Removido' : r.kind === 'same' ? 'Igual' : r.qty && r.price ? 'Qtd. e preço' : r.qty ? 'Quantidade' : 'Preço';
+    return `<div class="cmp-row ${up ? 'up' : down ? 'down' : 'eq'}${r.kind === 'same' ? ' same' : r.kind === 'del' ? ' del' : ''}"><span class="cmp-ic">${icon(ic, 14)}</span>
+      <span class="grow"><b>${esc(r.it.description)}</b><small>${esc(meta)}</small></span><span class="cmp-val"><b class="val">${r.kind === 'same' ? esc(OC.money0(r.it.totalSale)) : esc(signed(r.d))}</b><small class="cmp-tag">${tag}</small></span></div>`;
   }
 
   function pickSheet(list, side, a, b, choose) {
@@ -43,7 +50,7 @@
     OC.$$('[data-pick]', s.el).forEach((btn) => btn.addEventListener('click', () => { s.close(); choose(btn.dataset.pick); }));
   }
 
-  const skeleton = () => `<div class="cmp-pick"><div class="skeleton" style="height:58px"></div><div class="skeleton" style="height:58px"></div></div>
+  const skeleton = () => `<div class="cmp-pick"><div class="skeleton" style="height:96px"></div><span></span><div class="skeleton" style="height:96px"></div></div>
     <div class="skeleton" style="height:150px"></div><div class="skeleton" style="height:56px"></div>${'<div class="skeleton" style="height:48px"></div>'.repeat(4)}`;
 
   OC.screens.cmp = async function (params) {
@@ -77,12 +84,11 @@
     const load = (id) => (cache[id] = cache[id] || OC.api(`/proposals/${encodeURIComponent(id)}`).then((d) => d.proposal).catch((error) => { delete cache[id]; throw error; }));
 
     async function paint() {
-      if (ids.indexOf(a) > ids.indexOf(b)) [a, b] = [b, a];
       let A, B;
       try { [A, B] = await Promise.all([load(a), load(b)]); } catch (error) { fail(error); return; }
       if (nav !== OC.nav) return;
       const cost = OC.can('p10');
-      const rows = diff(A, B);
+      const rows = diff(withLabor(A), withLabor(B));
       const fa = (A.totals && A.totals.finalValue) || 0, fb = (B.totals && B.totals.finalValue) || 0;
       const itemsD = rows.reduce((s, r) => s + r.d, 0);
       const geral = fb - fa - itemsD;
@@ -92,18 +98,18 @@
       const systems = [...new Set(rows.map((r) => r.it.category || 'Itens'))];
       const changed = rows.filter((r) => r.kind !== 'same').length;
       const revA = list.find((r) => r.id === a), revB = list.find((r) => r.id === b);
-      const label = (r, P) => `${OC.rev(r.revision)}${P.status === 'draft' && r.isLatest ? ' · em edição' : ''}`;
+      const label = (r) => OC.rev(r.revision);
       OC.$('#cmp-sub', el).textContent = `${B.number} · ${OC.rev(revA.revision)} × ${OC.rev(revB.revision)}`;
       const dir = (v) => (v > 0.5 ? 'up' : v < -0.5 ? 'down' : 'eq');
       body.innerHTML = `<div class="cmp-pick">
-          <button class="card pick" type="button" data-side="a"><small>De</small><b>${esc(label(revA, A))}</b><span>${OC.pill(A.status)}</span></button>
-          ${icon('arrow-right', 18)}
-          <button class="card pick" type="button" data-side="b"><small>Para</small><b>${esc(label(revB, B))}</b><span>${OC.pill(B.status)}</span></button></div>
+          <button class="card pick" type="button" data-side="a" aria-label="Trocar a revisão de partida"><span class="pick-top"><small>De</small>${icon('caret-down', 14)}</span><b>${esc(label(revA))}</b><span>${OC.pill(A.status)}</span><small>${esc(OC.dateFull(revA.updatedAt))}</small></button>
+          <button class="swap" type="button" data-swap aria-label="Trocar a ordem das revisões">${icon('arrows-left-right', 20)}</button>
+          <button class="card pick" type="button" data-side="b" aria-label="Trocar a revisão de chegada"><span class="pick-top"><small>Para</small>${icon('caret-down', 14)}</span><b>${esc(label(revB))}</b><span>${OC.pill(B.status)}</span><small>${esc(OC.dateFull(revB.updatedAt))}</small></button></div>
         ${B.status === 'draft' && revB.isLatest ? '<p class="hint">Comparando com o que está sendo editado agora.</p>' : ''}
         <div class="card"><div class="kv top-kv"><span><small>Valor final</small><b>${esc(OC.money0(fa))} → ${esc(OC.money0(fb))}</b></span>
-            <span class="right cmp-d ${dir(fb - fa)}"><b>${esc(signed(fb - fa))}</b><small>${pct ? `${pct > 0 ? '+' : '−'}${esc(OC.pct(Math.abs(pct)))}` : 'sem mudança'}</small></span></div>
+            <span class="right cmp-d ${dir(fb - fa)}"><b>${esc(signed(fb - fa))}</b><small>${pct ? `${pct > 0 ? '+' : '−'}${esc(OC.pct(Math.abs(pct)))} no valor final` : 'sem mudança'}</small></span></div>
           <div class="kv sep"><span>Itens</span><b class="cmp-d ${dir(itemsD)}">${esc(signed(itemsD))}</b></div>
-          <div class="kv"><span>${cost ? `BDI, impostos e mão de obra · BDI ${esc(OC.dec2(A.bdiMultiplier))} → ${esc(OC.dec2(B.bdiMultiplier))}` : 'Ajuste geral de preço'}</span><b class="cmp-d ${dir(geral)}">${esc(signed(geral))}</b></div>
+          ${Math.abs(geral) > 0.5 ? `<div class="kv"><span>${cost && Math.abs(A.bdiMultiplier - B.bdiMultiplier) > 1e-6 ? `BDI ${esc(OC.dec2(A.bdiMultiplier))} → ${esc(OC.dec2(B.bdiMultiplier))}` : 'Ajuste geral de preço'}</span><b class="cmp-d ${dir(geral)}">${esc(signed(geral))}</b></div>` : ''}
           <div class="cmp-count">${counters.map(([k, l]) => `<span><b>${count(k)}</b><small>${l}</small></span>`).join('')}</div></div>
         ${cost ? '' : '<p class="hint">Valores de venda. Custo e BDI ficam com quem tem essa permissão.</p>'}
         <button class="opt" type="button" data-only aria-pressed="${only}"><span class="grow"><b>Só o que mudou</b><small>${changed} de ${rows.length} itens mudaram</small></span><span class="switch"></span></button>
@@ -114,7 +120,7 @@
           if (!shown.length) return '';
           const mod = own.filter((r) => r.kind !== 'same');
           const sum = own.reduce((s, r) => s + r.d, 0);
-          return `<div class="cmp-group"><div class="sec-row"><span class="label">${esc(sys)}</span><span class="label">${mod.length ? `${mod.length} ${mod.length === 1 ? 'mudou' : 'mudaram'} · ${esc(signed(sum))}` : 'sem mudança'}</span></div>
+          return `<div class="cmp-group"><div class="sec-row"><span class="label">${esc(sys)}</span><span class="label">${mod.length ? `${mod.length} ${mod.length === 1 ? 'mudou' : 'mudaram'} · ${esc(signed(sum))}` : `nada mudou · ${own.length} ${own.length === 1 ? 'item' : 'itens'}`}</span></div>
             ${shown.map(rowHtml).join('')}</div>`;
         }).join('') : `<div class="empty">${icon('check-circle', 28)}Nada mudou entre as duas revisões.</div>`}`;
       OC.$$('[data-side]', body).forEach((btn) => btn.addEventListener('click', () => pickSheet(list, btn.dataset.side, a, b, (id) => {
@@ -123,6 +129,7 @@
         if (a === b) return;
         paint();
       })));
+      OC.$('[data-swap]', body).addEventListener('click', () => { [a, b] = [b, a]; paint(); });
       OC.$('[data-only]', body).addEventListener('click', () => { only = !only; paint(); });
     }
     await paint();
@@ -134,8 +141,9 @@
     const sorted = list.slice().sort((x, y) => x.revision - y.revision);
     const first = sorted[0], last = sorted[sorted.length - 1];
     const d = (last.totalSale || 0) - (first.totalSale || 0);
-    return `<button class="card cmp-card" type="button" data-cmp="${esc(current)}">${icon('clock-counter-clockwise', 20)}
-      <span class="grow"><b>Comparar ${esc(OC.rev(first.revision))} × ${esc(OC.rev(last.revision))}</b><small>Itens, quantidades e preços que mudaram</small></span>
-      <b class="cmp-d ${d > 0.5 ? 'up' : d < -0.5 ? 'down' : 'eq'}">${esc(signed(d))}</b>${icon('caret-right', 18)}</button>`;
+    const dir = d > 0.5 ? 'up' : d < -0.5 ? 'down' : 'eq';
+    return `<button class="card tile-card" type="button" data-cmp="${esc(current)}"><span class="tile">${icon('clock-counter-clockwise', 21)}</span>
+      <span class="grow"><b>Comparar ${esc(OC.rev(first.revision))} × ${esc(OC.rev(last.revision))}</b>
+      <small>${dir === 'eq' ? 'Sem diferença no valor final' : `<span class="cmp-d ${dir}">${esc(signed(d))}</span> no valor final`} · item a item, por sistema</small></span>${icon('caret-right', 18)}</button>`;
   };
 })(window.OC = window.OC || {});
