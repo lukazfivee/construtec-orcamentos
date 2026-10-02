@@ -15,7 +15,9 @@ export type CatalogProduct = {
 export type ExsatValidationStatus = 'confirmed' | 'divergent' | 'unavailable' | 'error';
 export type CatalogImportItem = Omit<CatalogProduct, 'id' | 'updatedAt'> & { validationStatus?: ExsatValidationStatus };
 export type CatalogImportStatus = 'new' | 'updated' | 'unchanged' | 'no_price' | ExsatValidationStatus;
-export type CatalogImportPreviewItem = CatalogImportItem & { status: CatalogImportStatus };
+// previous: como o item esta hoje no catalogo (so quando o codigo ja existe). Usado pelo celular para mostrar antes e depois.
+export type CatalogImportPrevious = Pick<CatalogProduct, 'description' | 'category' | 'unit' | 'currentCost' | 'manufacturer' | 'model' | 'source'>;
+export type CatalogImportPreviewItem = CatalogImportItem & { status: CatalogImportStatus; previous?: CatalogImportPrevious };
 export type CatalogImportPreview = { items: CatalogImportPreviewItem[]; summary: { new: number; updated: number; unchanged: number; noPrice: number } };
 export type ExsatPageFailure = {
   url: string;

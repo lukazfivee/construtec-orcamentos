@@ -9,6 +9,7 @@ import { createNotificationsRouter } from './routes/notifications';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
 import { createProposalTrackingRouter } from './routes/proposalTracking';
+import { createProposalPriceDriftRouter } from './routes/proposalPriceDrift';
 import { createProposalDocumentRouter } from './routes/proposalDocument';
 import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
@@ -197,6 +198,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.use('/api/clients', createClientsRouter(database));
   api.use('/api/proposals', createProposalDiscardRouter(database));
   api.use('/api/proposals', createProposalTrackingRouter(database));
+  api.use('/api/proposals', createProposalPriceDriftRouter(database));
   api.use('/api/proposals', createProposalDocumentRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));

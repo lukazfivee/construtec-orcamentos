@@ -228,13 +228,15 @@
     paint();
   };
 
-  // Catalogo: consulta rapida (importar e sincronizar com a EXSAT ficam na versao completa).
+  // Catalogo: consulta, importar planilha e integracao EXSAT (Rodada 22). Foto e PDF ficam na versao completa.
   OC.screens.cat = async function (params) {
     const summary = await OC.api('/dashboard').then((d) => d.summary || {}).catch(() => ({}));
     const el = OC.render(`${OC.header('Catálogo', { back: true })}
-      <p class="sub" style="margin:-6px 0 0">${summary.totalProductsCount || 0} itens · importar e sincronizar na versão completa</p>
+      <p class="sub" style="margin:-6px 0 0">${summary.totalProductsCount || 0} itens</p>
+      <button class="card ex-link" type="button" id="c-ex">${icon('arrow-square-out', 20)}<span class="grow"><b>Integração EXSAT</b><small id="c-ex-s">Conferindo preços das propostas…</small></span>${icon('caret-right', 18)}</button>
       <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" placeholder="Buscar por nome ou código" autocomplete="off"></label>
-      <div class="rows" id="c-rows"></div>`, true, params);
+      <div class="rows" id="c-rows"></div>
+      <div class="actions">${OC.canEdit() && OC.can('p10') ? `<button class="btn2" type="button" id="c-imp">${icon('plus', 18)}Importar</button>` : ''}<button class="btn" type="button" id="c-sync">${icon('arrow-square-out', 18)}EXSAT</button></div>`, true, params);
     const rows = OC.$('#c-rows', el);
     let timer = 0, seq = 0;
     const load = async (q) => {
@@ -248,6 +250,15 @@
     };
     OC.$('#c-q', el).addEventListener('input', (event) => { clearTimeout(timer); timer = setTimeout(() => load(event.target.value.trim()), 300); });
     load('');
+    OC.$('#c-ex', el).addEventListener('click', () => OC.open('exsat'));
+    OC.$('#c-sync', el).addEventListener('click', () => OC.open('exsat'));
+    const imp = OC.$('#c-imp', el);
+    if (imp) imp.addEventListener('click', () => OC.open('imp'));
+    // Cartao da EXSAT: quantas propostas em edicao tem preco novo (falha de rede nao atrapalha o catalogo).
+    OC.api('/proposals/price-drift').then((d) => {
+      const n = (d.proposals || []).length, t = OC.$('#c-ex-s', el);
+      if (t) t.textContent = n ? `${n} ${n === 1 ? 'proposta com preço novo' : 'propostas com preço novo'}` : 'Nenhum preço novo nas propostas';
+    }).catch(() => { const t = OC.$('#c-ex-s', el); if (t) t.textContent = 'Toque para ver preços e propostas'; });
   };
 
   // Clientes e obras: cartoes que abrem com as obras e o atalho para uma proposta nova.
