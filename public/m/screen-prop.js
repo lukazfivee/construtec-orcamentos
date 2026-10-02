@@ -25,7 +25,7 @@
     const status = (s, msg) => async () => { await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: s } }); OC.toast(msg); ctx.reload(); };
     if (p.status === 'draft' && p.items.length) return { hint: 'Próximo passo: revisão interna do orçamento', prim: ['Enviar para revisão', 'paper-plane-tilt', status('review', 'Enviada para revisão interna')] };
     if (p.status === 'draft') return { hint: 'A proposta ainda não tem itens', prim: ['Adicionar itens', 'plus', () => ctx.tab('itens')] };
-    if (p.status === 'review') return { hint: 'Gere o PDF do cliente na versão completa. Custo, BDI e margem não aparecem nele.', prim: ['Marcar como enviada', 'paper-plane-tilt', status('sent', 'Proposta marcada como enviada')] };
+    if (p.status === 'review') return { hint: 'Gere o PDF do cliente e envie. Custo, BDI e margem não aparecem nele.', prim: ['Gerar PDF e enviar', 'paper-plane-tilt', () => OC.open('pdf', { id: p.id })], sec: ['Só marcar enviada', () => confirmSheet('Marcar como enviada', 'Use quando o PDF já foi mandado ao cliente por outro caminho.', 'Marcar enviada', status('sent', 'Proposta marcada como enviada'))] };
     if (p.status === 'sent') {
       return {
         hint: 'Resposta do cliente',
@@ -71,6 +71,7 @@
           <div class="kv sep"><span class="strong">Custo base</span><b>${esc(OC.money0(t.base))}</b></div>
           <div class="kv"><span>+ BDI ${esc(OC.dec2(p.bdiMultiplier))} ×</span><b>${esc(OC.money0(t.additions))}</b></div>` : ''}
           <div class="kv"><span>+ Impostos ${esc(OC.dec2(p.taxPercentage || 0))}%</span><b>${esc(OC.money0(t.tax))}</b></div></div>
+        <button class="card tile-card" type="button" data-pdf><span class="tile">${icon('file-text', 21)}</span><span class="grow"><b>PDF da proposta</b><small>${p.items.length ? 'Pré-visualizar, baixar e compartilhar' : 'Adicione itens para gerar o PDF'}</small></span>${icon('caret-right', 18)}</button>
         <div class="card">
           <div class="kv"><span>Validade</span><b>${p.validUntil ? `${esc(OC.dateFull(p.validUntil))}${days !== null ? ` · ${days < 0 ? 'vencida' : `${days} ${days === 1 ? 'dia' : 'dias'}`}` : ''}` : 'Sem validade'}</b></div>
           <div class="kv"><span>Cliente</span><b>${esc(p.clientName)}</b></div>
@@ -79,6 +80,7 @@
         ${p.scope ? `<div class="card scope"><small class="label">Escopo</small><p>${esc(p.scope)}</p></div>` : ''}
         ${next.hint ? `<p class="hint">${esc(next.hint)}</p>` : ''}${actions}`,
       bind(el) {
+        OC.$('[data-pdf]', el).addEventListener('click', () => OC.open('pdf', { id: p.id }));
         if (next.prim) OC.$('[data-prim]', el).addEventListener('click', async (event) => {
           const b = event.currentTarget; b.disabled = true;
           try { await next.prim[2](); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { b.disabled = false; }
@@ -170,12 +172,14 @@
     const data = await OC.api(`/proposals/${p.id}/history`);
     const list = data.revisions || [];
     return {
-      html: `<div class="timeline">${list.map((r) => `<button class="rev${r.id === p.id ? ' cur' : ''}" type="button" data-rev="${esc(r.id)}">
+      html: `${OC.cmpCard ? OC.cmpCard(list, p.id) : ''}<div class="timeline">${list.map((r) => `<button class="rev${r.id === p.id ? ' cur' : ''}" type="button" data-rev="${esc(r.id)}">
           <i class="dot"></i><span class="grow"><span class="rev-top"><b>${esc(OC.rev(r.revision))}</b>${OC.pill(r.status)}${r.isLatest ? '<span class="tag">Atual</span>' : ''}</span>
           <small>${r.itemCount} ${r.itemCount === 1 ? 'item' : 'itens'} · ${esc(r.responsibleName || '')} · ${esc(OC.dateFull(r.updatedAt))}</small></span>
           <b class="val">${r.totalSale ? esc(OC.money0(r.totalSale)) : 'Sem itens'}</b></button>`).join('')}</div>
-        <p class="hint">O comparativo entre revisões fica na versão completa.</p>`,
+`,
       bind(el) {
+        const cmp = OC.$('[data-cmp]', el);
+        if (cmp) cmp.addEventListener('click', () => OC.open('cmp', { id: p.id }, { tab: 'revisoes' }));
         OC.$$('[data-rev]', el).forEach((b) => b.addEventListener('click', () => { if (b.dataset.rev !== p.id) OC.go('prop', { id: b.dataset.rev, tab: 'resumo' }, { back: true }); }));
       },
     };
@@ -184,7 +188,7 @@
   OC.screens.prop = async function (params) {
     let p = (await OC.api(`/proposals/${encodeURIComponent(params.id)}`)).proposal;
     let tab = params.tab || 'resumo';
-    const el = OC.render(`${OC.header(p.number, { back: true })}
+    const el = OC.render(`${OC.header(p.number, { back: true, extra: `<button class="bell-btn" type="button" data-pdf-top aria-label="PDF da proposta">${icon('file-text', 22)}</button>` })}
       <div class="prop-tags"><span class="tag">${esc(OC.rev(p.revision))}</span><span id="p-pill"></span><span class="prop-work">${esc(p.workName || p.clientName)}</span></div>
       <div class="seg" id="p-tabs">${[['resumo', 'Resumo'], ['itens', 'Itens'], ['revisoes', 'Revisões']].map(([k, l]) => `<button type="button" data-tab="${k}">${l}</button>`).join('')}</div>
       <div id="p-body" class="p-body"></div>`, true, params);
@@ -206,6 +210,7 @@
       history.replaceState(null, '', `#prop=${encodeURIComponent(p.id)}`);
     }
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));
+    OC.$('[data-pdf-top]', el).addEventListener('click', () => OC.open('pdf', { id: p.id }));
     await paint();
   };
 })(window.OC = window.OC || {});
