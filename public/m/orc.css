@@ -186,3 +186,99 @@ a.btn { color: #fefefe; }
 .cli { padding: 0; overflow: hidden; }
 .cli-body .chip-act { align-self: flex-start; }
 .cli-body .kv span { color: var(--text); }
+
+/* Rodada 22: importar catalogo, EXSAT e aviso de preco novo. */
+:root { --ok: #176d39; --ok-soft: #f0f9f2; --ok-line: #94d3a8; --bad-soft: #fbe9e4; }
+html[data-theme="escuro"] { --ok: #8fdca9; --ok-soft: #0f3320; --ok-line: #1f5a36; --bad-soft: #3d1a12; }
+.imp-body { display: flex; flex-direction: column; gap: 14px; }
+.imp-steps { display: grid; gap: 8px; }
+.imp-labels { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 11px; color: var(--n300); }
+.imp-labels span { display: flex; align-items: center; gap: 5px; }
+.imp-labels i { width: 14px; height: 14px; border-radius: 50%; background: var(--n800); display: grid; place-items: center; color: #fff; flex: none; }
+.imp-labels .done i { background: var(--accent); }
+.imp-labels .cur i { background: var(--surface); box-shadow: inset 0 0 0 2px var(--accent); }
+.imp-labels .cur, .imp-labels .done { color: var(--text); }
+.imp-labels .cur { font-weight: 600; }
+.imp-pick, .imp-head { display: flex; align-items: center; gap: 12px; }
+.imp-pick .grow, .imp-head .grow, .imp-field .grow, .ex-head .grow, .ex-link .grow, .drift-banner .grow, .drift-row .grow { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.imp-pick small, .imp-head small, .imp-ex small, .imp-field small, .ex-head small, .ex-link small, .imp-err small, .ex-prop small, .drift-banner small, .drift-row small { font-size: 12px; color: var(--n300); }
+.imp-ic, .ex-ic { flex: none; width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-900); color: var(--accent-300); }
+.imp-or { display: flex; align-items: center; gap: 10px; color: var(--n300); font-size: 12px; }
+.imp-or::before, .imp-or::after { content: ''; flex: 1; height: 1px; background: var(--divider); }
+.imp-ex { display: grid; gap: 10px; }
+.imp-ex > b { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.imp-ex > b .ico { color: var(--accent-300); }
+.imp-head input { width: 44px; height: 26px; appearance: none; -webkit-appearance: none; border-radius: 13px; background: var(--n600); position: relative; flex: none; transition: background .15s; }
+.imp-head input::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.imp-head input:checked { background: var(--accent); }
+.imp-head input:checked::after { transform: translateX(18px); }
+.imp-load { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 22px 16px; }
+.imp-load .bar { width: 100%; }
+.imp-load > b { font-size: 15px; }
+.imp-load > small { font-size: 12px; color: var(--n300); }
+.spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--n800); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+.imp-checks { list-style: none; margin: 4px 0 0; padding: 0; width: 100%; display: grid; gap: 8px; text-align: left; }
+.imp-checks li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--n500); }
+.imp-checks li.cur { color: var(--text); }
+.imp-checks li.done { color: var(--accent-300); }
+.imp-checks .dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--n600); flex: none; }
+.imp-checks li.cur .dot { box-shadow: inset 0 0 0 2px var(--accent); }
+.imp-state { padding-top: 36px; }
+.imp-state > b { color: var(--text); font-size: 17px; }
+.imp-state > span { max-width: 300px; line-height: 1.5; }
+.imp-fields { display: grid; gap: 10px; }
+.imp-field { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; text-align: left; color: var(--text); }
+.imp-field b { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.imp-field.bad { box-shadow: inset 0 0 0 2px var(--danger); }
+.imp-field > .ico { flex: none; color: var(--n300); }
+.imp-badge { flex: none; height: 20px; padding: 0 8px; border-radius: 5px; font-size: 10.5px; font-weight: 600; display: inline-flex; align-items: center; white-space: nowrap; }
+.imp-badge.sug { background: var(--accent-900); color: var(--accent-300); }
+.imp-badge.conf { background: var(--warn-soft); color: var(--warn); }
+.imp-badge.mine, .imp-badge.left { background: var(--n800); color: var(--text); }
+.imp-badge.miss { background: var(--bad-soft); color: var(--danger); }
+.imp-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.imp-tabs button { min-height: 56px; border: 0; border-radius: 10px; background: transparent; box-shadow: inset 0 0 0 1px var(--divider); color: var(--text); display: grid; gap: 0; place-items: center; align-content: center; }
+.imp-tabs button b { font-size: 17px; font-weight: 600; }
+.imp-tabs button span { font-size: 11.5px; color: var(--n300); }
+.imp-tabs button[aria-selected="true"] { background: var(--surface); box-shadow: inset 0 0 0 2px var(--accent); }
+.imp-tabs button.bad b { color: var(--danger); }
+.imp-upd .ba { font-weight: 600; color: var(--text); }
+.delta { flex: none; height: 24px; padding: 0 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+.delta.up { background: var(--warn-soft); color: var(--warn); }
+.delta.down { background: var(--ok-soft); color: var(--ok); }
+.delta-t.up, .drift-sum b.up { color: var(--warn); }
+.delta-t.down, .drift-sum b.down { color: var(--ok); }
+.imp-errs { display: grid; gap: 10px; }
+.imp-err { display: grid; gap: 3px; }
+.imp-err > b { font-size: 14px; font-weight: 600; }
+.imp-err .why { margin: 4px 0 0; display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; font-weight: 600; color: var(--danger); }
+.imp-err .why .ico { flex: none; margin-top: 1px; }
+.imp-err.left { opacity: .75; }
+.imp-err.left .why { color: var(--n300); }
+.row-act { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.chip-act.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--divider); color: var(--text); }
+.imp-go { align-items: center; }
+.imp-go .imp-go-t { flex: 1.1; display: grid; gap: 1px; min-width: 0; }
+.imp-go .imp-go-t b { font-size: 14px; }
+.imp-go .imp-go-t small { font-size: 11.5px; color: var(--n300); }
+.imp-ok { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 22px 16px; }
+.imp-ok .ok-ic { color: var(--ok); }
+.imp-ok small { color: var(--n300); font-size: 12px; }
+.ex-link { width: 100%; display: flex; align-items: center; gap: 12px; border: 0; text-align: left; color: var(--text); }
+.ex-link > .ico:first-child { color: var(--accent-300); flex: none; }
+.ex-link > .ico:last-child { color: var(--n300); flex: none; }
+.ex-head { display: flex; align-items: center; gap: 12px; padding-bottom: 6px; }
+.ex-btns { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+.ex-prop { display: grid; gap: 3px; margin-top: 10px; }
+.ex-prop > b { font-size: 14px; font-weight: 600; }
+.drift-banner { display: flex; gap: 12px; align-items: flex-start; background: var(--warn-soft); box-shadow: inset 0 0 0 1px var(--warn-bar); }
+.drift-banner .ic { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--surface); color: var(--warn); }
+.drift-banner .grow b { font-size: 14px; font-weight: 600; }
+.drift-banner small { color: var(--warn-text); }
+.drift-banner .chip-act { justify-self: start; margin-top: 6px; background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--warn-bar); }
+.drift-list { display: grid; margin-top: 8px; max-height: 38dvh; overflow-y: auto; }
+.drift-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--divider); }
+.drift-row:first-child { border-top: 0; }
+.drift-row .grow b { font-size: 13.5px; font-weight: 600; }
+.drift-row > b { flex: none; font-size: 13px; }
+.drift-sum { margin-top: 10px; }

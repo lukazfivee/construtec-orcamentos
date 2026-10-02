@@ -18,6 +18,7 @@ const entryPoints = [
   'src/server/services/integration/integration-key.test.ts',
   'src/server/services/centro-identity.test.ts',
   'src/server/suiteGuard.test.ts',
+  'src/server/services/priceDrift.test.ts',
   'src/server/services/proposal-discard.test.ts',
   'src/server/services/identity-self-heal.test.ts',
   'src/server/outbox-cron.test.ts',

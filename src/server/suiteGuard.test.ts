@@ -66,6 +66,13 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(catalogo.status, 200);
   assert.equal(run(user('financeiro'), 'PATCH', '/api/catalog/p1', { currentCost: 0 }).status, 403);
   assert.equal(run(user('financeiro'), 'POST', '/api/catalog/import/bulk').status, 403);
+  // Importar pelo celular: previa e pagina do EXSAT tambem exigem p10 (a previa devolve o custo anterior).
+  assert.equal(run(user('financeiro'), 'POST', '/api/catalog/import/preview').status, 403);
+  assert.equal(run(user('tecnico'), 'POST', '/api/catalog/import/exsat').status, 403);
+  assert.equal(run(user('comercial'), 'POST', '/api/catalog/import/preview').status, 200);
+  // Aviso de preco novo: liberado sem p10 (o servidor so devolve o valor final); atualizar tambem.
+  assert.equal(run(user('tecnico'), 'GET', '/api/proposals/price-drift').status, 200);
+  assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/price-drift/apply').status, 200);
   assert.equal(run(user('tecnico'), 'PUT', '/api/kits/k1').status, 403);
   assert.equal(run(user('tecnico'), 'POST', '/api/kits/k1/apply-to-proposal', { proposalId: 'p' }).status, 200);
   assert.equal(run(user('comercial'), 'PATCH', '/api/catalog/p1', { currentCost: 10 }).status, 200);

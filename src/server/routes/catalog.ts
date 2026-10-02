@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
-import { createCatalogProduct, importCatalogProducts, listCatalogProducts, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
+import { createCatalogProduct, importCatalogProducts, listCatalogProducts, listCatalogUnits, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
 import { attributeAuditEvent, attributeCatalogBatchAudit } from '../services/auditAttribution';
 import type { LocalDatabase } from '../services/database';
 import { searchCatalog } from '../services/proposals';
@@ -53,6 +53,10 @@ export const createCatalogRouter = (database: LocalDatabase) => {
       const query = z.string().trim().max(120).catch('').parse(request.query.q);
       response.json({ products: await listCatalogProducts(database, query) });
     } catch (error) { next(error); }
+  });
+
+  router.get('/units', async (_request, response, next) => {
+    try { response.json({ units: await listCatalogUnits(database) }); } catch (error) { next(error); }
   });
 
   router.post('/', async (request, response, next) => {

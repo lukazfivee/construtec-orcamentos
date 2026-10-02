@@ -101,6 +101,10 @@ const normalizedItem = (item: CatalogImportItem) => ({
   active: item.active,
 });
 
+export const listCatalogUnits = async (database: LocalDatabase) => (await database.query<{ unit: string; total: string }>(
+  'SELECT lower(unit) AS unit, count(*)::text AS total FROM products GROUP BY lower(unit) ORDER BY count(*) DESC, lower(unit) LIMIT 60',
+)).rows.map((row) => ({ unit: row.unit, total: Number(row.total) }));
+
 const isExsatItem = (item: CatalogImportItem) => item.source.trim().toUpperCase().startsWith('EXSAT');
 
 export const previewCatalogImport = async (database: LocalDatabase, items: CatalogImportItem[]): Promise<CatalogImportPreview> => {
@@ -117,6 +121,10 @@ export const previewCatalogImport = async (database: LocalDatabase, items: Catal
     if (isExsatItem(item) && (!Number.isFinite(normalized.currentCost) || normalized.currentCost <= 0)) return { ...item, status: 'no_price' as const };
     const current = byCode.get(normalized.code.toLowerCase());
     if (!current) return { ...item, status: 'new' as const };
+    const previous = {
+      description: current.description, category: current.category, unit: current.unit, currentCost: Number(current.current_cost),
+      manufacturer: current.manufacturer ?? null, model: current.model ?? null, source: current.source,
+    };
     const unchanged = (current.manufacturer ?? null) === normalized.manufacturer
       && (current.model ?? null) === normalized.model
       && current.description.trim() === normalized.description
@@ -125,7 +133,7 @@ export const previewCatalogImport = async (database: LocalDatabase, items: Catal
       && Number(current.current_cost) === normalized.currentCost
       && current.source.trim() === normalized.source
       && current.active === normalized.active;
-    return { ...item, status: unchanged ? 'unchanged' as const : 'updated' as const };
+    return { ...item, status: unchanged ? 'unchanged' as const : 'updated' as const, previous };
   });
   return {
     items: previewItems,

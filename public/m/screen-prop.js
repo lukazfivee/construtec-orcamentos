@@ -202,7 +202,9 @@
       const view = tab === 'itens' ? itens(p, ctx) : (tab === 'revisoes' ? await revisoes(p) : resumo(p, ctx));
       if (nav !== OC.nav) return;
       body.innerHTML = view.html;
+      body.dataset.stamp = String((Number(body.dataset.stamp) || 0) + 1);
       view.bind(body);
+      if (tab !== 'revisoes' && OC.driftBanner) OC.driftBanner(p, ctx, body);
       history.replaceState(null, '', `#prop=${encodeURIComponent(p.id)}`);
     }
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));
