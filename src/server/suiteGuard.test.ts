@@ -54,6 +54,10 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run(user('tecnico'), 'GET', '/api/proposals/abc/center-tracking').status, 403);
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/bdi', { bdiMultiplier: 2 }).status, 200);
 
+  // Documento do cliente no celular: aberto sem p10 (so preco de venda); marcar enviada segue exigindo p11.
+  assert.equal(run(user('tecnico'), 'GET', '/api/proposals/abc/document').status, 200);
+  assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/status', { status: 'sent' }).status, 403);
+
   // p11: engenharia ve custo mas nao aprova nem envia; comercial pode.
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 403);
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'review' }).status, 200);

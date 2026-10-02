@@ -4,7 +4,7 @@
   OC.screens = OC.screens || {};
   const TABS = [
     ['home', 'Início', 'squares-four', ['home', 'painel', 'avisos']],
-    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor']],
+    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor', 'pdf', 'cmp']],
     ['kits', 'Kits', 'stack', ['kits', 'kit']],
     ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli', 'imp', 'exsat']],
   ];
@@ -36,7 +36,7 @@
   OC.go = function (name, params, opts = {}) {
     const screen = OC.screens[name];
     if (!screen) return;
-    if (opts.push) stack.push([current, currentParams]);
+    if (opts.push) stack.push([current, { ...currentParams, ...(opts.returnTo || {}) }]);
     else if (!opts.back) stack.length = 0;
     current = name;
     if (OC.suite) OC.suite.context = null;
@@ -52,10 +52,14 @@
       OC.errorScreen(error, () => OC.go(name, params));
     });
   };
-  OC.open = (name, params) => OC.go(name, params, { push: true });
+  // returnTo: parametros extras da tela de origem ao voltar (ex.: a aba da proposta).
+  OC.open = (name, params, returnTo) => OC.go(name, params, { push: true, returnTo });
+  // Sai de uma tela empilhada para outra tela (ex.: do PDF para a aba Itens) sem deixar o retorno antigo na pilha.
+  OC.leave = (name, params) => { stack.pop(); OC.go(name, params, { back: true }); };
   OC.back = function () {
     const prev = stack.pop();
     if (prev) OC.go(prev[0], prev[1], { back: true });
+    else if ((current === 'pdf' || current === 'cmp') && currentParams.id) OC.go('prop', { id: currentParams.id, tab: current === 'cmp' ? 'revisoes' : 'resumo' }, { back: true });
     else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cat: 'menu', cli: 'menu', imp: 'cat', exsat: 'cat' }[current] || 'props');
   };
   OC.reload = () => OC.go(current, currentParams, { back: true });
@@ -130,8 +134,8 @@
     if (id) return OC.go('prop', { id });
     // Recarregar numa tela interna (#kit=<id>, #labor=<id>) volta para ela.
     const [first, param] = location.hash.slice(1).split('=');
-    if (['kit', 'labor'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
-    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova'].includes(first) ? first : 'home');
+    if (['kit', 'labor', 'pdf', 'cmp'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
+    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova', 'pdf', 'cmp'].includes(first) ? first : 'home');
   }
 
   document.addEventListener('DOMContentLoaded', boot);
