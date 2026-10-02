@@ -71,7 +71,7 @@
           <div class="kv sep"><span class="strong">Custo base</span><b>${esc(OC.money0(t.base))}</b></div>
           <div class="kv"><span>+ BDI ${esc(OC.dec2(p.bdiMultiplier))} ×</span><b>${esc(OC.money0(t.additions))}</b></div>` : ''}
           <div class="kv"><span>+ Impostos ${esc(OC.dec2(p.taxPercentage || 0))}%</span><b>${esc(OC.money0(t.tax))}</b></div></div>
-        <button class="card labor-card" type="button" data-pdf>${icon('file-text', 20)}<span class="grow"><b>PDF da proposta</b><small>Pré-visualizar, baixar e compartilhar</small></span>${icon('caret-right', 18)}</button>
+        <button class="card tile-card" type="button" data-pdf><span class="tile">${icon('file-text', 21)}</span><span class="grow"><b>PDF da proposta</b><small>${p.items.length ? 'Pré-visualizar, baixar e compartilhar' : 'Adicione itens para gerar o PDF'}</small></span>${icon('caret-right', 18)}</button>
         <div class="card">
           <div class="kv"><span>Validade</span><b>${p.validUntil ? `${esc(OC.dateFull(p.validUntil))}${days !== null ? ` · ${days < 0 ? 'vencida' : `${days} ${days === 1 ? 'dia' : 'dias'}`}` : ''}` : 'Sem validade'}</b></div>
           <div class="kv"><span>Cliente</span><b>${esc(p.clientName)}</b></div>
@@ -179,7 +179,7 @@
 `,
       bind(el) {
         const cmp = OC.$('[data-cmp]', el);
-        if (cmp) cmp.addEventListener('click', () => OC.open('cmp', { id: p.id }));
+        if (cmp) cmp.addEventListener('click', () => OC.open('cmp', { id: p.id }, { tab: 'revisoes' }));
         OC.$$('[data-rev]', el).forEach((b) => b.addEventListener('click', () => { if (b.dataset.rev !== p.id) OC.go('prop', { id: b.dataset.rev, tab: 'resumo' }, { back: true }); }));
       },
     };

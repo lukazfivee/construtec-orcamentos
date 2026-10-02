@@ -36,7 +36,7 @@
   OC.go = function (name, params, opts = {}) {
     const screen = OC.screens[name];
     if (!screen) return;
-    if (opts.push) stack.push([current, currentParams]);
+    if (opts.push) stack.push([current, { ...currentParams, ...(opts.returnTo || {}) }]);
     else if (!opts.back) stack.length = 0;
     current = name;
     if (OC.suite) OC.suite.context = null;
@@ -52,10 +52,14 @@
       OC.errorScreen(error, () => OC.go(name, params));
     });
   };
-  OC.open = (name, params) => OC.go(name, params, { push: true });
+  // returnTo: parametros extras da tela de origem ao voltar (ex.: a aba da proposta).
+  OC.open = (name, params, returnTo) => OC.go(name, params, { push: true, returnTo });
+  // Sai de uma tela empilhada para outra tela (ex.: do PDF para a aba Itens) sem deixar o retorno antigo na pilha.
+  OC.leave = (name, params) => { stack.pop(); OC.go(name, params, { back: true }); };
   OC.back = function () {
     const prev = stack.pop();
     if (prev) OC.go(prev[0], prev[1], { back: true });
+    else if ((current === 'pdf' || current === 'cmp') && currentParams.id) OC.go('prop', { id: currentParams.id, tab: current === 'cmp' ? 'revisoes' : 'resumo' }, { back: true });
     else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cat: 'menu', cli: 'menu' }[current] || 'props');
   };
   OC.reload = () => OC.go(current, currentParams, { back: true });
