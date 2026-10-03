@@ -132,6 +132,67 @@ export type ProposalDetail = {
   };
 };
 
+export type PriceDriftItem = {
+  id: string;
+  code: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  changePercent: number;
+  finalDelta: number;
+  // Somente com p10.
+  fromUnit?: number;
+  toUnit?: number;
+  costDelta?: number;
+};
+
+export type PriceDriftProposal = {
+  id: string;
+  number: string;
+  revision: number;
+  clientName: string;
+  workName: string;
+  status: string;
+  // false quando a proposta nao esta em edicao: os precos ficam como estao.
+  frozen: boolean;
+  items: PriceDriftItem[];
+  finalBefore: number;
+  finalAfter: number;
+  finalDelta: number;
+  costDelta?: number;
+};
+
+export type CatalogOverviewItem = {
+  code: string;
+  // Numeros das propostas (ultima revisao) que usam o item.
+  usedIn: string[];
+  // Criado ha pouco (ultimos NEW_DAYS dias).
+  isNew: boolean;
+  // Preco do catalogo diferente do que as propostas em edicao usam.
+  changePercent?: number;
+  // Somente com p10.
+  fromUnit?: number;
+  toUnit?: number;
+};
+
+export type CatalogOverviewNewItem = { code: string; description: string; category: string; unit: string; currentCost?: number };
+
+export type CatalogOverviewFrozen = {
+  id: string; number: string; revision: number; status: string; clientName: string; workName: string; itemCount: number;
+};
+
+export type CatalogOverview = {
+  productCount: number;
+  // Itens criados nos ultimos NEW_DAYS dias.
+  newCount: number;
+  items: CatalogOverviewItem[];
+  newItems: CatalogOverviewNewItem[];
+  // Itens com preco diferente do que as propostas em edicao usam (para o filtro Preço mudou).
+  changedItems: CatalogOverviewNewItem[];
+  // Propostas fora de edicao com itens cujo preco do catalogo ja e outro: mantem o preco antigo.
+  frozenProposals: CatalogOverviewFrozen[];
+};
+
 export type WorkRecord = { id: string; clientId: string; name: string; address: string | null; active: boolean; updatedAt: string };
 export type ClientRecord = { id: string; legalName: string; tradeName: string | null; document: string | null; updatedAt: string; works: WorkRecord[] };
 export type ProposalRevisionSummary = { id: string; number: string; revision: number; status: ProposalDetail['status']; itemCount: number; totalSale: number; responsibleName: string; updatedAt: string; isLatest: boolean };
@@ -193,6 +254,11 @@ export type AppSettings = {
   defaultBdi: number;
   defaultStandardHours: number;
   defaultValidityDays: number;
+  /** Impostos (% sobre o valor com BDI) que toda proposta nova recebe. */
+  defaultTaxPercentage: number;
+  /** Padroes do PDF enviado ao cliente (Rodada 24). */
+  pdfShowLogo: boolean;
+  pdfShowSignature: boolean;
 };
 
 export type CommercialPipelineStage = {

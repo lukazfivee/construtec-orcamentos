@@ -2,41 +2,14 @@
 // So propostas em edicao (draft) e na revisao mais recente; em revisao, enviada ou aprovada os precos ficam congelados.
 // O custo (de e para) so sai quando o chamador pode ver custo (p10); o efeito no valor final sai sempre.
 import { randomUUID } from 'node:crypto';
+import type { PriceDriftItem, PriceDriftProposal } from '../../shared/contracts';
 import { multiplyDecimal, sumDecimal } from '../../shared/decimal';
 import { calculateProposalTotals } from '../../shared/proposalFinancials';
 import type { LocalDatabase } from './database';
 import { getEditableProposal, roundMoney } from './proposalCommon';
 import { getProposalById } from './proposals';
 
-export type PriceDriftItem = {
-  id: string;
-  code: string;
-  description: string;
-  quantity: number;
-  unit: string;
-  changePercent: number;
-  finalDelta: number;
-  // Somente com p10.
-  fromUnit?: number;
-  toUnit?: number;
-  costDelta?: number;
-};
-
-export type PriceDriftProposal = {
-  id: string;
-  number: string;
-  revision: number;
-  clientName: string;
-  workName: string;
-  status: string;
-  // false quando a proposta nao esta em edicao: os precos ficam como estao.
-  frozen: boolean;
-  items: PriceDriftItem[];
-  finalBefore: number;
-  finalAfter: number;
-  finalDelta: number;
-  costDelta?: number;
-};
+export type { PriceDriftItem, PriceDriftProposal };
 
 const MIN_DIFF = 0.01;
 

@@ -14,6 +14,9 @@ const settingsUpdateSchema = z.object({
   defaultBdi: z.number().min(1).max(10).optional(),
   defaultStandardHours: z.number().min(1).max(720).optional(),
   defaultValidityDays: z.number().min(1).max(365).optional(),
+  defaultTaxPercentage: z.number().min(0).max(100).optional(),
+  pdfShowLogo: z.boolean().optional(),
+  pdfShowSignature: z.boolean().optional(),
 });
 
 export const createSettingsRouter = (database: LocalDatabase) => {

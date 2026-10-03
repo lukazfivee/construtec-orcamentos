@@ -43,6 +43,7 @@ export function App({ user, onLogout }: AppProps = {}) {
     if (proposalViewMode === 'editor') setEditorSection(undefined);
   }, [proposalViewMode, activeNav]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pendingKitId, setPendingKitId] = useState<string | null>(null);
 
   const showNotice = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(''), 2600); };
 
@@ -87,10 +88,29 @@ export function App({ user, onLogout }: AppProps = {}) {
     setProposal(created);
     setNewProposalOpen(false);
     setProposalViewMode('editor');
+    const kitId = pendingKitId;
+    setPendingKitId(null);
+    if (kitId) {
+      // "Nova proposta com este kit" (Rodada 24): a proposta nasce e ja recebe os itens do kit.
+      try {
+        const applied = await kitsApi.applyToProposal(kitId, created.id);
+        setProposal(applied.proposal);
+        showNotice(`${created.number} criada na revisão 00, com os itens do kit.`);
+      } catch (kitError) {
+        setError(kitError instanceof Error ? kitError.message : 'A proposta foi criada, mas não deu para adicionar o kit.');
+      }
+    }
     const tabs = await proposalApi.list();
     setProposalTabs(tabs.proposals);
-    showNotice(`${created.number} criada na revisão 00.`);
-  }, []);
+    if (!kitId) showNotice(`${created.number} criada na revisão 00.`);
+  }, [pendingKitId]);
+
+  // Abre uma proposta pela tela de Catalogo, Clientes ou Kits (Rodada 24).
+  const openProposalFromList = useCallback(async (proposalId: string) => {
+    await openProposal(proposalId);
+    setActiveNav('Propostas');
+    setProposalViewMode('editor');
+  }, [openProposal]);
 
   const createRevision = useCallback(async () => {
     if (!proposal?.isLatest) return;
@@ -311,13 +331,15 @@ export function App({ user, onLogout }: AppProps = {}) {
           onNotice={showNotice}
         />
       ) : activeNav === 'Catálogo' ? (
-        <CatalogWorkspace key="catalog" onNotice={showNotice} onError={setError} />
+        <CatalogWorkspace key="catalog" onNotice={showNotice} onError={setError} onOpenProposal={(id) => void openProposalFromList(id)} />
       ) : activeNav === 'Clientes' ? (
-        <ClientsWorkspace key="clients" onNotice={showNotice} onError={setError} />
+        <ClientsWorkspace key="clients" onNotice={showNotice} onError={setError} onOpenProposal={(id) => void openProposalFromList(id)} />
       ) : activeNav === 'Kits' ? (
         <KitsWorkspace
           key="kits"
           activeProposal={proposal}
+          onOpenProposal={(id) => void openProposalFromList(id)}
+          onNewProposalWithKit={(kitId) => { setError(''); setPendingKitId(kitId); setNewProposalOpen(true); }}
           onApplyKitToProposal={async (kitId) => {
             if (!proposal) return;
             try {
@@ -340,7 +362,7 @@ export function App({ user, onLogout }: AppProps = {}) {
       {notice && <div className="toast" role="status">{notice}</div>}
       <NewProposalDialog
         open={newProposalOpen}
-        onClose={() => setNewProposalOpen(false)}
+        onClose={() => { setNewProposalOpen(false); setPendingKitId(null); }}
         onCreated={(created) => void proposalCreated(created)}
         onError={setError}
       />

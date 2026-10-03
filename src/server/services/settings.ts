@@ -18,6 +18,9 @@ const defaultSettings: AppSettings = {
   defaultBdi: 1.45,
   defaultStandardHours: 176,
   defaultValidityDays: 15,
+  defaultTaxPercentage: 0,
+  pdfShowLogo: true,
+  pdfShowSignature: true,
 };
 
 const ensureSettingsStorage = async (database: Pick<LocalDatabase, 'query' | 'exec'>): Promise<void> => {
@@ -56,6 +59,9 @@ export const getAppSettings = async (database: Pick<LocalDatabase, 'query' | 'ex
       defaultBdi: typeof val.defaultBdi === 'number' && val.defaultBdi > 0 ? val.defaultBdi : defaultSettings.defaultBdi,
       defaultStandardHours: typeof val.defaultStandardHours === 'number' && val.defaultStandardHours > 0 ? val.defaultStandardHours : defaultSettings.defaultStandardHours,
       defaultValidityDays: typeof val.defaultValidityDays === 'number' && val.defaultValidityDays > 0 ? val.defaultValidityDays : defaultSettings.defaultValidityDays,
+      defaultTaxPercentage: typeof val.defaultTaxPercentage === 'number' && val.defaultTaxPercentage >= 0 && val.defaultTaxPercentage <= 100 ? val.defaultTaxPercentage : defaultSettings.defaultTaxPercentage,
+      pdfShowLogo: typeof val.pdfShowLogo === 'boolean' ? val.pdfShowLogo : defaultSettings.pdfShowLogo,
+      pdfShowSignature: typeof val.pdfShowSignature === 'boolean' ? val.pdfShowSignature : defaultSettings.pdfShowSignature,
     };
 
     if (isOldPlaceholder) {
@@ -83,6 +89,9 @@ export const updateAppSettings = async (
     defaultBdi: typeof input.defaultBdi === 'number' && input.defaultBdi > 0 ? input.defaultBdi : current.defaultBdi,
     defaultStandardHours: typeof input.defaultStandardHours === 'number' && input.defaultStandardHours > 0 ? input.defaultStandardHours : current.defaultStandardHours,
     defaultValidityDays: typeof input.defaultValidityDays === 'number' && input.defaultValidityDays > 0 ? input.defaultValidityDays : current.defaultValidityDays,
+    defaultTaxPercentage: typeof input.defaultTaxPercentage === 'number' && input.defaultTaxPercentage >= 0 && input.defaultTaxPercentage <= 100 ? input.defaultTaxPercentage : current.defaultTaxPercentage,
+    pdfShowLogo: typeof input.pdfShowLogo === 'boolean' ? input.pdfShowLogo : current.pdfShowLogo,
+    pdfShowSignature: typeof input.pdfShowSignature === 'boolean' ? input.pdfShowSignature : current.pdfShowSignature,
   };
 
   await database.query(`
@@ -92,7 +101,22 @@ export const updateAppSettings = async (
     SET value = EXCLUDED.value, updated_at = now()
   `, [JSON.stringify(updated)]);
 
+  // O BDI padrao so vale para propostas novas depois que alguem o confirma em "Padroes da empresa"
+  // (antes disso as propostas nascem com 1,25, como sempre).
+  if (typeof input.defaultBdi === 'number' && input.defaultBdi > 0) {
+    await database.query(`
+      INSERT INTO app_settings (key, value, updated_at) VALUES ('default_bdi_confirmed', 'true'::jsonb, now())
+      ON CONFLICT (key) DO UPDATE SET value = 'true'::jsonb, updated_at = now()
+    `);
+  }
+
   return updated;
+};
+
+export const getNewProposalDefaults = async (database: Pick<LocalDatabase, 'query' | 'exec'>): Promise<{ bdiMultiplier: number; taxPercentage: number }> => {
+  const settings = await getAppSettings(database);
+  const confirmed = await database.query<{ value: boolean }>("SELECT value FROM app_settings WHERE key = 'default_bdi_confirmed'");
+  return { bdiMultiplier: confirmed.rows[0]?.value === true ? settings.defaultBdi : 1.25, taxPercentage: settings.defaultTaxPercentage };
 };
 
 export const getIntegrationIdentity = async (database: Pick<LocalDatabase, 'query' | 'exec'>): Promise<IntegrationIdentity> => {
