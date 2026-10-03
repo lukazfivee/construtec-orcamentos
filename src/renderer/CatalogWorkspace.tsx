@@ -43,7 +43,7 @@ export function CatalogWorkspace({ onNotice, onError, onOpenProposal }: Props) {
 
   const back = () => setView('catalogo');
   if (view === 'editar') return <CatalogEditor key="editor" onNotice={onNotice} onError={onError} onBack={() => { back(); void data.reload(); }} />;
-  if (view === 'importar') return <CatalogImportPage key="import" canWrite={canWrite} catalogCount={data.overview?.productCount ?? 0} supplierHints={hints}
+  if (view === 'importar') return <CatalogImportPage key="import" canWrite={canWrite} catalogCount={data.overview?.productCount ?? 0} supplierHints={hints} usedIn={(code) => data.overview?.items.find((item) => item.code === code)?.usedIn ?? []}
     onImported={() => void data.reload()} onBack={back} onNotice={onNotice} />;
   if (view === 'exsat') return <ExsatPage key="exsat" data={data} sync={sync} seesCost={seesCost} canWrite={canWrite} canEdit={canEdit} onBack={back}
     onOpenProposal={(id) => onOpenProposal?.(id)} onNotice={onNotice} onError={onError} />;

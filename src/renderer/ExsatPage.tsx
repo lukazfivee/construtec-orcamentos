@@ -121,11 +121,11 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
             <Seg<Fil> label="Filtrar mudanças" value={fil} onChange={setFil} options={[['todos', `Todos · ${rows.length}`], ['sub', `Subiram · ${up}`], ['des', `Baixaram · ${down}`]]} />
           </div>
           <div className="od-scroll"><table className="od-tbl">
-            <thead><tr><th>Item</th><th className="od-num">Antes</th><th className="od-num">Depois</th><th>Variação</th><th>Usado em</th></tr></thead>
+            <thead><tr><th>Item</th>{seesCost && <><th className="od-num">Antes</th><th className="od-num">Depois</th></>}<th>Variação</th><th>Usado em</th></tr></thead>
             <tbody>{shown.map((row) => <tr key={row.code}>
               <td><span className="od-item"><b>{row.description}</b><span>{row.code}</span></span></td>
-              <td className="od-num">{seesCost && row.from !== undefined ? brl(row.from) : <LockKeyhole size={14} aria-label="Sem permissão para ver custo" style={{ color: 'var(--muted)' }} />}</td>
-              <td className="od-num" style={{ fontWeight: 600 }}>{seesCost && row.to !== undefined ? brl(row.to) : <LockKeyhole size={14} aria-label="Sem permissão para ver custo" style={{ color: 'var(--muted)' }} />}</td>
+              {seesCost && <><td className="od-num">{row.from !== undefined ? brl(row.from) : '—'}</td>
+              <td className="od-num" style={{ fontWeight: 600 }}>{row.to !== undefined ? brl(row.to) : '—'}</td></>}
               <td><span className={`od-chip ${row.pct > 0 ? 'warn' : 'ok'}`}>{row.pct > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctSigned(row.pct)}</span></td>
               <td style={{ fontSize: 12.5, color: 'var(--muted)' }}>{row.used.join(', ')}</td>
             </tr>)}</tbody>
@@ -139,7 +139,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
           <div className="od-sect-head"><b>Itens novos no catálogo</b><span>Entraram nos últimos 7 dias</span></div>
           <table className="od-tbl"><tbody>{newItems.slice(0, 10).map((row) => <tr key={row.code}>
             <td><span className="od-item"><b>{row.description}</b><span>{row.code}</span></span></td>
-            <td className="od-num" style={{ fontWeight: 600 }}>{seesCost && row.currentCost !== undefined ? brl(row.currentCost) : <LockKeyhole size={14} aria-label="Sem permissão para ver custo" style={{ color: 'var(--muted)' }} />}</td>
+            {seesCost && <td className="od-num" style={{ fontWeight: 600 }}>{row.currentCost !== undefined ? brl(row.currentCost) : '—'}</td>}
           </tr>)}</tbody></table>
           {newItems.length > 10 && <div className="od-footer"><span>+ {nfmt(newItems.length - 10)} itens novos no catálogo</span></div>}
         </div>}

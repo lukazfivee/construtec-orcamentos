@@ -8,6 +8,7 @@ type Props = {
   canWrite: boolean;
   catalogCount: number;
   supplierHints: string[];
+  usedIn?: (code: string) => string[];
   onImported: () => void;
   onBack: () => void;
   onNotice: (message: string) => void;
@@ -15,6 +16,7 @@ type Props = {
 
 const STEPS = ['Arquivo', 'Colunas', 'Revisar', 'Importar'];
 const PAGE = 20;
+const usedText = (list: string[]) => (list.length ? list.slice(0, 3).join(', ') + (list.length > 3 ? ` +${list.length - 3}` : '') : '—');
 
 const stepOf = (phase: CatalogImport['phase']) => ({ file: 1, read: 1, vazio: 1, erro: 1, map: 2, conferir: 3, review: 3, run: 4, done: 4, fail: 4 }[phase]);
 
@@ -173,7 +175,7 @@ function FixCell({ imp, row }: { imp: CatalogImport; row: ErrRow }) {
   </span>;
 }
 
-function ReviewStep({ imp }: { imp: CatalogImport }) {
+function ReviewStep({ imp, usedIn }: { imp: CatalogImport; usedIn?: (code: string) => string[] }) {
   const [tab, setTab] = useState<Tab>('novos');
   const [shown, setShown] = useState({ novos: PAGE, atu: PAGE, err: 50 });
   const [editing, setEditing] = useState<string | null>(null);
@@ -197,14 +199,15 @@ function ReviewStep({ imp }: { imp: CatalogImport }) {
 
     {tab === 'atu' && <div className="od-card" style={{ overflow: 'hidden' }}>
       {groups.atu.length === 0 ? <EmptyState icon={Table2} title="Nenhum item existente muda de preço" /> : <div className="od-scroll"><table className="od-tbl">
-        <thead><tr><th>Item</th><th className="od-num">Antes</th><th className="od-num">Depois</th><th>Variação</th></tr></thead>
+        <thead><tr><th>Item</th><th className="od-num">Antes</th><th className="od-num">Depois</th><th>Variação</th><th>Usado em</th></tr></thead>
         <tbody>{groups.atu.slice(0, shown.atu).map(({ g, p }) => {
           const before = p?.previous?.currentCost ?? null;
           const same = before !== null && Math.abs(g.cost - before) < 0.005;
           const ratio = before ? g.cost / before - 1 : 0;
           return <tr key={g.id}><td><span className="od-item"><b>{g.desc}</b><span>{g.code}</span></span></td>
             <td className="od-num">{before !== null ? brl(before) : '—'}</td><td className="od-num" style={{ fontWeight: 600 }}>{brl(g.cost)}</td>
-            <td>{same ? <span className="od-small">Mesmo preço · outros dados mudaram</span> : <span className={`od-chip ${ratio > 0 ? 'warn' : 'ok'}`}>{ratio > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctText(ratio)}</span>}</td></tr>;
+            <td>{same ? <span className="od-small">Mesmo preço · outros dados mudaram</span> : <span className={`od-chip ${ratio > 0 ? 'warn' : 'ok'}`}>{ratio > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctText(ratio)}</span>}</td>
+            <td className="od-small" style={{ fontSize: 12.5 }}>{usedText(usedIn?.(g.code) ?? [])}</td></tr>;
         })}</tbody>
       </table></div>}
       {groups.atu.length > shown.atu && <div className="od-footer"><span>Mostrando {nfmt(shown.atu)} de {nfmt(groups.atu.length)} preços atualizados</span><button type="button" className="od-btn sm s" onClick={() => more('atu', PAGE)}>Ver mais {Math.min(PAGE, groups.atu.length - shown.atu)}</button></div>}
@@ -282,7 +285,7 @@ function DoneStep({ imp, catalogCount, onBack }: { imp: CatalogImport; catalogCo
 
 // Importar lista de precos (24b a 24f e 24r): quatro passos, ligacao das colunas ao lado das primeiras linhas e
 // correcao das linhas com erro na propria tabela.
-export function CatalogImportPage({ canWrite, catalogCount, supplierHints, onImported, onBack, onNotice }: Props) {
+export function CatalogImportPage({ canWrite, catalogCount, supplierHints, usedIn, onImported, onBack, onNotice }: Props) {
   const imp = useCatalogImport(() => { onImported(); onNotice('Catálogo atualizado.'); });
   const { phase, file } = imp;
   if (!canWrite) return <main className="od-page"><div className="od-stack">
@@ -299,7 +302,7 @@ export function CatalogImportPage({ canWrite, catalogCount, supplierHints, onImp
     {phase === 'file' && <FileStep imp={imp} hints={supplierHints} onBack={onBack} />}
     {(phase === 'read' || phase === 'conferir') && <LoadCard imp={imp} />}
     {phase === 'map' && <MapStep imp={imp} />}
-    {phase === 'review' && <ReviewStep imp={imp} />}
+    {phase === 'review' && <ReviewStep imp={imp} usedIn={usedIn} />}
     {phase === 'run' && <RunCard imp={imp} />}
     {phase === 'done' && imp.result && <DoneStep imp={imp} catalogCount={catalogCount} onBack={onBack} />}
     {phase === 'vazio' && <div className="od-card"><EmptyState icon={Table2} title="Nenhum item no arquivo" actions={<>

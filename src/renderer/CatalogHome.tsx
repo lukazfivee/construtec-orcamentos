@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, ChevronRight, EyeOff, Loader2, Lock, PackagePlus, RefreshCw, Search, Upload, WifiOff } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ChevronRight, EyeOff, Loader2, PackagePlus, RefreshCw, Search, Upload, WifiOff } from 'lucide-react';
 import type { CatalogOverviewNewItem, CatalogProduct } from '../shared/contracts';
 import { catalogApi } from './api';
 import { PageHead, Seg, brl, nfmt, pctSigned, plural } from './orcDeskUi';
@@ -100,16 +100,16 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
         ]} />
       </div>
       <div className="od-scroll"><table className="od-tbl">
-        <thead><tr><th>Item</th><th>Categoria</th><th>Unid.</th><th className="od-num">Custo</th><th>Mudança de preço</th><th>Usado em</th></tr></thead>
+        <thead><tr><th>Item</th><th>Categoria</th><th>Unid.</th>{seesCost && <th className="od-num">Custo</th>}<th>Mudança de preço</th><th>Usado em</th></tr></thead>
         <tbody>
-          {loading && filter === 'todos' && Array.from({ length: 6 }, (_, index) => <tr key={`s${index}`}><td colSpan={6}><div className="od-skel" style={{ height: 22 }} /></td></tr>)}
+          {loading && filter === 'todos' && Array.from({ length: 6 }, (_, index) => <tr key={`s${index}`}><td colSpan={seesCost ? 6 : 5}><div className="od-skel" style={{ height: 22 }} /></td></tr>)}
           {!(loading && filter === 'todos') && rows.map((row) => {
             const extra = info.get(row.code);
             const pct = extra?.changePercent;
             return <tr key={row.code}>
               <td><span className="od-item"><b>{row.description}</b><span>{row.code}{row.active === false ? ' · inativo' : ''}</span></span></td>
               <td>{row.category}</td><td>{row.unit}</td>
-              <td className="od-num" style={{ fontWeight: 600 }}>{seesCost ? brl(row.currentCost ?? 0) : <Lock size={14} style={{ color: 'var(--muted)' }} aria-label="Sem permissão para ver custo" />}</td>
+              {seesCost && <td className="od-num" style={{ fontWeight: 600 }}>{brl(row.currentCost ?? 0)}</td>}
               <td>
                 {pct !== undefined && <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span className={`od-chip ${pct > 0 ? 'warn' : 'ok'}`}>{pct > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctSigned(pct)}</span>

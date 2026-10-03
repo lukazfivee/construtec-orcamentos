@@ -65,6 +65,7 @@
 .od-tbl th.od-num { text-align: right; }
 .od-tbl td { height: 56px; padding: 6px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .od-tbl tr:last-child td { border-bottom: 0; }
+.od-tbl th, .od-tbl td, .od-prev th, .od-prev td { border-right: 0; }
 .od-tbl tr.rw { cursor: pointer; }
 .od-tbl tr.rw:hover { background: var(--od-accent-900); }
 .od-tbl td b { font-weight: 600; }
@@ -152,7 +153,7 @@
 .od-kpi-ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; }
 .od-kpi-v { font: 600 26px/1.1 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 .od-kpi-s { font-size: 12.5px; color: var(--muted); }
-.od-ok-hero { max-width: 720px; padding: 22px 24px; display: flex; align-items: center; gap: 16px; }
+.od-ok-hero { padding: 22px 24px; display: flex; align-items: center; gap: 16px; }
 .od-ok-hero .od-empty-ic { margin: 0; }
 .od-kv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 0 20px 18px; }
 .od-kv > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
