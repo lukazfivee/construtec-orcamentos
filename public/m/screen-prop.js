@@ -188,7 +188,7 @@
   OC.screens.prop = async function (params) {
     let p = (await OC.api(`/proposals/${encodeURIComponent(params.id)}`)).proposal;
     let tab = params.tab || 'resumo';
-    const el = OC.render(`${OC.header(p.number, { back: true, extra: `<button class="bell-btn" type="button" data-pdf-top aria-label="PDF da proposta">${icon('file-text', 22)}</button>` })}
+    const el = OC.render(`${OC.header(p.number, { back: true, extra: `<button class="bell-btn" type="button" data-pdf-top aria-label="PDF da proposta">${icon('file-text', 22)}</button><button class="bell-btn" type="button" data-dots aria-label="Mais ações da proposta">${icon('dots-three-vertical', 22)}</button>` })}
       <div class="prop-tags"><span class="tag">${esc(OC.rev(p.revision))}</span><span id="p-pill"></span><span class="prop-work">${esc(p.workName || p.clientName)}</span></div>
       <div class="seg" id="p-tabs">${[['resumo', 'Resumo'], ['itens', 'Itens'], ['revisoes', 'Revisões']].map(([k, l]) => `<button type="button" data-tab="${k}">${l}</button>`).join('')}</div>
       <div id="p-body" class="p-body"></div>`, true, params);
@@ -213,6 +213,7 @@
     }
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));
     OC.$('[data-pdf-top]', el).addEventListener('click', () => OC.open('pdf', { id: p.id }));
+    OC.$('[data-dots]', el).addEventListener('click', () => OC.propMenu(p));
     await paint();
   };
 })(window.OC = window.OC || {});
