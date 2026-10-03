@@ -9,7 +9,7 @@
     const list = ((await OC.api('/kits')).kits || []).filter((k) => k.active !== false);
     let query = '';
     const el = OC.render(`${OC.header('')}
-      <div class="title-row"><h1 class="title">Kits</h1>${OC.canEdit() ? `<button class="chip-act" type="button" id="k-new">${icon('plus', 16)}Novo kit</button>` : ''}</div>
+      <div class="title-row"><h1 class="title">Kits</h1>${OC.canEdit() && OC.can('p10') ? `<button class="chip-act" type="button" id="k-new">${icon('plus', 16)}Novo kit</button>` : ''}</div>
       <p class="sub" style="margin:-6px 0 0">Conjuntos de itens que entram de uma vez na proposta.</p>
       ${list.length > 6 ? `<label class="search">${icon('magnifying-glass', 18)}<input id="k-q" type="search" placeholder="Buscar kit" autocomplete="off"></label>` : ''}
       <div class="kit-list" id="k-rows"></div>`, false, params);
@@ -35,7 +35,8 @@
   // Editar kit: salva sozinho (PUT com o kit inteiro) um pouco depois de cada mudanca.
   OC.screens.kit = async function (params) {
     let kit = (await OC.api(`/kits/${encodeURIComponent(params.id)}`)).kit;
-    const can = OC.canEdit();
+    // Kits carregam o custo: sem p10 o servidor nao deixa gravar, entao o kit abre so para consulta.
+    const can = OC.canEdit() && OC.can('p10');
     const el = OC.render(`${OC.header(can ? 'Editar kit' : kit.name, { back: true })}
       <p class="sub" style="margin:-6px 0 0">Custo sem BDI · o BDI entra quando o kit vai para a proposta</p>
       <label class="field"><span>Nome do kit</span><input id="k-name" type="text" value="${esc(kit.name)}"${can ? '' : ' readonly'}></label>
@@ -60,7 +61,7 @@
     const total = () => kit.items.reduce((n, it) => n + it.quantity * it.currentCost, 0);
     function paintTotals() {
       OC.$('#k-count', el).textContent = `Itens · ${kit.items.length}`;
-      OC.$('#k-sum', el).textContent = OC.money0(total());
+      OC.$('#k-sum', el).textContent = OC.costText(OC.money0(total()));
       OC.$('#k-total', el).textContent = OC.costText(OC.money0(total()));
       OC.$('#k-n', el).textContent = `Itens · ${kit.items.length}`;
       kit.items.forEach((it) => { const v = OC.$(`[data-item="${it.productId}"] .val`, el); if (v) v.textContent = OC.costText(OC.money0(it.quantity * it.currentCost)); });
@@ -197,12 +198,13 @@
   OC.screens.cfg = async function (params) {
     const s = (await OC.api('/settings')).settings || {};
     const admin = (OC.session.user() || {}).role === 'admin';
+    const seesBdi = OC.can('p10');
     const v = { defaultBdi: Number(s.defaultBdi) || 1, defaultStandardHours: Number(s.defaultStandardHours) || 220, defaultValidityDays: Number(s.defaultValidityDays) || 30 };
     const el = OC.render(`${OC.header('Configurações da empresa', { back: true })}
       <p class="sub" style="margin:-6px 0 0">Padrões para as próximas propostas</p>
       <div class="card cfg"><span class="label">Proposta</span>
-        <div class="cfg-row"><b>BDI padrão</b><small>Multiplicador sobre o custo base</small>
-          <div class="qty"><button class="qbtn" type="button" data-step="defaultBdi:-0.05"${admin ? '' : ' disabled'} aria-label="Diminuir BDI">${icon('minus', 18)}</button><span class="qval" data-v="defaultBdi"></span><button class="qbtn" type="button" data-step="defaultBdi:0.05"${admin ? '' : ' disabled'} aria-label="Aumentar BDI">${icon('plus', 18)}</button></div></div>
+        ${seesBdi ? `<div class="cfg-row"><b>BDI padrão</b><small>Multiplicador sobre o custo base</small>
+          <div class="qty"><button class="qbtn" type="button" data-step="defaultBdi:-0.05"${admin ? '' : ' disabled'} aria-label="Diminuir BDI">${icon('minus', 18)}</button><span class="qval" data-v="defaultBdi"></span><button class="qbtn" type="button" data-step="defaultBdi:0.05"${admin ? '' : ' disabled'} aria-label="Aumentar BDI">${icon('plus', 18)}</button></div></div>` : ''}
         <div class="cfg-row"><b>Horas por mês</b><small>Base do custo/hora da mão de obra</small>
           <div class="qty"><button class="qbtn" type="button" data-step="defaultStandardHours:-4"${admin ? '' : ' disabled'} aria-label="Diminuir horas">${icon('minus', 18)}</button><span class="qval" data-v="defaultStandardHours"></span><button class="qbtn" type="button" data-step="defaultStandardHours:4"${admin ? '' : ' disabled'} aria-label="Aumentar horas">${icon('plus', 18)}</button></div></div>
       </div>
@@ -211,7 +213,7 @@
       <p class="hint">${admin ? 'Propostas já criadas mantêm seus valores.' : 'Só administradores alteram os padrões.'}</p>
       ${admin ? `<div class="actions"><button class="btn" type="button" id="c-save">${icon('check', 18)}Salvar padrões</button></div>` : ''}`, true, params);
     const paint = () => {
-      OC.$('[data-v="defaultBdi"]', el).textContent = `${OC.dec2(v.defaultBdi)} ×`;
+      if (seesBdi) OC.$('[data-v="defaultBdi"]', el).textContent = `${OC.dec2(v.defaultBdi)} ×`;
       OC.$('[data-v="defaultStandardHours"]', el).textContent = `${OC.num(v.defaultStandardHours)} h`;
       OC.$('#c-days', el).innerHTML = [15, 30, 45, 60].map((d) => `<button class="chip-act" type="button" data-d="${d}" aria-pressed="${v.defaultValidityDays === d}"${admin ? '' : ' disabled'}>${d} dias</button>`).join('');
       OC.$$('[data-d]', el).forEach((b) => b.addEventListener('click', () => { v.defaultValidityDays = Number(b.dataset.d); paint(); }));
@@ -225,7 +227,7 @@
     const save = OC.$('#c-save', el);
     if (save) save.addEventListener('click', async () => {
       save.disabled = true;
-      try { await OC.api('/settings', { method: 'PATCH', body: v }); OC.toast('Padrões salvos'); } catch (error) { OC.toast(error.message, 'warning-circle'); }
+      try { const { defaultBdi, ...rest } = v; await OC.api('/settings', { method: 'PATCH', body: seesBdi ? v : rest }); OC.toast('Padrões salvos'); } catch (error) { OC.toast(error.message, 'warning-circle'); }
       save.disabled = false;
     });
     paint();
