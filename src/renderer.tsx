@@ -39,6 +39,7 @@ import './suite-bolder.css';
 import './mobile-responsive.css';
 import './mobile-suite.css';
 import './menu-lateral.css';
+import './proposal-pages.css';
 
 const rootElement = document.getElementById('root');
 

@@ -113,10 +113,6 @@ export function ProposalItemsPanel({
 
   const allSelected = Boolean(filteredItems.length) && selectedItemIds.length === filteredItems.length;
 
-  const divergentCount = isEditable
-    ? proposal.items.filter((item) => item.catalogCurrentCost !== null && item.catalogCurrentCost !== undefined && Math.abs(item.catalogCurrentCost - item.unitCost) >= 0.01).length
-    : 0;
-
   const hasActiveFilters = Boolean(filterSearch.trim()) || Boolean(filterCategory);
   const visibleColCount = 3 + (columns.code ? 1 : 0) + (columns.unit ? 1 : 0) + (columns.unitCost ? 1 : 0) + (columns.totalCost ? 1 : 0) + (columns.unitSale ? 1 : 0) + (columns.totalSale ? 1 : 0);
   const editingItem = editingItemId ? proposal.items.find((item) => item.id === editingItemId) ?? null : null;
@@ -163,12 +159,6 @@ export function ProposalItemsPanel({
         }}
         onClose={() => setFilterBarOpen(false)}
       />
-
-      {divergentCount > 0 && (
-        <div className="proposal-divergence-banner" role="status">
-          <span><b>Atenção ao custo:</b> {divergentCount} item(ns) possuem valor atualizado no catálogo. Clique no indicador ao lado do custo para sincronizar.</span>
-        </div>
-      )}
 
       <div className="table-region">
         <table className="proposal-items-table">
