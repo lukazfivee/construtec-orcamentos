@@ -1,7 +1,7 @@
 // Paginas da pre-visualizacao do PDF (Rodada 23, telas 23m a 23p): capa, itens por sistema e condicoes.
 // So leva precos de venda. Custo, BDI e margem nunca entram, com ou sem a permissao p10: o arquivo do cliente
 // vem do servidor (GET /api/proposals/:id/document), que tambem nao os envia.
-import type { ProposalDetail } from '../shared/contracts';
+import type { AppSettings, ProposalDetail } from '../shared/contracts';
 import { commercialLaborTotal, escapeHtml, parseCommercialConditions } from '../documents/proposalDocumentCommon';
 
 export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean };
@@ -12,6 +12,10 @@ export const defaultPdfChoices = (): PdfChoices => ({ modelo: 'completo', capa: 
 export const PDF_PAGE_WIDTH = 396;
 export const PDF_PAGE_HEIGHT = 560;
 export const ROWS_PER_PAGE = 14;
+// Descricao longa quebra em varias linhas: cada linha extra conta como uma linha da pagina.
+const CHARS_PER_LINE = 34;
+const LAST_PAGE_RESERVE = 3;
+export const rowWeight = (description: string) => Math.max(1, Math.ceil(description.length / CHARS_PER_LINE));
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const numberFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
@@ -41,9 +45,33 @@ export const pdfQuery = (choices: PdfChoices) =>
 
 export const pdfFileName = (proposal: ProposalDetail) => `${proposal.number}-${revLabel(proposal.revision).replace(' ', '-')}`;
 
-type Row = { cat: string; sum: number } | { item: { description: string; quantity: number; unit: string; unitSale: number; totalSale: number } };
+type Row = { weight: number } & ({ cat: string; sum: number } | { item: { description: string; quantity: number; unit: string; unitSale: number; totalSale: number } });
 
-export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices): PdfPage[] => {
+export type PdfBranding = Pick<AppSettings, 'pdfShowLogo' | 'pdfShowSignature'>;
+
+// Quebra as linhas em paginas pelo peso (linhas visuais); a ultima pagina guarda espaco para o total e a validade.
+export const paginateRows = <T extends { weight: number }>(rows: T[]): T[][] => {
+  const pages: T[][] = [];
+  let current: T[] = [];
+  let used = 0;
+  for (const row of rows) {
+    if (current.length > 0 && used + row.weight > ROWS_PER_PAGE) { pages.push(current); current = []; used = 0; }
+    current.push(row);
+    used += row.weight;
+  }
+  if (current.length > 0) pages.push(current);
+  const lastUsed = (pages[pages.length - 1] ?? []).reduce((sum, row) => sum + row.weight, 0);
+  if (lastUsed + LAST_PAGE_RESERVE > ROWS_PER_PAGE && pages.length > 0 && pages[pages.length - 1].length > 1) {
+    const last = pages[pages.length - 1];
+    const moved = last.pop() as T;
+    pages.push([moved]);
+  }
+  return pages;
+};
+
+export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, branding?: PdfBranding): PdfPage[] => {
+  const showLogo = branding?.pdfShowLogo ?? true;
+  const showSignature = branding?.pdfShowSignature ?? true;
   const choices = effectiveChoices(rawChoices, proposal);
   const total = proposal.totals.finalValue ?? 0;
   const number = `${proposal.number} · ${revLabel(proposal.revision)}`;
@@ -58,7 +86,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices):
   if (choices.capa) {
     pages.push({
       label: 'Capa',
-      html: `<div class="pg-cover"><small>Proposta comercial</small><b class="pg-h1">${escapeHtml(proposal.workName || proposal.clientName)}</b><span>${escapeHtml(proposal.clientName)}</span>
+      html: `<div class="pg-cover">${showLogo ? '<b class="pg-logo">CONSTRUTEC</b>' : ''}<small>Proposta comercial</small><b class="pg-h1">${escapeHtml(proposal.workName || proposal.clientName)}</b><span>${escapeHtml(proposal.clientName)}</span>
         <dl><dt>Proposta</dt><dd>${escapeHtml(number)}</dd>
         ${choices.validade ? `<dt>Válida até</dt><dd>${escapeHtml(validUntil)}</dd>` : ''}
         <dt>Responsável</dt><dd>${escapeHtml(proposal.responsibleName || '')}</dd><dt>Sistemas</dt><dd>${escapeHtml(systems.join(', '))}</dd></dl>
@@ -72,13 +100,13 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices):
     const list = isLabor
       ? [{ description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor }]
       : proposal.items.filter((item) => (item.category || 'Itens') === system);
-    rows.push({ cat: system, sum: list.reduce((sum, item) => sum + (item.totalSale || 0), 0) });
-    if (choices.modelo === 'completo') list.forEach((item) => rows.push({ item }));
+    rows.push({ weight: 1, cat: system, sum: list.reduce((sum, item) => sum + (item.totalSale || 0), 0) });
+    if (choices.modelo === 'completo') list.forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
   });
   const completo = choices.modelo === 'completo';
-  for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
-    const chunk = rows.slice(i, i + ROWS_PER_PAGE);
-    const last = i + ROWS_PER_PAGE >= rows.length;
+  const chunks = paginateRows(rows);
+  chunks.forEach((chunk, chunkIndex) => {
+    const last = chunkIndex === chunks.length - 1;
     const body = chunk.map((row) => ('cat' in row
       ? `<tr class="pg-cat"><td colspan="${completo ? 3 : 1}">${escapeHtml(row.cat)}</td><td>${completo ? '' : escapeHtml(brl.format(row.sum))}</td></tr>`
       : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`)).join('');
@@ -87,7 +115,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices):
       html: `${head(completo ? 'Itens da proposta' : 'Resumo por sistema')}<table class="pg-tab"><tbody>${body}</tbody></table>
         ${last ? `<div class="pg-total"><small>Valor total da proposta · impostos inclusos</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
     });
-  }
+  });
 
   if (choices.condicoes) {
     const terms = parseCommercialConditions(proposal.scope);
@@ -96,7 +124,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices):
       html: `${head('Condições comerciais')}
         <dl class="pg-terms"><dt>Pagamento</dt><dd>${escapeHtml(terms.paymentTerms || 'Conforme combinado com o cliente')}</dd><dt>Prazo</dt><dd>${escapeHtml(terms.executionTerm || 'A combinar após o aceite')}</dd><dt>Garantia</dt><dd>${escapeHtml(terms.warranty || 'Conforme normas técnicas aplicáveis')}</dd></dl>
         ${choices.validade ? `<p class="pg-note"><b>Validade:</b> esta proposta vale até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
-        <p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>`,
+        ${showSignature ? `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` : ''}`,
     });
   }
   return pages.map((page, index) => ({ ...page, html: `<div class="pg">${page.html}${foot(index + 1)}</div>` }));

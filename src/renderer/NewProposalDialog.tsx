@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Building2, CalendarDays, FilePlus2, MapPin, X } from 'lucide-react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
-import { clientsApi, proposalApi } from './api';
+import { clientsApi, proposalApi, settingsApi } from './api';
 
 type Props = {
   open: boolean;
@@ -23,6 +23,13 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
   useEffect(() => {
     if (!open) return;
     setLoading(true);
+    // Validade padrao da empresa (Configuracoes > Padroes): sugere hoje + N dias.
+    void settingsApi.get().then(({ settings }) => {
+      const base = new Date();
+      base.setDate(base.getDate() + settings.defaultValidityDays);
+      const iso = `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, '0')}-${String(base.getDate()).padStart(2, '0')}`;
+      setValidUntil((current) => current || iso);
+    }).catch(() => undefined);
     clientsApi.list().then((result) => {
       setClients(result.clients);
       if (result.clients.length > 0) {

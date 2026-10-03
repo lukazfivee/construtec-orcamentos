@@ -40,6 +40,8 @@ export const buildProposalHtml = (
 ) => {
   const content = proposalPresentation(proposal, settings, options);
   const logo = proposalLogoBase64();
+  const showLogo = settings?.pdfShowLogo ?? true;
+  const showSignature = settings?.pdfShowSignature ?? true;
   let index = 0;
   const showCodes = options?.showProductCodes ?? true;
 
@@ -147,6 +149,10 @@ export const buildProposalHtml = (
     .term { margin-bottom: 1.2mm; font-size: 8.5pt; }
     .closing { margin-top: 3mm; font-size: 8pt; color: #485966; }
     
+    .signature { margin-top: 10mm; width: 70mm; break-inside: avoid; page-break-inside: avoid; font-size: 8pt; color: #163d69; }
+    .signature-line { border-top: 1px solid #163d69; margin-bottom: 1.5mm; }
+    .signature b, .signature span { display: block; }
+    .signature span { color: #485966; }
     .document-footer { margin-top: 6mm; break-inside: avoid; page-break-inside: avoid; font-family: Arial, Helvetica, sans-serif; }
     .footer-line { height: 2px; background: #12A9D1; margin-bottom: 1.5mm; }
     .footer-top { display: flex; justify-content: flex-end; margin-bottom: 1mm; font-size: 7.5pt; color: #334155; }
@@ -166,7 +172,7 @@ export const buildProposalHtml = (
 <body>
   <header class="timbrado-header">
     <div class="timbrado-left">
-      <img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">
+      ${showLogo ? `<img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">` : ''}
       <div class="timbrado-company">
         <div class="timbrado-company-name">${escapeHtml(content.company)}</div>
         ${content.cnpj ? `<div>CNPJ: ${escapeHtml(content.cnpj)}</div>` : ''}
@@ -236,6 +242,8 @@ export const buildProposalHtml = (
   </section>
 
   <p class="closing">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>
+
+  ${showSignature ? `<div class="signature"><div class="signature-line"></div><b>${escapeHtml(proposal.responsibleName || content.brand)}</b><span>${escapeHtml(content.company)}</span></div>` : ''}
 
   <footer class="document-footer">
     <div class="footer-line"></div>
