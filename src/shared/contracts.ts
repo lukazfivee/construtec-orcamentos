@@ -196,7 +196,7 @@ export type CatalogOverview = {
 export type WorkRecord = { id: string; clientId: string; name: string; address: string | null; active: boolean; updatedAt: string };
 export type ClientRecord = { id: string; legalName: string; tradeName: string | null; document: string | null; updatedAt: string; works: WorkRecord[] };
 export type ProposalRevisionSummary = { id: string; number: string; revision: number; status: ProposalDetail['status']; itemCount: number; totalSale: number; responsibleName: string; updatedAt: string; isLatest: boolean };
-export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string; validUntil?: string | null; isLatest?: boolean; hasApprovedRevision?: boolean; syncStatus?: 'pending' | 'delivered' | 'failed' | null };
+export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string; validUntil?: string | null; isLatest?: boolean; hasApprovedRevision?: boolean; syncStatus?: 'pending' | 'delivered' | 'failed' | 'center_discarded' | null };
 export type ApiErrorPayload = { error: string; details?: unknown };
 
 export type AuthRole = 'admin' | 'commercial' | 'viewer';
@@ -344,4 +344,7 @@ export type CenterTracking = {
   fetchedAt: string | null;
   stale: boolean;
   centerUrl: string | null;
+  // Obra descartada no Centro de Custos: a proposta volta a "Aprovada sem Centro de Custo".
+  centerDiscarded?: CenterDiscardInfo;
 };
+export type CenterDiscardInfo = { discardedAt: string | null; discardedBy: string | null; costCenterCode: string | null };

@@ -11,6 +11,7 @@ import { sharedIdentityMigration } from '../migrations/012-shared-identity';
 import { centroAdminMigration } from '../migrations/013-centro-admin';
 import { proposalCenterSnapshotsMigration } from '../migrations/014-proposal-center-snapshots';
 import { discardedProposalsMigration } from '../migrations/015-discarded-proposals';
+import { outboxCenterDiscardedMigration } from '../migrations/016-outbox-center-discarded';
 import { proposalTaxMigration } from '../migrations/010-proposal-tax';
 import { initialMigration } from '../migrations/001-initial';
 import { clientsAndWorksMigration } from '../migrations/002-clients-works';
@@ -161,6 +162,7 @@ const migrateDatabase = async (database: DatabaseQueries) => {
     [13, centroAdminMigration],
     [14, proposalCenterSnapshotsMigration],
     [15, discardedProposalsMigration],
+    [16, outboxCenterDiscardedMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {

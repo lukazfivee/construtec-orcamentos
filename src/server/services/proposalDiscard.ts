@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import type { LocalDatabase } from './database';
-import { fetchContractMovement } from './integration/centerTracking';
+import { discardCenterContract, restoreCenterContract } from './integration/centerTracking';
 
 // Descarte e recuperacao de proposta por um administrador, inclusive aprovada. A aprovacao e definitiva por
 // regra de projeto (gatilhos no banco e copia selada enviada ao Centro); por isso o descarte so vale:
 //  - com confirmacao (numero da proposta digitado);
 //  - se a obra no Centro nao tiver nenhum movimento (lancamento, nota, medicao...).
+// A obra sem movimento e descartada no Centro junto e volta quando a proposta e recuperada.
 // Tudo e guardado em discarded_proposals e pode ser restaurado.
 
 // Ordem de restauracao (pais primeiro); o descarte apaga na ordem inversa.
@@ -18,7 +19,8 @@ const GUARDS = [
 ] as const;
 
 type Queries = Pick<LocalDatabase, 'query'>;
-type Payload = Record<(typeof TABLES)[number], Record<string, unknown>[]>;
+type CenterDiscard = { contractId: string; discarded: boolean; costCenterCode: string | null };
+type Payload = Record<(typeof TABLES)[number], Record<string, unknown>[]> & { centerDiscards?: CenterDiscard[] };
 export type DiscardedProposal = {
   id: string; proposal_number: string; client_name: string | null; work_name: string | null; revision_count: number;
   had_approval: boolean; reason: string | null; discarded_by_name: string | null; discarded_at: string; restored_at: string | null; restored_by_name: string | null;
@@ -40,17 +42,30 @@ const selectors: Record<(typeof TABLES)[number], string> = {
   proposal_center_snapshots: 'proposal_id = ANY($1::uuid[])',
 };
 
-// Antes de descartar uma proposta integrada, confere no Centro que a obra nao tem movimento.
-const assertCenterWithoutMovement = async (database: Queries, proposalIds: string[]) => {
+// Desfaz no Centro os descartes ja feitos quando algo depois deles falha; falha aqui so e registrada.
+const undoCenterDiscards = async (discards: CenterDiscard[], actorName: string) => {
+  for (const item of discards.filter(entry => entry.discarded)) {
+    const undone = await restoreCenterContract(item.contractId, { actorName });
+    if (undone.outcome !== 'restored') console.error(`[descarte] obra ${item.contractId} descartada no Centro e nao recuperada: ${undone.outcome}`);
+  }
+};
+
+// Descarta no Centro as obras entregues da proposta. O Centro so aceita obra sem movimento (409 caso contrario).
+// Qualquer recusa ou falha desfaz os descartes ja feitos e nada local muda.
+const discardCenterContracts = async (database: Queries, proposalIds: string[], input: { actorName: string; reason?: string; proposalNumber: string }) => {
   const contracts = await database.query<{ contract_id: string }>(`
     SELECT DISTINCT io.contract_id FROM integration_outbox io
     JOIN proposal_approval_snapshots s ON s.id = io.snapshot_id
     WHERE s.proposal_id = ANY($1::uuid[]) AND io.status = 'delivered' AND io.contract_id IS NOT NULL`, [proposalIds]);
+  const done: CenterDiscard[] = [];
   for (const { contract_id: contractId } of contracts.rows) {
-    const movement = await fetchContractMovement(contractId);
-    if (movement === 'unavailable') throw new Error('DISCARD_CENTER_UNAVAILABLE');
-    if (movement > 0) throw new Error('DISCARD_CENTER_HAS_MOVEMENT');
+    const result = await discardCenterContract(contractId, input);
+    if (result.outcome === 'discarded') { done.push({ contractId, discarded: true, costCenterCode: result.costCenterCode }); continue; }
+    if (result.outcome === 'already_gone') { done.push({ contractId, discarded: false, costCenterCode: null }); continue; }
+    await undoCenterDiscards(done, input.actorName);
+    throw new Error(result.outcome === 'has_movement' ? 'DISCARD_CENTER_HAS_MOVEMENT' : 'DISCARD_CENTER_UNAVAILABLE');
   }
+  return done;
 };
 
 export const discardProposal = async (
@@ -63,11 +78,12 @@ export const discardProposal = async (
   if (!number) throw new Error('PROPOSAL_NOT_FOUND');
   if (input.confirmNumber.trim().toUpperCase() !== number.toUpperCase()) throw new Error('DISCARD_CONFIRMATION');
   const ids = (await database.query<{ id: string }>('SELECT id FROM proposals WHERE proposal_number = $1', [number])).rows.map(row => row.id);
-  await assertCenterWithoutMovement(database, ids);
+  const reason = input.reason?.trim().slice(0, 300) || undefined;
+  const centerDiscards = await discardCenterContracts(database, ids, { actorName: input.actor.name, reason, proposalNumber: number });
 
   const discardId = randomUUID();
-  await database.transaction(async (transaction) => {
-    const payload = {} as Payload;
+  try { await database.transaction(async (transaction) => {
+    const payload = { centerDiscards } as Payload;
     for (const table of TABLES) {
       const dumped = await transaction.query<{ rows: Record<string, unknown>[] }>(
         `SELECT COALESCE(jsonb_agg(to_jsonb(t)), '[]'::jsonb) AS rows FROM ${table} t WHERE ${selectors[table]}`, [ids]);
@@ -86,7 +102,11 @@ export const discardProposal = async (
     await transaction.query(`INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data, user_id)
       VALUES ($1, 'proposal', $2, 'discarded', $3::jsonb, $4::jsonb, $5)`, [
       randomUUID(), proposalId, JSON.stringify({ number, revisions: ids.length }), JSON.stringify({ discardId, reason: input.reason ?? null }), input.actor.id]);
-  });
+  }); } catch (error) {
+    console.error('[descarte] falha local apos descartar no Centro; recuperando a obra', error);
+    await undoCenterDiscards(centerDiscards, input.actor.name);
+    throw error;
+  }
   return { discardId, proposalNumber: number };
 };
 
@@ -100,6 +120,16 @@ export const restoreProposal = async (
   discardId: string,
   actor: { id: string; name: string },
 ): Promise<{ proposalId: string | null; proposalNumber: string }> => {
+  // Antes de restaurar localmente, devolve a obra no Centro. Sem o Centro, nada e restaurado.
+  const pending = (await database.query<{ payload: Payload; restored_at: string | null }>(
+    'SELECT payload, restored_at::text AS restored_at FROM discarded_proposals WHERE id = $1', [discardId])).rows[0];
+  if (pending && !pending.restored_at) {
+    for (const item of (pending.payload.centerDiscards ?? []).filter(entry => entry.discarded)) {
+      const result = await restoreCenterContract(item.contractId, { actorName: actor.name });
+      if (result.outcome === 'unavailable') throw new Error('DISCARD_CENTER_UNAVAILABLE');
+      if (result.outcome === 'conflict') throw new Error('RESTORE_CENTER_CONFLICT');
+    }
+  }
   return database.transaction(async (transaction) => {
     const row = (await transaction.query<{ proposal_number: string; payload: Payload; restored_at: string | null }>(
       'SELECT proposal_number, payload, restored_at::text AS restored_at FROM discarded_proposals WHERE id = $1 FOR UPDATE', [discardId])).rows[0];
