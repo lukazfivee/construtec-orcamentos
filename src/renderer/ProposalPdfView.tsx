@@ -5,12 +5,12 @@ import {
 import type { ProposalDetail } from '../shared/contracts';
 // eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
 import pdfPageCss from '../proposal-pdf-page.css?raw';
-import { proposalApi } from './api';
+import { proposalApi, settingsApi } from './api';
 import { openExternalUrl, printDocument } from './proposalPdfActions';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
 import {
   PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel,
-  type PdfChoices,
+  type PdfBranding, type PdfChoices,
 } from './proposalPdfPages';
 import { useCanEdit, useSuitePermission } from './SuitePermissions';
 
@@ -53,6 +53,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
   const canEdit = useCanEdit();
   const p10 = useSuitePermission('p10');
   const p11 = useSuitePermission('p11');
+  const [branding, setBranding] = useState<PdfBranding>({ pdfShowLogo: true, pdfShowSignature: true });
   const [load, setLoad] = useState<Load>({ state: 'loading' });
   const [choices, setChoices] = useState<PdfChoices>(() => savedChoices.get(proposalId) ?? defaultPdfChoices());
   const [pageIndex, setPageIndex] = useState(0);
@@ -78,6 +79,12 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
     return () => { active = false; };
   }, [proposalId, attempt]);
 
+  useEffect(() => {
+    let active = true;
+    void settingsApi.get().then((result) => { if (active) setBranding({ pdfShowLogo: result.settings.pdfShowLogo, pdfShowSignature: result.settings.pdfShowSignature }); }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
   useEffect(() => { savedChoices.set(proposalId, choices); }, [proposalId, choices]);
 
   useLayoutEffect(() => {
@@ -100,7 +107,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
   }, [shareOpen]);
 
   const proposal = load.state === 'ready' ? load.proposal : null;
-  const pages = useMemo(() => (proposal ? buildPdfPages(proposal, choices) : []), [proposal, choices]);
+  const pages = useMemo(() => (proposal ? buildPdfPages(proposal, choices, branding) : []), [proposal, choices, branding]);
   const safeIndex = Math.min(pageIndex, Math.max(0, pages.length - 1));
 
   const fetchDocument = useCallback(async () => {

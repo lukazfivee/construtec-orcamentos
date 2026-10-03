@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import type { ProposalDetail, ProposalLine } from '../shared/contracts';
 import { FLOW_STEPS, flowStepIndex, nextStep } from './proposalFlow';
 import { compareProposals, deltaDirection, rowTag } from './proposalCompare';
-import { buildPdfPages, defaultPdfChoices, effectiveChoices, hasPdfContent, laborSale, pdfQuery } from './proposalPdfPages';
+import { ROWS_PER_PAGE, buildPdfPages, defaultPdfChoices, effectiveChoices, hasPdfContent, laborSale, paginateRows, pdfQuery, rowWeight } from './proposalPdfPages';
 
 // Rodada 23 (desktop do Orcamentos): proximo passo por situacao e papel, paginas do PDF so com preco de venda
 // e comparativo de revisoes.
@@ -114,4 +114,14 @@ test('comparativo: revisoes iguais nao mudam nada e a mao de obra entra como uma
   const withLabor = proposal({ laborItems: [labor], totals: { ...proposal().totals, labor: 1000, finalValue: 5670 } });
   const result = compareProposals(proposal(), withLabor);
   assert.equal(result.rows.find((row) => row.kind === 'add')?.item.category, 'Mão de obra');
+});
+
+test('paginateRows: descricao longa conta varias linhas e a ultima pagina guarda espaco para o total', () => {
+  const rows = [...Array.from({ length: 10 }, () => ({ weight: 1 })), { weight: 4 }, ...Array.from({ length: 11 }, () => ({ weight: 1 }))];
+  const pages = paginateRows(rows);
+  for (const page of pages.slice(0, -1)) assert.ok(page.reduce((sum, row) => sum + row.weight, 0) <= ROWS_PER_PAGE);
+  const last = pages[pages.length - 1].reduce((sum, row) => sum + row.weight, 0);
+  assert.ok(last + 3 <= ROWS_PER_PAGE || pages[pages.length - 1].length === 1);
+  assert.equal(pages.flat().length, rows.length);
+  assert.equal(rowWeight('x'.repeat(100)), 3);
 });

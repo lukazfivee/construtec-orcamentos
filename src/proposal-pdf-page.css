@@ -13,6 +13,7 @@ html, body { margin: 0; overflow: hidden; }
 .pg-note { margin: 8px 0 0; color: #334155; }
 .pg-cover { padding-top: 90px; display: flex; flex-direction: column; gap: 6px; }
 .pg-cover > small { color: #12a9d1; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.pg-logo { margin-bottom: 14px; padding: 6px 10px; align-self: flex-start; color: #fff; background: #163d69; letter-spacing: .12em; font-size: 11px; }
 .pg-h1 { font-size: 20px; line-height: 1.2; color: #163d69; }
 .pg-cover dl, .pg-terms { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 16px 0; }
 .pg-cover dt, .pg-terms dt { color: #52616b; }
