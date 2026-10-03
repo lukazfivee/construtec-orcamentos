@@ -111,7 +111,7 @@
 .pdf-thumbs button.current { color: var(--ink); border-color: #12a9d1; }
 .pdf-thumbs button small { font-size: 10.5px; }
 .pdf-thumb-box { position: relative; display: block; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px var(--line); border-radius: 3px; pointer-events: none; }
-.pdf-thumb-box > span { position: absolute; top: 0; left: 0; display: block; width: 396px; transform-origin: 0 0; }
+
 .pdf-viewer { min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .pdf-viewer-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 12px; }
 .pdf-viewer-bar b { margin-right: 8px; }
@@ -121,7 +121,7 @@
 .pdf-zoom { min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
 .pdf-stage { flex: 1; min-height: 0; overflow: auto; padding: 24px; background: #e3edf1; }
 .pdf-page-wrap { position: relative; margin: 0 auto; flex: none; }
-.pdf-page-scale { position: absolute; top: 0; left: 0; width: 396px; transform-origin: 0 0; box-shadow: 0 6px 24px rgba(3, 31, 41, .18); }
+.pdf-page-scale { box-shadow: 0 6px 24px rgba(3, 31, 41, .18); }
 .pdf-options { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pdf-options fieldset { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .pdf-options legend { padding: 0 4px; font-size: 12px; font-weight: 700; }
@@ -149,26 +149,6 @@
 .share-menu button:hover { background: var(--blue-soft); }
 .share-menu-note { padding: 6px 8px 2px; color: var(--muted); font-size: 11px; }
 
-/* Páginas desenhadas do PDF (A4 reduzida); só preços de venda. */
-.pg { position: relative; width: 396px; height: 560px; padding: 22px 22px 40px; background: #fff; color: #17252d; font: 10px/1.4 Arial, Helvetica, sans-serif; overflow: hidden; }
-.pg-head { display: flex; justify-content: space-between; border-bottom: 2px solid #12a9d1; padding-bottom: 6px; color: #52616b; }
-.pg-head b { color: #163d69; letter-spacing: .08em; }
-.pg-title { margin: 10px 0 6px; font-weight: 700; color: #163d69; text-transform: uppercase; font-size: 11px; }
-.pg-tab { width: 100%; border-collapse: collapse; }
-.pg-tab td { padding: 4px 3px; border-bottom: 1px solid #e1edf2; vertical-align: top; }
-.pg-tab td:not(:first-child) { text-align: right; white-space: nowrap; }
-.pg-cat td { background: #eaf3f6; color: #163d69; font-weight: 700; }
-.pg-total { margin-top: 10px; padding: 8px; background: #d9edf3; color: #163d69; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.pg-total b { font-size: 13px; }
-.pg-note { margin: 8px 0 0; color: #334155; }
-.pg-cover { padding-top: 90px; display: flex; flex-direction: column; gap: 6px; }
-.pg-cover > small { color: #12a9d1; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-.pg-h1 { font-size: 20px; line-height: 1.2; color: #163d69; }
-.pg-cover dl, .pg-terms { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 16px 0; }
-.pg-cover dt, .pg-terms dt { color: #52616b; }
-.pg-cover dd, .pg-terms dd { margin: 0; }
-.pg-sign { margin-top: 40px; color: #163d69; }
-.pg-foot { position: absolute; left: 22px; right: 22px; bottom: 12px; display: flex; justify-content: space-between; border-top: 1px solid #12a9d1; padding-top: 4px; font-size: 8px; color: #52616b; }
 
 /* ---------- comparativo (23q a 23t) ---------- */
 .compare-pick { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }

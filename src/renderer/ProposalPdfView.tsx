@@ -6,6 +6,7 @@ import type { ProposalDetail } from '../shared/contracts';
 import { proposalApi } from './api';
 import { openExternalUrl, printDocument } from './proposalPdfActions';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
+import pdfPageCss from '../proposal-pdf-page.css?raw';
 import {
   PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel,
   type PdfChoices,
@@ -32,6 +33,21 @@ type Load = { state: 'loading' } | { state: 'error'; offline: boolean; message: 
 
 // PDF da proposta no computador (Rodada 23, telas 23m a 23p): miniaturas, pagina grande com zoom e as opcoes.
 // Custo, BDI e margem nunca entram no PDF; "Enviar ao cliente" so com a permissao de envio (p11).
+/** Página do PDF num iframe isolado (sem scripts, sem acesso à janela do app). */
+function PdfPageFrame({ html, scale, className }: { html: string; scale: number; className?: string }) {
+  return (
+    <iframe
+      title="Página do PDF"
+      className={className}
+      sandbox=""
+      tabIndex={-1}
+      scrolling="no"
+      srcDoc={`<!doctype html><meta charset="utf-8"><style>${pdfPageCss}</style>${html}`}
+      style={{ width: PDF_PAGE_WIDTH, height: PDF_PAGE_HEIGHT, border: 0, display: 'block', background: '#fff', transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', top: 0, left: 0 }}
+    />
+  );
+}
+
 export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpdate, onProposalTabsReload, showNotice }: Props) {
   const canEdit = useCanEdit();
   const p10 = useSuitePermission('p10');
@@ -218,7 +234,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
               onClick={() => setPageIndex(index)}
             >
               <span className="pdf-thumb-box" style={{ width: THUMB_WIDTH, height: Math.round(PDF_PAGE_HEIGHT * (THUMB_WIDTH / PDF_PAGE_WIDTH)) }}>
-                <span style={{ transform: `scale(${THUMB_WIDTH / PDF_PAGE_WIDTH})` }} dangerouslySetInnerHTML={{ __html: page.html }} />
+                <PdfPageFrame html={page.html} scale={THUMB_WIDTH / PDF_PAGE_WIDTH} />
               </span>
               <small>{index + 1} · {page.label}</small>
             </button>
@@ -238,7 +254,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
           <div className="pdf-stage" ref={stageRef}>
             {current && (
               <div className="pdf-page-wrap" style={{ width: Math.round(PDF_PAGE_WIDTH * scale), height: Math.round(PDF_PAGE_HEIGHT * scale) }}>
-                <div className="pdf-page-scale" style={{ transform: `scale(${scale})` }} dangerouslySetInnerHTML={{ __html: current.html }} />
+                <PdfPageFrame html={current.html} scale={scale} className="pdf-page-scale" />
               </div>
             )}
           </div>
