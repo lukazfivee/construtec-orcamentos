@@ -3,10 +3,11 @@ import {
   ChevronLeft, ChevronRight, Download, Eye, FileText, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+// eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
+import pdfPageCss from '../proposal-pdf-page.css?raw';
 import { proposalApi } from './api';
 import { openExternalUrl, printDocument } from './proposalPdfActions';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
-import pdfPageCss from '../proposal-pdf-page.css?raw';
 import {
   PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel,
   type PdfChoices,
