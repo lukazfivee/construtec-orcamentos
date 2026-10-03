@@ -36,3 +36,24 @@ test('raiz manda o app Suite e o celular para /m/ levando o fragmento', () => {
   assert.match(html, /location\.replace\('\/m\/' \+ location\.search \+ location\.hash\)/);
   assert.match(html, /sessionStorage\.getItem\('orc_versao'\) === 'completa'/);
 });
+
+test('/m/: arquivos do celular com ate 350 linhas (exceto os antigos maiores)', () => {
+  for (const file of ['screen-descarte.js', 'descarte.css', 'screen-prop.js', 'screen-misc.js', 'app.js']) {
+    assert.ok(read(file).split('\n').length <= 350, `${file} passou de 350 linhas`);
+  }
+});
+
+test('/m/: excluir, descartar e recuperar usam as rotas do servidor e respeitam os papeis', () => {
+  const js = read('screen-descarte.js');
+  assert.match(js, /\?mode=all`, \{ method: 'DELETE' \}/);
+  assert.match(js, /\/discard`, \{ method: 'POST', body: \{ confirmNumber:/);
+  assert.match(js, /\/proposals\/discarded\/\$\{encodeURIComponent\(d\.id\)\}\/restore`/);
+  assert.match(js, /OC\.isAdmin = \(\) => user\(\)\.role === 'admin'/);
+  assert.match(js, /suiteRole !== 'tecnico'/);
+  assert.match(js, /const del = !apr && OC\.canDeleteProposal\(\), desc = apr && OC\.isAdmin\(\)/);
+  // Cada sistema descarta so o seu: nada de prometer que a obra sai junto do Centro.
+  assert.doesNotMatch(js, /sai junto/);
+  assert.match(js, /A obra já tem movimento/);
+  assert.match(read('screen-prop.js'), /OC\.propMenu\(p\)/);
+  assert.match(read('screen-misc.js'), /id="m-desc"/);
+});

@@ -1,0 +1,31 @@
+/* Excluir, descartar e recuperar proposta (Rodada 25). */
+.btn-danger { background: var(--danger); }
+.btn[disabled] .rot, .btn .rot { animation: spin 1s linear infinite; }
+.pm-list { margin-top: 8px; }
+.pm-list .menu-item:first-child { border-top: 0; }
+.pm-list .menu-item.danger small { color: var(--n300); }
+.sheet-err { display: flex; gap: 10px; align-items: flex-start; margin: 10px 0 2px; padding: 12px; border-radius: 10px; background: var(--bad-soft); color: var(--danger); }
+.sheet-err .ico { flex: none; margin-top: 1px; }
+.sheet-err b { display: block; font-size: 14px; }
+.sheet-err small { display: block; margin-top: 2px; font-size: 13px; color: var(--text); line-height: 1.4; }
+.err-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 13px; font-weight: 600; color: var(--accent-300); }
+.sheet-note { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding: 12px; border-radius: 10px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--divider); font-size: 13px; line-height: 1.45; }
+.sheet-note .ico { flex: none; color: var(--accent-300); }
+.field input.typed-ok { box-shadow: inset 0 0 0 2px #12a9d1; }
+.field input.typed-bad { box-shadow: inset 0 0 0 2px var(--danger); }
+.type-hint { margin: 6px 0 0; min-height: 16px; font-size: 12px; color: var(--n300); }
+.sheet-ok { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 4px 4px; text-align: center; }
+.sheet-ok .ico { color: var(--ok); }
+.sheet-ok b { font-size: 17px; }
+.sheet-ok p { margin: 0; font-size: 13px; color: var(--n300); line-height: 1.5; }
+.desc-list { display: flex; flex-direction: column; gap: 10px; }
+.desc-row { width: 100%; border: 0; display: flex; flex-direction: column; gap: 3px; text-align: left; color: var(--text); }
+.desc-top { display: flex; align-items: center; gap: 8px; min-height: 28px; }
+.desc-top .grow { flex: 1; }
+.desc-obra { font-size: 14px; font-weight: 600; }
+.desc-row small { font-size: 12px; color: var(--n300); }
+.desc-row .desc-why { color: var(--text); }
+.desc-row .desc-why.none, .scope p.none { color: var(--n300); }
+.menu-count { min-width: 24px; height: 24px; padding: 0 7px; border-radius: 12px; background: var(--bad-soft); color: var(--danger); font-size: 12px; font-weight: 700; line-height: 24px; text-align: center; }
+.top .bell-btn + .bell-btn { margin-left: -8px; } /* PDF e tres pontos juntos: cabem com a Suite em 375 px */
+.top h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

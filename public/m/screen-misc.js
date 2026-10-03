@@ -1,7 +1,7 @@
 // Kits, Menu, Configuracoes, Catalogo e Clientes no celular (prototipo: sOrcKits, sKit, sOrcMenu, cfg, cat, cli).
 (function (OC) {
   const { esc, icon } = OC;
-  const VERSION = '2';
+  const VERSION = '3';
   const inApp = () => /SuiteConstrutec\//.test(navigator.userAgent);
   const initials = (name) => String(name || '?').split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 
@@ -159,9 +159,10 @@
   };
 
   OC.screens.menu = async function (params) {
-    const [settings, summary] = await Promise.all([
+    const [settings, summary, discarded] = await Promise.all([
       OC.api('/settings').then((d) => d.settings || {}).catch(() => ({})),
       OC.api('/dashboard').then((d) => d.summary || {}).catch(() => ({})),
+      OC.discardedCount ? OC.discardedCount() : 0,
     ]);
     const u = OC.session.user() || {};
     const dark = OC.theme.get() === 'escuro';
@@ -175,6 +176,7 @@
         ${item('m-cfg', 'gear-six', 'Configurações da empresa', `BDI padrão ${OC.can('p10') ? esc(OC.dec2(settings.defaultBdi || 0)) : '—'} · validade ${settings.defaultValidityDays || 30} dias`)}
         ${item('m-cat', 'package', 'Catálogo', `${summary.totalProductsCount || 0} itens`)}
         ${item('m-cli', 'users', 'Clientes e obras', `${summary.totalClientsCount || 0} clientes${proposals ? ` · ${summary.activeProposalsCount || 0} propostas abertas` : ''}`)}
+        ${OC.isAdmin && OC.isAdmin() ? `<button class="menu-item" type="button" id="m-desc">${icon('archive', 22)}<span class="grow">Propostas descartadas<small>Guardadas e recuperáveis · só administrador</small></span>${discarded ? `<span class="menu-count">${discarded}</span>` : ''}${icon('caret-right', 18)}</button>` : ''}
         ${inApp() ? item('m-seg', 'shield-check', 'Segurança', 'PIN, digital e bloqueio automático', 'suite://seguranca') : ''}
         ${inApp() ? item('m-tour', 'info', 'Rever o tour', 'Telas rápidas sobre os apps', 'suite://tour') : ''}
         <button class="menu-item" type="button" id="m-tema">${icon(dark ? 'sun' : 'moon', 22)}<span class="grow">${dark ? 'Modo claro' : 'Modo escuro'}</span></button>
@@ -185,6 +187,7 @@
     OC.$('#m-cfg', el).addEventListener('click', () => OC.open('cfg'));
     OC.$('#m-cat', el).addEventListener('click', () => OC.open('cat'));
     OC.$('#m-cli', el).addEventListener('click', () => OC.open('cli'));
+    if (OC.$('#m-desc', el)) OC.$('#m-desc', el).addEventListener('click', () => OC.open('desc'));
     OC.$('#m-tema', el).addEventListener('click', () => { OC.theme.toggle(); OC.go('menu'); });
     OC.$('#m-full', el).addEventListener('click', OC.fullVersion);
     OC.$('#m-sair', el).addEventListener('click', () => OC.logout());
