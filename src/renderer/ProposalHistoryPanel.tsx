@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { GitCompare, History as HistoryIcon } from 'lucide-react';
 import type { ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
 import { proposalApi } from './api';
-import { ProposalDiffModal } from './ProposalDiffModal';
 
 const statusLabels: Record<ProposalDetail['status'], string> = {
   draft: 'Em edição',
@@ -19,14 +18,14 @@ type Props = {
   proposal: ProposalDetail;
   parentLoading: boolean;
   onOpenRevision: (proposalId: string) => void;
+  // Abre o comparativo em pagina inteira (Rodada 23); sem id, compara a primeira com a ultima revisao.
+  onCompare: (fromRevisionId?: string) => void;
   setError: (error: string) => void;
 };
 
-export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, setError }: Props) {
+export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, onCompare, setError }: Props) {
   const [revisions, setRevisions] = useState<ProposalRevisionSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [diffModalOpen, setDiffModalOpen] = useState(false);
-  const [diffBaseRevId, setDiffBaseRevId] = useState<string | undefined>(undefined);
 
   const loadHistory = useCallback(async (proposalId: string) => {
     setHistoryLoading(true);
@@ -61,10 +60,7 @@ export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, 
               type="button"
               className="compare-heading-btn"
               disabled={historyLoading}
-              onClick={() => {
-                setDiffBaseRevId(undefined);
-                setDiffModalOpen(true);
-              }}
+              onClick={() => onCompare(undefined)}
             >
               <GitCompare size={14} /> Comparar revisões
             </button>
@@ -107,10 +103,7 @@ export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, 
                   <button
                     type="button"
                     className="diff-row-btn"
-                    onClick={() => {
-                      setDiffBaseRevId(revision.id);
-                      setDiffModalOpen(true);
-                    }}
+                    onClick={() => onCompare(revision.id)}
                   >
                     <GitCompare size={13} /> Comparar
                   </button>
@@ -160,10 +153,7 @@ export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, 
                         type="button"
                         className="diff-row-btn"
                         title={`Comparar Rev ${revision.revision} com a proposta atual`}
-                        onClick={() => {
-                          setDiffBaseRevId(revision.id);
-                          setDiffModalOpen(true);
-                        }}
+                        onClick={() => onCompare(revision.id)}
                       >
                         <GitCompare size={13} /> Comparar
                       </button>
@@ -176,17 +166,6 @@ export function ProposalHistoryPanel({ proposal, parentLoading, onOpenRevision, 
         </table>
       )}
 
-      <ProposalDiffModal
-        open={diffModalOpen}
-        currentProposal={proposal}
-        revisions={revisions}
-        initialBaseRevisionId={diffBaseRevId}
-        onClose={() => setDiffModalOpen(false)}
-        onOpenRevision={(revId) => {
-          setDiffModalOpen(false);
-          onOpenRevision(revId);
-        }}
-      />
     </div>
   );
 }

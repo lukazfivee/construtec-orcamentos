@@ -4,6 +4,8 @@ import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { seesCost } from './SuitePermissions';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
+import { ProposalActionsBar } from './ProposalActionsBar';
+import { ProposalPriceDriftBanner } from './ProposalPriceDriftBanner';
 import { ProposalExportDialog } from './ProposalExportDialog';
 import { ProposalShareDialog } from './ProposalShareDialog';
 import { ProposalCommercialConditionsPanel } from './ProposalCommercialConditionsPanel';
@@ -37,6 +39,9 @@ type Props = {
   onNewProposal: () => void;
   onManageClients: () => void;
   onCreateRevision: () => void;
+  initialSection?: ActiveSection;
+  onOpenPdf: () => void;
+  onOpenCompare: (fromRevisionId?: string) => void;
   onNavigateToCentroCustos?: (costCenterId?: number) => void;
   showNotice: (message: string) => void;
   setError: (error: string) => void;
@@ -57,11 +62,14 @@ export function ProposalEditorWorkspace({
   onNewProposal,
   onManageClients,
   onCreateRevision,
+  initialSection,
+  onOpenPdf,
+  onOpenCompare,
   onNavigateToCentroCustos,
   showNotice,
   setError,
 }: Props) {
-  const [activeSection, setActiveSection] = useState<ActiveSection>('Itens');
+  const [activeSection, setActiveSection] = useState<ActiveSection>(initialSection ?? 'Itens');
   const [laborTotal, setLaborTotal] = useState(0);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -161,6 +169,28 @@ export function ProposalEditorWorkspace({
           </div>
         )}
 
+        <ProposalActionsBar
+          proposal={proposal}
+          mutationPending={mutationPending}
+          setMutationPending={setMutationPending}
+          onOpenPdf={onOpenPdf}
+          onOpenCompare={() => onOpenCompare(undefined)}
+          onProposalUpdate={onProposalUpdate}
+          onProposalTabsReload={() => void reloadProposalTabs()}
+          onAddItems={() => { setActiveSection('Itens'); setCatalogOpen(true); }}
+          onCreateRevision={onCreateRevision}
+          onNavigateToCentroCustos={onNavigateToCentroCustos}
+          showNotice={showNotice}
+          setError={setError}
+        />
+
+        <ProposalPriceDriftBanner
+          proposal={proposal}
+          onProposalUpdate={onProposalUpdate}
+          showNotice={showNotice}
+          setError={setError}
+        />
+
         <ProposalMetaBar
           proposal={proposal}
           isEditable={isEditable}
@@ -245,6 +275,7 @@ export function ProposalEditorWorkspace({
             proposal={proposal}
             parentLoading={loading}
             onOpenRevision={(revId) => void onOpenProposal(revId)}
+            onCompare={onOpenCompare}
             setError={setError}
           />
         )}
@@ -264,7 +295,7 @@ export function ProposalEditorWorkspace({
         onUpdateTax={() => void updateTax()}
         onCreateRevision={onCreateRevision}
         onCloneProposal={() => setCloneDialogOpen(true)}
-        onPreviewProposal={() => setExportDialogOpen(true)}
+        onPreviewProposal={onOpenPdf}
         onExportProposal={() => setExportDialogOpen(true)}
         onShareProposal={() => setShareDialogOpen(true)}
         onDeleteProposal={() => void deleteCurrentProposal()}

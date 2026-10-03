@@ -20,3 +20,9 @@ export const useSuitePermission = (permission: string): boolean => {
   const user = useContext(SuiteUserContext);
   return !user || !Array.isArray(user.permissions) || user.permissions.includes(permission);
 };
+
+// Consulta (viewer) nao altera nada: o servidor recusa, a tela so esconde as acoes.
+export const useCanEdit = (): boolean => {
+  const user = useContext(SuiteUserContext);
+  return !user || user.role !== 'viewer';
+};

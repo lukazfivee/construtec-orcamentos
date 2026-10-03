@@ -10,7 +10,9 @@ import { ClientsWorkspace } from './ClientsWorkspace';
 import { HomeWorkspace } from './HomeWorkspace';
 import { KitsWorkspace } from './KitsWorkspace';
 import { NewProposalDialog } from './NewProposalDialog';
+import { ProposalCompareView } from './ProposalCompareView';
 import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
+import { ProposalPdfView } from './ProposalPdfView';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
 import { useProposalDeepLink } from './useProposalDeepLink';
@@ -33,13 +35,16 @@ export function App({ user, onLogout }: AppProps = {}) {
   const [documentPending, setDocumentPending] = useState(false);
   const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
   const [newProposalOpen, setNewProposalOpen] = useState(false);
-  const [proposalViewMode, setProposalViewMode] = useState<'editor' | 'list'>('editor');
+  const [proposalViewMode, setProposalViewMode] = useState<'editor' | 'list' | 'pdf' | 'compare'>('editor');
+  // Comparativo (Rodada 23): revisao de partida (vazio = primeira x ultima) e aba com que o editor reabre ao voltar.
+  const [compareFrom, setCompareFrom] = useState<string | undefined>(undefined);
+  const [editorSection, setEditorSection] = useState<'Histórico' | undefined>(undefined);
+  useEffect(() => {
+    if (proposalViewMode === 'editor') setEditorSection(undefined);
+  }, [proposalViewMode, activeNav]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const showNotice = (message: string) => {
-    setNotice(message);
-    window.setTimeout(() => setNotice(''), 2600);
-  };
+  const showNotice = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(''), 2600); };
 
   const loadProposal = useCallback(async () => {
     setLoading(true);
@@ -226,6 +231,23 @@ export function App({ user, onLogout }: AppProps = {}) {
           onError={setError}
           onNotice={showNotice}
         />
+      ) : activeNav === 'Propostas' && proposal && proposalViewMode === 'pdf' ? (
+        <ProposalPdfView
+          key={`proposal-pdf-${proposal.id}`}
+          proposalId={proposal.id}
+          onBack={() => setProposalViewMode('editor')}
+          onAddItems={() => { setProposalViewMode('editor'); setCatalogOpen(true); }}
+          onProposalUpdate={setProposal}
+          onProposalTabsReload={() => { void proposalApi.list().then((tabs) => setProposalTabs(tabs.proposals)).catch(() => undefined); }}
+          showNotice={showNotice}
+        />
+      ) : activeNav === 'Propostas' && proposal && proposalViewMode === 'compare' ? (
+        <ProposalCompareView
+          key={`proposal-compare-${proposal.id}-${compareFrom ?? 'all'}`}
+          proposalId={proposal.id}
+          initialFrom={compareFrom}
+          onBack={() => { setEditorSection('Histórico'); setProposalViewMode('editor'); }}
+        />
       ) : activeNav === 'Propostas' && proposal ? (
         <ProposalEditorWorkspace
           key="proposal-editor"
@@ -249,6 +271,9 @@ export function App({ user, onLogout }: AppProps = {}) {
             setError('');
           }}
           onCreateRevision={() => void createRevision()}
+          initialSection={editorSection}
+          onOpenPdf={() => { setCatalogOpen(false); setProposalViewMode('pdf'); }}
+          onOpenCompare={(fromRevisionId) => { setCatalogOpen(false); setCompareFrom(fromRevisionId); setProposalViewMode('compare'); }}
           onNavigateToCentroCustos={(ccId) => {
             setTargetCostCenterId(ccId ?? null);
             setActiveNav('Centro de Custos');
