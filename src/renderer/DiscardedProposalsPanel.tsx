@@ -31,7 +31,7 @@ export function DiscardedProposalsPanel({ onNotice, onError }: Props) {
   return (
     <section className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
       <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Propostas descartadas</h2>
-      <p style={{ margin: '2px 0 12px', fontSize: '10px', color: '#5d7480' }}>Só administradores descartam e restauram. O registro de quem descartou e quando é permanente.</p>
+      <p style={{ margin: '2px 0 12px', fontSize: '10px', color: '#5d7480' }}>Só administradores descartam e restauram. Restaurar devolve também a obra ao Centro de Custos, se ela saiu junto. O registro de quem descartou e quando é permanente.</p>
       {items === null ? <p style={{ fontSize: '11px' }}>Carregando…</p> : items.length === 0 ? <p style={{ fontSize: '11px' }}>Nenhuma proposta descartada.</p> : (
         <div style={{ display: 'grid', gap: '8px' }}>
           {items.map((item) => (

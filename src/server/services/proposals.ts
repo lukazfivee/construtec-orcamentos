@@ -162,7 +162,7 @@ export const listCurrentProposals = async (database: LocalDatabase): Promise<Pro
     updated_at: string;
     is_latest: boolean;
     has_approved_revision: boolean;
-    sync_status: 'pending' | 'delivered' | 'failed' | null;
+    sync_status: 'pending' | 'delivered' | 'failed' | 'center_discarded' | null;
   }>(`
     SELECT p.id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,

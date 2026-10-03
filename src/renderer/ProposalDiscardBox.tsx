@@ -3,7 +3,7 @@ import { proposalApi } from './api';
 import { useIsAdmin } from './SuitePermissions';
 
 // Só administrador. Descarta a proposta (inclusive aprovada) guardando tudo para recuperar em Configurações.
-// O servidor confere o número digitado e se a obra no Centro de Custos não tem movimento.
+// O servidor confere o número digitado e descarta junto a obra no Centro de Custos (só sem movimento).
 type Props = { proposalId: string; number: string; approved: boolean };
 
 export function ProposalDiscardBox({ proposalId, number, approved }: Props) {
@@ -39,7 +39,7 @@ export function ProposalDiscardBox({ proposalId, number, approved }: Props) {
   return (
     <form onSubmit={(event) => void submit(event)} style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
       <div className="danger-callout">
-        Descartar tira {number} da lista, com todas as revisões, e guarda uma cópia em Configurações, onde ela pode ser restaurada. Se a obra no Centro de Custos tem lançamentos, notas ou medições, o descarte é recusado.
+        Descartar tira {number} da lista, com todas as revisões, e guarda uma cópia em Configurações, onde ela pode ser restaurada. A obra no Centro de Custos, sem movimento, sai junto e volta se a proposta for restaurada. Se a obra tem lançamentos, notas ou medições, o descarte é recusado.
       </div>
       <label style={{ display: 'grid', gap: '4px', fontSize: '0.8rem' }}>Motivo (opcional)
         <input value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} />

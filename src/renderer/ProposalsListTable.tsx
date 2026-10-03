@@ -169,11 +169,13 @@ export function ProposalsListTable({
                       <span className={`sync-badge sync-${item.syncStatus}`} title={
                         item.syncStatus === 'delivered' ? 'Sincronizado com Centro de Custos' :
                         item.syncStatus === 'pending' ? 'Aguardando sincronização' :
+                        item.syncStatus === 'center_discarded' ? 'A obra foi descartada no Centro de Custos' :
                         'Falha na sincronização'
                       }>
                         {item.syncStatus === 'delivered' && <><Check size={10} /> Sincronizado</>}
                         {item.syncStatus === 'pending' && <><RefreshCw size={10} /> Pendente</>}
                         {item.syncStatus === 'failed' && <><CloudOff size={10} /> Falha</>}
+                        {item.syncStatus === 'center_discarded' && <><CloudOff size={10} /> Obra descartada</>}
                       </span>
                     )}
                   </td>

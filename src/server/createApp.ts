@@ -265,11 +265,15 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       return;
     }
     if (error instanceof Error && error.message === 'DISCARD_CENTER_HAS_MOVEMENT') {
-      response.status(409).json({ error: 'A obra desta proposta no Centro de Custos já tem lançamentos, notas ou medições. Só proposta sem movimento pode ser descartada.' });
+      response.status(409).json({ error: 'A obra desta proposta no Centro de Custos já tem lançamentos, notas ou medições. Só proposta sem movimento pode ser descartada (a obra sai junto do Centro).' });
       return;
     }
     if (error instanceof Error && error.message === 'DISCARD_CENTER_UNAVAILABLE') {
-      response.status(503).json({ error: 'Não foi possível conferir a obra no Centro de Custos agora. Tente de novo em instantes.' });
+      response.status(503).json({ error: 'Não foi possível falar com o Centro de Custos agora. Nada foi alterado; tente de novo em instantes.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'RESTORE_CENTER_CONFLICT') {
+      response.status(409).json({ error: 'O Centro de Custos não conseguiu devolver a obra desta proposta (ela foi alterada ou recriada lá). Nada foi restaurado; confira a obra no Centro de Custos.' });
       return;
     }
     if (error instanceof Error && error.message === 'DISCARD_ALREADY_RESTORED') {

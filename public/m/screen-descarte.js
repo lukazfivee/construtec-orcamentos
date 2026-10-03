@@ -1,7 +1,7 @@
 // Excluir, descartar e recuperar proposta no celular (prototipo: Rodada 25, folhas propMenu, propDel e recProp).
 // Excluir: proposta nao aprovada, para quem edita (administrador, gestor e comercial; tecnico nao).
 // Descartar com registro e Propostas descartadas: so administrador (o servidor confere de novo).
-// Cada sistema descarta so o seu: a obra ligada continua no Centro de Custos e e descartada la.
+// A obra sem movimento no Centro de Custos sai junto com a proposta e volta se a proposta for recuperada.
 (function (OC) {
   const { esc, icon } = OC;
   const user = () => OC.session.user() || {};
@@ -11,12 +11,12 @@
   const ERR = {
     net: ['wifi-slash', 'Sem internet', 'Nada foi alterado. Conecte o celular e tente de novo.'],
     mov: ['warning-circle', 'A obra já tem movimento', 'Exclua ou estorne os lançamentos antes.'],
-    cc: ['warning-circle', 'O Centro de Custos não respondeu', 'Nada foi descartado. Tente de novo em alguns minutos.'],
+    cc: ['warning-circle', 'O Centro de Custos não respondeu', 'Nada foi alterado. Tente de novo em alguns minutos.'],
   };
   const errKind = (error, discard) => {
     if (!error || error.status === 0) return ERR.net;
     if (discard && error.status === 409 && /movimento|lançamentos/i.test(error.message)) return ERR.mov;
-    if (discard && error.status === 503) return ERR.cc;
+    if (error.status === 503) return ERR.cc;
     return ['warning-circle', 'Não foi possível concluir', error.message];
   };
   const errBox = (e, extra) => `<div class="sheet-err" role="alert">${icon(e[0], 20)}<span><b>${esc(e[1])}</b><small>${esc(e[2])}</small>${extra || ''}</span></div>`;
@@ -96,7 +96,7 @@
     let typed = '', reason = '';
     const ok = () => typed.trim().toUpperCase() === String(p.number).toUpperCase();
     const head = `${OC.sheetHead(`Descartar ${p.number}?`, 'archive')}<p class="sheet-text" style="margin-top:2px">${esc(p.workName || '')} · ${esc(p.clientName || '')}</p>`;
-    const obra = p.costCenterId ? `<p class="sheet-note">${icon('buildings', 18)}<span>A obra ligada no Centro de Custos continua lá. Para tirá-la também, descarte a obra no Centro de Custos.</span></p>` : '';
+    const obra = p.costCenterId ? `<p class="sheet-note">${icon('buildings', 18)}<span>A obra no Centro de Custos, sem movimento, sai junto. Se a proposta for recuperada, a obra volta.</span></p>` : '';
     const { s, state } = stateSheet(head, (st, error) => {
       if (st === 'ok') {
         return `${okBox(`${p.number} descartada`, 'Fica guardada em Menu › Propostas descartadas, com o seu nome e a data de hoje. Dá para recuperar quando quiser.')}
@@ -181,7 +181,7 @@
     const el = OC.render(`${OC.header(d.proposal_number, { back: true })}
       <div class="card">${kv.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
       <div class="card scope"><small class="label">Motivo</small><p${d.reason ? '' : ' class="none"'}>${esc(d.reason || 'Sem motivo informado.')}</p></div>
-      <p class="hint">A obra no Centro de Custos não é alterada por aqui: se ela também foi descartada, recupere lá.</p>
+      <p class="hint">Se a obra saiu do Centro de Custos junto com a proposta, ela volta ao recuperar.</p>
       <div class="actions"><button class="btn" type="button" data-rec>${icon('arrow-counter-clockwise', 18)}Recuperar proposta</button></div>`, true, params);
     OC.$('[data-rec]', el).addEventListener('click', () => recoverSheet(d));
   };

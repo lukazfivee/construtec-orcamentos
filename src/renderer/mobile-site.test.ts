@@ -51,8 +51,9 @@ test('/m/: excluir, descartar e recuperar usam as rotas do servidor e respeitam 
   assert.match(js, /OC\.isAdmin = \(\) => user\(\)\.role === 'admin'/);
   assert.match(js, /suiteRole !== 'tecnico'/);
   assert.match(js, /const del = !apr && OC\.canDeleteProposal\(\), desc = apr && OC\.isAdmin\(\)/);
-  // Cada sistema descarta so o seu: nada de prometer que a obra sai junto do Centro.
-  assert.doesNotMatch(js, /sai junto/);
+  // A obra sem movimento sai junto do Centro e volta na recuperacao.
+  assert.match(js, /sai junto/);
+  assert.doesNotMatch(js, /continua lá/);
   assert.match(js, /A obra já tem movimento/);
   assert.match(read('screen-prop.js'), /OC\.propMenu\(p\)/);
   assert.match(read('screen-misc.js'), /id="m-desc"/);
