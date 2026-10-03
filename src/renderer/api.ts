@@ -89,6 +89,16 @@ const requestBinary = async (path: string): Promise<Uint8Array> => {
   return new Uint8Array(await response.arrayBuffer());
 };
 
+const requestText = async (path: string): Promise<string> => {
+  const { apiUrl, apiToken } = await getRuntime();
+  const response = await fetch(`${apiUrl}${path}`, { headers: requestHeaders(apiToken), cache: 'no-store' });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({ error: 'Resposta inválida da API local.' })) as ApiErrorPayload;
+    throw new Error(payload.error);
+  }
+  return response.text();
+};
+
 export const authApi = {
   login: (input: { email: string; password: string; rememberMe?: boolean }) => request<AuthSession>(
     '/api/auth/login', { method: 'POST', body: JSON.stringify(input) },
@@ -96,6 +106,16 @@ export const authApi = {
   me: () => request<{ user: AuthUser }>('/api/auth/me'),
   logout: () => request<{ success: boolean }>('/api/auth/logout', { method: 'POST' }),
   handoff: (code: string) => request<AuthSession>('/api/auth/handoff', { method: 'POST', body: JSON.stringify({ code }) }),
+};
+
+// Preco do catalogo que mudou depois que o item entrou na proposta. Sem p10 o custo (de e para) nao vem.
+export type PriceDriftItem = {
+  id: string; code: string; description: string; quantity: number; unit: string; changePercent: number; finalDelta: number;
+  fromUnit?: number; toUnit?: number; costDelta?: number;
+};
+export type PriceDrift = {
+  id: string; number: string; revision: number; clientName: string; workName: string; status: string; frozen: boolean;
+  items: PriceDriftItem[]; finalBefore: number; finalAfter: number; finalDelta: number; costDelta?: number;
 };
 
 export type DiscardedProposalRecord = {
@@ -193,6 +213,12 @@ export const proposalApi = {
   updateLaborSettings: (proposalId: string, standardMonthlyHours: number) => request<{ standardMonthlyHours: number }>(
     `/api/proposals/${proposalId}/labor-settings`, { method: 'PATCH', body: JSON.stringify({ standardMonthlyHours }) },
   ),
+  priceDrift: (proposalId: string) => request<{ drift: PriceDrift }>(`/api/proposals/${proposalId}/price-drift`),
+  applyPriceDrift: (proposalId: string, itemIds?: string[]) => request<{ updated: number; proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/price-drift/apply`, { method: 'POST', body: JSON.stringify(itemIds?.length ? { itemIds } : {}) },
+  ),
+  // HTML do PDF do cliente, montado no servidor (so precos de venda).
+  documentHtml: (proposalId: string, query: string) => requestText(`/api/proposals/${proposalId}/document?${query}`),
   centerTracking: (proposalId: string) => request<CenterTracking>(`/api/proposals/${proposalId}/center-tracking`),
   directSync: (proposalId: string) => request<DirectSyncResult>(
     `/api/proposals/${proposalId}/direct-sync`, { method: 'POST' },
