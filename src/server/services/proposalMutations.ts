@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal } from './proposalCommon';
+import { getNewProposalDefaults } from './settings';
 
 export const createProposal = async (
   database: LocalDatabase,
@@ -40,12 +41,14 @@ export const createProposal = async (
     const currentNumber = Number(numberResult.rows[0]?.proposal_number.slice(3) ?? 1000);
     const proposalNumber = `PA-${String(currentNumber + 1).padStart(4, '0')}`;
     const proposalId = randomUUID();
+    // Padroes da empresa (Rodada 24): BDI e impostos das propostas novas.
+    const defaults = await getNewProposalDefaults(transaction);
 
     await transaction.query(`
       INSERT INTO proposals
         (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-         snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by)
-      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9, $10)
+         snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by, tax_percentage)
+      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9, $10, $11)
     `, [
       proposalId,
       proposalNumber,
@@ -54,9 +57,10 @@ export const createProposal = async (
       context.work_name,
       context.client_name,
       input.scope.trim(),
-      input.bdiMultiplier ?? 1.25,
+      input.bdiMultiplier ?? defaults.bdiMultiplier,
       input.validUntil ?? null,
       userId,
+      defaults.taxPercentage,
     ]);
 
     await transaction.query(`

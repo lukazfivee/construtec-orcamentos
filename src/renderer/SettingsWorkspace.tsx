@@ -12,6 +12,7 @@ import {
 import type { AppSettings, AuthUser } from '../shared/contracts';
 import { DiscardedProposalsPanel } from './DiscardedProposalsPanel';
 import { authApi, settingsApi, systemApi } from './api';
+import { CompanyDefaultsPanel } from './CompanyDefaultsPanel';
 import { UsersAdminPanel } from './UsersAdminPanel';
 
 type SettingsWorkspaceProps = {
@@ -30,6 +31,9 @@ const initialSettings: AppSettings = {
   defaultBdi: 1.45,
   defaultStandardHours: 176,
   defaultValidityDays: 15,
+  defaultTaxPercentage: 0,
+  pdfShowLogo: true,
+  pdfShowSignature: true,
 };
 
 
@@ -67,7 +71,10 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
 
     setSaving(true);
     try {
-      const result = await settingsApi.update(settings);
+      // BDI, impostos, validade e PDF salvam em "Padroes da empresa" (painel proprio).
+      const { defaultBdi, defaultValidityDays, defaultTaxPercentage, pdfShowLogo, pdfShowSignature, ...company } = settings;
+      void defaultBdi; void defaultValidityDays; void defaultTaxPercentage; void pdfShowLogo; void pdfShowSignature;
+      const result = await settingsApi.update(company);
       setSettings(result.settings);
       onNotice('Configurações salvas com sucesso.');
     } catch (error) {
@@ -137,6 +144,8 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
             </div>
           )}
 
+          <CompanyDefaultsPanel settings={settings} loading={loading} isAdmin={isAdmin} onSaved={setSettings} onNotice={onNotice} onError={onError} />
+
           <form id="settings-form" onSubmit={(e) => void saveSettings(e)} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
@@ -162,15 +171,13 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
                 <Percent size={19} color="#12a9d1" />
                 <div>
                   <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Parâmetros Padrão de Novas Propostas</h2>
-                  <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Valores iniciais aplicados automaticamente ao criar orçamentos.</p>
+                  <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Responsável e horas da mão de obra. BDI, impostos e validade ficam em Padrões da empresa.</p>
                 </div>
               </div>
 
               <div className="form-grid">
                 <label><span>Responsável Técnico Padrão</span><input disabled={settingDisabled} value={settings.defaultResponsible} onChange={(e) => setSettings({ ...settings, defaultResponsible: e.target.value })} placeholder="Marcos Ribeiro" /></label>
-                <label><span>Multiplicador BDI Padrão (ex: 1.45 para 45%)</span><input disabled={settingDisabled} type="number" step="0.01" min="1" max="10" value={settings.defaultBdi} onChange={(e) => setSettings({ ...settings, defaultBdi: Number(e.target.value) })} /></label>
                 <label><span>Horas Mensais Padrão (Mão de Obra)</span><input disabled={settingDisabled} type="number" step="1" min="1" max="720" value={settings.defaultStandardHours} onChange={(e) => setSettings({ ...settings, defaultStandardHours: Number(e.target.value) })} /></label>
-                <label><span>Validade Padrão da Proposta (em dias)</span><input disabled={settingDisabled} type="number" step="1" min="1" max="365" value={settings.defaultValidityDays} onChange={(e) => setSettings({ ...settings, defaultValidityDays: Number(e.target.value) })} /></label>
               </div>
             </div>
 

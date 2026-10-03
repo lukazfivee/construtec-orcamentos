@@ -1,5 +1,13 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-10-02 BRT - Desktop Orçamentos: catálogo, importação, EXSAT e cadastros (Rodada 24) (Claude Code)
+
+- Base: `main` em `01900d6`, branch `feat/desktop-orc-catalogo`. Protótipo em `docs/suite-desktop/prototipo-orcamentos/Rodada24.dc.html`.
+- Telas novas (`orcDesk.css`, prefixo `od-`): Catálogo (`CatalogHome`), Importar lista em 4 passos (`CatalogImportPage`, `useCatalogImport`, `catalogImportFlow`), Integração EXSAT (`ExsatPage`, `useExsatSync`), Atualizar preços da proposta (`PriceDriftDrawer`), Kits (`KitsOverview`), Clientes (`ClientsOverview`), Padrões da empresa (`CompanyDefaultsPanel`, dentro de Configurações). Telas antigas viraram `CatalogEditor`, `KitsEditor`, `ClientsRegistry` (botão de cadastro em cada tela nova).
+- Servidor: `GET /api/catalog/overview` (uso nas propostas, preço mudado, itens novos, propostas congeladas; custo só com p10). Configurações ganharam `defaultTaxPercentage`, `pdfShowLogo`, `pdfShowSignature`. Proposta nova recebe os impostos padrão e o BDI padrão só depois de alguém salvar em Padrões da empresa (antes disso segue 1,25).
+- Limites: sincronizar EXSAT, entrar na conta e foto/PDF só no Electron; no site mostram aviso. Os toggles de logo e assinatura gravam, mas o gerador de PDF ainda não os lê (pasta da Rodada 23). Validade padrão ainda não preenche o diálogo de nova proposta. Não conferido no navegador (pane só alcança a porta do outro agente).
+- Teste: `catalogOverview.test.ts` e `catalogImportFlow.test.ts` em `scripts/test-critical.mjs`.
+
 ## 2026-09-30 BRT — Descartar e recuperar proposta aprovada (Claude Code)
 
 - Base: `main` em `0752fb6`, branch `feat/desfazer-aprovacao`. Pedido do Lucas: não conseguia excluir orçamento e obra de teste (aprovação é definitiva por regra: gatilhos em `008`/`009` e cópia selada imutável). Escolhido o **descarte administrativo com registro e com recuperação**.

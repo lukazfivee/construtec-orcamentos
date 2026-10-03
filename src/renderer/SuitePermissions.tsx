@@ -20,3 +20,6 @@ export const useSuitePermission = (permission: string): boolean => {
   const user = useContext(SuiteUserContext);
   return !user || !Array.isArray(user.permissions) || user.permissions.includes(permission);
 };
+
+// Quem so consulta (viewer) nao altera nada; o servidor recusa de qualquer forma.
+export const useCanEdit = (): boolean => useContext(SuiteUserContext)?.role !== 'viewer';

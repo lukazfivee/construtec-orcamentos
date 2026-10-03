@@ -4,7 +4,9 @@ import type { AuthUser } from '../../shared/contracts';
 import { createCatalogProduct, importCatalogProducts, listCatalogProducts, listCatalogUnits, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
 import { attributeAuditEvent, attributeCatalogBatchAudit } from '../services/auditAttribution';
 import type { LocalDatabase } from '../services/database';
+import { getCatalogOverview } from '../services/catalogOverview';
 import { searchCatalog } from '../services/proposals';
+import { hasPermission } from '../services/suiteAccess';
 
 const searchSchema = z.object({
   q: z.string().trim().max(120).default(''),
@@ -53,6 +55,12 @@ export const createCatalogRouter = (database: LocalDatabase) => {
       const query = z.string().trim().max(120).catch('').parse(request.query.q);
       response.json({ products: await listCatalogProducts(database, query) });
     } catch (error) { next(error); }
+  });
+
+  // Uso de cada item nas propostas, preco que mudou e itens novos (catalogo e integracao EXSAT do computador).
+  router.get('/overview', async (_request, response, next) => {
+    try { response.json({ overview: await getCatalogOverview(database, hasPermission(actor(response), 'p10')) }); }
+    catch (error) { next(error); }
   });
 
   router.get('/units', async (_request, response, next) => {

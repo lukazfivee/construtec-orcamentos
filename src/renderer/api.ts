@@ -6,6 +6,7 @@ import type {
   AuthUser,
   CatalogImportItem,
   CatalogImportPreview,
+  CatalogOverview,
   CatalogProduct,
   ClientRecord,
   DashboardMetrics,
@@ -13,6 +14,7 @@ import type {
   KitDetail,
   KitInput,
   KitSummary,
+  PriceDriftProposal,
   ProposalDetail,
   ProposalLaborInput,
   ProposalLaborItem,
@@ -200,6 +202,13 @@ export const proposalApi = {
   ),
 };
 
+export const priceDriftApi = {
+  list: () => request<{ proposals: PriceDriftProposal[] }>('/api/proposals/price-drift'),
+  apply: (proposalId: string, itemIds?: string[]) => request<{ updated: number; proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/price-drift/apply`, { method: 'POST', body: JSON.stringify(itemIds ? { itemIds } : {}) },
+  ),
+};
+
 export const clientsApi = {
   list: (query = '') => request<{ clients: ClientRecord[] }>(`/api/clients?q=${encodeURIComponent(query)}`),
   create: (input: { legalName: string; tradeName: string | null; document: string | null }) => request<{ clientId: string; clients: ClientRecord[] }>(
@@ -233,6 +242,8 @@ export const catalogApi = {
   previewExsat: (url: string) => request<{ items: CatalogImportItem[] }>(
     '/api/catalog/import/exsat', { method: 'POST', body: JSON.stringify({ url }) },
   ),
+  units: () => request<{ units: Array<{ unit: string; total: number }> }>('/api/catalog/units'),
+  overview: () => request<{ overview: CatalogOverview }>('/api/catalog/overview'),
   delete: (productId: string) => request<{ products: CatalogProduct[] }>(
     `/api/catalog/${productId}`, { method: 'DELETE' },
   ),
