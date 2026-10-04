@@ -54,7 +54,7 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
   const canSend = hasPermission(user, 'p11');
 
   if (!canSend) {
-    const sends = request.method === 'POST' && (action === 'integration-export' || action === 'direct-sync');
+    const sends = request.method === 'POST' && (action === 'integration-export' || action === 'direct-sync' || action === 'client-link');
     const decides = request.method === 'PATCH' && action === 'status' && (status === 'approved' || status === 'sent');
     if (sends || decides) return deny(response, 'Seu papel não permite enviar ou aprovar propostas.');
   }

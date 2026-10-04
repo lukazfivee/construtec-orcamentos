@@ -18,6 +18,7 @@ const entryPoints = [
   'src/server/services/integration/integration-key.test.ts',
   'src/server/services/centro-identity.test.ts',
   'src/server/suiteGuard.test.ts',
+  'src/server/services/client-links.test.ts',
   'src/server/services/priceDrift.test.ts',
   'src/server/services/catalogOverview.test.ts',
   'src/renderer/catalogImportFlow.test.ts',

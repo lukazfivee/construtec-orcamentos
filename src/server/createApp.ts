@@ -11,6 +11,8 @@ import { createProposalsRouter } from './routes/proposals';
 import { createProposalTrackingRouter } from './routes/proposalTracking';
 import { createProposalPriceDriftRouter } from './routes/proposalPriceDrift';
 import { createProposalDocumentRouter } from './routes/proposalDocument';
+import { createProposalClientLinkRouter } from './routes/proposalClientLink';
+import { createPublicClientLinkRouter } from './routes/publicClientLink';
 import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
 import { createSystemRouter } from './routes/system';
@@ -144,7 +146,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     // Token local so existe no desktop (processo Electron); na web vale a sessao.
     const isLocalApiToken = request.headers.authorization === `Bearer ${apiToken}`;
     const hasUserSession = Boolean(getSessionToken(request));
-    const isPublicAuth = request.path.toLowerCase().startsWith('/api/auth');
+    const isPublicAuth = /^\/api\/(auth|public\/c)(\/|$)/i.test(request.path);
     if (!isLocalApiToken && !hasUserSession && !isPublicAuth) {
       response.status(401).json({ error: 'Sessão local inválida.' });
       return;
@@ -158,6 +160,9 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', databaseTime: result.rows[0]?.now });
   });
   api.use('/api/auth', createAuthRouter(database));
+  // Pagina publica do cliente: sem login, com token assinado (vem antes da checagem de sessao).
+  const linkSecret = cloud?.sessionSecret ?? apiToken;
+  api.use('/api/public/c', express.json({ limit: '16kb' }), createPublicClientLinkRouter(database, linkSecret));
 
   api.use(async (request, response, next) => {
     let user;
@@ -200,6 +205,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.use('/api/proposals', createProposalTrackingRouter(database));
   api.use('/api/proposals', createProposalPriceDriftRouter(database));
   api.use('/api/proposals', createProposalDocumentRouter(database));
+  api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || ''));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));

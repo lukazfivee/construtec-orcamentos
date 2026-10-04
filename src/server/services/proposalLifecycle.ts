@@ -6,7 +6,7 @@ import { finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal, getLatestProposal, roundMoney } from './proposalCommon';
-import { sealProposalInTransaction } from './integration/proposalSealing';
+import { sealProposalInTransaction, type SealEvidence } from './integration/proposalSealing';
 
 type GetProposalByIdFn = (database: LocalDatabase, proposalId: string) => Promise<ProposalDetail | null>;
 
@@ -203,6 +203,7 @@ export const updateProposalStatusWithGetter = async (
   status: ProposalDetail['status'],
   getById: GetProposalByIdFn,
   userId?: string,
+  evidence?: SealEvidence,
 ): Promise<ProposalDetail> => {
   await database.transaction(async (transaction) => {
     const row = await getLatestProposal(transaction, proposalId);
@@ -211,7 +212,7 @@ export const updateProposalStatusWithGetter = async (
 
     await transaction.query('UPDATE proposals SET status = $2, updated_at = now() WHERE id = $1', [proposalId, status]);
     if (status === 'approved') {
-      await sealProposalInTransaction(transaction, proposalId, userId);
+      await sealProposalInTransaction(transaction, proposalId, userId, evidence);
     }
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data, user_id)
