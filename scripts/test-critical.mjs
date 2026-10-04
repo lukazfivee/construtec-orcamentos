@@ -24,6 +24,7 @@ const entryPoints = [
   'src/server/services/catalogOverview.test.ts',
   'src/renderer/catalogImportFlow.test.ts',
   'src/server/services/proposal-discard.test.ts',
+  'src/documents/proposalDocx.test.ts',
   'src/server/services/identity-self-heal.test.ts',
   'src/server/outbox-cron.test.ts',
   'src/renderer/proposal-deep-link.test.ts',

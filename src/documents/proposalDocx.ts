@@ -255,6 +255,17 @@ export const createProposalDocument = (
                 conditionParagraph('Observações', combinedNotes),
               ]
             : []),
+          ...((settings?.pdfShowSignature ?? true)
+            ? [
+                new Paragraph({
+                  spacing: { before: 600, after: 0 },
+                  border: { top: { style: BorderStyle.SINGLE, size: 6, color: NAVY, space: 4 } },
+                  indent: { right: 5400 },
+                  children: [new TextRun({ text: proposal.responsibleName || (settings?.tradeName?.trim() || 'CONSTRUTEC'), bold: true, size: 20, color: NAVY, font: 'Arial' })],
+                }),
+                new Paragraph({ children: [new TextRun({ text: settings?.companyName?.trim() || 'LAC CONSTRUTEC CONSTRUTORA EIRELI', size: 16, color: MUTED, font: 'Arial' })] }),
+              ]
+            : []),
           new Paragraph({
             spacing: { before: 180 },
             children: [
