@@ -4,6 +4,7 @@ import { buildMobileProposalHtml, parseMobileDocumentChoices } from '../../docum
 import type { LocalDatabase } from './database';
 import { addLinkEvent, LINK_SELECT, type LinkRow } from './clientLinks';
 import { ClientLinkError, deviceLabel, hashIp, linkState, parseLinkToken, type LinkState } from './clientLinkCommon';
+import { centroNotifyClientReply } from './centroIdentity';
 import { createProposalRevision } from './proposalLifecycle';
 import { getProposalById } from './proposals';
 import { getAppSettings } from './settings';
@@ -80,6 +81,12 @@ const identity = (row: LinkRow, input: { name?: unknown; role?: unknown }) => {
   return { name: name || null, role: role || null };
 };
 
+// Avisa a equipe (sino e push): o responsavel pela proposta e os admins.
+const notifyTeam = async (database: LocalDatabase, row: LinkRow, event: 'approved' | 'adjust') => {
+  const owner = row.created_by ? (await database.query<{ centro_user_id: string | null }>('SELECT centro_user_id FROM users WHERE id = $1', [row.created_by])).rows[0] : undefined;
+  await centroNotifyClientReply({ event, proposalId: row.proposal_id, proposalNumber: row.proposal_number, responsibleCentroUserId: owner?.centro_user_id ?? null });
+};
+
 export const approvePublicLink = async (
   database: LocalDatabase, token: string, input: { name?: unknown; role?: unknown; accept?: unknown }, context: PublicContext,
 ) => {
@@ -96,6 +103,7 @@ export const approvePublicLink = async (
     return true;
   });
   if (!done) throw new ClientLinkError('LINK_NOT_ACTIVE', 409, 'Este link não aceita mais respostas.');
+  void notifyTeam(database, row, 'approved').catch(() => undefined);
   return { code, at: new Date().toISOString() };
 };
 
@@ -112,5 +120,6 @@ export const adjustPublicLink = async (
   await addLinkEvent(database, row.id, 'adjust', { name: who.name, role: who.role, message, device: deviceLabel(context.userAgent), ipHash: hashIp(context.ip, context.secret) });
   // O pedido de ajuste volta a proposta para Edicao como nova revisao, em nome de quem gerou o link.
   const revisionId = await createProposalRevision(database, row.proposal_id, row.created_by ?? '');
+  void notifyTeam(database, row, 'adjust').catch(() => undefined);
   return { revisionId };
 };
