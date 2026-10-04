@@ -119,3 +119,13 @@ export type CentroNotification = { id: string; type: string; app: string; title:
 type NotificationPath = '/v1/notifications' | '/v1/notifications/read' | '/v1/notifications/prefs' | '/v1/notifications/test';
 export const centroNotifications = <T>(token: string, path: NotificationPath, method = 'GET', body?: unknown, query = '') =>
   call<T>(`${path}${query}`, { method, token, body });
+
+// Aviso no sino da equipe quando o cliente responde ao link. O Centro monta o texto; aqui vai so o fato.
+// Nunca derruba a resposta do cliente: sem integracao configurada ou sem rede, so registra no log.
+export const centroNotifyClientReply = async (input: { event: 'approved' | 'adjust'; proposalId: string; proposalNumber: string; responsibleCentroUserId: string | null }) => {
+  try {
+    await call('/v1/internal/orcamentos-notify', { method: 'POST', body: input, service: true });
+  } catch (error) {
+    console.error('[centro-identity] aviso do link nao enviado', error instanceof Error ? error.message : 'erro');
+  }
+};
