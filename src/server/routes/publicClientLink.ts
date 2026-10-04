@@ -20,7 +20,21 @@ const limited = (key: string, max: number, windowMs: number) => {
   return bucket.count > max;
 };
 
-const clientIp = (request: Request) => String(request.headers['cf-connecting-ip'] || request.headers['x-forwarded-for'] || request.socket.remoteAddress || '').split(',')[0].trim();
+// Atras do Cloudflare so cf-connecting-ip e confiavel. Sem ele (acesso direto ou cabecalho forjado) todos caem num
+// bucket unico e conservador; X-Forwarded-For nunca e usado, pois o cliente controla o primeiro item.
+export const clientIp = (request: Request) => {
+  const cf = request.headers['cf-connecting-ip'];
+  return typeof cf === 'string' && cf.trim() ? cf.split(',')[0].trim() : 'sem-ip-confiavel';
+};
+
+// O token vai no cabecalho X-Link-Token (o caminho da URL aparece nos logs do Cloudflare). As rotas antigas com
+// :token no caminho continuam para paginas ja abertas com o c.js antigo.
+const tokenOf = (request: Request) => {
+  const header = request.headers['x-link-token'];
+  return typeof header === 'string' ? header : String(request.params.token ?? '');
+};
+
+export const DOCUMENT_CSP = "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:";
 
 export const createPublicClientLinkRouter = (database: LocalDatabase, secret: string) => {
   const router = Router();
@@ -30,38 +44,47 @@ export const createPublicClientLinkRouter = (database: LocalDatabase, secret: st
     if (blocked) response.status(429).json({ error: 'Muitas tentativas. Aguarde alguns minutos.', code: 'RATE_LIMITED' });
     return blocked;
   };
+  router.use((_request, response, next) => { response.setHeader('X-Content-Type-Options', 'nosniff'); next(); });
 
-  router.get('/:token', async (request, response, next) => {
+  const open = async (request: Request, response: Response, next: (error: unknown) => void) => {
     try {
       if (tooMany(request, response, 'read')) return;
       response.setHeader('Cache-Control', 'no-store');
-      response.json(await openPublicLink(database, request.params.token, context(request)));
+      response.json(await openPublicLink(database, tokenOf(request), context(request)));
     } catch (error) { sendClientLinkError(error, response, next); }
-  });
-
-  router.get('/:token/document', async (request, response, next) => {
+  };
+  const document = async (request: Request, response: Response, next: (error: unknown) => void) => {
     try {
       if (tooMany(request, response, 'read')) return;
-      const html = await publicDocumentHtml(database, request.params.token, secret);
+      const html = await publicDocumentHtml(database, tokenOf(request), secret);
       response.setHeader('Cache-Control', 'no-store');
+      response.setHeader('Content-Security-Policy', DOCUMENT_CSP);
       response.type('html').send(html);
     } catch (error) { sendClientLinkError(error, response, next); }
-  });
-
-  router.post('/:token/approve', async (request, response, next) => {
+  };
+  const approve = async (request: Request, response: Response, next: (error: unknown) => void) => {
     try {
       if (tooMany(request, response, 'write')) return;
-      response.status(201).json(await approvePublicLink(database, request.params.token, request.body ?? {}, context(request)));
+      response.status(201).json(await approvePublicLink(database, tokenOf(request), request.body, context(request)));
     } catch (error) { sendClientLinkError(error, response, next); }
-  });
-
-  router.post('/:token/adjust', async (request, response, next) => {
+  };
+  const adjust = async (request: Request, response: Response, next: (error: unknown) => void) => {
     try {
       if (tooMany(request, response, 'write')) return;
-      await adjustPublicLink(database, request.params.token, request.body ?? {}, context(request));
+      await adjustPublicLink(database, tokenOf(request), request.body, context(request));
       response.status(201).json({ ok: true });
     } catch (error) { sendClientLinkError(error, response, next); }
-  });
+  };
+
+  router.get('/', open);
+  router.get('/document', document);
+  router.post('/approve', approve);
+  router.post('/adjust', adjust);
+  // Rotas antigas (token no caminho).
+  router.get('/:token', open);
+  router.get('/:token/document', document);
+  router.post('/:token/approve', approve);
+  router.post('/:token/adjust', adjust);
 
   return router;
 };

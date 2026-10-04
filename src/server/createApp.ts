@@ -102,7 +102,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
       response.setHeader('Access-Control-Allow-Origin', origin);
       response.setHeader('Vary', 'Origin');
     }
-    response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Construtec-Session');
+    response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Construtec-Session, X-Link-Token');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
     if (request.method === 'OPTIONS') {
       response.sendStatus(204);

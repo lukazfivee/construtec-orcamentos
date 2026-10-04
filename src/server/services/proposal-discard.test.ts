@@ -7,7 +7,7 @@ import { updateProposalStatus } from './proposals';
 import { discardProposal, listDiscardedProposals, restoreProposal } from './proposalDiscard';
 
 const CONTRACT_ID = '22222222-2222-4222-8222-222222222222';
-const TABLES = ['proposals', 'proposal_items', 'proposal_labor_items', 'proposal_approval_snapshots', 'integration_outbox', 'proposal_center_snapshots'];
+const TABLES = ['proposals', 'proposal_items', 'proposal_labor_items', 'proposal_approval_snapshots', 'integration_outbox', 'proposal_center_snapshots', 'proposal_client_links', 'proposal_client_link_events'];
 
 test('descarte e recuperacao de proposta aprovada', async context => {
   // Centro falso: descartar e restaurar a obra (contrato da integracao).
@@ -61,9 +61,13 @@ test('descarte e recuperacao de proposta aprovada', async context => {
   await updateProposalStatus(database, proposalId, 'approved', userId);
   await database.query(`UPDATE integration_outbox SET status = 'delivered', delivered_at = now(), contract_id = $2, cost_center_id = 7
     WHERE snapshot_id IN (SELECT id FROM proposal_approval_snapshots WHERE proposal_id = $1)`, [proposalId, CONTRACT_ID]);
+  // Link do cliente ja confirmado, com eventos: o descarte leva junto e a recuperacao devolve (FK sem cascade quebrava).
+  const linkId = '33333333-3333-4333-8333-333333333333';
+  await database.query("INSERT INTO proposal_client_links (id, proposal_id, status, expires_at, closed_at) VALUES ($1, $2, 'confirmed', now() + interval '30 days', now())", [linkId, proposalId]);
+  await database.query("INSERT INTO proposal_client_link_events (id, link_id, kind) VALUES (gen_random_uuid(), $1, 'generated'), (gen_random_uuid(), $1, 'approved'), (gen_random_uuid(), $1, 'confirmed')", [linkId]);
   const number = (await database.query<{ proposal_number: string }>('SELECT proposal_number FROM proposals WHERE id = $1', [proposalId])).rows[0].proposal_number;
   const before = await counts();
-  assert.ok(before.proposal_approval_snapshots >= 1 && before.integration_outbox >= 1 && before.proposal_items >= 1, 'aprovada, selada e integrada');
+  assert.ok(before.proposal_approval_snapshots >= 1 && before.integration_outbox >= 1 && before.proposal_client_link_events === 3 && before.proposal_items >= 1, 'aprovada, selada e integrada');
 
   // A aprovacao e definitiva pelos caminhos normais.
   await assert.rejects(database.query('DELETE FROM proposals WHERE id = $1', [proposalId]), /PROPOSAL_LOCKED/);
@@ -84,13 +88,13 @@ test('descarte e recuperacao de proposta aprovada', async context => {
   assert.deepEqual(await counts(), before, 'recusado: tudo no lugar');
   assert.ok(!calls.some(call => call.action === 'restaurar'), 'nada a desfazer no Centro');
 
-  // Falha local depois de o Centro descartar: a obra e recuperada no Centro e nada local muda.
+  // Falha local prevista no ensaio: o Centro nem e chamado e nada local muda.
   discardMode = 'ok';
   calls.length = 0;
   await database.query('ALTER TABLE discarded_proposals ADD CONSTRAINT test_block CHECK (false) NOT VALID');
   await assert.rejects(discardProposal(database, proposalId, { confirmNumber: number, actor }));
   await database.query('ALTER TABLE discarded_proposals DROP CONSTRAINT test_block');
-  assert.deepEqual(calls.map(call => call.action), ['descartar', 'restaurar']);
+  assert.deepEqual(calls, [], 'o ensaio local barra antes de chamar o Centro');
   assert.deepEqual(await counts(), before);
 
   // Descarte permitido: a obra sem movimento sai do Centro junto.

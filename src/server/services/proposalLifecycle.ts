@@ -16,69 +16,76 @@ type LifecycleItemRow = {
   snapshot_unit_cost: string; quantity: string; sale_unit_price: string;
 };
 
-export const createRevision = async (
+type Tx = Parameters<Parameters<LocalDatabase['transaction']>[0]>[0];
+
+export const createRevision = (
   database: LocalDatabase,
   sourceProposalId: string,
   userId: string,
+): Promise<string> => database.transaction((transaction) => createRevisionIn(transaction, sourceProposalId, userId));
+
+// Mesma criacao de revisao, dentro de uma transacao que o chamador ja abriu (ex.: pedido de ajuste do cliente).
+export const createRevisionIn = async (
+  transaction: Tx,
+  sourceProposalId: string,
+  userId: string,
 ): Promise<string> => {
-  return database.transaction(async (transaction) => {
-    const source = await getLatestProposal(transaction, sourceProposalId);
-    const newProposalId = randomUUID();
-    const created = await transaction.query<{ revision: number }>(`
-      INSERT INTO proposals
-        (id, series_id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-         snapshot_work_name, scope, status, bdi_multiplier, tax_percentage, valid_until, created_by)
-      SELECT $2, series_id, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
-        snapshot_work_name, scope, 'draft', bdi_multiplier, COALESCE(tax_percentage, 0), valid_until, created_by
-      FROM proposals
-      WHERE id = $1
-      RETURNING revision
-    `, [sourceProposalId, newProposalId]);
+  const source = await getLatestProposal(transaction, sourceProposalId);
+  const newProposalId = randomUUID();
+  const created = await transaction.query<{ revision: number }>(`
+    INSERT INTO proposals
+      (id, series_id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
+       snapshot_work_name, scope, status, bdi_multiplier, tax_percentage, valid_until, created_by)
+    SELECT $2, series_id, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
+      snapshot_work_name, scope, 'draft', bdi_multiplier, COALESCE(tax_percentage, 0), valid_until, created_by
+    FROM proposals
+    WHERE id = $1
+    RETURNING revision
+  `, [sourceProposalId, newProposalId]);
 
-    const items = await transaction.query<LifecycleItemRow>(`
-      SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
-        snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
-      FROM proposal_items
-      WHERE proposal_id = $1
-      ORDER BY position
-    `, [sourceProposalId]);
+  const items = await transaction.query<LifecycleItemRow>(`
+    SELECT catalog_product_id, position, snapshot_code, snapshot_manufacturer, snapshot_model,
+      snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
+    FROM proposal_items
+    WHERE proposal_id = $1
+    ORDER BY position
+  `, [sourceProposalId]);
 
-    for (const item of items.rows) {
-      await transaction.query(`
-        INSERT INTO proposal_items
-          (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
-           snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      `, [
-        randomUUID(),
-        newProposalId,
-        item.catalog_product_id,
-        item.position,
-        item.snapshot_code,
-        item.snapshot_manufacturer,
-        item.snapshot_model,
-        item.snapshot_description,
-        item.snapshot_category ?? 'Outros',
-        item.snapshot_unit,
-        Number(item.snapshot_unit_cost),
-        Number(item.quantity),
-        Number(item.sale_unit_price),
-      ]);
-    }
+  for (const item of items.rows) {
+    await transaction.query(`
+      INSERT INTO proposal_items
+        (id, proposal_id, catalog_product_id, position, snapshot_code, snapshot_manufacturer,
+         snapshot_model, snapshot_description, snapshot_category, snapshot_unit, snapshot_unit_cost, quantity, sale_unit_price)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `, [
+      randomUUID(),
+      newProposalId,
+      item.catalog_product_id,
+      item.position,
+      item.snapshot_code,
+      item.snapshot_manufacturer,
+      item.snapshot_model,
+      item.snapshot_description,
+      item.snapshot_category ?? 'Outros',
+      item.snapshot_unit,
+      Number(item.snapshot_unit_cost),
+      Number(item.quantity),
+      Number(item.sale_unit_price),
+    ]);
+  }
 
-    await copyProposalLabor(transaction, sourceProposalId, newProposalId);
-    if (userId) await transaction.query('UPDATE proposals SET created_by = $2 WHERE id = $1', [newProposalId, userId]);
-    const revision = created.rows[0]?.revision ?? source.revision + 1;
-    await transaction.query(
-      'INSERT INTO audit_events (id, entity_type, entity_id, action, after_data, user_id) VALUES ($1, $2, $3, $4, $5::jsonb, $6)',
-      [randomUUID(), 'proposal', newProposalId, 'revision_created', JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision }), userId ?? null],
-    );
-    logEvent('info', 'proposal.revision_created', { sourceProposalId, newProposalId, revision });
-    return newProposalId;
-  });
+  await copyProposalLabor(transaction, sourceProposalId, newProposalId);
+  if (userId) await transaction.query('UPDATE proposals SET created_by = $2 WHERE id = $1', [newProposalId, userId]);
+  const revision = created.rows[0]?.revision ?? source.revision + 1;
+  await transaction.query(
+    'INSERT INTO audit_events (id, entity_type, entity_id, action, after_data, user_id) VALUES ($1, $2, $3, $4, $5::jsonb, $6)',
+    [randomUUID(), 'proposal', newProposalId, 'revision_created', JSON.stringify({ sourceProposalId, proposalNumber: source.proposal_number, revision }), userId ?? null],
+  );
+  logEvent('info', 'proposal.revision_created', { sourceProposalId, newProposalId, revision });
+  return newProposalId;
 };
 
-export { createRevision as createProposalRevision };
+export { createRevision as createProposalRevision, createRevisionIn as createProposalRevisionIn };
 
 export const updateProposalContext = async (
   database: LocalDatabase,

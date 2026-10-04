@@ -4,7 +4,7 @@
 (function () {
   const app = document.getElementById('app');
   const token = decodeURIComponent(location.hash.replace(/^#/, ''));
-  const api = '/api/public/c/' + encodeURIComponent(token);
+  const api = '/api/public/c';
   const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const dateFmt = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
   const fmtDate = (iso) => (iso ? dateFmt.format(new Date(String(iso).slice(0, 10) + 'T00:00:00Z')) : '');
@@ -41,7 +41,8 @@
   }
 
   async function call(path, options) {
-    const response = await fetch(api + path, options);
+    // O token vai em cabecalho (nao no caminho, que aparece nos logs da borda).
+    const response = await fetch(api + path, Object.assign({}, options, { headers: Object.assign({ 'X-Link-Token': token }, options && options.headers) }));
     const body = await response.json().catch(() => ({}));
     if (!response.ok) { const error = new Error(body.error || 'Não foi possível concluir.'); error.code = body.code; error.status = response.status; throw error; }
     return body;
@@ -50,18 +51,21 @@
   function closedScreen() {
     const p = data.proposal;
     const map = {
-      expired: ['!', 'Este link venceu', 'O link da proposta ' + p.number + ' valia até ' + fmtDate(data.expiresAt) + '. Peça um link novo à Construtec.'],
+      expired: ['!', 'Este link venceu', 'O link da proposta ' + p.number + ' venceu. Peça um link novo à Construtec.'],
       disabled: ['!', 'Este link foi desativado', 'A Construtec desativou o link da proposta ' + p.number + '. Peça um link novo.'],
-      superseded: ['!', 'Existe uma revisão mais nova', 'O link é da ' + rev(p.revision) + ' da proposta ' + p.number + ', que já foi substituída. Peça à Construtec o link da revisão atual.'],
+      superseded: ['!', 'Existe uma revisão mais nova', 'O link da proposta ' + p.number + ' é de uma revisão que já foi substituída. Peça à Construtec o link da revisão atual.'],
       adjust: ['✓', 'Pedido de ajuste enviado', 'A Construtec recebeu o seu pedido e vai enviar um link novo com a revisão.'],
     };
     if (data.state === 'approved' || data.state === 'confirmed') {
       const reply = data.reply || {};
-      notice('✓', 'Proposta aprovada', 'A proposta ' + p.number + ' (' + rev(p.revision) + ') já foi aprovada por este link' + (reply.name ? ' por ' + reply.name : '') + '.',
-        h('div', null, reply.code ? h('span', { class: 'code', text: reply.code }) : null, h('div', { class: 'row' }, h('button', { class: 'btn2', type: 'button', onclick: read }, 'Ver a proposta'))));
+      // Passados 30 dias do aceite o servidor devolve so o numero da proposta (sem documento).
+      const hasDoc = p.total != null;
+      notice('✓', 'Proposta aprovada', 'A proposta ' + p.number + (hasDoc ? ' (' + rev(p.revision) + ')' : '') + ' já foi aprovada por este link' + (reply.name ? ' por ' + reply.name : '') + '.',
+        h('div', null, reply.code ? h('span', { class: 'code', text: reply.code }) : null, hasDoc ? h('div', { class: 'row' }, h('button', { class: 'btn2', type: 'button', onclick: read }, 'Ver a proposta')) : null));
       return;
     }
     const m = map[data.state];
+    if (!m) { notice('!', 'Link indisponível', 'Peça um link novo à Construtec.'); return; }
     notice(m[0], m[1], m[2]);
   }
 
@@ -82,14 +86,22 @@
     );
   }
 
+  // O documento vem por fetch (com o token em cabecalho) e entra num iframe srcdoc sem scripts: sandbox sem allow-scripts
+  // e meta CSP default-src 'none'. Mesma origem so para o botao de imprimir alcancar o iframe; nada nele executa.
+  const DOC_CSP = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src data:">';
   function read() {
-    const frame = h('iframe', { title: 'Proposta', src: api + '/document', sandbox: 'allow-modals allow-same-origin' });
+    const frame = h('iframe', { title: 'Proposta', sandbox: 'allow-modals allow-same-origin' });
+    const status = h('p', { class: 'hint', text: 'Carregando a proposta…' });
+    fetch(api + '/document', { headers: { 'X-Link-Token': token } })
+      .then((response) => (response.ok ? response.text() : Promise.reject(new Error('http'))))
+      .then((html) => { frame.srcdoc = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (m) => m + DOC_CSP) : DOC_CSP + html; status.textContent = 'Na janela de impressão, escolha "Salvar como PDF" para baixar o arquivo.'; })
+      .catch(() => { status.textContent = 'Não foi possível carregar a proposta agora. Volte e tente de novo.'; });
     show(
       h('button', { class: 'btn2', type: 'button', onclick: () => (data.state === 'active' ? cover() : closedScreen()) }, 'Voltar'),
       h('div', { class: 'reader' }, frame),
       h('div', { class: 'row' },
-        h('button', { class: 'btn2', type: 'button', onclick: () => { try { frame.contentWindow.print(); } catch (e) { window.open(api + '/document', '_blank', 'noopener'); } } }, 'Baixar PDF ou imprimir')),
-      h('p', { class: 'hint' }, 'Na janela de impressão, escolha "Salvar como PDF" para baixar o arquivo.'),
+        h('button', { class: 'btn2', type: 'button', onclick: () => { try { frame.contentWindow.print(); } catch (e) { status.textContent = 'Use o menu do navegador para imprimir ou salvar esta página.'; } } }, 'Baixar PDF ou imprimir')),
+      status,
     );
   }
 

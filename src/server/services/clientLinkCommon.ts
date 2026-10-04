@@ -1,4 +1,6 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import type { ProposalDetail } from '../../shared/contracts';
+import { getProposalFinancials } from '../../shared/proposalFinancials';
 
 // Erro de negocio do link do cliente: o roteador traduz codigo e status sem tocar no tratador global.
 export class ClientLinkError extends Error {
@@ -40,3 +42,19 @@ export const linkState = (row: { status: LinkStatus; expires_at: string | Date; 
   if (row.superseded) return 'superseded';
   return new Date(row.expires_at).getTime() <= now.getTime() ? 'expired' : 'active';
 };
+
+// Depois de respondido (aprovado, ajuste ou confirmado) o documento fica visivel ao cliente so por este prazo.
+export const PUBLIC_DOCUMENT_DAYS = 30;
+export const closedWindowOpen = (row: { closed_at: string | null }, now = new Date()) =>
+  !row.closed_at || now.getTime() - new Date(row.closed_at).getTime() <= PUBLIC_DOCUMENT_DAYS * 24 * 60 * 60 * 1000;
+
+// Impressao digital do que o cliente viu: valor final e itens de venda (JSON canonico). Nunca guarda custo nem BDI.
+export const contentFingerprint = (proposal: ProposalDetail) => {
+  const finalValue = getProposalFinancials(proposal).finalValue;
+  const items = proposal.items.map((item) => [item.code, item.description, item.unit, item.quantity, item.unitSale, item.totalSale]);
+  return { finalValue, hash: createHash('sha256').update(JSON.stringify({ items, finalValue })).digest('hex') };
+};
+
+// Texto digitado pelo cliente: sem caracteres de controle e de formatacao (inclui U+202E e zero-width).
+export const cleanPublicText = (value: string, max: number, multiline: boolean) =>
+  [...value].filter((char) => (multiline && /[\n\t\r]/.test(char)) || !/[\p{Cf}\p{Cc}]/u.test(char)).join('').trim().slice(0, max);

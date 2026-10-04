@@ -50,13 +50,15 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
 
   const write = request.method !== 'GET';
   const action = /^\/api\/proposals\/[^/]+\/([^/]+)/.exec(path)?.[1] ?? '';
-  const status = String((request.body as { status?: unknown } | undefined)?.status ?? '');
   const canSend = hasPermission(user, 'p11');
 
   if (!canSend) {
-    const sends = request.method === 'POST' && (action === 'integration-export' || action === 'direct-sync' || action === 'client-link');
-    const decides = request.method === 'PATCH' && action === 'status' && (status === 'approved' || status === 'sent');
-    if (sends || decides) return deny(response, 'Seu papel não permite enviar ou aprovar propostas.');
+    const sends = request.method === 'POST' && (action === 'integration-export' || action === 'direct-sync' || action === 'client-link' || action === 'revisions');
+    // Qualquer mudanca de status exige p11: o guarda nao conhece o status atual, entao reabrir (sent/approved -> draft/review)
+    // so e barrado se toda mudanca for. O pedido de ajuste do cliente cria a revisao por dentro do servico, sem passar por aqui.
+    const decides = request.method === 'PATCH' && action === 'status';
+    const removes = request.method === 'DELETE' && /^\/api\/proposals\/[^/]+\/?$/.test(path);
+    if (sends || decides || removes) return deny(response, 'Seu papel não permite enviar, aprovar, reabrir, criar revisão ou excluir propostas.');
   }
   if (!canSee) {
     const costWrite = write && ['bdi', 'tax', 'labor', 'labor-settings'].includes(action);

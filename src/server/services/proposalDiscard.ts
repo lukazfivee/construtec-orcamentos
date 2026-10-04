@@ -10,7 +10,7 @@ import { discardCenterContract, restoreCenterContract } from './integration/cent
 // Tudo e guardado em discarded_proposals e pode ser restaurado.
 
 // Ordem de restauracao (pais primeiro); o descarte apaga na ordem inversa.
-const TABLES = ['proposals', 'proposal_items', 'proposal_labor_items', 'proposal_approval_snapshots', 'integration_outbox', 'proposal_center_snapshots'] as const;
+const TABLES = ['proposals', 'proposal_items', 'proposal_labor_items', 'proposal_approval_snapshots', 'integration_outbox', 'proposal_center_snapshots', 'proposal_client_links', 'proposal_client_link_events'] as const;
 const GUARDS = [
   ['proposals', 'approved_proposal_guard'],
   ['proposal_items', 'approved_material_guard'],
@@ -40,6 +40,8 @@ const selectors: Record<(typeof TABLES)[number], string> = {
   proposal_approval_snapshots: 'proposal_id = ANY($1::uuid[])',
   integration_outbox: 'snapshot_id IN (SELECT id FROM proposal_approval_snapshots WHERE proposal_id = ANY($1::uuid[]))',
   proposal_center_snapshots: 'proposal_id = ANY($1::uuid[])',
+  proposal_client_links: 'proposal_id = ANY($1::uuid[])',
+  proposal_client_link_events: 'link_id IN (SELECT id FROM proposal_client_links WHERE proposal_id = ANY($1::uuid[]))',
 };
 
 // Desfaz no Centro os descartes ja feitos quando algo depois deles falha; falha aqui so e registrada.
@@ -79,10 +81,8 @@ export const discardProposal = async (
   if (input.confirmNumber.trim().toUpperCase() !== number.toUpperCase()) throw new Error('DISCARD_CONFIRMATION');
   const ids = (await database.query<{ id: string }>('SELECT id FROM proposals WHERE proposal_number = $1', [number])).rows.map(row => row.id);
   const reason = input.reason?.trim().slice(0, 300) || undefined;
-  const centerDiscards = await discardCenterContracts(database, ids, { actorName: input.actor.name, reason, proposalNumber: number });
-
   const discardId = randomUUID();
-  try { await database.transaction(async (transaction) => {
+  const localDiscard = async (transaction: Queries, centerDiscards: CenterDiscard[]) => {
     const payload = { centerDiscards } as Payload;
     for (const table of TABLES) {
       const dumped = await transaction.query<{ rows: Record<string, unknown>[] }>(
@@ -102,7 +102,15 @@ export const discardProposal = async (
     await transaction.query(`INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data, user_id)
       VALUES ($1, 'proposal', $2, 'discarded', $3::jsonb, $4::jsonb, $5)`, [
       randomUUID(), proposalId, JSON.stringify({ number, revisions: ids.length }), JSON.stringify({ discardId, reason: input.reason ?? null }), input.actor.id]);
-  }); } catch (error) {
+  };
+
+  // Ensaio local: roda o descarte inteiro e desfaz. Se ele nao passar aqui, o Centro nem e chamado.
+  const rehearsal = new Error('DISCARD_REHEARSAL');
+  try { await database.transaction(async (transaction) => { await localDiscard(transaction, []); throw rehearsal; }); } catch (error) {
+    if (error !== rehearsal) { console.error('[descarte] o descarte local nao passaria; Centro nao foi chamado:', error instanceof Error ? error.message.slice(0, 200) : 'erro'); throw error; }
+  }
+  const centerDiscards = await discardCenterContracts(database, ids, { actorName: input.actor.name, reason, proposalNumber: number });
+  try { await database.transaction(transaction => localDiscard(transaction, centerDiscards)); } catch (error) {
     console.error('[descarte] falha local apos descartar no Centro; recuperando a obra', error);
     await undoCenterDiscards(centerDiscards, input.actor.name);
     throw error;

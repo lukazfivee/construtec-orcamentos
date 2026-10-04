@@ -18,6 +18,9 @@ Cadastrar com `npx wrangler secret put NOME`, sem versionar valores:
 - `CONSTRUTEC_SETUP_TOKEN`: valor aleatório com pelo menos 32 caracteres.
 - `CONSTRUTEC_ALLOWED_ORIGINS`: origens HTTPS exatas separadas por vírgula,
   incluindo o endereço final do Worker.
+- `CONSTRUTEC_PUBLIC_URL` (opcional): endereço público do Orçamentos usado para montar
+  o link enviado ao cliente (`/c/#token`). Sem ele vale a primeira origem de
+  `CONSTRUTEC_ALLOWED_ORIGINS`. É repassado ao Container pelo `index.js`.
 - `CONSTRUTEC_INTEGRATION_KEY`: valor aleatório com pelo menos 32 caracteres,
   **igual** ao do Worker `centro-custos-api`. Sem ele, o envio de propostas
   aprovadas ao Centro de Custos fica desligado na nuvem.

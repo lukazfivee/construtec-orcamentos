@@ -315,13 +315,47 @@ export const validateExsatUrl = (rawUrl: string) => {
   return url;
 };
 
+export const EXSAT_MAX_BYTES = 8_000_000;
+
+// Busca uma pagina do EXSAT sem seguir redirecionamento sozinho (cada salto e revalidado: so https em exsat.com.br)
+// e com limite de tamanho lido do corpo (nao confia no Content-Length).
+export const fetchExsatBody = async (
+  rawUrl: string,
+  doFetch: (url: URL) => Promise<Response>,
+  maxBytes = EXSAT_MAX_BYTES,
+): Promise<{ response: Response; finalUrl: string; body: Buffer }> => {
+  let url = validateExsatUrl(rawUrl);
+  for (let hop = 0; hop <= 5; hop += 1) {
+    const response = await doFetch(url);
+    const location = response.headers.get('location');
+    if (response.status >= 300 && response.status < 400 && location) {
+      await response.body?.cancel().catch(() => undefined);
+      url = validateExsatUrl(new URL(location, url).toString());
+      continue;
+    }
+    const declared = Number(response.headers.get('content-length') ?? 0);
+    if (declared > maxBytes) { await response.body?.cancel().catch(() => undefined); throw new Error('EXSAT_RESPONSE_TOO_LARGE'); }
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    const reader = response.body?.getReader();
+    while (reader) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) { await reader.cancel().catch(() => undefined); throw new Error('EXSAT_RESPONSE_TOO_LARGE'); }
+      chunks.push(value);
+    }
+    return { response, finalUrl: url.toString(), body: Buffer.concat(chunks) };
+  }
+  throw new Error('EXSAT_TOO_MANY_REDIRECTS');
+};
+
 export const previewExsatProducts = async (rawUrl: string): Promise<CatalogImportItem[]> => {
-  const url = validateExsatUrl(rawUrl);
-  const response = await fetch(url, {
+  const { response, body } = await fetchExsatBody(rawUrl, (url) => fetch(url, {
+    redirect: 'manual',
     signal: AbortSignal.timeout(20_000),
     headers: { 'User-Agent': 'Construtec-Orcamentos/1.0 (+catalog-import)' },
-  });
+  }));
   if (!response.ok) throw new Error('EXSAT_UNAVAILABLE');
-  const html = await response.text();
-  return parseExsatProductsHtml(html);
+  return parseExsatProductsHtml(body.toString('utf8'));
 };
