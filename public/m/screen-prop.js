@@ -209,6 +209,7 @@
       body.dataset.stamp = String((Number(body.dataset.stamp) || 0) + 1);
       view.bind(body);
       if (tab !== 'revisoes' && OC.driftBanner) OC.driftBanner(p, ctx, body);
+      if (tab === 'resumo' && OC.linkCard) OC.linkCard(p, ctx, body);
       history.replaceState(null, '', `#prop=${encodeURIComponent(p.id)}`);
     }
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));

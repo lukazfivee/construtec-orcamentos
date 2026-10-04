@@ -231,6 +231,7 @@
       ${sendBlock}
       <div class="actions col"><div class="pair"><button class="btn2" type="button" data-share>${icon('arrow-square-out', 18)}Compartilhar</button>
         <button class="btn2" type="button" data-print>${icon('download-simple', 18)}Baixar</button></div>
+        ${canSend && (sendable || p.status === 'sent') ? `<button class="btn2" type="button" data-link>${icon('arrow-square-out', 18)}Link para o cliente aprovar</button>` : ''}
         ${canSend && sendable ? `<button class="btn" type="button" data-send>${icon('paper-plane-tilt', 18)}Enviar ao cliente</button>` : ''}</div>`;
 
     let list = [];
@@ -263,6 +264,8 @@
       printButton.disabled = true;
       try { printDocument((await fetchDocument(p, c)).html); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { printButton.disabled = false; }
     });
+    const linkButton = OC.$('[data-link]', body);
+    if (linkButton) linkButton.addEventListener('click', () => OC.open('link', { id: p.id }));
     const sendButton = OC.$('[data-send]', body);
     if (sendButton) sendButton.addEventListener('click', () => sendSheet(p, c, () => OC.leave('prop', { id: p.id, tab: 'resumo' })));
     preview();
