@@ -35,7 +35,7 @@ const serviceKey = () => {
   return key.length >= MIN_SERVICE_KEY_LENGTH ? key : '';
 };
 
-type CallOptions = { method?: string; token?: string; body?: unknown; clientIp?: string; service?: boolean };
+type CallOptions = { method?: string; token?: string; body?: unknown; clientIp?: string; service?: boolean; identifyApp?: boolean };
 
 const call = async <T>(path: string, options: CallOptions = {}): Promise<T> => {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -49,6 +49,9 @@ const call = async <T>(path: string, options: CallOptions = {}): Promise<T> => {
     headers['X-Construtec-Identity-Key'] = serviceKey();
     headers['X-Construtec-Client-IP'] = options.clientIp;
   }
+  // O login do Orcamentos sempre se identifica pela chave de servico (mesmo sem IP): sem ela o Centro o
+  // trataria como login do proprio Centro e barraria quem so tem acesso ao Orcamentos (campo apps).
+  if (options.identifyApp && serviceKey()) headers['X-Construtec-Identity-Key'] = serviceKey();
   let response: Response;
   try {
     response = await fetch(`${identityUrl()}${path}`, {
@@ -75,7 +78,7 @@ const call = async <T>(path: string, options: CallOptions = {}): Promise<T> => {
 
 export const centroLogin = (email: string, password: string, clientIp?: string) =>
   call<{ sessionToken: string; expiresAt: number; user: CentroUser }>('/v1/auth/login', {
-    method: 'POST', body: { email, password }, clientIp,
+    method: 'POST', body: { email, password }, clientIp, identifyApp: true,
   });
 
 export const centroSession = (token: string) =>
