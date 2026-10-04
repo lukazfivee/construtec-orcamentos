@@ -74,7 +74,7 @@ export function ProposalClientLinkDrawer({ proposal, canManage, onClose, onChang
     onClose();
   });
 
-  const url = link ? absolute(link.url) : '';
+  const url = link?.url ? absolute(link.url) : '';
   const message = `Olá! Segue o link para ver e aprovar a proposta ${proposal.number} (${revLabel(proposal.revision)}) da Construtec para ${proposal.workName || proposal.clientName}, no valor de ${money.format(proposal.totals.finalValue ?? 0)}.\n${url}`;
   const copy = async () => {
     try { await navigator.clipboard.writeText(url); setCopied(true); window.setTimeout(() => setCopied(false), 2500); }
@@ -106,11 +106,15 @@ export function ProposalClientLinkDrawer({ proposal, canManage, onClose, onChang
             <>
               <div className="kv-line"><span>Vale até</span><b>{day(link.expiresAt)}</b></div>
               <div className="kv-line"><span>Nome e cargo</span><b>{link.requireIdentity ? 'O cliente informa' : 'Não pede'}</b></div>
-              <label className="drawer-field"><span>Endereço do link</span><input type="text" readOnly value={url} onFocus={(event) => event.currentTarget.select()} /></label>
-              <div className="drawer-row">
-                <button type="button" className="flow-btn" onClick={() => void copy()}>{copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copiado' : 'Copiar'}</button>
-                {canManage && <button type="button" className="flow-btn" onClick={() => openExternalUrl(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`)}><MessageCircle size={16} /> WhatsApp</button>}
-              </div>
+              {url ? (
+                <>
+                  <label className="drawer-field"><span>Endereço do link</span><input type="text" readOnly value={url} onFocus={(event) => event.currentTarget.select()} /></label>
+                  <div className="drawer-row">
+                    <button type="button" className="flow-btn" onClick={() => void copy()}>{copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copiado' : 'Copiar'}</button>
+                    {canManage && <button type="button" className="flow-btn" onClick={() => openExternalUrl(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`)}><MessageCircle size={16} /> WhatsApp</button>}
+                  </div>
+                </>
+              ) : <p className="side-drawer-note">O endereço do link só aparece para quem tem permissão de enviar propostas.</p>}
             </>
           )}
           {link && (

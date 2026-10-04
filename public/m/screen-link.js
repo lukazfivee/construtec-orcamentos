@@ -88,15 +88,16 @@
     const head = `<div class="prop-tags"><span class="tag">${esc(OC.rev(p.revision))}</span><span class="prop-work">${esc(p.number)} · ${esc(p.workName || p.clientName)}</span></div>`;
 
     if (link && link.state === 'active') {
-      const url = absolute(link.url);
+      const url = link.url ? absolute(link.url) : '';
       body.innerHTML = `${head}<div class="card"><span class="label">Link ativo</span>
           <div class="kv"><span>Vale até</span><b>${esc(day(link.expiresAt))}</b></div>
           <div class="kv"><span>Nome e cargo</span><b>${link.requireIdentity ? 'O cliente informa' : 'Não pede'}</b></div>
-          <input class="link-url" type="text" readonly value="${esc(url)}" aria-label="Endereço do link" onfocus="this.select()">
-          <div class="pair"><button class="btn2" type="button" data-copy>${icon('copy', 18)}Copiar</button>${OC.can('p11') ? `<button class="btn" type="button" data-share>${icon('paper-plane-tilt', 18)}Compartilhar</button>` : ''}</div></div>
+          ${url ? `<input class="link-url" type="text" readonly value="${esc(url)}" aria-label="Endereço do link" onfocus="this.select()">
+          <div class="pair"><button class="btn2" type="button" data-copy>${icon('copy', 18)}Copiar</button>${OC.can('p11') ? `<button class="btn" type="button" data-share>${icon('paper-plane-tilt', 18)}Compartilhar</button>` : ''}</div>` : ''}</div>
         ${views(link)}
         ${OC.can('p11') ? `<div class="actions"><button class="btn2" type="button" data-off>Desativar o link</button></div>` : '<p class="hint lock">' + icon('lock-simple', 15) + '<span>Você vê o link e as visualizações, sem compartilhar nem desativar.</span></p>'}`;
-      OC.$('[data-copy]', body).addEventListener('click', async (event) => {
+      const copyButton = OC.$('[data-copy]', body);
+      if (copyButton) copyButton.addEventListener('click', async (event) => {
         const label = event.currentTarget; const ok = await copyText(url);
         label.innerHTML = `${icon('check', 18)}${ok ? 'Copiado' : 'Selecione e copie'}`; setTimeout(() => { label.innerHTML = `${icon('copy', 18)}Copiar`; }, 2500);
       });
