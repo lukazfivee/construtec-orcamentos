@@ -377,3 +377,7 @@ html[data-theme="escuro"] { --ok: #4cc38a; --down: #f08a72; }
 .sec-row .hint.right { text-align: right; }
 .hint.lock { display: flex; gap: 8px; line-height: 1.45; }
 .hint.lock .ico { flex: none; margin-top: 1px; }
+
+/* Link para o cliente (Rodada 27) */
+.link-url { width: 100%; margin: 10px 0; min-height: 44px; padding: 8px 10px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 13px; }
+.tile-card.hl { border: 1px solid var(--accent-500); background: var(--accent-900); }
