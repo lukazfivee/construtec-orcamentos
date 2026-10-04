@@ -7,6 +7,7 @@ import { getProposalStandardMonthlyHours, listProposalLaborItems } from './propo
 import { roundMoney } from './proposalCommon';
 import type { ItemRow } from './proposalItems';
 import { updateProposalStatusWithGetter } from './proposalLifecycle';
+import type { SealEvidence } from './integration/proposalSealing';
 
 export * from './proposalCommon';
 export * from './proposalMutations';
@@ -214,6 +215,7 @@ export const updateProposalStatus = async (
   proposalId: string,
   status: ProposalDetail['status'],
   userId?: string,
+  evidence?: SealEvidence,
 ): Promise<ProposalDetail> => {
-  return updateProposalStatusWithGetter(database, proposalId, status, getProposalById, userId);
+  return updateProposalStatusWithGetter(database, proposalId, status, getProposalById, userId, evidence);
 };

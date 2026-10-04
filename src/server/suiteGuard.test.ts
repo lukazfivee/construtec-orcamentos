@@ -62,6 +62,10 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 403);
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'review' }).status, 200);
   assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/direct-sync').status, 403);
+  assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/client-link').status, 403);
+  assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/client-link/confirm').status, 403);
+  assert.equal(run(user('engenharia'), 'GET', '/api/proposals/abc/client-link').status, 200);
+  assert.equal(run(user('comercial'), 'POST', '/api/proposals/abc/client-link').status, 200);
   assert.equal(run(user('comercial'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 200);
   assert.equal(run(user('gestor'), 'POST', '/api/proposals/abc/integration-export').status, 200);
 
