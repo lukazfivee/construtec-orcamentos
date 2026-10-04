@@ -23,6 +23,7 @@ import type {
   ProposalSummary,
   UserRecord,
   CenterTracking,
+  ClientLinkInfo,
   AuthorizedEmailRecord,
 } from '../shared/contracts';
 
@@ -219,6 +220,12 @@ export const proposalApi = {
   ),
   // HTML do PDF do cliente, montado no servidor (so precos de venda).
   documentHtml: (proposalId: string, query: string) => requestText(`/api/proposals/${proposalId}/document?${query}`),
+  clientLink: (proposalId: string) => request<{ link: ClientLinkInfo | null }>(`/api/proposals/${proposalId}/client-link`),
+  createClientLink: (proposalId: string, input: { days: number; requireIdentity: boolean }) => request<{ link: ClientLinkInfo }>(
+    `/api/proposals/${proposalId}/client-link`, { method: 'POST', body: JSON.stringify(input) },
+  ),
+  disableClientLink: (proposalId: string) => request<{ link: ClientLinkInfo }>(`/api/proposals/${proposalId}/client-link/disable`, { method: 'POST' }),
+  confirmClientApproval: (proposalId: string) => request<{ proposal: ProposalDetail; link: ClientLinkInfo }>(`/api/proposals/${proposalId}/client-link/confirm`, { method: 'POST' }),
   centerTracking: (proposalId: string) => request<CenterTracking>(`/api/proposals/${proposalId}/center-tracking`),
   directSync: (proposalId: string) => request<DirectSyncResult>(
     `/api/proposals/${proposalId}/direct-sync`, { method: 'POST' },
