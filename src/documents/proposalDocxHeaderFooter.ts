@@ -25,6 +25,8 @@ export const buildFirstPageHeader = (proposal: ProposalDetail, settings?: AppSet
   const companyPhone = settings?.phone?.trim() || '(71) 99294-1099';
   const companyEmail = settings?.email?.trim() || 'supervisao@rcconstrutec.com.br';
   const logoData = proposalLogo();
+  // Mesmo controle do PDF (Configuracoes > Padroes da empresa): sem logo, o cabecalho fica so com os dados da empresa.
+  const showLogo = settings?.pdfShowLogo ?? true;
   const bottomBorder = { style: BorderStyle.SINGLE, size: 16, color: BLUE };
 
   return new Table({
@@ -37,7 +39,7 @@ export const buildFirstPageHeader = (proposal: ProposalDetail, settings?: AppSet
             width: { size: 6438, type: WidthType.DXA },
             borders: { top: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, bottom: bottomBorder },
             children: [
-              new Paragraph({ spacing: { after: 50 }, children: [new ImageRun({ data: logoData, transformation: { width: 125, height: 40 }, type: 'png' })] }),
+              ...(showLogo ? [new Paragraph({ spacing: { after: 50 }, children: [new ImageRun({ data: logoData, transformation: { width: 125, height: 40 }, type: 'png' })] })] : []),
               new Paragraph({ spacing: { after: 15 }, children: [new TextRun({ text: companyName, bold: true, size: 15, color: NAVY, font: 'Arial' })] }),
               new Paragraph({ spacing: { after: 15 }, children: [new TextRun({ text: `CNPJ: ${companyDoc} • Sede: ${companyAddress}`, size: 13, color: MUTED, font: 'Arial' })] }),
               new Paragraph({ spacing: { after: 50 }, children: [new TextRun({ text: `Contato: ${companyPhone} • ${companyEmail}`, size: 13, color: MUTED, font: 'Arial' })] }),

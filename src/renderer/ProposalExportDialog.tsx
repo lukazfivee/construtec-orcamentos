@@ -3,6 +3,7 @@ import { Eye, FileCheck2, FileText, Layers, Loader2, Printer, Sparkles, X } from
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import type { ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { buildProposalDocxBlob, buildProposalHtml, proposalFileBaseName } from '../documents/proposalDocument';
+import { settingsApi } from './api';
 import { ProposalPreviewSheet } from './ProposalPreviewSheet';
 
 interface Props {
@@ -49,6 +50,9 @@ const downloadDocxBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
+// Configuracoes da empresa (logo, assinatura, dados) para o documento; sem rede o documento sai com os padroes.
+const loadSettings = () => settingsApi.get().then((result) => result.settings).catch(() => undefined);
+
 export function ProposalExportDialog({
   open,
   proposal,
@@ -94,7 +98,7 @@ export function ProposalExportDialog({
       if (window.construtec?.previewProposal) {
         await window.construtec.previewProposal(proposal, exportOptions);
       } else {
-        const html = buildProposalHtml(proposal, undefined, exportOptions);
+        const html = buildProposalHtml(proposal, await loadSettings(), exportOptions);
         const win = window.open('', '_blank');
         if (win) {
           win.document.open();
@@ -124,14 +128,14 @@ export function ProposalExportDialog({
         const files: string[] = [];
 
         if (format === 'docx' || format === 'both') {
-          const blob = await buildProposalDocxBlob(proposal, undefined, exportOptions);
+          const blob = await buildProposalDocxBlob(proposal, await loadSettings(), exportOptions);
           const docxName = `${baseName}.docx`;
           downloadDocxBlob(blob, docxName);
           files.push(docxName);
         }
 
         if (format === 'pdf' || format === 'both') {
-          const html = buildProposalHtml(proposal, undefined, exportOptions);
+          const html = buildProposalHtml(proposal, await loadSettings(), exportOptions);
           printDocumentHtml(html);
           files.push(`${baseName}.pdf`);
         }
