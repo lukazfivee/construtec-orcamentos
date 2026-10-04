@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Download, Eye, FileText, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
+  ChevronLeft, ChevronRight, Download, Eye, FileText, Link2, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 // eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
 import pdfPageCss from '../proposal-pdf-page.css?raw';
 import { proposalApi, settingsApi } from './api';
 import { openExternalUrl, printDocument } from './proposalPdfActions';
+import { ProposalClientLinkDrawer } from './ProposalClientLinkDrawer';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
 import {
   PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel,
@@ -60,6 +61,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
   const [zoomIndex, setZoomIndex] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -221,6 +223,11 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
           <button type="button" className="flow-btn" disabled={busy} onClick={() => void download()}>
             {busy ? <Loader2 size={16} className="spinning" /> : <Download size={16} />} {busy ? 'Baixando…' : 'Baixar PDF'}
           </button>
+          {proposal.isLatest && ['review', 'sent'].includes(proposal.status) && (
+            <button type="button" className="flow-btn" onClick={() => { setShareOpen(false); setLinkOpen(true); }}>
+              <Link2 size={16} /> Link para o cliente
+            </button>
+          )}
           {canSend && (
             <button type="button" className="flow-btn primary" onClick={() => { setShareOpen(false); setSendOpen(true); }}>
               <Send size={16} /> {proposal.status === 'sent' ? 'Reenviar ao cliente' : 'Enviar ao cliente'}
@@ -311,6 +318,20 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
           )}
         </aside>
       </div>
+
+      {linkOpen && (
+        <ProposalClientLinkDrawer
+          proposal={proposal}
+          canManage={p11 && canEdit}
+          onClose={() => setLinkOpen(false)}
+          onChanged={(updated) => {
+            onProposalTabsReload();
+            if (updated) { onProposalUpdate(updated); setLoad({ state: 'ready', proposal: updated }); return; }
+            void proposalApi.byId(proposalId).then((result) => { setLoad({ state: 'ready', proposal: result.proposal }); onProposalUpdate(result.proposal); }).catch(() => undefined);
+          }}
+          showNotice={showNotice}
+        />
+      )}
 
       {sendOpen && (
         <ProposalSendDrawer

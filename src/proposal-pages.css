@@ -208,3 +208,7 @@
   .proposal-flow-top { flex-direction: column; }
   .proposal-flow-actions { justify-content: flex-start; }
 }
+
+.drawer-row { display: flex; flex-wrap: wrap; gap: 8px; }
+fieldset.drawer-field legend { padding: 0; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
+fieldset.drawer-field { border: 0; padding: 0; margin: 0; }
