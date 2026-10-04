@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
+import { hasPermission } from '../services/suiteAccess';
 import type { LocalDatabase } from '../services/database';
 import {
   attributeAuditEvent, attributeCreatedProposalItemAudit, attributeDuplicatedProposalItemAudit,
@@ -136,6 +137,14 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const { status } = statusSchema.parse(request.body);
+      // Reabrir (voltar de enviada, aprovada ou recusada para rascunho ou revisao) e decisao de quem tem p11.
+      if ((status === 'draft' || status === 'review') && !hasPermission(actor(response), 'p11')) {
+        const current = await getProposalById(database, proposalId);
+        if (current && ['sent', 'approved', 'rejected'].includes(current.status)) {
+          response.status(403).json({ error: 'Seu papel não permite reabrir propostas enviadas, aprovadas ou recusadas.' });
+          return;
+        }
+      }
       const proposal = await updateProposalStatus(database, proposalId, status, actor(response).id);
       response.json({ proposal });
     } catch (error) { next(error); }

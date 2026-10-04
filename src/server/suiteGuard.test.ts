@@ -60,8 +60,8 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
 
   // p11: engenharia ve custo mas nao aprova nem envia; comercial pode.
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 403);
-  assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'review' }).status, 403);
-  assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'draft' }).status, 403);
+  assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'review' }).status, 200);
+  assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'sent' }).status, 403);
   assert.equal(run(user('engenharia'), 'DELETE', '/api/proposals/abc').status, 403);
   assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/revisions').status, 403);
   assert.equal(run(user('comercial'), 'DELETE', '/api/proposals/abc').status, 200);
