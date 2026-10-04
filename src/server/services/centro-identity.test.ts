@@ -120,8 +120,13 @@ test('identidade delegada ao Centro de Custos', async context => {
     assert.equal(admin.user.role, 'admin');
     const login = stub.seen.find(entry => entry.path === '/v1/auth/login');
     assert.equal(login?.clientIp, '198.51.100.7');
+    assert.equal(login?.serviceKey, SERVICE_KEY);
     const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
     assert.equal(gestor.user.role, 'viewer');
+    // Sem IP o login ainda se identifica pela chave de servico (o Centro nao o confunde com o login do proprio Centro).
+    const semIp = stub.seen.filter(entry => entry.path === '/v1/auth/login').at(-1);
+    assert.equal(semIp?.serviceKey, SERVICE_KEY);
+    assert.equal(semIp?.clientIp, undefined);
     await assert.rejects(loginUser(database, 'gestor@rcconstrutec.com.br', 'errada-123456'), /AUTH_INVALID_CREDENTIALS/);
   });
 
