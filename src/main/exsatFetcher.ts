@@ -1,6 +1,6 @@
 import { BrowserWindow, session } from 'electron';
 import type { CatalogImportItem, ExsatPageFailure, ExsatValidationStatus } from '../shared/contracts';
-import { parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
+import { fetchExsatBody, parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
 
 export const PARTITION = 'persist:construtec-exsat';
 
@@ -105,18 +105,16 @@ export const parseCatalogItems = (html: string, includeMissingPrice: boolean) =>
 
 export const responseHtml = async (url: string) => {
   try {
-    const response = await exsatSession().fetch(url, {
-      redirect: 'follow',
+    const { response, finalUrl, body } = await fetchExsatBody(url, (target) => exsatSession().fetch(target.toString(), {
+      redirect: 'manual',
       credentials: 'include',
-    });
+    }));
     if (!response.ok) {
       throw new ExsatPageLoadError('http', `EXSAT_HTTP_${response.status}`, `HTTP ${response.status} ${response.statusText}`.trim());
     }
-    const body = await response.arrayBuffer();
-    if (body.byteLength > 8_000_000) throw new ExsatPageLoadError('http', 'EXSAT_RESPONSE_TOO_LARGE', 'Resposta HTTP maior que 8 MB.');
     const charset = response.headers.get('content-type')?.match(/charset\s*=\s*["']?([^;"'\s]+)/i)?.[1]?.toLowerCase();
     const html = new TextDecoder(charset === 'iso-8859-1' ? 'windows-1252' : 'utf-8').decode(body);
-    return { html, finalUrl: url };
+    return { html, finalUrl };
   } catch (error) {
     if (error instanceof ExsatPageLoadError) throw error;
     throw new ExsatPageLoadError(

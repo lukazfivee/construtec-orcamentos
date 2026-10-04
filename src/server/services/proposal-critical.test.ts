@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 import { test } from 'node:test';
+import { defaultSuiteMatrix } from '../../shared/suitePermissions';
 import { documentTotal } from '../../documents/proposalDocumentCommon';
 import { computeFinancialDelta } from '../../renderer/proposalDiffHelpers';
 import { getProposalFinancials } from '../../shared/proposalFinancials';
@@ -166,6 +167,11 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
       'tok-reader': { id: 'c-reader', name: 'Leitor', email: 'reader@example.invalid', role: 'gestor', active: true },
     };
     const centro = createServer((incoming, outgoing) => {
+      if (incoming.url === '/v1/permissions') {
+        outgoing.writeHead(200, { 'Content-Type': 'application/json' });
+        outgoing.end(JSON.stringify({ ok: true, matrix: defaultSuiteMatrix() }));
+        return;
+      }
       const user = centroUsers[String(incoming.headers.authorization || '').replace(/^Bearer /, '')];
       outgoing.writeHead(user ? 200 : 401, { 'Content-Type': 'application/json' });
       outgoing.end(JSON.stringify(user ? { user } : { error: 'Sessao invalida.' }));

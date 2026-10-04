@@ -61,6 +61,12 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   // p11: engenharia ve custo mas nao aprova nem envia; comercial pode.
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 403);
   assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'review' }).status, 200);
+  assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/status', { status: 'sent' }).status, 403);
+  assert.equal(run(user('engenharia'), 'DELETE', '/api/proposals/abc').status, 403);
+  assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/revisions').status, 403);
+  assert.equal(run(user('comercial'), 'DELETE', '/api/proposals/abc').status, 200);
+  assert.equal(run(user('comercial'), 'POST', '/api/proposals/abc/revisions').status, 200);
+  assert.equal(run(user('comercial'), 'PATCH', '/api/proposals/abc/status', { status: 'draft' }).status, 200);
   assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/direct-sync').status, 403);
   assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/client-link').status, 403);
   assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/client-link/confirm').status, 403);
@@ -99,7 +105,7 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run({ id: 'u', name: 'U', email: 'u@x.com', role: 'admin' }, 'POST', '/api/proposals/abc/direct-sync').status, 200);
 });
 
-test('permissoes vem da matriz do Centro, com cache, e caem no padrao sem ela', async context => {
+test('permissoes vem da matriz do Centro, com cache, e falham fechado sem ela', async context => {
   let calls = 0;
   const custom = { ...defaultSuiteMatrix(), financeiro: { ...defaultSuiteMatrix().financeiro, p10: true } };
   let answer: { status: number; body: unknown } = { status: 200, body: { ok: true, matrix: custom } };
@@ -134,9 +140,23 @@ test('permissoes vem da matriz do Centro, com cache, e caem no padrao sem ela', 
   assert.equal(legacy.suiteRole, 'tecnico');
   assert.deepEqual(legacy.apps, ['centro', 'orcamentos']);
 
-  // Centro antigo (sem a rota): vale a matriz padrao.
+  // Sem matriz valida e sem cache recente: falha fechado (sem p10 e p11), mesmo para quem teria pelo padrao.
   resetSuiteMatrixCache();
   answer = { status: 404, body: { ok: false, error: 'Rota nao encontrada.' } };
-  const fallback = await resolveSuiteAccess(remote, 'tok');
-  assert.ok(!fallback.permissions?.includes('p10'));
+  const comercial = { ...remote, suiteRole: 'comercial' };
+  const closed = await resolveSuiteAccess(comercial, 'tok');
+  assert.ok(closed.permissions && !closed.permissions.includes('p10') && !closed.permissions.includes('p11'));
+
+  // Cache velho vale ate 10 min com o Centro fora; depois falha fechado.
+  answer = { status: 200, body: { ok: true, matrix: defaultSuiteMatrix() } };
+  resetSuiteMatrixCache();
+  const realNow = Date.now();
+  let clock = realNow;
+  context.mock.method(Date, 'now', () => clock);
+  assert.ok((await resolveSuiteAccess(comercial, 'tok')).permissions?.includes('p11'));
+  answer = { status: 503, body: {} };
+  clock = realNow + 5 * 60 * 1000;
+  assert.ok((await resolveSuiteAccess(comercial, 'tok')).permissions?.includes('p11'), 'cache de 5 min ainda vale');
+  clock = realNow + 11 * 60 * 1000;
+  assert.ok(!(await resolveSuiteAccess(comercial, 'tok')).permissions?.includes('p11'), 'cache de 11 min nao vale');
 });

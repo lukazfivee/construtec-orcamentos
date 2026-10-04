@@ -1,0 +1,6 @@
+# Cabecalhos dos arquivos estaticos (Cloudflare Workers Assets).
+# Pagina publica do cliente: nao pode ser embutida em outro site.
+/c
+  Content-Security-Policy: frame-ancestors 'self'
+/c/*
+  Content-Security-Policy: frame-ancestors 'self'
