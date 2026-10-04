@@ -352,7 +352,7 @@ export type CenterDiscardInfo = { discardedAt: string | null; discardedBy: strin
 // Link para o cliente ver e aprovar (Rodada 27), como a equipe o recebe do servidor.
 export type ClientLinkState = 'active' | 'approved' | 'adjust' | 'confirmed' | 'disabled' | 'expired' | 'superseded';
 export type ClientLinkInfo = {
-  id: string; url: string; state: ClientLinkState; requireIdentity: boolean; expiresAt: string; createdAt: string;
+  id: string; url?: string; state: ClientLinkState; requireIdentity: boolean; expiresAt: string; createdAt: string;
   views: Array<{ at: string; device: string }>;
   response: { kind: 'approved' | 'adjust'; name: string | null; role: string | null; message: string | null; code: string | null; at: string } | null;
 };

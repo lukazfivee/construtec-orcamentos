@@ -5,7 +5,7 @@ import type { AuthUser } from '../shared/contracts';
 import { hasPermission } from './services/suiteAccess';
 
 // Campos de custo, BDI e margem. So numeros viram 0; o preco de venda nao e tocado.
-const COST_KEYS = new Set([
+export const COST_KEYS = new Set([
   'unitCost', 'totalCost', 'baseCost', 'cost', 'materials', 'labor', 'additions', 'grossResult', 'marginPercent', 'bdiMultiplier',
   'monthlyCost', 'hourlyRate', 'monthlySalary', 'monthlyFood', 'monthlyTransport', 'monthlyOtherCosts', 'catalogCurrentCost',
   'currentCost', 'totalEstimatedCost', 'defaultBdi',

@@ -4,6 +4,7 @@ import type { AuthUser } from '../../shared/contracts';
 import { ClientLinkError } from '../services/clientLinkCommon';
 import { confirmClientApproval, createClientLink, disableClientLink, getClientLink, type ClientLinkView } from '../services/clientLinks';
 import type { LocalDatabase } from '../services/database';
+import { hasPermission } from '../services/suiteAccess';
 
 const idSchema = z.string().uuid();
 const createSchema = z.object({ days: z.number().int().min(1).max(90).default(30), requireIdentity: z.boolean().default(true) });
@@ -19,10 +20,17 @@ export const sendClientLinkError = (error: unknown, response: Response, next: (e
 export const createProposalClientLinkRouter = (database: LocalDatabase, secret: string, publicBase: string) => {
   const router = Router();
   const user = (response: Response) => response.locals.authUser as AuthUser;
-  const body = (link: ClientLinkView | null) => ({ link: link ? { ...link, url: clientLinkUrl(publicBase, link.token) } : null });
+  // O endereco (e o token que ele carrega) e credencial de aprovar: so quem tem p11 o recebe; os demais veem estado e visualizacoes.
+  const body = (link: ClientLinkView | null, canShare = true) => {
+    if (!link) return { link: null };
+    if (canShare) return { link: { ...link, url: clientLinkUrl(publicBase, link.token) } };
+    const { token: _token, ...rest } = link;
+    void _token;
+    return { link: rest };
+  };
 
   router.get('/:proposalId/client-link', async (request, response, next) => {
-    try { response.json(body(await getClientLink(database, idSchema.parse(request.params.proposalId), secret))); }
+    try { response.json(body(await getClientLink(database, idSchema.parse(request.params.proposalId), secret), hasPermission(user(response), 'p11'))); }
     catch (error) { sendClientLinkError(error, response, next); }
   });
 

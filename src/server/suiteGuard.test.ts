@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import type { Request, Response } from 'express';
 import type { AuthUser } from '../shared/contracts';
 import { defaultSuiteMatrix, permissionsFor, suiteRoleFromLegacy } from '../shared/suitePermissions';
-import { maskCosts, suiteGuard } from './suiteGuard';
+import { COST_KEYS, maskCosts, suiteGuard } from './suiteGuard';
 import { resetSuiteMatrixCache, resolveSuiteAccess } from './services/suiteAccess';
 
 const user = (suiteRole: Parameters<typeof permissionsFor>[0], apps = ['centro', 'orcamentos']): AuthUser => ({
@@ -159,4 +159,17 @@ test('permissoes vem da matriz do Centro, com cache, e falham fechado sem ela', 
   assert.ok((await resolveSuiteAccess(comercial, 'tok')).permissions?.includes('p11'), 'cache de 5 min ainda vale');
   clock = realNow + 11 * 60 * 1000;
   assert.ok(!(await resolveSuiteAccess(comercial, 'tok')).permissions?.includes('p11'), 'cache de 11 min nao vale');
+});
+
+test('contrato: todo campo numerico de custo, BDI ou margem em contracts.ts esta na lista mascarada', async () => {
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(`${process.cwd()}/src/shared/contracts.ts`, 'utf8');
+  const risky = /(^|[\s{;,])(\w*(?:[cC]ost|[bB]di|[mM]argin|[sS]alary|hourlyRate)\w*)\??:\s*(?:number|string \| null|number \| null)/g;
+  const found = new Set<string>();
+  for (const match of source.matchAll(risky)) found.add(match[2]);
+  // Campos de preco de venda ou de configuracao nao sao custo; qualquer outro precisa estar mascarado.
+  // costDelta so e gerado com p10 (priceDrift) e baseCostCents so sai de center-tracking, que e negado sem p10.
+  const allowed = new Set(['hasCostCenter', 'costCenterId', 'costCenterCode', 'costCenterStatus', 'costCenterName', 'costDelta', 'baseCostCents']);
+  const missing = [...found].filter(key => !COST_KEYS.has(key) && !allowed.has(key));
+  assert.deepEqual(missing, [], `campos de custo fora de COST_KEYS: ${missing.join(', ')}`);
 });

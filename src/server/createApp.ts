@@ -120,7 +120,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.get('/health', async (_request, response) => {
     try {
       await database.query('SELECT now()::text AS now');
-      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', identity: identityHealStatus });
+      response.json({ ok: true, storage: cloud ? 'postgresql' : 'local', identity: identityHealStatus === 'ok' || identityHealStatus === 'pending' ? identityHealStatus : identityHealStatus.startsWith('healed') ? 'healed' : 'error' });
     } catch {
       response.status(503).json({ ok: false, error: 'Banco de dados indisponível.' });
     }
