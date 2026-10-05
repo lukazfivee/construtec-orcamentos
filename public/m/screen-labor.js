@@ -66,7 +66,7 @@
       OC.$('#l-list', el).innerHTML = items.length ? items.map((it) => `<div class="card lcard${open === it.id ? ' open' : ''}" data-l="${esc(it.id)}">
           <button class="lhead" type="button" data-toggle aria-expanded="${open === it.id}"><span class="grow"><b>${esc(it.description)}</b><small class="l-meta"></small></span><b class="l-cost"></b>${icon(open === it.id ? 'caret-up' : 'caret-down', 18)}</button>
           ${open === it.id ? `<div class="lbody">
-            <div class="grid2">${stepper('professionalCount', 'Profissionais', it.professionalCount)}${stepper('plannedHours', 'Horas por prof.', it.plannedHours, 'h')}</div>
+            <div class="grid2 one">${stepper('professionalCount', 'Profissionais', it.professionalCount)}${stepper('plannedHours', 'Horas por prof.', it.plannedHours, 'h')}</div>
             <small class="hint">≈ ${OC.num(Math.round((it.plannedHours / hours) * 10) / 10)} ${it.plannedHours / hours === 1 ? 'mês' : 'meses'} por profissional · passo de 40 h</small>
             <div class="grid2">${money('monthlySalary', 'Salário', it.monthlySalary)}${money('monthlyFood', 'Alimentação', it.monthlyFood)}${money('monthlyTransport', 'Transporte', it.monthlyTransport)}${money('monthlyOtherCosts', 'Encargos e outros', it.monthlyOtherCosts)}</div>
             <div class="l-calc"><div class="kv"><span>Custo mensal por profissional</span><b class="l-month"></b></div><div class="kv"><span>Custo por hora (÷ ${OC.num(hours)} h)</span><b class="l-hour"></b></div></div>
