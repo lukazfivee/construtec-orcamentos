@@ -55,6 +55,10 @@ const startStubCentro = async () => {
       sessions.set(sessionToken, user.id);
       return send(200, { ok: true, sessionToken, expiresAt: 0, user: publicUser(user) });
     }
+    if (path === '/v1/auth/session' && token === 'tok-chave-recusada') return send(401, { ok: false, code: 'SERVICE_KEY_INVALID', error: 'Chave invalida.' });
+    if (path === '/v1/auth/session' && token === 'tok-limite') return send(429, { ok: false, error: 'Muitas requisicoes.' });
+    if (path === '/v1/auth/session' && token === 'tok-rota') return send(404, { ok: false, error: 'Rota nao encontrada.' });
+    if (path === '/v1/auth/session' && token === 'tok-expirada') return send(401, { ok: false, code: 'SESSION_INVALID', error: 'Sessao invalida ou expirada.' });
     if (!actor) return send(401, { error: 'Sessao invalida ou expirada.' });
     if (path === '/v1/auth/session') return send(200, { user: publicUser(actor) });
     // Central de notificacoes (Fase 4): so a sessao do usuario, sem chave de servico.
@@ -239,6 +243,18 @@ test('identidade delegada ao Centro de Custos', async context => {
     } finally {
       process.env.CENTRO_CUSTOS_IDENTITY_URL = savedUrl;
       if (savedDb === undefined) delete process.env.DATABASE_URL; else process.env.DATABASE_URL = savedDb;
+    }
+  });
+
+  await context.test('so sessao invalida desloga; chave recusada, rota inexistente e limite viram 503 sem deslogar', async () => {
+    forgetSessionCacheOnlyForTest();
+    assert.equal(await verifyUserSession(database, 'tok-expirada'), null);
+    assert.equal(await verifyUserSession(database, 'token-desconhecido'), null);
+    for (const token of ['tok-chave-recusada', 'tok-limite', 'tok-rota']) {
+      await assert.rejects(verifyUserSession(database, token), (error: unknown) => {
+        const e = error as { status?: number; message?: string };
+        return e.status === 503 && /Centro de Custos/.test(e.message ?? '');
+      });
     }
   });
 

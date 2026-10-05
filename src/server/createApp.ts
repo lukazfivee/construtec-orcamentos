@@ -205,7 +205,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.use('/api/proposals', createProposalTrackingRouter(database));
   api.use('/api/proposals', createProposalPriceDriftRouter(database));
   api.use('/api/proposals', createProposalDocumentRouter(database));
-  api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || ''));
+  api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || '', Boolean(cloud)));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));

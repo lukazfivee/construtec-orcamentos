@@ -89,7 +89,7 @@ test('F2.1 - Selo Canônico de Proposta e Outbox de Integração', async context
     assert.equal(cloned.revision, 0);
   });
 
-  await context.test('exportação da integração extrai snapshot imutável e marca outbox como entregue', async () => {
+  await context.test('exportação da integração extrai snapshot imutável e mantém a outbox pendente até o Centro confirmar', async () => {
     const { exportProposalIntegration } = await import('./integration/proposalExport');
     const pId = await makeProposal();
     await addMaterial(pId, '10', '5', '8');
@@ -107,13 +107,31 @@ test('F2.1 - Selo Canônico de Proposta e Outbox de Integração', async context
     assert.ok(exportResult.envelope.payloadSha256);
     assert.equal(exportResult.envelope.payload.proposal.id, pId);
 
-    // Verificar outbox marcada como entregue
-    const outbox = await database.query<{ status: string; attempts: number }>(
-      'SELECT status, attempts FROM integration_outbox WHERE snapshot_id = $1',
+    // Exportar nao e entregar: o Centro nao recebeu nada, a linha segue pendente.
+    const outbox = await database.query<{ id: string; status: string; attempts: number }>(
+      'SELECT id, status, attempts FROM integration_outbox WHERE snapshot_id = $1',
       [exportResult.snapshotId]
     );
-    assert.equal(outbox.rows[0].status, 'delivered');
-    assert.equal(outbox.rows[0].attempts, 1);
+    assert.equal(outbox.rows[0].status, 'pending');
+    assert.equal(outbox.rows[0].attempts, 0);
+    assert.equal(exportResult.eventId, outbox.rows[0].id);
+  });
+
+  await context.test('snapshot sem linha de outbox: exportar cria a linha e o eventId casa com ela', async () => {
+    const { exportProposalIntegration } = await import('./integration/proposalExport');
+    const pId = await makeProposal();
+    await addMaterial(pId, '10', '5', '8');
+    await updateProposalStatus(database, pId, 'approved', userId);
+    const snapshotId = (await database.query<{ id: string }>('SELECT id FROM proposal_approval_snapshots WHERE proposal_id = $1', [pId])).rows[0].id;
+    await database.query('DELETE FROM integration_outbox WHERE snapshot_id = $1', [snapshotId]);
+
+    const first = await exportProposalIntegration(database, pId, userId);
+    const rows = (await database.query<{ id: string; status: string }>('SELECT id, status FROM integration_outbox WHERE snapshot_id = $1', [snapshotId])).rows;
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].id, first.eventId);
+    assert.equal(rows[0].status, 'pending');
+    assert.equal(first.envelope.eventId, first.eventId);
+    assert.equal((await exportProposalIntegration(database, pId, userId)).eventId, first.eventId);
   });
 
   await context.test('envelope de integração inclui impostos e contractValue com tax aplicado', async () => {

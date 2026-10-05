@@ -27,6 +27,26 @@ export class CentroIdentityError extends Error {
   }
 }
 
+// 401 que realmente quer dizer "sessao do usuario invalida/expirada" (sem codigo = Centro antigo).
+const SESSION_REJECTION_CODES = new Set(['', 'SESSION_INVALID', 'SESSION_EXPIRED', 'UNAUTHENTICATED']);
+const FORBIDDEN_SERVICE_CODES = new Set(['FORBIDDEN', 'SERVICE_KEY_INVALID', 'SERVICE_KEY_REQUIRED', 'IDENTITY_KEY_INVALID']);
+
+// Respostas do Centro que nao sao culpa do usuario: chave de servico recusada, rota inexistente (versao
+// diferente do Centro) ou limite de requisicoes. Viram 503 em portugues e nao deslogam ninguem.
+const serviceProblem = (status: number, code: string, message: string): CentroIdentityError | null => {
+  if (status === 429 || code === 'RATE_LIMITED') {
+    return new CentroIdentityError('O Centro de Custos limitou temporariamente as requisições. Aguarde alguns instantes e tente novamente.', 503, 'IDENTITY_UNAVAILABLE');
+  }
+  if ((status === 401 && !SESSION_REJECTION_CODES.has(code)) || (status === 403 && FORBIDDEN_SERVICE_CODES.has(code))) {
+    return new CentroIdentityError('A integração de contas com o Centro de Custos foi recusada (chave de serviço inválida ou ausente). Avise o administrador; seu acesso não foi alterado.', 503, 'IDENTITY_NOT_CONFIGURED');
+  }
+  if (status === 404 && (code === 'ROUTE_NOT_FOUND' || /rota n[aã]o encontrada/i.test(message))) {
+    return new CentroIdentityError('O Centro de Custos não reconheceu esta operação (versão incompatível). Avise o administrador; seu acesso não foi alterado.', 503, 'IDENTITY_NOT_CONFIGURED');
+  }
+  return null;
+};
+
+
 const identityUrl = () => String(process.env.CENTRO_CUSTOS_IDENTITY_URL || DEFAULT_IDENTITY_URL).replace(/\/+$/, '');
 
 const serviceKey = () => {
@@ -71,6 +91,12 @@ const call = async <T>(path: string, options: CallOptions = {}): Promise<T> => {
   }
   const data = await response.json().catch(() => ({})) as Record<string, unknown>;
   if (!response.ok) {
+    const code = String(data.code || '');
+    const problem = serviceProblem(response.status, code, String(data.error || ''));
+    if (problem) {
+      console.error('[centro-identity] resposta nao esperada', path, response.status, code);
+      throw problem;
+    }
     throw new CentroIdentityError(String(data.error || `Centro de Custos respondeu HTTP ${response.status}.`), response.status, String(data.code || ''));
   }
   return data as T;

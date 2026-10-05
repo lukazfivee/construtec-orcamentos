@@ -115,8 +115,8 @@ export const disableClientLink = async (database: LocalDatabase, proposalId: str
 export const confirmClientApproval = async (database: LocalDatabase, proposalId: string, userId: string, secret: string) => {
   const row = (await database.query<LinkRow>(`${LINK_SELECT} WHERE l.proposal_id = $1 AND l.status = 'approved' ORDER BY l.created_at DESC LIMIT 1`, [proposalId])).rows[0];
   if (!row) throw new ClientLinkError('LINK_NO_APPROVAL', 409, 'O cliente ainda não aprovou esta proposta pelo link.');
-  const accepted = (await database.query<{ code: string | null; content_hash: string | null; final_value: string | null }>(
-    "SELECT code, content_hash, final_value::text FROM proposal_client_link_events WHERE link_id = $1 AND kind = 'approved' ORDER BY occurred_at DESC LIMIT 1", [row.id],
+  const accepted = (await database.query<{ code: string | null; content_hash: string | null; final_value: string | null; occurred_at: Date | string; actor_name: string | null; actor_role: string | null }>(
+    "SELECT code, content_hash, final_value::text, occurred_at, actor_name, actor_role FROM proposal_client_link_events WHERE link_id = $1 AND kind = 'approved' ORDER BY occurred_at DESC LIMIT 1", [row.id],
   )).rows[0];
   const code = accepted?.code ?? undefined;
   // O aceite vale para o que o cliente viu: se valor ou itens mudaram depois, a equipe precisa de novo link.
@@ -127,7 +127,10 @@ export const confirmClientApproval = async (database: LocalDatabase, proposalId:
       throw new ClientLinkError('LINK_CONTENT_CHANGED', 409, 'A proposta foi alterada depois do aceite do cliente (valor ou itens). Gere um novo link para o cliente aprovar de novo.');
     }
   }
-  const proposal = await updateProposalStatus(database, proposalId, 'approved', userId, { evidenceKind: 'client_acceptance', evidenceReference: code });
+  const proposal = await updateProposalStatus(database, proposalId, 'approved', userId, {
+    evidenceKind: 'client_acceptance', evidenceReference: code,
+    clientAcceptedAt: accepted?.occurred_at, clientAcceptedName: accepted?.actor_name, clientAcceptedRole: accepted?.actor_role,
+  });
   await database.query("UPDATE proposal_client_links SET status = 'confirmed', closed_at = now() WHERE id = $1", [row.id]);
   await addLinkEvent(database, row.id, 'confirmed', { name: userId, code });
   return { proposal, link: (await getClientLink(database, proposalId, secret)) as ClientLinkView };

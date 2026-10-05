@@ -76,6 +76,47 @@ test('link publico do cliente: token, aprovacao, ajuste e confirmacao', async co
     assert.equal(snapshot.rows[0].payload.proposal.approval.evidenceReference, done.code);
   });
 
+  await context.test('selo guarda a evidencia real: aceite do cliente (quando, quem, codigo) e quem confirmou; hash segue valido', async () => {
+    const { randomUUID } = await import('node:crypto');
+    const { canonicalJsonStringify, computeSha256 } = await import('./integration/proposalSealing');
+    const confirmerId = randomUUID();
+    await database.query("INSERT INTO users (id,name,email,password_hash,role) VALUES ($1,'Confirmadora Maria','maria@example.invalid','x','admin')", [confirmerId]);
+    const id = await ready();
+    const link = await createClientLink(database, id, { days: 30, requireIdentity: true }, userId, SECRET);
+    const done = await approvePublicLink(database, link.token, { name: 'Ana Souza', role: 'Diretora', accept: true }, ctx);
+    await database.query("UPDATE proposal_client_link_events SET occurred_at = '2026-09-01T12:30:00.000Z' WHERE kind = 'approved' AND link_id = $1", [link.id]);
+    await confirmClientApproval(database, id, confirmerId, SECRET);
+
+    const row = (await database.query<{ payload: { proposal: { approval: Record<string, unknown>; responsibleName: string } }; payload_sha256: string }>(
+      'SELECT payload, payload_sha256 FROM proposal_approval_snapshots WHERE proposal_id = $1', [id])).rows[0];
+    const approval = row.payload.proposal.approval;
+    assert.equal(approval.approvedAt, '2026-09-01T12:30:00.000Z');
+    assert.notEqual(approval.recordedAt, approval.approvedAt);
+    assert.equal(approval.recordedBy, 'Confirmadora Maria');
+    assert.equal(approval.confirmedBy, 'Confirmadora Maria');
+    assert.deepEqual(approval.clientAcceptance, { acceptedAt: '2026-09-01T12:30:00.000Z', name: 'Ana Souza', role: 'Diretora', code: done.code });
+    // O Centro recalcula o SHA-256 canonico do payload inteiro: precisa bater com o campo novo dentro.
+    assert.equal(computeSha256(canonicalJsonStringify(row.payload)), row.payload_sha256);
+    // Contrato real do Centro (somente leitura): roda quando CENTRO_CUSTOS_REPO aponta para o repositorio dele.
+    if (process.env.CENTRO_CUSTOS_REPO) {
+      const { createRequire } = await import('node:module');
+      const centro = createRequire(`${process.env.CENTRO_CUSTOS_REPO}/`)('./services/budgets/budgetCanonical.js') as { validateProposalEnvelope: (envelope: unknown) => unknown };
+      const envelope = (payload: unknown) => ({ schemaVersion: '1.0.0', payloadSha256: computeSha256(canonicalJsonStringify(payload)), payload });
+      centro.validateProposalEnvelope(envelope(row.payload));
+      const { clientAcceptance: _a, confirmedBy: _c, ...legacyApproval } = approval;
+      void _a; void _c;
+      centro.validateProposalEnvelope(envelope({ ...row.payload, proposal: { ...row.payload.proposal, approval: legacyApproval } }));
+    }
+
+    // Aprovacao manual (sem link): sem os campos de aceite do cliente, formato anterior preservado.
+    const manual = await ready();
+    await updateProposalStatus(database, manual, 'approved', userId);
+    const m = (await database.query<{ payload: { proposal: { approval: Record<string, unknown> } }; payload_sha256: string }>(
+      'SELECT payload, payload_sha256 FROM proposal_approval_snapshots WHERE proposal_id = $1', [manual])).rows[0];
+    assert.equal('clientAcceptance' in m.payload.proposal.approval, false);
+    assert.equal(computeSha256(canonicalJsonStringify(m.payload)), m.payload_sha256);
+  });
+
   await context.test('pedir ajuste cria nova revisao em edicao e encerra o link', async () => {
     const id = await ready();
     const link = await createClientLink(database, id, { days: 30, requireIdentity: false }, userId, SECRET);
@@ -110,3 +151,31 @@ test('link publico do cliente: token, aprovacao, ajuste e confirmacao', async co
   });
 });
 
+
+test('modo local (sem banco online): gerar link responde 409 com mensagem clara', async context => {
+  const { once } = await import('node:events');
+  const express = (await import('express')).default;
+  const { createProposalClientLinkRouter } = await import('../routes/proposalClientLink');
+  const { database } = await createCriticalTestDatabase();
+  const serve = async (available: boolean) => {
+    const app = express();
+    app.use(express.json());
+    app.use((_req, res, next) => { res.locals.authUser = { id: 'u', name: 'U', email: 'u@x.com', role: 'admin' }; next(); });
+    app.use('/api/proposals', createProposalClientLinkRouter(database, SECRET, 'https://x.example', available));
+    const server = app.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+    context.after(() => new Promise<void>(resolve => server.close(() => resolve())));
+    const address = server.address();
+    assert.ok(address && typeof address !== 'string');
+    return `http://127.0.0.1:${address.port}/api/proposals/11111111-2222-4333-8444-555555555555/client-link`;
+  };
+  context.after(() => database.close());
+  const local = await fetch(await serve(false), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  assert.equal(local.status, 409);
+  const body = await local.json() as { error: string; code: string };
+  assert.equal(body.code, 'LINK_ONLINE_ONLY');
+  assert.match(body.error, /só na versão online/);
+  // Online o fluxo normal segue (proposta inexistente -> 404, nao 409 de modo local).
+  const online = await fetch(await serve(true), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  assert.notEqual(online.status, 409);
+});

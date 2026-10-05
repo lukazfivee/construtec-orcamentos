@@ -39,7 +39,7 @@ export const syncProposalDirectly = async (
   userId?: string,
   customCenterUrl?: string,
 ): Promise<DirectSyncResult> => {
-  const exportResult = await exportProposalIntegration(database, proposalId, userId, false);
+  const exportResult = await exportProposalIntegration(database, proposalId, userId);
   const { envelope, eventId } = exportResult;
 
   const centerUrl = customCenterUrl || process.env.CENTRO_CUSTOS_API_URL || DEFAULT_CENTER_URL;
