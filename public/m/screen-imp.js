@@ -272,7 +272,7 @@
       load: null, token: 0, result: null, exsat: false, exsatCategory: '', exsatUrl: '', failMsg: '', runDone: 0, runTotal: 0, fileMsg: '',
     };
     const el = OC.render(`<div class="top"><button class="back" type="button" data-back aria-label="Voltar">${icon('caret-left', 22)}</button><h1>Importar catálogo</h1><span class="grow"></span>
-        <button class="suite-pill" type="button" data-suite>${icon('stack', 18)}Suíte${icon('caret-down', 14)}</button></div>
+        <button class="suite-pill" type="button" data-suite aria-label="Suíte">${icon('stack', 18)}<span class="sp-t">Suíte</span>${icon('caret-down', 14)}</button></div>
       <p class="sub" id="i-sub" style="margin:-6px 0 0"></p><div id="i-steps"></div><div id="i-body" class="imp-body"></div>`, true, params);
     const body = OC.$('#i-body', el);
     const live = () => OC.nav === params.__nav;

@@ -132,6 +132,17 @@
     toastTimer = setTimeout(() => el.remove(), 2600);
   };
 
+  // Teclado: o iOS nao encolhe a pagina; a folha acompanha a area visivel e o campo focado sobe para o meio da tela.
+  const fitSheets = () => {
+    const vv = window.visualViewport;
+    document.documentElement.style.setProperty('--vvh', vv && vv.scale <= 1.01 ? `${Math.round(vv.height)}px` : '100dvh');
+  };
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', fitSheets); fitSheets(); }
+  document.addEventListener('focusin', (event) => {
+    const field = event.target;
+    if (field && field.matches && field.matches('input:not([type=checkbox]):not([type=radio]), textarea, select')) setTimeout(() => { try { field.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { /* nada */ } }, 320);
+  });
+
   // Folhas inferiores (mesmo desenho do seletor Suite): confirmar, perguntar um texto.
   OC.sheet = function (html) {
     const el = document.createElement('div');
@@ -182,8 +193,8 @@
     },
     apply(value) {
       document.documentElement.dataset.theme = value;
-      const meta = OC.$('meta[name="theme-color"]');
-      if (meta) meta.content = value === 'escuro' ? '#031f29' : '#f2f8fa';
+      OC.$$('meta[name="theme-color"]').forEach((meta) => { meta.content = value === 'escuro' ? '#031f29' : '#f2f8fa'; });
+      document.documentElement.style.colorScheme = value === 'escuro' ? 'dark' : 'light';
     },
     toggle() {
       const next = OC.theme.get() === 'escuro' ? 'claro' : 'escuro';
@@ -197,6 +208,6 @@
   OC.header = function (title, opts = {}) {
     const back = opts.back ? `<button class="back" type="button" data-back aria-label="Voltar">${OC.icon('caret-left', 22)}</button>` : '';
     const brand = opts.back ? `<h1>${OC.esc(title)}</h1><span class="grow"></span>` : `<span class="brand"><img src="simbolo.png" alt="">Orçamentos</span>`;
-    return `<div class="top">${back}${brand}${opts.extra || ''}<button class="suite-pill" type="button" data-suite>${OC.icon('stack', 18)}Suíte${OC.icon('caret-down', 14)}</button></div>`;
+    return `<div class="top">${back}${brand}${opts.extra || ''}<button class="suite-pill" type="button" data-suite aria-label="Suíte">${OC.icon('stack', 18)}<span class="sp-t">Suíte</span>${OC.icon('caret-down', 14)}</button></div>`;
   };
 })(window.OC = window.OC || {});

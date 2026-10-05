@@ -114,7 +114,7 @@
 
     if (link && link.state === 'approved') {
       body.innerHTML = `${head}${reply(link)}<p class="hint">A aprovação do cliente fica como evidência. A proposta só passa para Aprovada quando você confirmar.</p>
-        ${OC.can('p11') && p.isLatest ? `<div class="actions"><button class="btn" type="button" data-ok>${icon('check', 18)}Confirmar aprovação</button></div>` : `<p class="hint lock">${icon('lock-simple', 15)}<span>Quem tem permissão de aprovar confirma a aprovação.</span></p>`}${views(link)}`;
+        ${views(link)}${OC.can('p11') && p.isLatest ? `<div class="actions"><button class="btn" type="button" data-ok>${icon('check', 18)}Confirmar aprovação</button></div>` : `<p class="hint lock">${icon('lock-simple', 15)}<span>Quem tem permissão de aprovar confirma a aprovação.</span></p>`}`;
       const ok = OC.$('[data-ok]', body);
       if (ok) ok.addEventListener('click', () => OC.confirm('Confirmar aprovação', 'A proposta aprovada fica travada e vira a base de orçado da obra. Não dá para desfazer.', 'Confirmar', async () => {
         await OC.api(`/proposals/${p.id}/client-link/confirm`, { method: 'POST', body: {} });
