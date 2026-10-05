@@ -36,6 +36,7 @@ import './impeccable-audit.css';
 import './auth.css';
 import './exsat-feedback.css';
 import './suite-bolder.css';
+import './desktop-polish.css';
 import './mobile-responsive.css';
 import './mobile-suite.css';
 import './menu-lateral.css';

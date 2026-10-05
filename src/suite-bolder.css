@@ -43,7 +43,7 @@
   .btn.primary:not(:disabled):hover, .primary-btn:not(:disabled):hover,
   .actions .generate:not(:disabled):hover,
   .new-proposal-dialog button.primary:not(:disabled):hover {
-    background:#064bbd!important; border-color:#064bbd;
+    background:#09627a!important; border-color:#09627a;
   }
   .sidebar nav button.active, #app .sidebar nav .nav-item.ativo {
     background:#1b2c45!important; color:#fff!important; font-weight:700;

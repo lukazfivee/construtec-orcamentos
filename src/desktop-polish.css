@@ -1,0 +1,163 @@
+/* Desktop polish (auditoria visual): base de botoes e campos, contraste AA, modais sem definicao,
+ * barras fixas opacas e tabelas sem estouro. Carregado antes dos arquivos mobile, que seguem valendo. */
+
+:root {
+  --blue: #0b7690;
+  --blue-ink: #0a6b86;
+  --blue-hover: #09627a;
+  --muted-ink: #4a626d;
+  --green-ink: #15803d;
+}
+
+/* Base: botao e campo sem classe herdavam 16px do navegador. */
+button { font-size: 12px; line-height: 1.25; }
+input, select, textarea { font-size: 12px; }
+button:has(> svg) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+button svg { flex: none; }
+
+/* Desabilitado legivel: o botao primario nao vira texto branco sobre cinza claro. */
+button:disabled { opacity: .7; color: var(--muted-ink); }
+.primary:disabled, .primary-btn:disabled, .od-btn.p:disabled, .btn.primary:disabled,
+.new-proposal-dialog button.primary:disabled {
+  color: var(--muted-ink) !important;
+  background: #dfe9ed !important;
+  border-color: #c9d9df !important;
+  opacity: 1;
+}
+.od-btn:disabled { opacity: 1; color: var(--muted-ink); background: #dfe9ed; border-color: #c9d9df; }
+.primary:hover:not(:disabled), .primary-btn:hover:not(:disabled), .web-login-card button:hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
+.actions .generate:not(:disabled):hover, .btn.primary:not(:disabled):hover,
+.new-proposal-dialog button.primary:not(:disabled):hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
+
+/* Modais que usavam .modal-backdrop e .modal-dialog sem nenhuma regra: abriam colados no canto, sem fundo. */
+.modal-backdrop {
+  position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 24px;
+  background: rgba(12, 23, 40, .58); backdrop-filter: blur(2px);
+}
+.modal-dialog {
+  max-width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: hidden;
+  color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(8, 18, 35, .28);
+}
+.proposal-export-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.close-btn {
+  display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; padding: 0;
+  color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer;
+}
+.close-btn:hover { background: var(--surface-subtle); }
+.proposal-import-header .close-btn { color: #fff; background: transparent; border-color: rgba(255, 255, 255, .35); }
+
+/* Classes usadas pelo React sem regra. */
+.text-right { text-align: right; }
+.home-panel { min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.home-panel-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--line); }
+.home-panel-header h3 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
+.home-panel-header p { margin: 3px 0 0; color: var(--muted-ink); font-size: 11px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 20px; text-align: center; }
+.empty-state h4, .empty-state p { margin: 0; }
+.empty-state h4 { color: var(--ink); font-size: 14px; }
+.empty-state p { max-width: 420px; color: var(--muted-ink); font-size: 12px; }
+.empty-state-icon { color: var(--line-strong); }
+
+/* Topbar: marca nunca encolhe; a busca cede espaco. */
+.brand { flex: none; }
+.global-search { flex: 0 1 420px; width: auto; min-width: 160px; }
+.local-state button { min-height: 24px; }
+.global-search:disabled, .global-search:disabled span { opacity: 1; color: #9fb0bd; cursor: default; }
+.top-actions .icon-button:disabled, .profile:disabled { opacity: 1; color: #8fa0ad; }
+
+/* Contraste AA em chips, selos e textos auxiliares. */
+.chip-count { color: #34505a; }
+.help-modal-dialog nav button, .help-modal-tabs button { color: var(--muted-ink); }
+.filter-chip.active { border-color: var(--blue); }
+.filter-chip.active .chip-count { background: #cdeef7; color: #0a5568; }
+.revision-tag, .items-count-badge, .proposal-date-cell { color: var(--muted-ink); }
+.last-change { color: var(--muted-ink); }
+.table-action-btn.secondary.share-btn { color: var(--blue-ink); }
+.user-profile-logout-btn { color: #b91c1c; }
+.notifications-footer { color: var(--muted-ink); }
+.page-back, .page-eyebrow { color: var(--blue-ink); }
+
+/* Lista de propostas: Cliente/Obra ocupa a sobra e trunca com reticencias, acoes secundarias viram icones,
+ * colunas de apoio cedem espaco e a coluna de acoes fica sempre visivel (sticky com fundo opaco). */
+.home-body > .table-panel { flex: none; }
+.proposals-table th, .proposals-table td { padding: 0 12px; }
+.proposals-table .proposal-client-cell { width: 100%; min-width: 150px; max-width: 0; }
+.proposals-table .client-name, .proposals-table .work-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proposals-table .work-name { min-width: 0; }
+.proposals-table .proposal-date-cell { white-space: nowrap; }
+.proposals-table .proposal-date-cell svg { display: inline-block; margin-right: 4px; vertical-align: -2px; }
+.proposals-table .proposal-status-cell { white-space: nowrap; }
+.proposals-table .proposal-status-cell .sync-badge { display: flex; width: fit-content; }
+.proposals-table .proposal-actions-cell { white-space: nowrap; }
+.proposals-table th.col-actions, .proposals-table td.proposal-actions-cell { position: sticky; right: 0; z-index: 1; box-shadow: -1px 0 0 var(--line); }
+.proposals-table td.proposal-actions-cell { background: #fff; }
+.proposals-table th.col-actions { background: var(--surface-subtle); z-index: 2; }
+.proposals-table .proposal-row:hover td.proposal-actions-cell { background: #f2f8fa; }
+@media (min-width: 768px) {
+  .proposals-table .table-action-btn { position: relative; }
+  .proposals-table .table-action-btn.secondary, .proposals-table .table-action-btn.danger { width: 32px; padding: 0; margin-left: 4px; }
+  .proposals-table .btn-label:not(.btn-label-keep) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@media (min-width: 768px) and (max-width: 1320px) { .proposals-table .col-updated { display: none; } }
+@media (min-width: 768px) and (max-width: 1180px) { .proposals-table .col-items { display: none; } }
+@media (min-width: 768px) and (max-width: 1100px) {
+  .proposals-table .table-action-btn[aria-label^="Prorrogar"] { display: none; }
+  .proposals-table .table-action-btn.primary { width: 32px; padding: 0; }
+  .proposals-table .btn-label-keep { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .proposals-table .proposal-client-cell { min-width: 110px; }
+}
+@media (min-width: 768px) and (max-width: 1100px) { .proposals-table th, .proposals-table td { padding: 0 9px; } }
+.proposals-list-workspace .home-header { min-height: 0; padding: 18px 36px 16px; }
+.proposals-list-workspace .home-header h1 { font-size: 26px; }
+.proposals-list-workspace .home-header p { font-size: 13px; color: var(--ink-secondary); }
+.status-select:disabled { opacity: 1; cursor: not-allowed; }
+.validity-badge.validity-none, .validity-badge.validity-closed { color: var(--muted-ink); opacity: 1; }
+
+/* Barra de metadados do editor: valor longo vira duas linhas com reticencias, campos fixos legiveis, rotulo do status igual aos demais. */
+.meta-field > span, .status-field > label { color: var(--muted-ink); font-size: 11px; }
+.meta-field button .meta-value {
+  display: -webkit-box; min-width: 0; overflow: hidden; line-height: 1.3; text-align: left;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere;
+}
+.meta-field button:disabled { opacity: 1; color: var(--ink-secondary); cursor: default; }
+
+/* Contraste de textos de apoio e selos. */
+.proposal-flow-rev, .rev-badge, .tab-counter, .summary-total-callout strong { color: var(--blue-ink); }
+.proposal-flow i { color: #34505a; }
+.tab-counter.highlight { background: #047857; }
+.btn-action-whatsapp { background: #15803d; border-color: #166534; }
+.btn-action-whatsapp:hover { background: #166534; }
+.btn-action-email, .btn-action-whatsapp { white-space: nowrap; }
+.footer-actions { flex: none; }
+.share-dialog-footer { gap: 16px; }
+.btn-cancel { color: var(--muted-ink); }
+.settings-card b, .settings-card strong { text-wrap: balance; }
+
+/* Dialogo de clonar: lista do que sera gerado em uma coluna, sem quebrar o texto em pedacos. */
+.clone-summary-box li { display: block; position: relative; padding-left: 20px; }
+.clone-summary-box li .check-icon { position: absolute; left: 0; top: 2px; }
+.clone-mode-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.clone-mode-selector .radio-option { min-width: 0; }
+
+/* PDF e popover de compartilhar em 1024: preview com altura minima e menu ancorado a esquerda. */
+@media screen and (max-width: 1180px) {
+  .pdf-layout { min-height: 0; grid-template-rows: minmax(440px, 1fr) auto; }
+  .share-menu { right: auto; left: 0; }
+}
+
+/* Textos pequenos sobre fundo claro: o ciano da marca nao passa de 3:1 em branco. */
+.kit-add-btn, .management-header button.primary-ghost { color: var(--blue-ink); }
+.version-current, .history-current { color: #166534; }
+small.current-tag { color: #166534; }
+.clone-mode-selector, .clone-summary-box { width: 100%; box-sizing: border-box; }
+
+/* Configuracoes: campos e botoes soltos do painel de usuarios seguem o padrao dos demais campos. */
+.settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .settings-card select {
+  min-height: 32px; padding: 0 9px; color: var(--ink); background: #fff;
+  border: 1px solid var(--line-strong); border-radius: 5px; box-sizing: border-box;
+}
+.settings-card button:not(.primary):not(.od-btn) { min-height: 32px; padding: 0 12px; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
+.settings-card button.primary { min-height: 32px; }
+.settings-card button[class*="danger"], .settings-card button[style*="b91c1c"], .settings-card button[style*="dc2626"] { color: #b91c1c; }
+@media screen and (min-width: 768px) and (max-width: 1350px) { .sidebar nav button span { font-size: 11px; } }

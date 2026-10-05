@@ -51,7 +51,7 @@ export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
   return (
     <section className="gerar-centro-feedback" aria-label="Acompanhamento da obra" style={{ marginTop: '8px' }}>
       <div className="gerar-centro-feedback-header" style={{ justifyContent: 'space-between' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Activity size={15} color="#12a9d1" /> Acompanhamento da obra</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Activity size={15} color="#0a6b86" /> Acompanhamento da obra</span>
         <button type="button" className="gerar-centro-btn-secondary" onClick={() => void load()} disabled={loading} title="Atualizar com o Centro de Custos">
           <RefreshCw size={12} className={loading ? 'spinning' : undefined} /> Atualizar
         </button>

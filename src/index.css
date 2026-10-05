@@ -49,7 +49,7 @@ button { color: inherit; }
 button:disabled { cursor: not-allowed !important; opacity: .45; color: var(--muted); }
 input:disabled { cursor: default; color: var(--muted); background: var(--surface-subtle); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-::selection { color: #fff; background: #145fd0; }
+::selection { color: #fff; background: #0b7690; }
 * { scrollbar-color: #aab3c0 #f5f6f8; scrollbar-width: thin; }
 *::-webkit-scrollbar { width: 9px; height: 9px; }
 *::-webkit-scrollbar-track { background: #f5f6f8; }
@@ -289,7 +289,7 @@ kbd {
 .toolbar .icon-button.toolbar-more-toggle { display: none !important; }
 .toolbar-secondary-group { display: contents; }
 .primary { color: #fff !important; background: var(--blue) !important; border-color: var(--blue) !important; font-weight: 650; }
-.primary:hover { background: #064ebf !important; }
+.primary:hover { background: #09627a !important; }
 .primary:disabled { background: #94a8b8 !important; border-color: #94a8b8 !important; cursor: not-allowed; }
 .toolbar .compact { padding-left: 12px; }
 
@@ -298,7 +298,7 @@ table { width: 100%; border-collapse: separate; border-spacing: 0; color: #26324
 th, td { height: 34px; padding: 0 10px; text-align: left; white-space: nowrap; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 th:last-child, td:last-child { border-right: 0; }
 thead th { position: sticky; top: 0; z-index: 2; height: 38px; color: #344055; font-size: 10px; font-weight: 700; background: #f8f9fb; }
-tbody tr:hover td { background: #f6f9fe; }
+tbody tr:hover td { background: #f2f8fa; }
 
 /* Semantic column sizing for proposal items table */
 .proposal-items-table { width: 100%; min-width: 760px; table-layout: auto; }
@@ -503,11 +503,11 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 .import-dialog header > button { display: grid; place-items: center; width: 32px; height: 32px; background: #fff; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
 .import-dialog > nav { display: flex; gap: 6px; padding: 10px 18px; background: #f2f8fa; border-bottom: 1px solid var(--line); }
 .import-dialog > nav button { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px; color: #455269; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
-.import-dialog > nav button.active { color: var(--blue); background: var(--blue-soft); border-color: #9bbff3; font-weight: 700; }
+.import-dialog > nav button.active { color: var(--blue); background: var(--blue-soft); border-color: #9fd8e8; font-weight: 700; }
 .import-source { min-height: 106px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
 .import-source textarea { width: calc(100% - 155px); height: 76px; padding: 9px; resize: none; vertical-align: middle; border: 1px solid var(--line-strong); border-radius: 6px; outline: none; font: 10px/1.4 ui-monospace, monospace; }
 .import-source > button { width: 140px; height: 36px; margin-left: 12px; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
-.import-source > button.ocr-copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 118px; margin-top: 8px; color: var(--blue); background: #fff; border-color: #9bbff3; }
+.import-source > button.ocr-copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 118px; margin-top: 8px; color: var(--blue); background: #fff; border-color: #9fd8e8; }
 .import-picker, .exsat-source { display: flex; align-items: center; gap: 13px; min-height: 76px; padding: 0 14px; background: #fbfcfe; border: 1px dashed #b8c3d2; border-radius: 7px; }
 .import-picker > svg { color: var(--blue); }
 .import-picker span { display: flex; flex: 1; flex-direction: column; gap: 4px; }
@@ -520,7 +520,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 .exsat-session button { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 8px; color: inherit; background: #fff; }
 .import-summary { display: flex; align-items: center; gap: 18px; min-height: 42px; padding: 0 18px; color: #556176; background: #f2f8fa; border-bottom: 1px solid var(--line); font-size: 10px; }
 .import-summary span:nth-child(2) { flex: 1; text-align: right; }
-.import-summary button { display: inline-flex; align-items: center; gap: 5px; height: 27px; padding: 0 9px; color: var(--blue); background: #fff; border: 1px solid #9bbff3; border-radius: 5px; cursor: pointer; }
+.import-summary button { display: inline-flex; align-items: center; gap: 5px; height: 27px; padding: 0 9px; color: var(--blue); background: #fff; border: 1px solid #9fd8e8; border-radius: 5px; cursor: pointer; }
 .exsat-preview-summary { flex-wrap: wrap; height: auto; padding-block: 10px; border-left: 4px solid #d58a00; }
 .exsat-failures { flex-basis: 100%; color: #754300; border-top: 1px solid #efd18b; }
 .exsat-failures summary { padding-top: 8px; cursor: pointer; font-weight: 700; }
@@ -572,7 +572,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 .actions button { justify-content: flex-start; width: 100%; height: 44px; margin-top: 10px; padding: 0 14px; }
 .actions button kbd { margin-left: auto; }
 .actions .generate { justify-content: flex-start; height: 48px; font-size: 13px; }
-.actions .generate kbd { color: #fff; background: #0a51bd; border-color: #4389ed; }
+.actions .generate kbd { color: #fff; background: #09627a; border-color: #5bb3cc; }
 .panel-footnote { margin-top: auto; padding-top: 24px; }
 .demo-data-note { width: fit-content; margin: 0 0 8px; padding: 3px 6px; color: #596578; background: #eef1f5; border-radius: 3px; font-size: 9px; font-weight: 600; letter-spacing: .01em; }
 .last-change { margin: 0; color: #707b8a; font-size: 10px; line-height: 1.5; }
@@ -683,8 +683,8 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .primary-btn:hover {
-  background: #064ebf;
-  border-color: #064ebf;
+  background: #09627a;
+  border-color: #09627a;
 }
 
 .proposals-list-workspace .home-body {
@@ -910,7 +910,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .home-proposals-table tr:hover td {
-  background: #f6f9fe;
+  background: #f2f8fa;
 }
 
 .home-proposals-table td strong {
@@ -1093,7 +1093,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 
 .filter-chip.active {
   background: #e8f8fc;
-  border-color: #93bdf8;
+  border-color: #7cd0e6;
   color: var(--blue);
 }
 
@@ -1108,8 +1108,8 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .filter-chip.active .chip-count {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #d3f0f8;
+  color: #0a5568;
 }
 
 /* Enhanced Proposals Filter Bar Container */
@@ -1470,8 +1470,8 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .table-action-btn.primary:hover {
-  background: #dbeafe;
-  border-color: #93bdf8;
+  background: #d3f0f8;
+  border-color: #7cd0e6;
 }
 
 .table-action-btn.danger {
@@ -1866,7 +1866,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 .filter-inline-clear-btn:hover {
-  background: #dbeafe;
+  background: #d3f0f8;
 }
 
 /* Columns Configuration Popover */
@@ -2083,7 +2083,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 .web-login-card input { height: 42px; padding: 0 12px; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 6px; outline: 0; }
 .web-login-card input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(13, 127, 159, .12); }
 .web-login-card button { width: 100%; height: 42px; margin-top: 24px; color: #fff; background: var(--blue); border: 0; border-radius: 6px; cursor: pointer; font-weight: 700; }
-.web-login-card button:hover { background: #064ebf; }
+.web-login-card button:hover { background: #09627a; }
 .web-login-error { margin: 14px 0 -4px !important; color: #a32b2b !important; font-size: 12px !important; }
 
 @media (max-height: 800px) {
@@ -2192,7 +2192,7 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
   font-weight: 600;
   border-radius: 4px;
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #0a5568;
 }
 
 .user-profile-role-badge.role-admin {
