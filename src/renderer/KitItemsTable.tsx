@@ -37,9 +37,9 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
             height: '30px',
             padding: '0 10px',
             fontSize: '11px',
-            background: '#e8f8fc',
-            color: '#0a6b86',
-            border: '1px solid #c5d8f9',
+            background: 'var(--status-review-bg)',
+            color: 'var(--tx-cool-28-3)',
+            border: '1px solid var(--bd-cool-87)',
             borderRadius: '5px',
             cursor: 'pointer',
           }}
@@ -52,11 +52,11 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
         <div
           className="kit-table-wrapper"
           style={{
-            border: '1px solid #d6e4e9',
+            border: '1px solid var(--line)',
             borderRadius: '8px',
             overflowX: 'auto',
             overflowY: 'hidden',
-            background: '#fff',
+            background: 'var(--surface)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           }}
         >
@@ -70,7 +70,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
               <col style={{ width: '12%' }} />
               <col style={{ width: '7%' }} />
             </colgroup>
-            <thead style={{ background: '#f8f9fb' }}>
+            <thead style={{ background: 'var(--bg-cool-98)' }}>
               <tr>
                 <th style={{ padding: '8px 10px', textAlign: 'left' }}>Código</th>
                 <th style={{ padding: '8px 10px', textAlign: 'left' }}>Descrição</th>
@@ -84,7 +84,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                     textAlign: 'center',
                     position: 'sticky',
                     right: 0,
-                    background: '#f8f9fb',
+                    background: 'var(--bg-cool-98)',
                     zIndex: 2,
                     boxShadow: '-3px 0 6px -2px rgba(0,0,0,0.06)',
                   }}
@@ -96,7 +96,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.productId} className="kit-item-row" style={{ borderTop: '1px solid #d6e4e9' }}>
+                <tr key={item.productId} className="kit-item-row" style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: '6px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     <b>{item.code}</b>
                   </td>
@@ -117,7 +117,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                         height: '26px',
                         padding: '0 6px',
                         textAlign: 'right',
-                        border: '1px solid #bad0d8',
+                        border: '1px solid var(--line-strong)',
                         borderRadius: '4px',
                       }}
                     />
@@ -131,7 +131,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                       textAlign: 'center',
                       position: 'sticky',
                       right: 0,
-                      background: '#fff',
+                      background: 'var(--surface)',
                       zIndex: 1,
                       boxShadow: '-3px 0 6px -2px rgba(0,0,0,0.06)',
                     }}
@@ -148,9 +148,9 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
                         justifyContent: 'center',
                         width: '28px',
                         height: '28px',
-                        border: '1px solid #fca5a5',
-                        background: '#fef2f2',
-                        color: '#dc2626',
+                        border: '1px solid var(--bd-red-82)',
+                        background: 'var(--bg-red-97)',
+                        color: 'var(--tx-red-51)',
                         borderRadius: '5px',
                         cursor: 'pointer',
                         transition: 'all 120ms ease',
@@ -165,7 +165,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
           </table>
         </div>
       ) : (
-        <p style={{ color: '#5d7480', fontStyle: 'italic', fontSize: '11px', padding: '12px 0' }}>
+        <p style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '11px', padding: '12px 0' }}>
           Nenhum item adicionado ao kit. Clique em &quot;Adicionar item do catálogo&quot; para montar a composição.
         </p>
       )}

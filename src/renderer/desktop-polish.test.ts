@@ -11,7 +11,7 @@ const allCss = ['src/index.css', 'src/desktop-polish.css', 'src/impeccable-audit
 
 test('modal-backdrop e modal-dialog tem regra (Ajuda, Prorrogar validade e Importar itens)', () => {
   assert.match(allCss, /\.modal-backdrop\s*\{[^}]*position:\s*fixed[^}]*inset:\s*0/);
-  assert.match(allCss, /\.modal-dialog\s*\{[^}]*background:\s*#fff/);
+  assert.match(allCss, /\.modal-dialog\s*\{[^}]*background:\s*var\(--surface\)/);
 });
 
 test('classes de layout usadas em componentes tem regra de CSS', () => {
@@ -40,7 +40,7 @@ test('regras sticky/fixed do polish tem fundo opaco', () => {
 
 test('coluna de acoes da lista fica sticky com fundo opaco e botoes de icone tem aria-label', () => {
   const css = read('src/desktop-polish.css');
-  assert.match(css, /td\.proposal-actions-cell\s*\{\s*background:\s*#fff/);
+  assert.match(css, /td\.proposal-actions-cell\s*\{\s*background:\s*var\(--surface\)/);
   const table = read('src/renderer/ProposalsListTable.tsx');
   for (const label of ['Clonar proposta', 'Exportar proposta', 'Compartilhar proposta', 'Excluir proposta']) assert.ok(table.includes(`aria-label="${label}"`), label);
 });

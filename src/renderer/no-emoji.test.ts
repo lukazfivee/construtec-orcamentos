@@ -5,7 +5,7 @@ import path from 'node:path';
 
 // Interface sobria: nenhum emoji ou pictograma em texto de tela, documento ou mensagem gerada (WhatsApp, e-mail).
 const root = process.cwd();
-const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{20E3}\u{2300}-\u{23FF}]/gu;
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2300}-\u{23FF}]|\u{FE0F}|\u{20E3}/gu;
 const DIRS = ['src/renderer', 'src/documents', 'src/server', 'src/shared', 'public/m', 'public/c'];
 
 function walk(dir: string, out: string[]): string[] {

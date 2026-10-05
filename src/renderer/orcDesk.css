@@ -1,10 +1,5 @@
 /* Orcamentos no computador, Rodada 24: catalogo, importacao, EXSAT, kits, clientes e padroes da empresa.
    Segue o prototipo (Rodada24.dc.html): cartoes com raio 14, botoes de 40 px, tabelas de 56 px por linha. Escopo .od-. */
-.od-page, .od-scope {
-  --od-accent: #12a9d1; --od-accent-300: #0a7896; --od-accent-700: #0b4a5c; --od-accent-900: #e8f8fc;
-  --od-ok-bg: #e3f6ec; --od-ok-fg: #1d7a4f; --od-warn-bg: #fff5d9; --od-warn-fg: #8a5a00;
-  --od-bad-bg: #fdecea; --od-bad-fg: #b8452c; --od-neu-bg: #eef1f3; --od-neu-fg: #3f5a66;
-}
 .od-page {
   grid-column: 2; grid-row: 2; min-width: 0; min-height: 0; overflow-y: auto; position: relative;
   padding: 26px 32px 40px; color: var(--ink); background: var(--surface-subtle); font-size: 13px;
@@ -49,7 +44,7 @@
 .od-seg button { height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
 .od-seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(3, 31, 41, .12), inset 0 0 0 1px var(--line); }
 .od-seg button:disabled { opacity: .5; cursor: not-allowed; }
-.od-bar { display: block; height: 8px; border-radius: 4px; background: #d6e4e9; overflow: hidden; }
+.od-bar { display: block; height: 8px; border-radius: 4px; background: var(--bg-cool-88); overflow: hidden; }
 .od-bar > span { display: block; height: 100%; border-radius: 4px; background: var(--od-accent); transition: width .25s ease; }
 .od-note { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; color: var(--muted); text-wrap: pretty; align-items: flex-start; }
 .od-note > svg { flex: none; margin-top: 1px; }
@@ -86,13 +81,13 @@
 .od-empty-ic.bad { background: var(--od-bad-bg); color: var(--od-bad-fg); }
 .od-empty-ic.ok { background: var(--od-ok-bg); color: var(--od-ok-fg); }
 .od-empty-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
-.od-skel { border-radius: 10px; background: linear-gradient(90deg, #e3edf1 25%, #f2f8fa 50%, #e3edf1 75%); background-size: 200% 100%; animation: od-shimmer 1.4s ease infinite; }
+.od-skel { border-radius: 10px; background: linear-gradient(90deg, var(--bg-cool-92-2) 25%, var(--surface-subtle) 50%, var(--bg-cool-92-2) 75%); background-size: 200% 100%; animation: od-shimmer 1.4s ease infinite; }
 @keyframes od-shimmer { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .od-skel { animation: none; } }
 
 .od-link-card { width: 100%; padding: 16px 18px; border: 0; display: flex; align-items: center; gap: 14px; color: var(--ink); text-align: left; cursor: pointer; font-family: inherit; }
-.od-link-card:hover { background: #f7fbfc; }
-.od-ex-badge { width: 44px; height: 44px; border-radius: 12px; background: #031f29; color: #5fd0ee; display: grid; place-items: center; font: 700 13px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; flex: none; }
+.od-link-card:hover { background: var(--bg-cool-98-2); }
+.od-ex-badge { width: 44px; height: 44px; border-radius: 12px; background: #031f29; color: var(--tx-cool-65); display: grid; place-items: center; font: 700 13px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; flex: none; }
 .od-grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .od-grow > b { font-size: 15px; font-weight: 600; }
 .od-grow > span { font-size: 13px; color: var(--muted); }
@@ -107,8 +102,8 @@
 .od-step.cur .od-step-n { background: #0a7896; color: #fff; box-shadow: none; }
 .od-step.done { color: var(--od-ok-fg); }
 .od-step.done .od-step-n { background: var(--od-ok-bg); color: var(--od-ok-fg); box-shadow: none; }
-.od-step-line { flex: 1; height: 2px; background: var(--line); margin: 0 12px; border-radius: 1px; }
-.od-step.done .od-step-line { background: #94d3a8; }
+.od-step-line { flex: 1; height: 2px; background: var(--bg-line); margin: 0 12px; border-radius: 1px; }
+.od-step.done .od-step-line { background: var(--bg-green-70); }
 .od-two { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; align-items: start; }
 .od-drop { margin: 0 20px 20px; border: 2px dashed var(--line-strong); border-radius: 14px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: var(--muted); background: var(--surface-subtle); cursor: pointer; font-family: inherit; width: calc(100% - 40px); }
 .od-drop:hover, .od-drop.over { border-color: var(--od-accent); background: var(--od-accent-900); }
@@ -181,8 +176,8 @@
 .od-switch > span:first-child { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .od-switch b { font-size: 13.5px; font-weight: 600; }
 .od-switch small { font-size: 12px; color: var(--muted); }
-.od-knob { width: 42px; height: 24px; flex: none; border-radius: 12px; background: #bad0d8; position: relative; transition: background-color .15s ease; }
-.od-knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fefefe; transition: left .15s cubic-bezier(.2, .8, .2, 1); }
+.od-knob { width: 42px; height: 24px; flex: none; border-radius: 12px; background: var(--bg-cool-79); position: relative; transition: background-color .15s ease; }
+.od-knob::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); transition: left .15s cubic-bezier(.2, .8, .2, 1); }
 .od-switch[aria-checked="true"] .od-knob { background: #0a7896; }
 .od-switch[aria-checked="true"] .od-knob::after { left: 21px; }
 .od-saverow { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }

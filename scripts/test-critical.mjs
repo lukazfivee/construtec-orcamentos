@@ -33,6 +33,7 @@ const entryPoints = [
   'src/renderer/proposal-desktop-r23.test.ts',
   'src/renderer/desktop-polish.test.ts',
   'src/renderer/no-emoji.test.ts',
+  'src/renderer/theme.test.ts',
   'src/server/services/integration/center-tracking.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',

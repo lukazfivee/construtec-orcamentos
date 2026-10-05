@@ -93,10 +93,10 @@ export function ProposalKitsPanel({
   };
 
   return (
-    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) minmax(0, 1fr)', height: '100%', minHeight: 0, background: '#fff', overflow: 'hidden' }}>
+    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) minmax(0, 1fr)', height: '100%', minHeight: 0, background: 'var(--surface)', overflow: 'hidden' }}>
       {/* Kits List */}
-      <div style={{ borderRight: '1px solid #d6e4e9', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
-        <div style={{ padding: '12px', borderBottom: '1px solid #d6e4e9', flexShrink: 0 }}>
+      <div style={{ borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
+        <div style={{ padding: '12px', borderBottom: '1px solid var(--line)', flexShrink: 0 }}>
           <label className="management-search" style={{ margin: 0, height: '32px' }}>
             <Search size={14} />
             <input
@@ -134,12 +134,12 @@ export function ProposalKitsPanel({
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, padding: '20px', overflowY: 'auto' }}>
         {selectedKitDetail ? (
           <div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid var(--bd-cool-95-3)', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#031f29', overflowWrap: 'anywhere' }}>
+                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--tx-cool-9-2)', overflowWrap: 'anywhere' }}>
                   {selectedKitDetail.name}
                 </h2>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#5d7480', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--muted)', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                   Categoria: <b>{selectedKitDetail.category}</b>
                   {selectedKitDetail.description ? ` • ${selectedKitDetail.description}` : ''}
                 </p>
@@ -147,7 +147,7 @@ export function ProposalKitsPanel({
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px 16px', minWidth: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'right', minWidth: '120px' }}>
-                  <span style={{ display: 'block', fontSize: '10px', color: '#5d7480' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
+                  <span style={{ display: 'block', fontSize: '10px', color: 'var(--muted)' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
                   <strong style={{ fontSize: '16px', color: 'var(--blue-ink)' }}>{costText(money.format(estimatedSaleTotal))}</strong>
                 </div>
                 <button
@@ -176,9 +176,9 @@ export function ProposalKitsPanel({
               Itens incluídos no Kit ({selectedKitDetail.items.length})
             </h3>
 
-            <div style={{ border: '1px solid #d6e4e9', borderRadius: '6px', overflowX: 'auto' }}>
+            <div style={{ border: '1px solid var(--line)', borderRadius: '6px', overflowX: 'auto' }}>
               <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse', fontSize: '11px' }}>
-                <thead style={{ background: '#f8f9fb' }}>
+                <thead style={{ background: 'var(--bg-cool-98)' }}>
                   <tr>
                     <th style={{ padding: '8px 10px', textAlign: 'left', width: '90px' }}>Código</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left' }}>Descrição</th>
@@ -190,7 +190,7 @@ export function ProposalKitsPanel({
                 </thead>
                 <tbody>
                   {selectedKitDetail.items.map((item) => (
-                    <tr key={item.id} style={{ borderTop: '1px solid #d6e4e9' }}>
+                    <tr key={item.id} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{ padding: '6px 10px' }}><b>{item.code}</b></td>
                       <td style={{ padding: '6px 10px' }}>{item.description}</td>
                       <td style={{ padding: '6px 10px', textAlign: 'center' }}>{item.unit}</td>
@@ -205,7 +205,7 @@ export function ProposalKitsPanel({
               </table>
             </div>
 
-            <p style={{ marginTop: '12px', fontSize: '10px', color: '#5d7480' }}>
+            <p style={{ marginTop: '12px', fontSize: '10px', color: 'var(--muted)' }}>
               Ao inserir o kit, cada produto será adicionado como uma linha independente na proposta com seu snapshot de custo atual.
             </p>
           </div>

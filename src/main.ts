@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, nativeTheme, screen, shell } from 'electron';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
@@ -54,7 +54,7 @@ const createWindow = async () => {
     minWidth: Math.min(860, availableWidth),
     minHeight: Math.min(560, availableHeight),
     resizable: true,
-    backgroundColor: '#fefefe',
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#07202a' : '#fefefe',
     show: true,
     autoHideMenuBar: true,
     webPreferences: {

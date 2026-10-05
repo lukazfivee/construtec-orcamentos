@@ -3,7 +3,7 @@
 /* Delight: preenchimento preciso e retorno discreto, sem alterar o fluxo. */
 @media screen {
   ::selection { background: #0d7f9f; color: #fff; }
-  :is(input, textarea):not(:disabled):not([readonly]) { caret-color: var(--blue, #0d7f9f); }
+  :is(input, textarea):not(:disabled):not([readonly]) { caret-color: var(--blue, var(--tx-cool-34-2)); }
   :is(input, textarea, select):not(:disabled):focus-visible {
     outline: 2px solid var(--blue, #0d7f9f);
     outline-offset: 2px;
@@ -52,20 +52,20 @@
     font-weight:700!important;
   }
   .sidebar nav button.active svg, #app .sidebar nav .nav-item.ativo svg {
-    color:#12a9d1;
+    color:var(--tx-cool-45);
   }
   .section-tabs button.selected, .proposal-tabs button.selected,
   .filter-chip.active { font-weight:700; }
-  .section-tabs button.selected { color:var(--blue); }
+  .section-tabs button.selected { color:var(--tx-cool-30); }
   .section-tabs button.selected::after { height:3px; }
-  .filter-chip.active { border-color:var(--blue); }
+  .filter-chip.active { border-color:var(--bd-cool-30); }
   .kpi strong, .kpi-content strong, .amount strong,
   .budget-kpi-card strong, .portfolio-kpi-card strong {
     font-weight:750; font-variant-numeric:tabular-nums;
     letter-spacing:-.025em; overflow-wrap:anywhere;
   }
   .kpi-content strong { font-size:24px; }
-  .kpi.balance { border-color:var(--blue); background:var(--surface-muted); }
+  .kpi.balance { border-color:var(--bd-cool-30); background:transparent; }
   .amount.blue { padding-bottom:12px; border-bottom:1px solid var(--line-strong); }
   .amount.blue strong { font-weight:800; }
   .table-region th, .proposals-table th, .home-proposals-table th,
@@ -74,12 +74,12 @@
     border-bottom:1px solid var(--line-strong);
   }
   .table-region tfoot, .table-scroll tfoot, .budget-table tfoot {
-    font-weight:700; color:var(--ink); background:var(--surface-subtle, var(--surface-muted));
+    font-weight:700; color:var(--ink); background:var(--surface-subtle);
   }
   .management-search input::placeholder, .search-box input::placeholder {
     color:var(--muted); opacity:1;
   }
   .auth-card h1, .login-card h2 { font-weight:750; letter-spacing:-.025em; }
   .topbar .icon-button:focus-visible, .topbar #topbar-theme-toggle:focus-visible,
-  .sidebar button:focus-visible { outline:2px solid #9bc1ff!important; outline-offset:-3px; }
+  .sidebar button:focus-visible { outline:2px solid var(--bd-cool-80)!important; outline-offset:-3px; }
 }

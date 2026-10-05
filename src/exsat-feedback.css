@@ -2,9 +2,9 @@
   position: relative;
   min-width: 210px;
   padding: 9px 10px 9px 30px;
-  border: 1px solid #efc98f;
+  border: 1px solid var(--bd-amber-75);
   border-radius: 8px;
-  background: #fff9ef;
+  background: var(--bg-amber-97);
 }
 
 .exsat-session::before {
@@ -20,8 +20,8 @@
 }
 
 .exsat-session.connected {
-  border-color: #a9d7bb;
-  background: #f3fbf6;
+  border-color: var(--bd-green-75);
+  background: var(--bg-cool-97-5);
 }
 
 .exsat-session.connected::before {
@@ -42,10 +42,10 @@
 
 .import-source:has(.exsat-source) + .import-summary {
   position: relative;
-  border: 1px solid #b8cee3;
+  border: 1px solid var(--bd-cool-81);
   border-left: 4px solid #2f78b7;
   border-radius: 7px;
-  background: #f5f9fd;
+  background: var(--bg-cool-98-2);
 }
 
 .import-dialog:has(.exsat-source) footer span::before {

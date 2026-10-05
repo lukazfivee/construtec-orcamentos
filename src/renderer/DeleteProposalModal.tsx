@@ -21,7 +21,7 @@ export function DeleteProposalModal({ proposal, mutationPending, onClose, onDele
     >
       <div className="modal-card delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-proposal-title">
         <div className="modal-header danger-header">
-          <AlertTriangle size={24} color="#dc2626" />
+          <AlertTriangle size={24} color="var(--tx-red-51)" />
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 id="delete-proposal-title">{locked ? 'Descartar Orçamento aprovado' : 'Excluir Orçamento'}</h3>
             <p>{locked ? 'Aprovação é definitiva: só o descarte com registro é possível' : 'Confirmação de exclusão permanente'}</p>

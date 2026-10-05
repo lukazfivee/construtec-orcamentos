@@ -51,7 +51,7 @@ export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
   return (
     <section className="gerar-centro-feedback" aria-label="Acompanhamento da obra" style={{ marginTop: '8px' }}>
       <div className="gerar-centro-feedback-header" style={{ justifyContent: 'space-between' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Activity size={15} color="#0a6b86" /> Acompanhamento da obra</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Activity size={15} color="var(--tx-cool-28-3)" /> Acompanhamento da obra</span>
         <button type="button" className="gerar-centro-btn-secondary" onClick={() => void load()} disabled={loading} title="Atualizar com o Centro de Custos">
           <RefreshCw size={12} className={loading ? 'spinning' : undefined} /> Atualizar
         </button>
@@ -67,9 +67,9 @@ export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
           <div><dt>Saldo</dt><dd style={{ margin: 0 }}>{cents(summary.balanceCents)}</dd></div>
         </dl>
       )}
-      {summary?.overBudget && <p role="alert" style={{ margin: '6px 0 0', fontSize: '0.78rem', color: '#b42318', display: 'flex', gap: '6px', alignItems: 'center' }}><AlertTriangle size={13} /> O realizado passou do custo orçado.</p>}
-      {Boolean(summary?.unlinkedExpenseCents) && <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#8a5a00' }}>{cents(summary?.unlinkedExpenseCents)} em gastos ainda não vinculados a insumos do orçamento.</p>}
-      {tracking.fetchedAt && <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#5d7480' }}>{tracking.stale ? `Sem conexão com o Centro de Custos. Dados de ${formatDate(tracking.fetchedAt)}.` : `Atualizado em ${formatDate(tracking.fetchedAt)}.`}</p>}
+      {summary?.overBudget && <p role="alert" style={{ margin: '6px 0 0', fontSize: '0.78rem', color: 'var(--danger)', display: 'flex', gap: '6px', alignItems: 'center' }}><AlertTriangle size={13} /> O realizado passou do custo orçado.</p>}
+      {Boolean(summary?.unlinkedExpenseCents) && <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--tx-amber-27)' }}>{cents(summary?.unlinkedExpenseCents)} em gastos ainda não vinculados a insumos do orçamento.</p>}
+      {tracking.fetchedAt && <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: 'var(--muted)' }}>{tracking.stale ? `Sem conexão com o Centro de Custos. Dados de ${formatDate(tracking.fetchedAt)}.` : `Atualizado em ${formatDate(tracking.fetchedAt)}.`}</p>}
     </section>
   );
 }

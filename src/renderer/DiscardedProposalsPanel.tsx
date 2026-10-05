@@ -29,16 +29,16 @@ export function DiscardedProposalsPanel({ onNotice, onError }: Props) {
   };
 
   return (
-    <section className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
+    <section className="settings-card" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px' }}>
       <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Propostas descartadas</h2>
-      <p style={{ margin: '2px 0 12px', fontSize: '10px', color: '#5d7480' }}>Só administradores descartam e restauram. Restaurar devolve também a obra ao Centro de Custos, se ela saiu junto. O registro de quem descartou e quando é permanente.</p>
+      <p style={{ margin: '2px 0 12px', fontSize: '10px', color: 'var(--muted)' }}>Só administradores descartam e restauram. Restaurar devolve também a obra ao Centro de Custos, se ela saiu junto. O registro de quem descartou e quando é permanente.</p>
       {items === null ? <p style={{ fontSize: '11px' }}>Carregando…</p> : items.length === 0 ? <p style={{ fontSize: '11px' }}>Nenhuma proposta descartada.</p> : (
         <div style={{ display: 'grid', gap: '8px' }}>
           {items.map((item) => (
-            <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 0', borderTop: '1px solid #e3edf0', fontSize: '11px' }}>
+            <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 0', borderTop: '1px solid var(--bd-cool-92)', fontSize: '11px' }}>
               <span>
                 <b>{item.proposal_number}</b> · {item.client_name ?? 'Sem cliente'}{item.work_name ? ` · ${item.work_name}` : ''}{item.had_approval ? ' · aprovada' : ''}
-                <br /><small style={{ color: '#5d7480' }}>
+                <br /><small style={{ color: 'var(--muted)' }}>
                   {item.restored_at ? `Restaurada em ${dateFormat.format(new Date(item.restored_at))} por ${item.restored_by_name ?? ''}` : `Descartada em ${dateFormat.format(new Date(item.discarded_at))} por ${item.discarded_by_name ?? ''}`}
                   {item.reason ? ` · ${item.reason}` : ''}
                 </small>

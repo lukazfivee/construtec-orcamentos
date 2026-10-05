@@ -131,7 +131,7 @@ export function CentroCustosWorkspace({
       <div className="cc-frame-container">
         {!isCloudRuntime() && online === false ? (
           <div className="cc-offline-card">
-            <AlertTriangle size={36} color="#eab308" />
+            <AlertTriangle size={36} color="var(--tx-amber-47)" />
             <h3>Centro de Custos não iniciado</h3>
             <p>
               O serviço do Centro de Custos não foi detectado em <code>{baseAppUrl}</code>.
@@ -153,7 +153,7 @@ export function CentroCustosWorkspace({
           <>
             {loading && (
               <div className="cc-frame-loading">
-                <RotateCw size={24} className="spinning" color="#12a9d1" />
+                <RotateCw size={24} className="spinning" color="var(--tx-cool-45)" />
                 <span>Carregando Centro de Custos integrado…</span>
               </div>
             )}

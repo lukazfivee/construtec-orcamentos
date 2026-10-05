@@ -6,7 +6,9 @@ import {
   LayoutGrid,
   Mail,
   Menu,
+  Moon,
   Search,
+  Sun,
 } from 'lucide-react';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
 import { isCloudRuntime } from './api';
@@ -15,6 +17,7 @@ import { MobileSuiteSheet } from './MobileSuiteSheet';
 import { NotificationsPopover } from './NotificationsPopover';
 import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
 import { UserProfilePopover } from './UserProfilePopover';
+import { useTheme } from './theme';
 import { useIsMobile } from './useIsMobile';
 
 const brandLogo = new URL('../assets/logo-branca.png', import.meta.url).href;
@@ -52,6 +55,7 @@ export function AppTopbar({
 }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const mobile = useIsMobile();
+  const theme = useTheme();
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -152,6 +156,16 @@ export function AppTopbar({
                 />
               )}
             </div>
+
+            <button
+              className="icon-button theme-toggle"
+              aria-label={theme.resolved === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro'}
+              type="button"
+              onClick={theme.toggle}
+              title={theme.resolved === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro'}
+            >
+              {theme.resolved === 'escuro' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
 
             <button
               className={`icon-button help-button ${helpOpen ? 'active' : ''}`}

@@ -4,12 +4,14 @@ import type { AuthUser } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
 import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
+import { useTheme } from './theme';
 import { proposalFromHash } from './useProposalDeepLink';
 
 const SESSION_KEY = 'construtec.auth.session';
 const REMEMBERED_EMAIL_KEY = 'construtec.auth.remembered_email';
 const REMEMBER_FLAG_KEY = 'construtec.auth.remember_me';
-const brandLogo = `data:image/png;base64,${CONSTRUTEC_LOGO_BASE64}`;
+const brandLogoLight = `data:image/png;base64,${CONSTRUTEC_LOGO_BASE64}`;
+const brandLogoDark = new URL('../assets/logo-branca.png', import.meta.url).href;
 const isCloud = isCloudRuntime();
 // Login e conta sao do Centro de Custos (identidade compartilhada): nao ha
 // mais cadastro de primeiro administrador aqui.
@@ -18,6 +20,8 @@ type AuthMode = 'checking' | 'login' | 'ready';
 const inApp = typeof navigator !== 'undefined' && /SuiteConstrutec\//.test(navigator.userAgent);
 
 export function AuthGate() {
+  const theme = useTheme();
+  const brandLogo = theme.resolved === 'escuro' ? brandLogoDark : brandLogoLight;
   const [mode, setMode] = useState<AuthMode>('checking');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [email, setEmail] = useState('');

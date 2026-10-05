@@ -193,7 +193,7 @@ export function ProposalSyncDirectAction({
       {isSuccess && (
         <div className="gerar-centro-feedback success">
           <div className="gerar-centro-feedback-header">
-            <CheckCircle2 size={15} color="#059669" />
+            <CheckCircle2 size={15} color="var(--tx-green-30-2)" />
             <span>Centro de Custo Ativo {syncState.costCenterId ? `• Obra #${syncState.costCenterId}` : ''}</span>
           </div>
           <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
@@ -210,7 +210,7 @@ export function ProposalSyncDirectAction({
       {syncState.status === 'offline' && (
         <div className="gerar-centro-feedback offline">
           <div className="gerar-centro-feedback-header">
-            <AlertTriangle size={15} color="#dc2626" />
+            <AlertTriangle size={15} color="var(--tx-red-51)" />
             <span>Centro de Custos Desconectado</span>
           </div>
           <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
@@ -228,7 +228,7 @@ export function ProposalSyncDirectAction({
       {syncState.status === 'error' && (
         <div className="gerar-centro-feedback error">
           <div className="gerar-centro-feedback-header">
-            <AlertTriangle size={15} color="#dc2626" />
+            <AlertTriangle size={15} color="var(--tx-red-51)" />
             <span>Falha na Integração</span>
           </div>
           <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
