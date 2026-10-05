@@ -22,6 +22,10 @@ export function computeSha256(content: string): string {
 export interface SealEvidence {
   evidenceKind?: string;
   evidenceReference?: string;
+  // Aceite do cliente pelo link: quando e quem (nome e cargo digitados pelo cliente); codigo vai em evidenceReference.
+  clientAcceptedAt?: string | Date | null;
+  clientAcceptedName?: string | null;
+  clientAcceptedRole?: string | null;
 }
 
 export const buildApprovedProposalEnvelope = async (
@@ -66,6 +70,10 @@ export const buildApprovedProposalEnvelope = async (
   if (!p) throw new Error('PROPOSAL_NOT_FOUND');
 
   const identity = await getIntegrationIdentity(database);
+  // Quem registrou a aprovacao e o usuario que a confirmou (nao o criador da proposta).
+  const confirmer = userId
+    ? (await database.query<{ name: string }>('SELECT name FROM users WHERE id = $1', [userId])).rows[0]?.name
+    : undefined;
   const bdiMultiplier = Number(p.bdi_multiplier);
   const taxPercentage = Number(p.tax_percentage || 0);
 
@@ -188,6 +196,8 @@ export const buildApprovedProposalEnvelope = async (
   }
 
   const nowIso = new Date().toISOString();
+  const acceptedAtMs = evidence?.clientAcceptedAt ? new Date(evidence.clientAcceptedAt).getTime() : NaN;
+  const acceptedAtIso = Number.isNaN(acceptedAtMs) ? null : new Date(acceptedAtMs).toISOString();
   const payload = {
     source: {
       system: 'construtec-orcamentos',
@@ -202,11 +212,22 @@ export const buildApprovedProposalEnvelope = async (
       revision: p.revision,
       status: 'approved' as const,
       approval: {
-        approvedAt: nowIso,
+        // Aprovacao pelo link: approvedAt e o momento do aceite do cliente; recordedAt, o da confirmacao.
+        approvedAt: acceptedAtIso ?? nowIso,
         recordedAt: nowIso,
-        recordedBy: p.creator_name,
+        recordedBy: confirmer || p.creator_name,
         evidenceKind: evidence?.evidenceKind || 'client_acceptance',
         evidenceReference: evidence?.evidenceReference || `ACEITE-${p.proposal_number}`,
+        // Campos opcionais novos: o Centro ignora o que nao conhece (le so approvedAt) e o hash cobre todo o payload.
+        ...(acceptedAtIso ? {
+          clientAcceptance: {
+            acceptedAt: acceptedAtIso,
+            name: evidence?.clientAcceptedName || null,
+            role: evidence?.clientAcceptedRole || null,
+            code: evidence?.evidenceReference || null,
+          },
+        } : {}),
+        ...(confirmer ? { confirmedBy: confirmer } : {}),
       },
       validUntil: p.valid_until ? p.valid_until.slice(0, 10) : null,
       responsibleName: p.creator_name,

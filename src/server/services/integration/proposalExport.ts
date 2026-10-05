@@ -6,7 +6,6 @@ export const exportProposalIntegration = async (
   database: Pick<LocalDatabase, 'query' | 'exec'>,
   proposalId: string,
   userId?: string,
-  markExported = true,
 ) => {
   const proposalResult = await database.query<{ id: string; status: string; proposal_number: string }>(
     'SELECT id, status, proposal_number FROM proposals WHERE id = $1',
@@ -38,17 +37,20 @@ export const exportProposalIntegration = async (
     }>('SELECT * FROM proposal_approval_snapshots WHERE id = $1', [sealed.id])).rows[0];
   }
 
-  const outboxResult = await database.query<{
-    id: string;
-    status: string;
-    attempts: number;
-    created_at: string;
-  }>('SELECT id, status, attempts, created_at FROM integration_outbox WHERE snapshot_id = $1 AND destination = $2', [
-    snapshot.id,
-    'centro-de-custos',
-  ]);
-  const outbox = outboxResult.rows[0];
-  const eventId = outbox?.id || randomUUID();
+  // Snapshot selado sem linha de envio (dado antigo ou falha parcial): cria a linha em vez de inventar um
+  // eventId que nao casa com nenhuma linha (o resultado do envio nunca seria gravado).
+  await database.query(
+    `INSERT INTO integration_outbox (id, snapshot_id, destination, status, attempts, created_at)
+     VALUES ($1, $2, 'centro-de-custos', 'pending', 0, $3)
+     ON CONFLICT (snapshot_id, destination) DO NOTHING`,
+    [randomUUID(), snapshot.id, snapshot.sealed_at],
+  );
+  const outbox = (await database.query<{ id: string }>(
+    'SELECT id FROM integration_outbox WHERE snapshot_id = $1 AND destination = $2',
+    [snapshot.id, 'centro-de-custos'],
+  )).rows[0];
+  if (!outbox) throw new Error('OUTBOX_MISSING');
+  const eventId = outbox.id;
 
   const payload = typeof snapshot.payload === 'string' ? JSON.parse(snapshot.payload) : snapshot.payload;
 
@@ -60,12 +62,8 @@ export const exportProposalIntegration = async (
     payload,
   };
 
-  if (outbox && markExported) {
-    await database.query(
-      'UPDATE integration_outbox SET attempts = attempts + 1, delivered_at = now(), status = $2 WHERE id = $1',
-      [outbox.id, 'delivered']
-    );
-  }
+  // Exportar so monta o envelope: a linha so vira 'delivered' quando o Centro confirma o recebimento
+  // (syncProposalDirectly). Marcar aqui escondia propostas que o Centro nunca recebeu.
 
   return {
     envelope,

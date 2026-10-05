@@ -23,6 +23,22 @@ export const maskCosts = (value: unknown): unknown => {
   return value;
 };
 
+// Campos de custo que o corpo tenta gravar. Na importacao em lote o app sempre manda unitCost: 0 quando a planilha
+// nao tem custo, entao zero nao conta (nao grava custo nenhum); qualquer valor diferente de zero conta.
+const costFieldsWritten = (body: unknown, ignoreZero: boolean): string[] => {
+  const found = new Set<string>();
+  const visit = (value: unknown) => {
+    if (Array.isArray(value)) return value.forEach(visit);
+    if (!value || typeof value !== 'object') return;
+    for (const [key, inner] of Object.entries(value)) {
+      if (COST_KEYS.has(key) && inner !== undefined && !(ignoreZero && (inner === 0 || inner === null))) found.add(key);
+      else visit(inner);
+    }
+  };
+  visit(body);
+  return [...found];
+};
+
 const deny = (response: Response, error: string) => response.status(403).json({ error });
 
 const maskJson = (response: Response) => {
@@ -63,6 +79,16 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
   }
   if (!canSee) {
     const costWrite = write && ['bdi', 'tax', 'labor', 'labor-settings'].includes(action);
+    // Itens: gravar unitCost (PATCH items/:id, import-batch) revela e altera custo sem p10.
+    if (write && action === 'items') {
+      const batch = request.method === 'POST' && /\/items\/import-batch\/?$/.test(path);
+      const written = costFieldsWritten(request.body, batch);
+      if (written.length) {
+        return deny(response, batch
+          ? 'Seu papel não permite informar custo na importação. Remova a coluna de custo (unitCost) e importe só quantidade e preço de venda.'
+          : 'Seu papel não permite alterar custo dos itens.');
+      }
+    }
     if (costWrite || action === 'center-tracking') return deny(response, 'Seu papel não permite ver custo, BDI e margem.');
     maskJson(response);
   }

@@ -75,6 +75,16 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run(user('comercial'), 'PATCH', '/api/proposals/abc/status', { status: 'approved' }).status, 200);
   assert.equal(run(user('gestor'), 'POST', '/api/proposals/abc/integration-export').status, 200);
 
+  // Itens: sem p10 nao se grava custo (PATCH items/:id e import-batch); preco de venda e quantidade seguem livres.
+  assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/items/i1', { unitCost: 5 }).status, 403);
+  assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/items/i1', { unitCost: 0 }).status, 403);
+  assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/items/i1', { unitSale: 5, quantity: 2 }).status, 200);
+  assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitCost: 7.5, unitSale: 9 }] }).status, 403);
+  assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitCost: 0, unitSale: 9 }] }).status, 200);
+  assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitSale: 9 }] }).status, 200);
+  assert.equal(run(user('engenharia'), 'PATCH', '/api/proposals/abc/items/i1', { unitCost: 5 }).status, 200);
+  assert.equal(run(user('engenharia'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitCost: 7.5 }] }).status, 200);
+
   // Catalogo e kits: sem p10 o custo do item sai zerado e nao se grava; aplicar um kit na proposta segue liberado.
   const catalogo = run(user('financeiro'), 'GET', '/api/catalog');
   assert.equal(catalogo.status, 200);

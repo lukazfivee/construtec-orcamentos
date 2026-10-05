@@ -5,7 +5,7 @@ import {
 import type { ProposalDetail } from '../shared/contracts';
 // eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
 import pdfPageCss from '../proposal-pdf-page.css?raw';
-import { proposalApi, settingsApi } from './api';
+import { isCloudRuntime, proposalApi, settingsApi } from './api';
 import { openExternalUrl, printDocument } from './proposalPdfActions';
 import { ProposalClientLinkDrawer } from './ProposalClientLinkDrawer';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
@@ -223,7 +223,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
           <button type="button" className="flow-btn" disabled={busy} onClick={() => void download()}>
             {busy ? <Loader2 size={16} className="spinning" /> : <Download size={16} />} {busy ? 'Baixando…' : 'Baixar PDF'}
           </button>
-          {proposal.isLatest && ['review', 'sent'].includes(proposal.status) && (
+          {isCloudRuntime() && proposal.isLatest && ['review', 'sent'].includes(proposal.status) && (
             <button type="button" className="flow-btn" onClick={() => { setShareOpen(false); setLinkOpen(true); }}>
               <Link2 size={16} /> Link para o cliente
             </button>

@@ -78,7 +78,7 @@ async function main() {
     await fixture.addMaterial(id, '100', '10', '12.5');
     await fixture.addLabor(id, 44);
     await updateProposalStatus(fixture.database, id, 'approved', fixture.userId);
-    const { envelope } = await exportProposalIntegration(fixture.database, id, fixture.userId, false);
+    const { envelope } = await exportProposalIntegration(fixture.database, id, fixture.userId);
     assert.equal(Number(envelope.payload.totals.baseCost), 2760);
     assert.equal(Number(envelope.payload.totals.contractValue), 3450);
     await assert.rejects(fixture.database.query(

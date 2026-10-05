@@ -44,3 +44,38 @@ test('passada do Cron considera pendencias que o laco de 30s esgotou', async () 
   await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS);
   assert.deepEqual(seen.map(params => params[0]), [5, 72]);
 });
+
+test('reserva da outbox e atomica: duas passadas nao pegam a mesma linha; esgotadas viram failed', async context => {
+  const { createCriticalTestDatabase } = await import('./services/criticalTestDatabase');
+  const { updateProposalStatus } = await import('./services/proposals');
+  const { claimOutboxBatch, failExhaustedOutbox, CRON_MAX_ATTEMPTS } = await import('./services/outboxRetryWorker');
+  const { database, userId, makeProposal, addMaterial } = await createCriticalTestDatabase();
+  context.after(() => database.close());
+  const ids: string[] = [];
+  for (let i = 0; i < 3; i += 1) {
+    const id = await makeProposal();
+    await addMaterial(id);
+    await updateProposalStatus(database, id, 'approved', userId);
+    ids.push(id);
+  }
+  const first = await claimOutboxBatch(database, 5, 2);
+  const second = await claimOutboxBatch(database, 5, 5);
+  assert.equal(first.length, 2);
+  assert.equal(second.length, 1);
+  const all = [...first, ...second].map(row => row.outbox_id);
+  assert.equal(new Set(all).size, 3);
+  assert.equal((await claimOutboxBatch(database, 5)).length, 0);
+
+  // Reserva vencida (processo caiu) volta a ser elegivel.
+  await database.query("UPDATE integration_outbox SET claimed_at = now() - interval '10 minutes' WHERE id = $1", [all[0]]);
+  assert.deepEqual((await claimOutboxBatch(database, 5)).map(row => row.outbox_id), [all[0]]);
+
+  // Esgotadas: 72 tentativas -> failed; abaixo disso continua pending.
+  await database.query('UPDATE integration_outbox SET attempts = $2 WHERE id = $1', [all[1], CRON_MAX_ATTEMPTS]);
+  await database.query('UPDATE integration_outbox SET attempts = $2 WHERE id = $1', [all[2], CRON_MAX_ATTEMPTS - 1]);
+  assert.equal(await failExhaustedOutbox(database), 1);
+  const status = async (id: string) => (await database.query<{ status: string }>('SELECT status FROM integration_outbox WHERE id = $1', [id])).rows[0].status;
+  assert.equal(await status(all[1]), 'failed');
+  assert.equal(await status(all[2]), 'pending');
+  assert.equal(await status(all[0]), 'pending');
+});
