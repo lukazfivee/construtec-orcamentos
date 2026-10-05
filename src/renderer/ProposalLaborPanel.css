@@ -20,7 +20,7 @@
 
 .labor-header p {
   margin: 0;
-  color: #5d7480;
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -29,7 +29,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #5d7480;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -38,10 +38,10 @@
 .labor-form input {
   min-height: 34px;
   padding: 6px 9px;
-  border: 1px solid #d6e4e9;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: #fff;
-  color: #0b2530;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .labor-header input {
@@ -54,9 +54,9 @@
   gap: 12px;
   padding: 14px;
   margin-bottom: 16px;
-  border: 1px solid #d6e4e9;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: #f2f8fa;
+  background: var(--surface-subtle);
 }
 
 .labor-description {
@@ -75,18 +75,18 @@
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px;
-  background: #fff;
-  border: 1px solid #d6e4e9;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 6px;
 }
 
 .labor-preview small {
-  color: #5d7480;
+  color: var(--muted);
   font-size: 10px;
 }
 
 .labor-preview b {
-  color: #0b2530;
+  color: var(--ink);
   font-size: 17px;
   font-variant-numeric: tabular-nums;
 }
@@ -110,7 +110,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #0b2530;
+  color: var(--ink);
   font-weight: 600;
   text-align: left;
   cursor: pointer;

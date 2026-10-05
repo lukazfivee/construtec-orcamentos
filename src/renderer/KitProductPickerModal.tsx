@@ -141,15 +141,15 @@ export function KitProductPickerModal({
             />
           </label>
 
-          <div style={{ maxHeight: '320px', overflowY: 'auto', border: '1px solid #d6e4e9', borderRadius: '6px' }}>
+          <div style={{ maxHeight: '320px', overflowY: 'auto', border: '1px solid var(--line)', borderRadius: '6px' }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '8px 14px',
-                background: '#f8f9fb',
-                borderBottom: '1px solid #d6e4e9',
+                background: 'var(--bg-cool-98)',
+                borderBottom: '1px solid var(--line)',
                 fontSize: '11px',
               }}
             >
@@ -162,7 +162,7 @@ export function KitProductPickerModal({
                 Selecionar todos visíveis
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ color: selectedProducts.size > 0 ? '#09738a' : '#5d7480', fontWeight: selectedProducts.size > 0 ? 600 : 400 }}>
+                <span style={{ color: selectedProducts.size > 0 ? 'var(--tx-cool-29-3)' : 'var(--muted)', fontWeight: selectedProducts.size > 0 ? 600 : 400 }}>
                   {selectedProducts.size} selecionado(s) no total
                 </span>
                 {selectedProducts.size > 0 && (
@@ -172,7 +172,7 @@ export function KitProductPickerModal({
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#d13438',
+                      color: 'var(--tx-red-51-2)',
                       cursor: 'pointer',
                       fontSize: '11px',
                       padding: 0,
@@ -196,8 +196,8 @@ export function KitProductPickerModal({
                     gap: '10px',
                     justifyContent: 'space-between',
                     padding: '10px 14px',
-                    borderBottom: '1px solid #f0f2f5',
-                    background: isSelected ? '#e8f8fc' : 'white',
+                    borderBottom: '1px solid var(--bd-cool-95-3)',
+                    background: isSelected ? 'var(--status-review-bg)' : 'var(--surface)',
                     cursor: 'pointer',
                   }}
                 >
@@ -212,7 +212,7 @@ export function KitProductPickerModal({
                     <div style={{ fontWeight: 600, fontSize: '12px' }}>
                       {product.code} - {product.description}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#5d7480' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)' }}>
                       {product.category} • Un: {product.unit}
                     </div>
                   </div>
@@ -234,7 +234,7 @@ export function KitProductPickerModal({
               );
             })}
             {!loading && products.length === 0 && (
-              <p style={{ padding: '24px', textAlign: 'center', color: '#5d7480', margin: 0, fontSize: '11px' }}>
+              <p style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', margin: 0, fontSize: '11px' }}>
                 Nenhum produto ativo encontrado com esse termo.
               </p>
             )}
@@ -242,7 +242,7 @@ export function KitProductPickerModal({
         </div>
 
         <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: '#5d7480' }}>
+          <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
             {selectedProducts.size} produto(s) marcado(s) para inclusão
           </span>
           <div style={{ display: 'flex', gap: '8px' }}>

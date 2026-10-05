@@ -44,7 +44,7 @@ function PdfPageFrame({ html, scale, className }: { html: string; scale: number;
       sandbox=""
       tabIndex={-1}
       scrolling="no"
-      srcDoc={`<!doctype html><meta charset="utf-8"><style>${pdfPageCss}</style>${html}`}
+      srcDoc={`<!doctype html><meta charset="utf-8"><meta name="color-scheme" content="light"><style>${pdfPageCss}</style>${html}`}
       style={{ width: PDF_PAGE_WIDTH, height: PDF_PAGE_HEIGHT, border: 0, display: 'block', background: '#fff', transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', top: 0, left: 0 }}
     />
   );

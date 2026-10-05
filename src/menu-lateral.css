@@ -13,7 +13,7 @@
   .sidebar nav button:hover { background: transparent; }
   .sidebar nav button:hover::after { transform: scaleX(1); opacity: 1; }
   .sidebar nav button svg { transition: transform 220ms cubic-bezier(.3, 1.6, .5, 1), color 150ms ease; }
-  .sidebar nav button:hover svg { transform: scale(1.16) translateY(-1px); color: #5fd0ee; }
+  .sidebar nav button:hover svg { transform: scale(1.16) translateY(-1px); color: var(--tx-cool-65); }
   .sidebar nav button:active svg { transform: scale(.94); }
   .sidebar nav button span { transition: opacity 180ms ease; }
 

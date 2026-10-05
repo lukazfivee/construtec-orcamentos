@@ -98,9 +98,9 @@ export function ProposalsListFilterBar({
               onChange={(e) => onValidityFilterChange(e.target.value as ValidityFilterOption)}
             >
               <option value="all">Todas as validades</option>
-              <option value="expiringSoon">⏳ Vencendo em breve (3d)</option>
-              <option value="expired">⚠️ Vencidas</option>
-              <option value="valid">✅ No prazo</option>
+              <option value="expiringSoon">Vencendo em breve (3d)</option>
+              <option value="expired">Vencidas</option>
+              <option value="valid">No prazo</option>
               <option value="none">Sem validade</option>
             </select>
           </div>

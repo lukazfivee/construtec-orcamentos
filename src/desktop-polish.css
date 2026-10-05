@@ -2,11 +2,6 @@
  * barras fixas opacas e tabelas sem estouro. Carregado antes dos arquivos mobile, que seguem valendo. */
 
 :root {
-  --blue: #0b7690;
-  --blue-ink: #0a6b86;
-  --blue-hover: #09627a;
-  --muted-ink: #4a626d;
-  --green-ink: #15803d;
 }
 
 /* Base: botao e campo sem classe herdavam 16px do navegador. */
@@ -20,11 +15,11 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .primary:disabled, .primary-btn:disabled, .od-btn.p:disabled, .btn.primary:disabled,
 .new-proposal-dialog button.primary:disabled {
   color: var(--muted-ink) !important;
-  background: #dfe9ed !important;
-  border-color: #c9d9df !important;
+  background: var(--bg-cool-90-3) !important;
+  border-color: var(--bd-cool-83-3) !important;
   opacity: 1;
 }
-.od-btn:disabled { opacity: 1; color: var(--muted-ink); background: #dfe9ed; border-color: #c9d9df; }
+.od-btn:disabled { opacity: 1; color: var(--muted-ink); background: var(--bg-cool-90-3); border-color: var(--bd-cool-83-3); }
 .primary:hover:not(:disabled), .primary-btn:hover:not(:disabled), .web-login-card button:hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
 .actions .generate:not(:disabled):hover, .btn.primary:not(:disabled):hover,
 .new-proposal-dialog button.primary:not(:disabled):hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
@@ -36,20 +31,20 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 }
 .modal-dialog {
   max-width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: hidden;
-  color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 10px;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px;
   box-shadow: 0 24px 60px rgba(8, 18, 35, .28);
 }
 .proposal-export-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .close-btn {
   display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; padding: 0;
-  color: var(--ink); background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer;
 }
 .close-btn:hover { background: var(--surface-subtle); }
 .proposal-import-header .close-btn { color: #fff; background: transparent; border-color: rgba(255, 255, 255, .35); }
 
 /* Classes usadas pelo React sem regra. */
 .text-right { text-align: right; }
-.home-panel { min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.home-panel { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .home-panel-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--line); }
 .home-panel-header h3 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
 .home-panel-header p { margin: 3px 0 0; color: var(--muted-ink); font-size: 11px; }
@@ -63,20 +58,20 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .brand { flex: none; }
 .global-search { flex: 0 1 420px; width: auto; min-width: 160px; }
 .local-state button { min-height: 24px; }
-.global-search:disabled, .global-search:disabled span { opacity: 1; color: #9fb0bd; cursor: default; }
-.top-actions .icon-button:disabled, .profile:disabled { opacity: 1; color: #8fa0ad; }
+.global-search:disabled, .global-search:disabled span { opacity: 1; color: var(--tx-cool-68); cursor: default; }
+.top-actions .icon-button:disabled, .profile:disabled { opacity: 1; color: var(--tx-cool-62); }
 
 /* Contraste AA em chips, selos e textos auxiliares. */
-.chip-count { color: #34505a; }
+.chip-count { color: var(--ink-secondary); }
 .help-modal-dialog nav button, .help-modal-tabs button { color: var(--muted-ink); }
-.filter-chip.active { border-color: var(--blue); }
-.filter-chip.active .chip-count { background: #cdeef7; color: #0a5568; }
+.filter-chip.active { border-color: var(--bd-cool-30); }
+.filter-chip.active .chip-count { background: var(--bg-cool-89); color: var(--tx-cool-22); }
 .revision-tag, .items-count-badge, .proposal-date-cell { color: var(--muted-ink); }
 .last-change { color: var(--muted-ink); }
-.table-action-btn.secondary.share-btn { color: var(--blue-ink); }
-.user-profile-logout-btn { color: #b91c1c; }
+.table-action-btn.secondary.share-btn { color: var(--tx-cool-28-3); }
+.user-profile-logout-btn { color: var(--tx-red-42); }
 .notifications-footer { color: var(--muted-ink); }
-.page-back, .page-eyebrow { color: var(--blue-ink); }
+.page-back, .page-eyebrow { color: var(--tx-cool-28-3); }
 
 /* Lista de propostas: Cliente/Obra ocupa a sobra e trunca com reticencias, acoes secundarias viram icones,
  * colunas de apoio cedem espaco e a coluna de acoes fica sempre visivel (sticky com fundo opaco). */
@@ -91,9 +86,9 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .proposals-table .proposal-status-cell .sync-badge { display: flex; width: fit-content; }
 .proposals-table .proposal-actions-cell { white-space: nowrap; }
 .proposals-table th.col-actions, .proposals-table td.proposal-actions-cell { position: sticky; right: 0; z-index: 1; box-shadow: -1px 0 0 var(--line); }
-.proposals-table td.proposal-actions-cell { background: #fff; }
+.proposals-table td.proposal-actions-cell { background: var(--surface); }
 .proposals-table th.col-actions { background: var(--surface-subtle); z-index: 2; }
-.proposals-table .proposal-row:hover td.proposal-actions-cell { background: #f2f8fa; }
+.proposals-table .proposal-row:hover td.proposal-actions-cell { background: var(--surface-subtle); }
 @media (min-width: 768px) {
   .proposals-table .table-action-btn { position: relative; }
   .proposals-table .table-action-btn.secondary, .proposals-table .table-action-btn.danger { width: 32px; padding: 0; margin-left: 4px; }
@@ -123,8 +118,8 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .meta-field button:disabled { opacity: 1; color: var(--ink-secondary); cursor: default; }
 
 /* Contraste de textos de apoio e selos. */
-.proposal-flow-rev, .rev-badge, .tab-counter, .summary-total-callout strong { color: var(--blue-ink); }
-.proposal-flow i { color: #34505a; }
+.proposal-flow-rev, .rev-badge, .tab-counter, .summary-total-callout strong { color: var(--tx-cool-28-3); }
+.proposal-flow i { color: var(--ink-secondary); }
 .tab-counter.highlight { background: #047857; }
 .btn-action-whatsapp { background: #15803d; border-color: #166534; }
 .btn-action-whatsapp:hover { background: #166534; }
@@ -147,17 +142,17 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 }
 
 /* Textos pequenos sobre fundo claro: o ciano da marca nao passa de 3:1 em branco. */
-.kit-add-btn, .management-header button.primary-ghost { color: var(--blue-ink); }
-.version-current, .history-current { color: #166534; }
-small.current-tag { color: #166534; }
+.kit-add-btn, .management-header button.primary-ghost { color: var(--tx-cool-28-3); }
+.version-current, .history-current { color: var(--tx-green-24); }
+small.current-tag { color: var(--tx-green-24); }
 .clone-mode-selector, .clone-summary-box { width: 100%; box-sizing: border-box; }
 
 /* Configuracoes: campos e botoes soltos do painel de usuarios seguem o padrao dos demais campos. */
 .settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .settings-card select {
-  min-height: 32px; padding: 0 9px; color: var(--ink); background: #fff;
+  min-height: 32px; padding: 0 9px; color: var(--ink); background: var(--surface);
   border: 1px solid var(--line-strong); border-radius: 5px; box-sizing: border-box;
 }
-.settings-card button:not(.primary):not(.od-btn) { min-height: 32px; padding: 0 12px; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
+.settings-card button:not(.primary):not(.od-btn) { min-height: 32px; padding: 0 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer; }
 .settings-card button.primary { min-height: 32px; }
-.settings-card button[class*="danger"], .settings-card button[style*="b91c1c"], .settings-card button[style*="dc2626"] { color: #b91c1c; }
+.settings-card button[class*="danger"], .settings-card button[style*="b91c1c"], .settings-card button[style*="dc2626"] { color: var(--tx-red-42); }
 @media screen and (min-width: 768px) and (max-width: 1350px) { .sidebar nav button span { font-size: 11px; } }

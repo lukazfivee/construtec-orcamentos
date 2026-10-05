@@ -32,7 +32,7 @@ export function ProposalDiscardBox({ proposalId, number, approved }: Props) {
     return (
       <p style={{ margin: '10px 0 0', fontSize: '0.8rem' }}>
         {approved ? 'Proposta aprovada não pode ser excluída. ' : ''}
-        <button type="button" style={{ background: 'none', border: 0, padding: 0, color: '#0a7896', cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }} onClick={() => setOpen(true)}>Descartar com registro (dá para recuperar)</button>
+        <button type="button" style={{ background: 'none', border: 0, padding: 0, color: 'var(--tx-cool-31-2)', cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }} onClick={() => setOpen(true)}>Descartar com registro (dá para recuperar)</button>
       </p>
     );
   }
@@ -47,7 +47,7 @@ export function ProposalDiscardBox({ proposalId, number, approved }: Props) {
       <label style={{ display: 'grid', gap: '4px', fontSize: '0.8rem' }}>Digite {number} para confirmar
         <input value={confirmNumber} onChange={(event) => setConfirmNumber(event.target.value)} autoComplete="off" />
       </label>
-      {error && <div role="alert" style={{ color: '#b42318', fontSize: '0.8rem' }}>{error}</div>}
+      {error && <div role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>}
       <button type="submit" className="danger-btn" disabled={pending || !confirmNumber.trim()}>{pending ? 'Descartando...' : 'Descartar proposta'}</button>
     </form>
   );

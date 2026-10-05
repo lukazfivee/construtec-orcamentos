@@ -11,9 +11,9 @@ type NewUserDraft = { name: string; email: string; password: string; role: AuthR
 
 const emptyUser: NewUserDraft = { name: '', email: '', password: '', role: 'commercial' };
 const roleLabels: Record<AuthRole, string> = { admin: 'Administrador', commercial: 'Comercial', viewer: 'Consulta' };
-const card = { background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' } as const;
+const card = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px' } as const;
 const field = { display: 'grid', gap: '5px', fontSize: '10px' } as const;
-const secondaryButton = { height: '34px', padding: '0 10px', background: '#fff', border: '1px solid #bad0d8', borderRadius: '6px', cursor: 'pointer' } as const;
+const secondaryButton = { height: '34px', padding: '0 10px', background: 'var(--surface)', border: '1px solid var(--line-strong)', borderRadius: '6px', cursor: 'pointer' } as const;
 
 type Props = {
   currentUser: AuthUser;
@@ -104,12 +104,12 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
 
   return (
     <section className="settings-card" style={card}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
-        <Users size={19} color="#0a6b86" />
-        <div><h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Usuários e Permissões</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.</p></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid var(--bd-cool-95-3)', paddingBottom: '12px' }}>
+        <Users size={19} color="var(--tx-cool-28-3)" />
+        <div><h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Usuários e Permissões</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--muted)' }}>As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.</p></div>
       </div>
 
-      <form onSubmit={createUser} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.25fr .9fr .85fr auto', gap: '8px', alignItems: 'end', padding: '12px', background: '#f2f8fa', border: '1px solid #d6e4e9', borderRadius: '6px', marginBottom: '14px' }}>
+      <form onSubmit={createUser} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.25fr .9fr .85fr auto', gap: '8px', alignItems: 'end', padding: '12px', background: 'var(--surface-subtle)', border: '1px solid var(--line)', borderRadius: '6px', marginBottom: '14px' }}>
         <label style={field}><span>Nome</span><input required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
         <label style={field}><span>E-mail</span><input required type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>
         <label style={field}><span>Senha inicial</span><input required type="password" minLength={10} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} /></label>
@@ -119,23 +119,23 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
 
       <div style={{ display: 'grid', gap: '10px' }}>
         {users.map((user) => (
-          <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.25fr .82fr auto', gap: '8px 10px', alignItems: 'end', padding: '12px', border: '1px solid #d6e4e9', borderRadius: '6px', background: user.active ? '#fff' : '#fafafa', opacity: user.active ? 1 : .72 }}>
-            <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>Nome {user.id === currentUser.id ? '• Você' : ''}</span><strong style={{ fontSize: '12px', color: '#1f2a33' }}>{user.name}</strong></div>
-            <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }}><span>E-mail</span><span style={{ fontSize: '12px', color: '#1f2a33' }}>{user.email}</span></div>
-            <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: '#5d7480' }} title={user.centroAdmin ? 'Administrador no Centro de Custos: o perfil muda lá.' : undefined}><span>Perfil{user.centroAdmin ? ' · pelo Centro' : ''}</span><select disabled={user.centroAdmin} value={user.role} onChange={(e) => updateDraft(user.id, { role: e.target.value as AuthRole })}>{Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.25fr .82fr auto', gap: '8px 10px', alignItems: 'end', padding: '12px', border: '1px solid var(--line)', borderRadius: '6px', background: user.active ? 'var(--surface)' : 'var(--bg-cool-98)', opacity: user.active ? 1 : .72 }}>
+            <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: 'var(--muted)' }}><span>Nome {user.id === currentUser.id ? '• Você' : ''}</span><strong style={{ fontSize: '12px', color: 'var(--tx-cool-16)' }}>{user.name}</strong></div>
+            <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: 'var(--muted)' }}><span>E-mail</span><span style={{ fontSize: '12px', color: 'var(--tx-cool-16)' }}>{user.email}</span></div>
+            <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: 'var(--muted)' }} title={user.centroAdmin ? 'Administrador no Centro de Custos: o perfil muda lá.' : undefined}><span>Perfil{user.centroAdmin ? ' · pelo Centro' : ''}</span><select disabled={user.centroAdmin} value={user.role} onChange={(e) => updateDraft(user.id, { role: e.target.value as AuthRole })}>{Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <div style={{ display: 'flex', alignItems: 'end', gap: '7px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '5px', height: '36px', fontSize: '10px' }}><input type="checkbox" checked={user.active} onChange={(e) => updateDraft(user.id, { active: e.target.checked })} /> Ativo</label>
               <button type="button" onClick={() => saveUser(user)} disabled={pending} style={secondaryButton}><Save size={14} /> Salvar</button>
-              {user.id !== currentUser.id && <button type="button" onClick={() => removeUser(user)} disabled={pending} style={{ ...secondaryButton, color: '#b42318' }} aria-label={`Excluir login de ${user.name}`}><Trash2 size={14} /> Excluir login</button>}
+              {user.id !== currentUser.id && <button type="button" onClick={() => removeUser(user)} disabled={pending} style={{ ...secondaryButton, color: 'var(--danger)' }} aria-label={`Excluir login de ${user.name}`}><Trash2 size={14} /> Excluir login</button>}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #f0f2f5' }}>
+      <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--bd-cool-95-3)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <MailCheck size={16} color="#0a6b86" />
-          <div><h3 style={{ margin: 0, fontSize: '12px', fontWeight: 700 }}>E-mails externos autorizados</h3><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Contas fora do domínio @rcconstrutec.com.br só podem ser criadas para e-mails desta lista.</p></div>
+          <MailCheck size={16} color="var(--tx-cool-28-3)" />
+          <div><h3 style={{ margin: 0, fontSize: '12px', fontWeight: 700 }}>E-mails externos autorizados</h3><p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--muted)' }}>Contas fora do domínio @rcconstrutec.com.br só podem ser criadas para e-mails desta lista.</p></div>
         </div>
         <form onSubmit={authorizeEmail} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.3fr auto', gap: '8px', alignItems: 'end', marginBottom: '10px' }}>
           <label style={field}><span>E-mail</span><input required type="email" maxLength={254} value={newEmail.email} onChange={(e) => setNewEmail({ ...newEmail, email: e.target.value })} /></label>
@@ -143,10 +143,10 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
           <button type="submit" disabled={pending} style={secondaryButton}>Autorizar</button>
         </form>
         {emails.length === 0
-          ? <p style={{ fontSize: '10px', color: '#5d7480', margin: 0 }}>Nenhum e-mail externo autorizado.</p>
+          ? <p style={{ fontSize: '10px', color: 'var(--muted)', margin: 0 }}>Nenhum e-mail externo autorizado.</p>
           : emails.map((row) => (
-            <div key={row.email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: '1px solid #f0f2f5', fontSize: '11px' }}>
-              <span><strong>{row.email}</strong>{row.note ? <span style={{ color: '#5d7480' }}> · {row.note}</span> : null}</span>
+            <div key={row.email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: '1px solid var(--bd-cool-95-3)', fontSize: '11px' }}>
+              <span><strong>{row.email}</strong>{row.note ? <span style={{ color: 'var(--muted)' }}> · {row.note}</span> : null}</span>
               <button type="button" onClick={() => revokeEmail(row.email)} disabled={pending} style={{ ...secondaryButton, height: '28px' }}>Revogar</button>
             </div>
           ))}

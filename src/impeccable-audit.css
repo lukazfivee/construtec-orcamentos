@@ -4,12 +4,9 @@
  */
 
 :root {
-  --danger: #b42318;
-  --danger-soft: #fff1f0;
   --control-height: 34px;
   --radius-control: 6px;
   --radius-panel: 8px;
-  --shadow-popover: 0 10px 25px rgba(28, 40, 59, .14), 0 2px 5px rgba(28, 40, 59, .08);
 }
 
 /* Base interaction consistency */
@@ -55,7 +52,7 @@ button:not(:disabled):active {
 
 .global-search:hover {
   background: #303a4c;
-  border-color: #556176;
+  border-color: var(--bd-cool-40);
 }
 
 .global-search:focus-visible,
@@ -116,7 +113,7 @@ button:not(:disabled):active {
 
 .management-search input::placeholder,
 .search-box input::placeholder {
-  color: #8993a3;
+  color: var(--tx-cool-59);
 }
 
 .client-list > button:focus-visible,
@@ -147,7 +144,7 @@ button:not(:disabled):active {
 .work-form input:not([type="checkbox"]):hover,
 .new-proposal-dialog input:hover,
 .new-proposal-dialog select:hover {
-  border-color: #8fa6b0;
+  border-color: var(--bd-cool-63);
 }
 
 /* Home / dashboard */
@@ -225,9 +222,9 @@ button:not(:disabled):active {
   }
   .kpi-card:hover,
   .home-section-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(3, 31, 41, .10); border-color: var(--line-strong); }
-  .kpi-card:hover { background: radial-gradient(circle at 50% 0%, rgba(13, 127, 159, .12), transparent 72%), #fff; }
+  .kpi-card:hover { background: radial-gradient(circle at 50% 0%, rgba(13, 127, 159, .12), transparent 72%), var(--surface); }
   .proposals-filter-bar:focus-within,
-  .proposal-filter-bar:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(13, 127, 159, .10); }
+  .proposal-filter-bar:focus-within { border-color: var(--bd-cool-30); box-shadow: 0 0 0 3px rgba(13, 127, 159, .10); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -254,7 +251,7 @@ button:not(:disabled):active {
 }
 
 .search-box:focus-within {
-  border-color: var(--blue);
+  border-color: var(--bd-cool-30);
   box-shadow: 0 0 0 2px rgba(13, 127, 159, .12);
 }
 
@@ -273,7 +270,7 @@ button:not(:disabled):active {
 
 .filter-chip.active {
   background: var(--blue-soft);
-  border-color: #9fd8e8;
+  border-color: var(--bd-cool-77);
 }
 
 .chip-count {
@@ -328,7 +325,7 @@ button:not(:disabled):active {
 }
 
 .toolbar {
-  background: #fbfcfd;
+  background: var(--bg-cool-98);
 }
 
 .toolbar button,
@@ -344,7 +341,7 @@ button:not(:disabled):active {
 
 /* Commercial panel */
 .commercial-panel {
-  background: #fbfcfd;
+  background: var(--bg-cool-98);
 }
 
 .amount strong {
@@ -369,8 +366,8 @@ button:not(:disabled):active {
 }
 
 .works-list > div > button:hover {
-  color: var(--blue);
-  border-color: #9fd8e8;
+  color: var(--tx-cool-30);
+  border-color: var(--bd-cool-77);
   background: var(--blue-soft);
 }
 
@@ -394,7 +391,7 @@ button:not(:disabled):active {
 .kit-form .work-active input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--blue);
+  accent-color: var(--tx-cool-30);
 }
 
 .kit-items-section table {
@@ -403,13 +400,13 @@ button:not(:disabled):active {
 
 .kit-item-row:hover td,
 .kit-items-section tbody tr:hover td {
-  background: #f2f8fa;
+  background: var(--surface-subtle);
 }
 
 .kit-item-remove-btn:hover {
-  background: #fee2e2 !important;
-  border-color: #f87171 !important;
-  color: #b91c1c !important;
+  background: var(--bg-red-94) !important;
+  border-color: var(--bd-red-71) !important;
+  color: var(--tx-red-42) !important;
   transform: scale(1.08);
 }
 
@@ -454,16 +451,16 @@ button:not(:disabled):active {
 .import-picker button:hover,
 .exsat-source button:hover,
 .import-dialog > footer button:hover {
-  background: #f7f9fb;
-  border-color: #8fa6b0;
+  background: var(--bg-cool-98-2);
+  border-color: var(--bd-cool-63);
 }
 
 .import-table tbody tr:hover td {
-  background: #f2f8fa;
+  background: var(--surface-subtle);
 }
 
 .import-table tr.invalid:hover td {
-  background: #fff4db;
+  background: var(--bg-amber-93);
 }
 
 /* Dialogs / destructive actions */

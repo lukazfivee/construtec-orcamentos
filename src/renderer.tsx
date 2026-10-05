@@ -30,6 +30,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthGate } from './renderer/AuthGate';
 import '@fontsource-variable/ibm-plex-sans';
+import './theme-tokens.css';
 import './suite-fonts.css';
 import './index.css';
 import './impeccable-audit.css';
@@ -41,6 +42,7 @@ import './mobile-responsive.css';
 import './mobile-suite.css';
 import './menu-lateral.css';
 import './proposal-pages.css';
+import './theme-dark.css';
 
 const rootElement = document.getElementById('root');
 

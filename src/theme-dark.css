@@ -1,0 +1,35 @@
+/* Tema escuro do desktop: ajustes que não cabem só em tokens. Carregado por último.
+   Os valores de cor estão em theme-tokens.css; aqui ficam seletores específicos e a aba Aparência. */
+
+/* ---------- Aparência (Configurações) ---------- */
+.appearance-card { padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.appearance-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); color: var(--tx-cool-28-3); }
+.appearance-head h2 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
+.appearance-head p { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
+.appearance-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+button.appearance-option { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; min-height: 84px; padding: 12px 14px; color: var(--ink); text-align: left; background: var(--surface-subtle); border: 1px solid var(--line-strong); border-radius: 8px; cursor: pointer; }
+button.appearance-option svg { color: var(--muted); }
+button.appearance-option b { font-size: 12px; }
+button.appearance-option span { color: var(--muted); font-size: 11px; }
+.appearance-option:hover { border-color: var(--blue); }
+.appearance-option.active { background: var(--blue-soft); border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+button.appearance-option.active svg { color: var(--blue-ink); }
+@media (max-width: 640px) { .appearance-options { grid-template-columns: 1fr; } }
+
+/* ---------- Escuro: campos com anel/borda mais forte (3:1 contra o fundo) ---------- */
+[data-theme="escuro"] .od-inp { box-shadow: inset 0 0 0 1px var(--line-strong); }
+[data-theme="escuro"] .od-inp:focus { box-shadow: inset 0 0 0 2px var(--od-accent); }
+[data-theme="escuro"] .labor-form input,
+[data-theme="escuro"] .labor-header input,
+[data-theme="escuro"] .filter-select { border-color: var(--line-strong); }
+
+/* ---------- Escuro: controles sem fundo próprio não podem cair no cinza padrão do navegador ---------- */
+:where([data-theme="escuro"]) :where(button, input, select, textarea) { background-color: var(--surface); }
+:where([data-theme="escuro"]) :where(input, select, textarea) { color: var(--ink); }
+:where([data-theme="escuro"]) :where(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
+
+/* ---------- Escuro: marcações de diferença entre revisões ---------- */
+[data-theme="escuro"] .row-added { background: rgba(60, 207, 142, .12); }
+[data-theme="escuro"] .row-removed { background: rgba(255, 120, 100, .13); }
+[data-theme="escuro"] .row-changed { background: rgba(242, 181, 68, .12); }
+[data-theme="escuro"] .pdf-thumb-box { background: #fff; }

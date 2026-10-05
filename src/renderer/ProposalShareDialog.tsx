@@ -76,17 +76,17 @@ export function ProposalShareDialog({
   const generatedTemplate = useMemo(() => {
     if (!proposal) return '';
     const greetingName = proposal.responsibleName?.trim() || proposal.clientName;
-    const workInfo = proposal.workName ? `\n🏢 *Obra / Local:* ${proposal.workName}` : '';
-    const executionInfo = conditions?.executionTerm ? `\n⏱️ *Prazo de Execução:* ${conditions.executionTerm}` : '';
-    const paymentInfo = conditions?.paymentTerms ? `\n💳 *Condição de Pagamento:* ${conditions.paymentTerms}` : '';
+    const workInfo = proposal.workName ? `\n*Obra / Local:* ${proposal.workName}` : '';
+    const executionInfo = conditions?.executionTerm ? `\n*Prazo de Execução:* ${conditions.executionTerm}` : '';
+    const paymentInfo = conditions?.paymentTerms ? `\n*Condição de Pagamento:* ${conditions.paymentTerms}` : '';
 
     if (mode === 'followup') {
       return `Olá, ${greetingName}! Tudo bem?
 
 Estamos acompanhando o andamento do seu projeto e a nossa proposta comercial:
-📋 *Proposta:* ${proposal.number} (Rev. ${String(proposal.revision).padStart(2, '0')})${workInfo}
-💰 *Valor Global:* ${money.format(total)}
-⏳ *Prazo de Validade:* ${validUntilFormatted}
+*Proposta:* ${proposal.number} (Rev. ${String(proposal.revision).padStart(2, '0')})${workInfo}
+*Valor Global:* ${money.format(total)}
+*Prazo de Validade:* ${validUntilFormatted}
 
 Gostaríamos de saber se você teve a oportunidade de avaliar as condições apresentadas. Caso necessite de ajustes no escopo, dúvidas técnicas ou extensão do prazo de validade, estamos à sua inteira disposição!
 
@@ -99,9 +99,9 @@ Atenciosamente,
       return `Olá, ${greetingName}! Tudo bem?
 
 Segue o resumo do orçamento da *Construtec*:
-📋 *Proposta:* ${proposal.number} (Rev. ${String(proposal.revision).padStart(2, '0')})${workInfo}
-💰 *Valor Total:* ${money.format(total)}
-📅 *Validade:* ${validUntilFormatted}${executionInfo}
+*Proposta:* ${proposal.number} (Rev. ${String(proposal.revision).padStart(2, '0')})${workInfo}
+*Valor Total:* ${money.format(total)}
+*Validade:* ${validUntilFormatted}${executionInfo}
 
 O documento formal completo em PDF/Word já está disponível para envio.
 Ficamos à disposição para quaisquer esclarecimentos!
@@ -120,13 +120,13 @@ Esperamos que este contato o encontre bem!
 
 Apresentamos a proposta técnico-comercial elaborada pela *Construtec* para o seu projeto:
 
-📋 *Identificação:* Proposta Nº ${proposal.number} (Revisão ${String(proposal.revision).padStart(2, '0')})
-👤 *Cliente:* ${proposal.clientName}${workInfo}
+*Identificação:* Proposta Nº ${proposal.number} (Revisão ${String(proposal.revision).padStart(2, '0')})
+*Cliente:* ${proposal.clientName}${workInfo}
 
-💰 *Composição Financeira:*${laborBreakdown}
-⭐ *Valor Global da Proposta:* ${money.format(total)}
+*Composição Financeira:*${laborBreakdown}
+*Valor Global da Proposta:* ${money.format(total)}
 
-📅 *Validade da Proposta:* ${validUntilFormatted}${executionInfo}${paymentInfo}
+*Validade da Proposta:* ${validUntilFormatted}${executionInfo}${paymentInfo}
 
 Permanecemos à inteira disposição para ajustes de escopo, alinhamento técnico ou esclarecimentos comerciais.
 

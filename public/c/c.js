@@ -54,13 +54,13 @@
       expired: ['!', 'Este link venceu', 'O link da proposta ' + p.number + ' venceu. Peça um link novo à Construtec.'],
       disabled: ['!', 'Este link foi desativado', 'A Construtec desativou o link da proposta ' + p.number + '. Peça um link novo.'],
       superseded: ['!', 'Existe uma revisão mais nova', 'O link da proposta ' + p.number + ' é de uma revisão que já foi substituída. Peça à Construtec o link da revisão atual.'],
-      adjust: ['✓', 'Pedido de ajuste enviado', 'A Construtec recebeu o seu pedido e vai enviar um link novo com a revisão.'],
+      adjust: ['OK', 'Pedido de ajuste enviado', 'A Construtec recebeu o seu pedido e vai enviar um link novo com a revisão.'],
     };
     if (data.state === 'approved' || data.state === 'confirmed') {
       const reply = data.reply || {};
       // Passados 30 dias do aceite o servidor devolve so o numero da proposta (sem documento).
       const hasDoc = p.total != null;
-      notice('✓', 'Proposta aprovada', 'A proposta ' + p.number + (hasDoc ? ' (' + rev(p.revision) + ')' : '') + ' já foi aprovada por este link' + (reply.name ? ' por ' + reply.name : '') + '.',
+      notice('OK', 'Proposta aprovada', 'A proposta ' + p.number + (hasDoc ? ' (' + rev(p.revision) + ')' : '') + ' já foi aprovada por este link' + (reply.name ? ' por ' + reply.name : '') + '.',
         h('div', null, reply.code ? h('span', { class: 'code', text: reply.code }) : null, hasDoc ? h('div', { class: 'row' }, h('button', { class: 'btn2', type: 'button', onclick: read }, 'Ver a proposta')) : null));
       return;
     }
@@ -132,7 +132,7 @@
       try {
         const result = await call('/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: draft.name, role: draft.role, accept: draft.accept }) });
         data.state = 'approved'; data.reply = { kind: 'approved', name: draft.name, code: result.code };
-        notice('✓', 'Proposta aprovada', 'Recebemos a sua aprovação da proposta ' + data.proposal.number + '. Guarde o código do aceite.', h('span', { class: 'code', text: result.code }));
+        notice('OK', 'Proposta aprovada', 'Recebemos a sua aprovação da proposta ' + data.proposal.number + '. Guarde o código do aceite.', h('span', { class: 'code', text: result.code }));
         document.getElementById('app').classList.add('ok');
       } catch (error) {
         if (error.code === 'LINK_NOT_ACTIVE') { await load(); return; }
@@ -167,7 +167,7 @@
       try {
         await call('/adjust', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: draft.name, role: draft.role, message: draft.message }) });
         data.state = 'adjust';
-        notice('✓', 'Pedido de ajuste enviado', 'A Construtec recebeu a sua mensagem e vai enviar um link novo com a revisão.', h('p', { class: 'note', text: draft.message }));
+        notice('OK', 'Pedido de ajuste enviado', 'A Construtec recebeu a sua mensagem e vai enviar um link novo com a revisão.', h('p', { class: 'note', text: draft.message }));
       } catch (error) {
         if (error.code === 'LINK_NOT_ACTIVE') { await load(); return; }
         submit.textContent = 'Enviar pedido';

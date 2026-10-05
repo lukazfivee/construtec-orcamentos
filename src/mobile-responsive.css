@@ -20,11 +20,11 @@
   display: flex; align-items: flex-end; z-index: 71;
 }
 .proposal-item-edit-sheet {
-  background: #fff; width: 100%; border-radius: 16px 16px 0 0;
+  background: var(--surface); width: 100%; border-radius: 16px 16px 0 0;
   padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
   max-height: 86dvh; overflow-y: auto;
 }
-.proposal-item-edit-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
+.proposal-item-edit-sheet-handle { width: 34px; height: 4px; background: var(--bg-line-strong); border-radius: 2px; margin: 0 auto 12px; }
 .proposal-item-edit-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .proposal-item-edit-sheet-head b { font-size: 14px; color: var(--ink); overflow-wrap: anywhere; }
 .proposal-item-edit-sheet-head button { color: var(--muted); background: transparent; border: 0; flex: none; }
@@ -40,7 +40,7 @@
   border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.proposal-item-edit-actions .duplicate { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
+.proposal-item-edit-actions .duplicate { background: var(--blue-soft); border-color: var(--bd-cool-30); color: var(--tx-cool-30); }
 .proposal-item-edit-actions .delete { background: var(--status-rejected-bg); border-color: var(--status-rejected-border); color: var(--status-rejected-text); }
 
 /* Menu do FAB da lista de itens: consolida Inserir/Filtrar/Importar/Colunas
@@ -49,7 +49,7 @@
 .proposal-items-fab-menu {
   position: fixed; right: 16px; bottom: calc(134px + env(safe-area-inset-bottom));
   z-index: 29; display: flex; flex-direction: column; gap: 4px;
-  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
   padding: 6px; box-shadow: 0 10px 26px rgba(3, 31, 41, .18);
   min-width: 220px;
 }
@@ -76,18 +76,18 @@
   display: flex; align-items: flex-end; z-index: 72;
 }
 .proposal-summary-sheet {
-  background: #fff; width: 100%; border-radius: 16px 16px 0 0;
+  background: var(--surface); width: 100%; border-radius: 16px 16px 0 0;
   padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
   max-height: 86dvh; overflow-y: auto;
 }
-.proposal-summary-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
+.proposal-summary-sheet-handle { width: 34px; height: 4px; background: var(--bg-line-strong); border-radius: 2px; margin: 0 auto 12px; }
 .proposal-summary-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .proposal-summary-sheet-head b { font-size: 15px; color: var(--ink); }
 .proposal-summary-sheet-head button { color: var(--muted); background: transparent; border: 0; }
 .proposal-summary-sheet-amount { display: flex; align-items: baseline; justify-content: space-between; padding: 7px 2px; font-size: 12px; color: var(--muted); border-bottom: 1px dashed var(--line); }
 .proposal-summary-sheet-amount b { font-size: 13px; color: var(--ink); font-weight: 700; }
 .proposal-summary-sheet-amount.final { border-bottom: 0; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
-.proposal-summary-sheet-amount.final b { color: var(--blue); font-size: 16px; }
+.proposal-summary-sheet-amount.final b { color: var(--tx-cool-30); font-size: 16px; }
 .proposal-summary-sheet-params { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .proposal-summary-sheet-params label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ink); }
 .proposal-summary-sheet-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
@@ -96,7 +96,7 @@
   border-radius: 8px; font-size: 12.5px; font-weight: 600;
   border: 1px solid var(--line-strong); background: var(--surface-subtle); color: var(--ink);
 }
-.proposal-summary-sheet-actions button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+.proposal-summary-sheet-actions button.primary { background: var(--blue); border-color: var(--bd-cool-30); color: #fff; }
 .proposal-summary-sheet-actions button.danger { background: var(--status-rejected-bg); border-color: var(--status-rejected-border); color: var(--status-rejected-text); }
 .proposal-summary-sheet-actions button:disabled { opacity: .5; }
 
@@ -211,7 +211,7 @@
   .labor-table-region { display: none; }
   .labor-items-cards { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; list-style: none; padding: 0; }
   .labor-items-cards-empty { padding: 20px 12px; text-align: center; color: var(--muted); font-size: 13px; }
-  .labor-item-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .labor-item-card { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
   .labor-item-card-main { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; padding: 0; }
   .labor-item-card-main b { display: block; font-size: 13px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
   .labor-item-card-main span { font-size: 11px; color: var(--muted); }
@@ -226,12 +226,12 @@
   .history-heading-actions button { flex: 1; }
   .history-table { display: none; }
   .history-cards { display: flex; flex-direction: column; gap: 8px; list-style: none; margin: 0; padding: 12px; }
-  .history-card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
-  .history-card.current { background: var(--blue-soft); border-color: var(--blue); }
+  .history-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .history-card.current { background: var(--blue-soft); border-color: var(--bd-cool-30); }
   .history-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .history-card-title { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .history-card-title b { font-size: 13px; color: var(--ink); overflow-wrap: anywhere; }
-  .history-card-title small { padding: 1px 5px; color: var(--green); background: var(--green-soft); border-radius: 3px; font-size: 9px; font-weight: 700; flex: none; }
+  .history-card-title small { padding: 1px 5px; color: var(--tx-green-30); background: var(--green-soft); border-radius: 3px; font-size: 9px; font-weight: 700; flex: none; }
   .history-card-status { font-size: 11px; color: var(--muted); flex: none; }
   .history-card-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; font-size: 11px; color: var(--muted); }
   .history-card-value { display: flex; align-items: baseline; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
@@ -246,13 +246,13 @@
   .proposal-mobile-header {
     display: flex; align-items: center; gap: 10px; width: 100%;
     padding: 12px 14px; border: 0; border-bottom: 1px solid var(--line);
-    background: #fff; text-align: left; cursor: pointer;
+    background: var(--surface); text-align: left; cursor: pointer;
   }
   .proposal-mobile-header-number { font-size: 14px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .proposal-mobile-header-chevron { margin-left: auto; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--surface-subtle); color: var(--muted); flex: none; }
   .proposal-mobile-sheet-backdrop { position: fixed; inset: 0; background: rgba(10, 20, 35, .45); display: flex; align-items: flex-end; z-index: 73; }
-  .proposal-mobile-sheet { background: #fff; width: 100%; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); max-height: 86dvh; overflow-y: auto; }
-  .proposal-mobile-sheet-handle { width: 34px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 0 auto 12px; }
+  .proposal-mobile-sheet { background: var(--surface); width: 100%; border-radius: 16px 16px 0 0; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); max-height: 86dvh; overflow-y: auto; }
+  .proposal-mobile-sheet-handle { width: 34px; height: 4px; background: var(--bg-line-strong); border-radius: 2px; margin: 0 auto 12px; }
   .proposal-mobile-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .proposal-mobile-sheet-head b { font-size: 14px; color: var(--ink); }
   .proposal-mobile-sheet-head button { color: var(--muted); background: transparent; border: 0; }
@@ -262,7 +262,7 @@
     border: 0; border-radius: 8px; background: transparent; text-align: left; color: var(--muted);
   }
   .proposal-mobile-tab-row.active { background: var(--blue-soft); }
-  .proposal-mobile-tab-row.new { color: var(--blue); }
+  .proposal-mobile-tab-row.new { color: var(--tx-cool-30); }
   .proposal-mobile-tab-row span { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .proposal-mobile-tab-row b { font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .proposal-mobile-tab-row small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -284,7 +284,7 @@
   .proposal-mobile-meta .status-select { min-height: 30px; height: 30px; font-size: 12px; padding: 0 10px; }
   .proposal-mobile-tab-row .current-tag {
     flex: none; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .2px; color: var(--blue); background: var(--blue-soft);
+    text-transform: uppercase; letter-spacing: .2px; color: var(--tx-cool-30); background: var(--blue-soft);
   }
   .proposal-mobile-meta .context-popover {
     position: fixed; left: 12px; right: 12px; bottom: 12px; top: auto; width: auto;
@@ -296,9 +296,9 @@
   .section-tabs button {
     flex: none; min-height: 40px; padding: 0 16px;
     border: 1px solid var(--line-strong); border-radius: 7px;
-    background: #fff; color: var(--ink); font-weight: 600; font-size: 13px;
+    background: var(--surface); color: var(--ink); font-weight: 600; font-size: 13px;
   }
-  .section-tabs button.selected { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .section-tabs button.selected { background: var(--blue); color: #fff; border-color: var(--bd-cool-30); }
   .section-tabs button.selected::after { content: none; }
   .section-tabs button:disabled { opacity: .5; }
   .toolbar { flex-wrap: wrap; padding: 12px; }
@@ -316,9 +316,9 @@
   .proposal-items-quick-search .quick-search-input {
     width: 100%; padding: 0 34px 0 36px;
     border: 1px solid var(--line-strong); border-radius: 8px;
-    background: #fff; color: var(--ink); outline: none;
+    background: var(--surface); color: var(--ink); outline: none;
   }
-  .proposal-items-quick-search .quick-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(13, 127, 159, .12); }
+  .proposal-items-quick-search .quick-search-input:focus { border-color: var(--bd-cool-30); box-shadow: 0 0 0 2px rgba(13, 127, 159, .12); }
   .proposal-filter-bar .proposal-filter-search-box { display: none; }
   /* Inserir, Filtrar (categoria) e "Mais acoes" (Importar, Colunas) ficam
      todos atras do (+) no mobile (.proposal-items-fab-menu) -- a toolbar
@@ -350,7 +350,7 @@
   .proposal-item-card-swipe-actions .delete { background: var(--status-rejected-text); }
   .proposal-item-card {
     position: relative; display: flex; align-items: center; gap: 8px;
-    background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     padding: 12px; min-height: 44px; touch-action: pan-y; user-select: none;
     transition: transform 160ms ease; cursor: grab;
   }
@@ -375,7 +375,7 @@
   .proposal-summary-chip {
     display: flex; position: fixed; left: 12px; right: 12px;
     bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 25;
-    background: var(--ink); border-radius: 20px; padding: 10px 10px 10px 16px;
+    background: var(--fill-ink); border-radius: 20px; padding: 10px 10px 10px 16px;
     box-shadow: 0 10px 26px rgba(0, 0, 0, .25);
   }
   .proposal-items-fab-menu { bottom: calc(204px + env(safe-area-inset-bottom)); }
@@ -407,7 +407,7 @@
   .quick-actions-bar button:last-child { grid-column: 1 / -1; }
   .quick-action-icon {
     width: 30px; height: 30px; flex: none;
-    background: var(--blue-soft); color: var(--blue); border-radius: 8px;
+    background: var(--blue-soft); color: var(--tx-cool-30); border-radius: 8px;
   }
   .quick-action-label { font-size: 12px; font-weight: 600; line-height: 1.25; }
   .home-card-header, .proposals-filter-top-row, .proposals-filter-bar,
@@ -431,7 +431,7 @@
       "actions actions";
     gap: 8px 10px;
     width: 100%;
-    background: #fff;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 14px;

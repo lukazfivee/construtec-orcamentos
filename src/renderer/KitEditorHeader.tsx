@@ -63,7 +63,7 @@ export function KitEditorHeader({
             type="button"
             onClick={onDeleteKit}
             disabled={saving}
-            style={{ color: '#bd2f2f' }}
+            style={{ color: 'var(--tx-red-46)' }}
           >
             <Trash2 size={15} /> Excluir
           </button>
