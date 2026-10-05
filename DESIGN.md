@@ -309,3 +309,12 @@ PDF e Word seguem a proposta técnica-comercial real: logo Construtec no cabeça
 - **Don't** usar verde ou âmbar como substitutos da ação ciano primária.
 - **Don't** esconder custo, margem, BDI ou fornecedor em saídas destinadas ao cliente; a distinção entre visão interna e documento exportado é obrigatória.
 - **Don't** inventar comportamento mobile para a primeira versão desktop.
+
+## Tema claro, escuro e automático (desktop)
+
+- Cores só em tokens: `src/theme-tokens.css` (claro em `:root`, escuro em `:root[data-theme="escuro"]`). Componentes não usam hex; prefixos `--bg-*` (fundo), `--tx-*` (texto/ícone), `--bd-*` (borda), `--fill-*` (preenchimento escuro com texto claro por cima).
+- O tema é resolvido por `src/renderer/theme.ts` e pelo script de `index.html` (antes da pintura): escolha salva em `localStorage` (`orc_d_tema`: `claro` ou `escuro`), senão `prefers-color-scheme`. `meta color-scheme` e `theme-color` acompanham.
+- Alternância: ícone sol/lua na barra superior e Configurações > Aparência (Automático, Claro, Escuro).
+- Escuro: fundo da página `#07202a`, cartões `#0b2a36`, azul de marca ajustado para texto (`--tx-*`), borda de campo `--line-strong` com 3:1. Barra superior e menu lateral continuam navy nos dois temas.
+- O PDF e o Word da proposta são papel: a folha (`proposal-pdf-page.css`, iframe com `color-scheme: light`) nunca escurece; só o contêiner ao redor.
+- Ajustes que não cabem em token ficam em `src/theme-dark.css`. Novo componente: use tokens e confira o contraste (`theme.test.ts`).
