@@ -110,18 +110,18 @@ export function ProposalsListTable({
                   <span>Cliente / Obra</span>
                   <ArrowUpDown size={14} />
                 </th>
-                <th>Itens</th>
+                <th className="col-items">Itens</th>
                 <th onClick={() => onToggleSort('value')} className="sortable-th text-right">
                   <span>Valor Total</span>
                   <ArrowUpDown size={14} />
                 </th>
                 <th>Status</th>
                 <th>Validade</th>
-                <th onClick={() => onToggleSort('date')} className="sortable-th">
+                <th onClick={() => onToggleSort('date')} className="sortable-th col-updated">
                   <span>Atualizado em</span>
                   <ArrowUpDown size={14} />
                 </th>
-                <th className="text-right">Ações</th>
+                <th className="text-right col-actions">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -136,13 +136,13 @@ export function ProposalsListTable({
                     </div>
                   </td>
                   <td className="proposal-client-cell" onClick={() => onOpenProposal(item.id)}>
-                    <div className="client-name">{item.clientName}</div>
-                    <div className="work-name">
+                    <div className="client-name" title={item.clientName}>{item.clientName}</div>
+                    <div className="work-name" title={item.workName}>
                       <Building2 size={12} />
-                      {item.workName}
+                      <span className="work-name-text">{item.workName}</span>
                     </div>
                   </td>
-                  <td onClick={() => onOpenProposal(item.id)}>
+                  <td className="col-items" onClick={() => onOpenProposal(item.id)}>
                     <span className="items-count-badge">
                       <Layers size={12} />
                       {item.itemCount} {item.itemCount === 1 ? 'item' : 'itens'}
@@ -188,7 +188,7 @@ export function ProposalsListTable({
                       <span>{validity.label}</span>
                     </span>
                   </td>
-                  <td className="proposal-date-cell" onClick={() => onOpenProposal(item.id)}>
+                  <td className="proposal-date-cell col-updated" onClick={() => onOpenProposal(item.id)}>
                     <Calendar size={12} />
                     {dateTime.format(new Date(item.updatedAt))}
                   </td>
@@ -197,43 +197,47 @@ export function ProposalsListTable({
                       type="button"
                       className="table-action-btn primary"
                       title="Abrir proposta na mesa operacional"
+                      aria-label="Abrir proposta"
                       onClick={() => onOpenProposal(item.id)}
                     >
                       <ExternalLink size={15} />
-                      Abrir
+                      <span className="btn-label btn-label-keep">Abrir</span>
                     </button>
                     {onExtendValidity && (
                       <button
                         type="button"
                         className="table-action-btn secondary"
                         title="Prorrogar prazo de validade comercial"
+                        aria-label="Prorrogar validade"
                         disabled={actionPending}
                         onClick={() => onExtendValidity(item)}
                       >
                         <CalendarClock size={14} />
-                        Prorrogar
+                        <span className="btn-label">Prorrogar</span>
                       </button>
                     )}
                     <button
                       type="button"
                       className="table-action-btn secondary"
                       title="Clonar como novo orçamento"
+                      aria-label="Clonar proposta"
                       disabled={actionPending}
                       onClick={() => void onClone(item)}
                     >
                       <Copy size={14} />
-                      Clonar
+                      <span className="btn-label">Clonar</span>
                     </button>
                     {onExport && (
                       <button
                         type="button"
                         className="table-action-btn secondary"
                         title="Gerar PDF / Word da proposta"
+                        aria-label="Exportar proposta"
                         disabled={actionPending}
                         onClick={() => onExport(item)}
                       >
                         <FileText size={14} />
-                        Exportar
+                        <span className="btn-label">Exportar</span>
                       </button>
                     )}
                     {onShare && (
@@ -241,17 +245,19 @@ export function ProposalsListTable({
                         type="button"
                         className="table-action-btn secondary share-btn"
                         title="Compartilhar proposta via WhatsApp ou E-mail"
+                        aria-label="Compartilhar proposta"
                         disabled={actionPending}
                         onClick={() => onShare(item)}
                       >
                         <Share2 size={14} />
-                        Compartilhar
+                        <span className="btn-label">Compartilhar</span>
                       </button>
                     )}
                     <button
                       type="button"
                       className="table-action-btn danger"
                       title="Excluir proposta"
+                      aria-label="Excluir proposta"
                       disabled={actionPending || ((item.status === 'approved' || item.hasApprovedRevision) && !isAdminNow())}
                       onClick={() => onDeleteRequest(item)}
                     >

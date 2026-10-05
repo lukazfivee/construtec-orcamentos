@@ -93,7 +93,7 @@ export function ProposalKitsPanel({
   };
 
   return (
-    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', height: '100%', minHeight: 0, background: '#fff', overflow: 'hidden' }}>
+    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) minmax(0, 1fr)', height: '100%', minHeight: 0, background: '#fff', overflow: 'hidden' }}>
       {/* Kits List */}
       <div style={{ borderRight: '1px solid #d6e4e9', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
         <div style={{ padding: '12px', borderBottom: '1px solid #d6e4e9', flexShrink: 0 }}>
@@ -131,7 +131,7 @@ export function ProposalKitsPanel({
       </div>
 
       {/* Kit Detail & Apply Action */}
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, padding: '20px', overflowY: 'auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, padding: '20px', overflowY: 'auto' }}>
         {selectedKitDetail ? (
           <div>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
@@ -145,10 +145,10 @@ export function ProposalKitsPanel({
                 </p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px 16px', minWidth: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'right', minWidth: '120px' }}>
                   <span style={{ display: 'block', fontSize: '10px', color: '#5d7480' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
-                  <strong style={{ fontSize: '16px', color: '#12a9d1' }}>{costText(money.format(estimatedSaleTotal))}</strong>
+                  <strong style={{ fontSize: '16px', color: 'var(--blue-ink)' }}>{costText(money.format(estimatedSaleTotal))}</strong>
                 </div>
                 <button
                   type="button"
@@ -176,8 +176,8 @@ export function ProposalKitsPanel({
               Itens incluídos no Kit ({selectedKitDetail.items.length})
             </h3>
 
-            <div style={{ border: '1px solid #d6e4e9', borderRadius: '6px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+            <div style={{ border: '1px solid #d6e4e9', borderRadius: '6px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead style={{ background: '#f8f9fb' }}>
                   <tr>
                     <th style={{ padding: '8px 10px', textAlign: 'left', width: '90px' }}>Código</th>

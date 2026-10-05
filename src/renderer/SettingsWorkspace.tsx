@@ -149,7 +149,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
           <form id="settings-form" onSubmit={(e) => void saveSettings(e)} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
-                <Building2 size={19} color="#12a9d1" />
+                <Building2 size={19} color="#0a6b86" />
                 <div>
                   <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Dados da Construtec para Exportação</h2>
                   <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Identificação oficial que estampa cabeçalhos e rodapés de documentos PDF e Word.</p>
@@ -168,7 +168,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
 
             <div className="settings-card" style={{ background: '#fff', border: '1px solid #d6e4e9', borderRadius: '8px', padding: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
-                <Percent size={19} color="#12a9d1" />
+                <Percent size={19} color="#0a6b86" />
                 <div>
                   <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Parâmetros Padrão de Novas Propostas</h2>
                   <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Responsável e horas da mão de obra. BDI, impostos e validade ficam em Padrões da empresa.</p>
@@ -189,7 +189,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px', fontSize: '11px' }}>
                 <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Versão do App</span><b style={{ color: '#0b2530', fontSize: '13px' }}>v1.0.5</b></div>
                 <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Banco Local</span><b style={{ color: '#178442', fontSize: '13px' }}>PGlite / PostgreSQL</b></div>
-                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Modo de Operação</span><b style={{ color: '#12a9d1', fontSize: '13px' }}>Offline Local-First</b></div>
+                <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d6e4e9' }}><span style={{ color: '#5d7480', display: 'block', fontSize: '10px' }}>Modo de Operação</span><b style={{ color: '#0a6b86', fontSize: '13px' }}>Offline Local-First</b></div>
               </div>
               {isAdmin && (
                 <div style={{ display: 'grid', gap: '10px', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #d6e4e9' }}>
