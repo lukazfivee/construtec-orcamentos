@@ -105,7 +105,7 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
   return (
     <section className="settings-card" style={card}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #f0f2f5', paddingBottom: '12px' }}>
-        <Users size={19} color="#12a9d1" />
+        <Users size={19} color="#0a6b86" />
         <div><h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Usuários e Permissões</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.</p></div>
       </div>
 
@@ -134,7 +134,7 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
 
       <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid #f0f2f5' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <MailCheck size={16} color="#12a9d1" />
+          <MailCheck size={16} color="#0a6b86" />
           <div><h3 style={{ margin: 0, fontSize: '12px', fontWeight: 700 }}>E-mails externos autorizados</h3><p style={{ margin: '2px 0 0', fontSize: '10px', color: '#5d7480' }}>Contas fora do domínio @rcconstrutec.com.br só podem ser criadas para e-mails desta lista.</p></div>
         </div>
         <form onSubmit={authorizeEmail} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.3fr auto', gap: '8px', alignItems: 'end', marginBottom: '10px' }}>

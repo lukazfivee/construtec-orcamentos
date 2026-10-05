@@ -46,9 +46,9 @@ function MetaField({
   return (
     <div className="meta-field">
       <span>{label}</span>
-      <button type="button" className={accent ? 'accent' : ''} disabled={disabled} onClick={onClick}>
+      <button type="button" className={accent ? 'accent' : ''} disabled={disabled} onClick={onClick} title={value}>
         {icon}
-        {value}
+        <span className="meta-value">{value}</span>
         {!disabled && <ChevronDown size={14} />}
       </button>
     </div>
@@ -161,8 +161,9 @@ export function ProposalMetaBar({
           }}
         />
         <div className="meta-field status-field">
-          <label>Status</label>
+          <label htmlFor="proposal-status-select">Status</label>
           <select
+            id="proposal-status-select"
             className={`status-select ${statusClasses[proposal.status ?? 'draft']}`}
             value={proposal.status ?? 'draft'}
             disabled={mutationPending || !proposal.isLatest || proposal.status === 'approved'}

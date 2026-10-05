@@ -273,7 +273,7 @@ button:not(:disabled):active {
 
 .filter-chip.active {
   background: var(--blue-soft);
-  border-color: #9bbff3;
+  border-color: #9fd8e8;
 }
 
 .chip-count {
@@ -370,7 +370,7 @@ button:not(:disabled):active {
 
 .works-list > div > button:hover {
   color: var(--blue);
-  border-color: #9bbff3;
+  border-color: #9fd8e8;
   background: var(--blue-soft);
 }
 

@@ -38,7 +38,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
             padding: '0 10px',
             fontSize: '11px',
             background: '#e8f8fc',
-            color: '#12a9d1',
+            color: '#0a6b86',
             border: '1px solid #c5d8f9',
             borderRadius: '5px',
             cursor: 'pointer',
