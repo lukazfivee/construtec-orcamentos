@@ -51,7 +51,7 @@ export function CentroCustosWorkspace({
   useEffect(() => {
     // Na nuvem, cada app roda como Worker independente; o ping de saude
     // (fetch entre origens) e' bloqueado por CORS mesmo quando o outro
-    // servico esta no ar, e a mensagem de ".bat local"/"Portal Hub" nao
+    // servico esta no ar, e a mensagem de ".bat local" nao
     // se aplica -- o iframe carrega direto, sem esse gate.
     if (isCloudRuntime() || !urlReady) return undefined;
     void checkHealth();

@@ -73,7 +73,7 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
   const fil = (key: Filter, label: string) => [key, label] as const;
 
   return <main className="od-page" aria-busy={loading}><div className="od-stack">
-    <PageHead eyebrow="Catálogo" title="Catálogo EXSAT" sub={`${overview ? `${nfmt(overview.productCount)} itens` : 'Carregando itens'}${seesCost ? ' · preços de custo, sem BDI' : ''}`}>
+    <PageHead eyebrow="Cadastros" title="Catálogo EXSAT" sub={`${overview ? `${nfmt(overview.productCount)} itens` : 'Carregando itens'}${seesCost ? ' · preços de custo, sem BDI' : ''}`}>
       <button type="button" className="od-btn s" onClick={onEdit}><PackagePlus size={17} />Cadastrar itens</button>
       {canWrite && <button type="button" className="od-btn s" onClick={onImport}><Upload size={17} />Importar lista</button>}
       <button type="button" className="od-btn p" disabled={!!syncReason || sync.busy} title={syncReason || undefined} onClick={() => void sync.run()}>

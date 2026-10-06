@@ -71,6 +71,7 @@ export function ProposalsListFilterBar({
         <div className="search-box">
           <Search size={16} />
           <input
+            data-proposals-search
             type="text"
             placeholder="Buscar por número (PA-XXXX), cliente ou obra..."
             value={searchTerm}

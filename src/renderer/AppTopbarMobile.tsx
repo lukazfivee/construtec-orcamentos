@@ -1,0 +1,237 @@
+import { useState } from 'react';
+import {
+  Bell,
+  ChevronDown,
+  HelpCircle,
+  LayoutGrid,
+  Mail,
+  Menu,
+  Moon,
+  Search,
+  Sun,
+} from 'lucide-react';
+import type { AuthUser, ProposalDetail } from '../shared/contracts';
+import { isCloudRuntime } from './api';
+import { HelpModal } from './HelpModal';
+import { MobileSuiteSheet } from './MobileSuiteSheet';
+import { NotificationsPopover } from './NotificationsPopover';
+import { UpdateNotice } from './UpdateNotice';
+import { UserProfilePopover } from './UserProfilePopover';
+import { useTheme } from './theme';
+import { useIsMobile } from './useIsMobile';
+
+const brandLogo = new URL('../assets/logo-branca.png', import.meta.url).href;
+const brandIcon = new URL('../assets/logo-icon.png', import.meta.url).href;
+const isCloud = isCloudRuntime();
+
+export interface AppTopbarProps {
+  user?: AuthUser | null;
+  activeNav: string;
+  proposal: ProposalDetail | null;
+  onOpenCatalog: () => void;
+  /** Desktop: abre a busca (catalogo no editor, lista de propostas nas demais telas). */
+  onSearch?: () => void;
+  /** Desktop: a proposta esta aberta no editor (a busca do topo vira busca no catalogo). */
+  editorOpen?: boolean;
+  onLogout?: () => void;
+  onSelectApp?: (app: 'orcamentos' | 'centro-custos') => void;
+  onOpenMobileMenu?: () => void;
+  showNotice: (message: string) => void;
+}
+
+const getInitials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'CT';
+
+export function AppTopbarMobile({
+  user,
+  activeNav,
+  proposal,
+  onOpenCatalog,
+  onLogout,
+  onOpenMobileMenu,
+  showNotice,
+}: AppTopbarProps) {
+  const [suiteOpen, setSuiteOpen] = useState(false);
+  const mobile = useIsMobile();
+  const theme = useTheme();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const divergentCount =
+    proposal?.isLatest
+      ? proposal.items.filter(
+          (item) =>
+            item.catalogCurrentCost !== null &&
+            item.catalogCurrentCost !== undefined &&
+            Math.abs(item.catalogCurrentCost - item.unitCost) >= 0.01
+        ).length
+      : 0;
+
+  const displayName = user?.name || 'Marcos Ribeiro';
+  const displayInitials = user?.name ? getInitials(user.name) : 'MR';
+
+  return (
+    <>
+      <header className="topbar">
+        <div className="brand">
+          <img src={brandLogo} alt="Construtec" className="brand-logo-full" />
+          <img src={brandIcon} alt="Construtec" className="brand-logo-icon" />
+          <span>Orçamentos</span>
+        </div>
+
+        <div className="local-state">
+          <span aria-hidden="true" /> {isCloud ? 'Online' : 'Offline'}{' '}
+          <button
+            type="button"
+            onClick={() => showNotice(isCloud
+              ? 'Os dados desta versão ficam armazenados na nuvem, em um banco PostgreSQL.'
+              : 'Os dados desta versão ficam armazenados localmente neste computador.')}
+          >
+            {isCloud ? 'Dados na nuvem' : 'Dados locais'} <ChevronDown size={14} />
+          </button>
+        </div>
+
+        <button
+          className="global-search"
+          type="button"
+          disabled={activeNav !== 'Propostas'}
+          onClick={onOpenCatalog}
+        >
+          <Search size={17} />
+          <span>{activeNav === 'Propostas' ? 'Buscar no catálogo' : 'Busca disponível em Propostas'}</span>
+          {activeNav === 'Propostas' && <kbd>Ctrl+K</kbd>}
+        </button>
+
+        <div className="top-actions">
+            <UpdateNotice />
+            {/* Suíte Construtec / App Switcher */}
+            <div className="top-action-anchor suite-switcher-container">
+              <button
+                id="btn-suite-switcher"
+                className={`btn-suite-topbar ${suiteOpen ? 'active' : ''}`}
+                type="button"
+                aria-expanded={suiteOpen}
+                onClick={() => {
+                  setSuiteOpen((prev) => !prev);
+                  setNotificationsOpen(false);
+                  setProfileOpen(false);
+                }}
+                title="Alternar entre sistemas da Suíte Construtec"
+              >
+                <LayoutGrid size={15} />
+                <span className="suite-label">Suíte</span>
+                <ChevronDown size={11} className="suite-caret" />
+              </button>
+              {suiteOpen && mobile && <MobileSuiteSheet proposal={proposal} onClose={() => setSuiteOpen(false)} />}
+            </div>
+
+            <div className="top-action-anchor">
+              <button
+                className={`icon-button ${notificationsOpen ? 'active' : ''}`}
+                aria-label="Notificações"
+                type="button"
+                onClick={() => {
+                  setNotificationsOpen((prev) => !prev);
+                  setSuiteOpen(false);
+                  setProfileOpen(false);
+                }}
+                title="Notificações e alertas do sistema"
+              >
+                <Bell size={18} />
+                {divergentCount > 0 && <span className="notification-badge" aria-label={`${divergentCount} divergências`} />}
+              </button>
+              {notificationsOpen && (
+                <NotificationsPopover
+                  proposal={proposal}
+                  onClose={() => setNotificationsOpen(false)}
+                />
+              )}
+            </div>
+
+            <button
+              className="icon-button theme-toggle"
+              aria-label={theme.resolved === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro'}
+              type="button"
+              onClick={theme.toggle}
+              title={theme.resolved === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro'}
+            >
+              {theme.resolved === 'escuro' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+
+            <button
+              className={`icon-button help-button ${helpOpen ? 'active' : ''}`}
+              aria-label="Central de Ajuda"
+              type="button"
+              onClick={() => {
+                setHelpOpen(true);
+                setSuiteOpen(false);
+                setNotificationsOpen(false);
+                setProfileOpen(false);
+              }}
+              title="Central de Ajuda e Atalhos (Ctrl+H)"
+            >
+              <HelpCircle size={18} />
+            </button>
+
+            <button
+              className="icon-button"
+              aria-label="Webmail Corporativo (UOL Pro)"
+              type="button"
+              onClick={() => {
+                void window.construtec?.openWebmail?.();
+                showNotice('Abrindo UOL Webmail Pro corporativo…');
+              }}
+              title="Webmail Corporativo (UOL Pro)"
+            >
+              <Mail size={18} />
+            </button>
+
+            <button
+              className="icon-button top-actions-mobile-menu-toggle"
+              aria-label="Abrir menu de navegação"
+              type="button"
+              onClick={onOpenMobileMenu}
+              title="Menu"
+            >
+              <Menu size={18} />
+            </button>
+
+            <span className="divider" />
+
+            <div className="top-action-anchor">
+              <button
+                className={`profile ${profileOpen ? 'active' : ''}`}
+                type="button"
+                onClick={() => {
+                  setProfileOpen((prev) => !prev);
+                  setSuiteOpen(false);
+                  setNotificationsOpen(false);
+                }}
+                title={`Perfil: ${displayName}`}
+                aria-label="Menu do usuário"
+              >
+                <span>{displayInitials}</span>
+                <b>{displayName}</b>
+                <ChevronDown size={14} />
+              </button>
+              {profileOpen && user && onLogout && (
+                <UserProfilePopover
+                  user={user}
+                  onLogout={onLogout}
+                  onClose={() => setProfileOpen(false)}
+                />
+              )}
+            </div>
+        </div>
+      </header>
+
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+    </>
+  );
+}

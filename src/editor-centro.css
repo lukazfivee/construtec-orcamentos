@@ -1,0 +1,73 @@
+/* Editor de proposta (mesa de composicao) com tipografia, cores, botoes, campos e etiquetas do Centro de Custos.
+   O editor e uma superficie de trabalho de borda a borda (abas, cabecalho, tabela de itens, resumo); aqui so mudam as medidas
+   e cores dos componentes comuns: gutter de 32 px, titulo 26/600, abas de 44 px, botoes de 40 px, campos de 40 px. Desktop. */
+@media (min-width: 768px) {
+  .app-shell.cc > .workspace { background: var(--color-surface); color: var(--color-text); font-size: 14px; }
+
+  /* Abas de propostas abertas (.tab: 13.5/600, ativa em azul com sublinhado de 2 px) */
+  .app-shell.cc .proposal-tabs { height: 45px; background: var(--color-surface); border-bottom: 1px solid var(--color-divider); }
+  .app-shell.cc .proposal-tabs button { gap: 12px; padding: 0 20px; font: 600 13.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-neutral-300); background: transparent; border-right: 0; }
+  .app-shell.cc .proposal-tabs button:hover { background: var(--color-accent-900); }
+  .app-shell.cc .proposal-tabs button.selected { background: transparent; color: var(--color-accent-300); font-weight: 600; }
+  .app-shell.cc .proposal-tabs button.selected::after { inset: auto 0 0; height: 2px; background: var(--color-focus); }
+  .app-shell.cc .proposal-tabs .tab-divider { background: var(--color-divider); }
+
+  /* Cabecalho da proposta */
+  .app-shell.cc .proposal-editor { background: var(--color-surface); border-right: 1px solid var(--color-divider); }
+  .app-shell.cc .proposal-flow { padding: 20px 32px 16px; gap: 12px; border-bottom: 1px solid var(--color-divider); }
+  .app-shell.cc .proposal-flow-title h1 { font: 600 26px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; }
+  .app-shell.cc .proposal-flow-title p { margin-top: 4px; font-size: 13.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .proposal-flow-rev { height: 24px; padding: 0 9px; border-radius: 12px; background: var(--c-muted-soft); color: var(--c-muted); font-size: 11.5px; font-weight: 600; }
+  .app-shell.cc .proposal-flow-status, .app-shell.cc .flow-status { height: 24px; padding: 0 9px; border-radius: 12px; font-size: 11.5px; font-weight: 600; }
+  .app-shell.cc .proposal-steps li { font-size: 12.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .proposal-steps li.current { color: var(--color-text); font-weight: 600; }
+  .app-shell.cc .proposal-steps li i { width: 20px; height: 20px; background: var(--color-neutral-800); color: var(--color-neutral-300); }
+  .app-shell.cc .proposal-steps li.done i { background: var(--color-brand); color: #fefefe; }
+  .app-shell.cc .proposal-flow-hint { font-size: 12.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .proposal-meta { border-bottom: 1px solid var(--color-divider); }
+  .app-shell.cc .meta-field { padding: 14px 32px; gap: 6px; }
+  .app-shell.cc .meta-field + .meta-field { padding-left: 24px; border-left: 1px solid var(--color-divider); }
+  .app-shell.cc .meta-field > span, .app-shell.cc .meta-field > label { font-size: 12px; font-weight: 600; color: var(--color-neutral-300); }
+  .app-shell.cc .meta-field button { font-size: 14px; font-weight: 500; color: var(--color-text); }
+  .app-shell.cc .meta-field .status-select { height: 24px; font-size: 11.5px; }
+
+  /* Secoes (.tab 44 px) */
+  .app-shell.cc .section-tabs { flex: 0 0 44px; gap: 22px; padding: 0 32px; border-bottom: 1px solid var(--color-divider); }
+  .app-shell.cc .section-tabs button { padding: 0 4px; font: 600 13.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-neutral-300); }
+  .app-shell.cc .section-tabs button.selected { color: var(--color-accent-300); }
+  .app-shell.cc .section-tabs button.selected::after { height: 2px; background: var(--color-focus); }
+
+  /* Barra de ferramentas e botoes (.btn 40 px, raio 10) */
+  .app-shell.cc .toolbar { gap: 10px; padding: 12px 32px; border-bottom: 1px solid var(--color-divider); }
+  .app-shell.cc .toolbar button:not(.icon-button), .app-shell.cc .actions button, .app-shell.cc .flow-btn {
+    height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 13.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider);
+  }
+  .app-shell.cc .toolbar button:not(.icon-button):hover:not(:disabled), .app-shell.cc .actions button:hover:not(:disabled) { background: var(--color-accent-900); border: 0; }
+  .app-shell.cc .toolbar button:disabled, .app-shell.cc .actions button:disabled { opacity: .55; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider); }
+  .app-shell.cc .toolbar button.primary, .app-shell.cc .actions button.primary, .app-shell.cc .actions .generate { background: var(--color-brand) !important; color: #fefefe !important; border: 0 !important; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); font-weight: 600; }
+  .app-shell.cc .toolbar button.primary:hover:not(:disabled), .app-shell.cc .actions button.primary:hover:not(:disabled) { background: #0b4a5c !important; }
+  .app-shell.cc .toolbar button.primary:disabled { opacity: .55; }
+  .app-shell.cc .toolbar .icon-button, .app-shell.cc .proposal-items-panel .icon-button { width: 36px; height: 40px; border: 0; border-radius: 10px; background: var(--color-surface); color: var(--color-neutral-300); box-shadow: inset 0 0 0 1px var(--color-divider); }
+  .app-shell.cc .toolbar button svg, .app-shell.cc .flow-btn svg { stroke-width: 1.5; }
+
+  /* Tabela de itens: cabecalho em caixa alta pequena (.tbl th) */
+  .app-shell.cc .table-region th, .app-shell.cc .proposal-items-table th { height: 40px; padding-left: 6px; padding-right: 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--color-neutral-300); background: var(--color-surface); border-bottom: 1px solid var(--color-divider); }
+  /* A coluna do menu e larga (236 px): colunas da tabela de itens com minimos menores para caber sem rolagem. */
+  .app-shell.cc .proposal-items-table th.col-description, .app-shell.cc .proposal-items-table td.col-description { min-width: 170px; }
+  .app-shell.cc .proposal-items-table th.col-cost, .app-shell.cc .proposal-items-table td.col-cost, .app-shell.cc .proposal-items-table th.col-total-cost, .app-shell.cc .proposal-items-table td.col-total-cost, .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table td.col-sale { width: 100px; min-width: 96px; }
+  .app-shell.cc .proposal-items-table th.col-total-sale, .app-shell.cc .proposal-items-table td.col-total-sale { width: 108px; min-width: 104px; }
+  .app-shell.cc .proposal-items-table td { border-bottom: 1px solid var(--color-divider); font-size: 12px; }
+  .app-shell.cc .proposal-items-table tbody tr:hover td { background: var(--color-accent-900); }
+  .app-shell.cc .proposal-items-table td input:not([type="checkbox"]), .app-shell.cc .proposal-items-table td select { border: 0; border-radius: 8px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); color: var(--color-text); font-size: 12px; }
+  .app-shell.cc .proposal-items-table td input:not([type="checkbox"]):focus, .app-shell.cc .proposal-items-table td select:focus { box-shadow: inset 0 0 0 2px var(--color-focus); outline: none; }
+  .app-shell.cc .add-line { font-size: 13px; color: var(--color-accent-300); }
+
+  /* Resumo comercial (lateral): rotulos 11.5/600 em caixa alta, valores 21/600 */
+  .app-shell.cc .commercial-panel { background: var(--color-surface); color: var(--color-text); }
+  .app-shell.cc .commercial-panel .panel-title { font-size: 15px; font-weight: 600; }
+  .app-shell.cc .commercial-panel .panel-section-toggle { font-size: 13px; font-weight: 600; }
+  .app-shell.cc .commercial-panel button.primary, .app-shell.cc .commercial-panel .generate { height: 40px; border-radius: 10px; }
+  .app-shell.cc .frozen-state, .app-shell.cc .error-banner { border-radius: 12px; }
+  .app-shell.cc .frozen-state { background: var(--c-ok-soft); color: var(--c-ok); border: 0; box-shadow: none; }
+}

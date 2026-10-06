@@ -44,7 +44,7 @@ export function ClientsOverview({ onRegistry, onOpenProposal }: Props) {
   }, [attempt]);
 
   const totalProposals = useMemo(() => (rows ?? []).reduce((sum, row) => sum + row.proposals.length, 0), [rows]);
-  const head = <PageHead eyebrow="Comercial" title="Clientes" sub="Quem recebe propostas e quanto já foi aprovado">
+  const head = <PageHead eyebrow="Cadastros" title="Clientes" sub="Quem recebe propostas e quanto já foi aprovado">
     <button type="button" className="od-btn s" onClick={onRegistry}><UserPlus size={17} />Cadastro de clientes e obras</button>
   </PageHead>;
 

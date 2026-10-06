@@ -29,7 +29,7 @@ export function ProposalsListKpiBar({ stats }: ProposalsListKpiBarProps) {
       </div>
 
       <div className="kpi-card">
-        <div className="kpi-icon" style={{ background: 'var(--bg-amber-96-2)', color: 'var(--tx-amber-37)' }}>
+        <div className="kpi-icon warn">
           <Clock size={22} />
         </div>
         <div className="kpi-content">

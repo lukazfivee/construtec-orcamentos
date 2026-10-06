@@ -1,0 +1,193 @@
+/* Casca do desktop do Orçamentos igual a do Centro de Custos (public/d/css: tokens, base, layout, menu).
+   Mesmas medidas, raios, sombras, tipografia e cores; as classes (.side, .top, .busca, .selo, .suite, .btn, .ibtn)
+   tem o mesmo nome do Centro. Vale so no desktop (>= 768 px); o celular segue em mobile-responsive.css. */
+
+/* ---------- Tokens do Centro (valores identicos; o escuro e o mesmo de [data-theme="escuro"] do Centro) ---------- */
+:root {
+  --color-bg: var(--surface-subtle);
+  --color-surface: var(--surface);
+  --color-text: var(--ink);
+  --color-divider: var(--line);
+  --color-neutral-300: var(--muted);
+  --color-neutral-500: #8fa6b0;
+  --color-neutral-800: #d6e4e9;
+  --color-accent-300: var(--od-accent-300);
+  --color-accent-500: #12a9d1;
+  --color-accent-700: #0b4a5c;
+  --color-accent-900: var(--od-accent-900);
+  --color-field: #6f8f9b;
+  --color-focus: #0a7896;
+  --color-placeholder: #5d7480;
+  --color-brand: #0a7896;
+  --on-brand: #fefefe;
+  --shadow-sm-cc: 0 0 0 1px #d6e4e9;
+  --shadow-pop: 0 0 0 1px #d6e4e9, 0 18px 40px rgba(3, 31, 41, .16);
+  --c-warn: #8a5200;
+  --c-warn-bar: #e0a33a;
+  --c-warn-soft: #fff5d9;
+  --c-ok: #1d7a4f;
+  --c-ok-soft: #e3f6ec;
+  --c-err: #b8452c;
+  --c-err-soft: #fdecea;
+  --c-out: #a24a12;
+  --c-out-soft: #fdf0e6;
+  --c-muted-soft: #eef1f3;
+  --c-muted: #3f5a66;
+  --side-bg: #031f29;
+  --side-w: 236px;
+  --top-h: 64px;
+  --drawer-w: 500px;
+}
+:root[data-theme="escuro"] {
+  --color-neutral-500: #6f8f9b;
+  --color-neutral-800: #123c4a;
+  --color-accent-700: #0b5a70;
+  --color-field: #5a8493;
+  --color-focus: #5fd0ee;
+  --color-placeholder: #86a6b2;
+  --shadow-sm-cc: 0 0 0 1px #164656;
+  --shadow-pop: 0 0 0 1px #164656, 0 18px 40px rgba(0, 0, 0, .4);
+  --c-warn: #f2b544;
+  --c-warn-soft: rgba(242, 181, 68, .14);
+  --c-ok: #3ccf8e;
+  --c-ok-soft: rgba(60, 207, 142, .14);
+  --c-err: #ff9d8a;
+  --c-err-soft: rgba(255, 120, 100, .16);
+  --c-out: #f2a26a;
+  --c-out-soft: rgba(224, 128, 58, .16);
+  --c-muted-soft: rgba(185, 212, 221, .12);
+  --c-muted: #b9d4dd;
+}
+
+@keyframes cc-fade-up { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+@keyframes cc-blink { 50% { opacity: .35 } }
+@keyframes cc-menu-barra { from { transform: scaleY(0); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes cc-menu-dica { from { opacity: 0; transform: translate(-6px, -50%) } to { opacity: 1; transform: translate(0, -50%) } }
+
+@media (min-width: 768px) {
+  /* ---------- Botoes, campos e etiquetas (base.css do Centro) ---------- */
+  .app-shell .btn { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 13.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; text-decoration: none; transition: transform .12s ease, background-color .15s ease, box-shadow .15s ease; }
+  .app-shell .btn:active { transform: scale(.97); }
+  .app-shell .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+  .app-shell .btn-s { background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider); }
+  .app-shell .btn-s:hover:not(:disabled) { background: var(--color-accent-900); }
+  .app-shell .ibtn { width: 36px; height: 36px; padding: 0; border: 0; border-radius: 9px; background: transparent; color: var(--color-neutral-300); cursor: pointer; display: inline-grid; place-items: center; position: relative; transition: background-color .15s ease, color .15s ease; }
+  .app-shell .ibtn:hover, .app-shell .ibtn.ativo { background: var(--color-accent-900); color: var(--color-accent-300); }
+  .app-shell .ibtn .ph { font-size: 20px; }
+  .app-shell .inp { height: 40px; width: 100%; padding: 0 12px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); color: var(--color-text); font: 14px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease; }
+  .app-shell .inp:focus, .app-shell .inp:focus-visible { box-shadow: inset 0 0 0 2px var(--color-focus); outline: none; }
+  .app-shell .chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 12px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .app-shell .chip.ok { background: var(--c-ok-soft); color: var(--c-ok); }
+  .app-shell .lbl { font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300); }
+
+  /* ---------- Estrutura (layout.css): menu a esquerda de ponta a ponta, barra do topo e conteudo a direita ---------- */
+  .app-shell.cc { --side-w: 236px; display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); grid-template-rows: var(--top-h) minmax(0, 1fr); width: 100%; height: 100%; overflow: hidden; background: var(--color-bg); }
+  :root[data-menu-recolhido] .app-shell.cc { --side-w: 72px; }
+  .menu-anima .app-shell.cc { transition: grid-template-columns .28s cubic-bezier(.2, .8, .2, 1); }
+
+  .app-shell.cc > .side { grid-column: 1; grid-row: 1 / -1; position: relative; z-index: 30; width: 100%; min-width: 0; height: 100%; background: var(--side-bg); color: #fefefe; display: flex; flex-direction: column; padding: 18px 14px 14px; gap: 18px; box-shadow: 4px 0 24px rgba(3, 31, 41, .18), 1px 0 0 rgba(3, 31, 41, .06); }
+  :root[data-theme="escuro"] .app-shell.cc > .side { box-shadow: 4px 0 28px rgba(0, 0, 0, .55), 1px 0 0 rgba(255, 255, 255, .04); }
+  .menu-anima .app-shell.cc > .side { transition: padding .28s cubic-bezier(.2, .8, .2, 1); }
+  .side .marca { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 4px 8px 10px; margin: 0; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .08); background: transparent; text-align: left; text-decoration: none; cursor: pointer; font: inherit; }
+  .side .marca img { height: 28px; width: auto; align-self: flex-start; }
+  .side .marca span { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #5fd0ee; }
+  .side .marca .simb { position: absolute; left: 50%; top: 4px; height: 26px; width: auto; align-self: auto; transform: translateX(-50%) scale(.6); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .28s cubic-bezier(.2, .8, .2, 1); }
+  .side .marca .logo, .side .marca span { transition: opacity .18s ease; }
+  .side nav { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 14px; margin: 0 -14px; padding: 0 14px; scrollbar-width: none; }
+  .side .grupo { display: flex; flex-direction: column; gap: 2px; }
+  .side .grupo > span { padding: 0 12px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6f8f9b; max-height: 20px; overflow: hidden; white-space: nowrap; transition: opacity .18s ease, max-height .28s ease, padding .28s ease; }
+  .side .nav { position: relative; overflow: visible; isolation: isolate; width: 100%; height: 40px; padding: 0 12px; border: 0; border-radius: 10px; display: flex; align-items: center; gap: 12px; font: 500 13.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: #b9d4dd; background: transparent; cursor: pointer; text-align: left; text-decoration: none; transition: background-color .15s ease, color .15s ease, padding .28s cubic-bezier(.2, .8, .2, 1), gap .28s ease; }
+  .side .nav::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(90deg, rgba(18, 169, 209, .22), rgba(18, 169, 209, .04)); transform: scaleX(0); transform-origin: left; opacity: 0; transition: transform .25s cubic-bezier(.2, .8, .2, 1), opacity .25s ease; }
+  .side .nav:hover { background: transparent; color: #fefefe; }
+  .side .nav:hover::before { transform: scaleX(1); opacity: 1; }
+  .side .nav .ph { flex: none; color: #6f8f9b; transition: transform .22s cubic-bezier(.3, 1.6, .5, 1), color .15s ease; }
+  .side .nav:hover .ph { transform: scale(1.18) translateX(1px); color: #5fd0ee; }
+  .side .nav:active .ph { transform: scale(.94); }
+  .side .nav .rot { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .18s ease; }
+  .side .nav[aria-current="page"] { background: rgba(18, 169, 209, .16); color: #fefefe; }
+  .side .nav[aria-current="page"] .ph { color: #5fd0ee; }
+  .side .nav[aria-current="page"]::after { content: ''; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: #12a9d1; box-shadow: 0 0 10px rgba(18, 169, 209, .7); animation: cc-menu-barra .3s cubic-bezier(.2, .8, .2, 1) both; }
+  .side .nav:focus-visible, .side .marca:focus-visible { outline: 2px solid #5fd0ee; outline-offset: -2px; }
+  .side .nav .badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #b8452c; color: #fefefe; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+  .side .quem { display: flex; align-items: center; gap: 10px; padding: 10px 8px 0; border-top: 1px solid rgba(255, 255, 255, .08); }
+  .side .avatar { position: relative; width: 36px; height: 36px; border-radius: 50%; background: #5fd0ee; display: grid; place-items: center; font: 700 13px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: #021820; flex: none; overflow: hidden; }
+  .side .quem .nome { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .side .quem b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side .quem .nome span { font-size: 11.5px; color: #b9d4dd; }
+  .side .quem .ibtn { color: #b9d4dd; }
+  .side .quem .ibtn:hover { background: rgba(255, 255, 255, .08); color: #fefefe; }
+
+  /* Botao de recolher, metade para fora da borda. */
+  .side .recolher { position: absolute; top: 30px; right: -13px; z-index: 2; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: var(--color-surface); color: var(--color-text); box-shadow: 0 0 0 1px var(--color-divider), 0 4px 12px rgba(3, 31, 41, .22); display: grid; place-items: center; cursor: pointer; opacity: .9; transition: transform .2s ease, opacity .2s ease, background-color .2s ease, color .2s ease; }
+  .side .recolher:hover { opacity: 1; transform: scale(1.12); background: #12a9d1; color: #fefefe; }
+  .side .recolher:focus-visible { outline: 2px solid #5fd0ee; outline-offset: 2px; }
+  .side .recolher .ph { transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
+  :root[data-menu-recolhido] .side .recolher .ph { transform: rotate(180deg); }
+
+  /* Recolhido */
+  :root[data-menu-recolhido] .app-shell.cc > .side { padding: 18px 10px 14px; }
+  :root[data-menu-recolhido] .side .marca .logo, :root[data-menu-recolhido] .side .marca span, :root[data-menu-recolhido] .side .nav .rot { opacity: 0; pointer-events: none; }
+  :root[data-menu-recolhido] .side .marca .simb { opacity: 1; transform: translateX(-50%) scale(1); }
+  :root[data-menu-recolhido] .side .grupo > span { opacity: 0; max-height: 0; padding-bottom: 0; }
+  :root[data-menu-recolhido] .side .grupo { gap: 4px; }
+  :root[data-menu-recolhido] .side .nav { padding: 0 15px; gap: 0; }
+  :root[data-menu-recolhido] .side .nav .rot { width: 0; flex: 0 0 0; }
+  :root[data-menu-recolhido] .side .nav .badge { position: absolute; top: 2px; right: 4px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; }
+  :root[data-menu-recolhido] .side .nav[aria-current="page"]::after { left: -10px; }
+  :root[data-menu-recolhido] .side nav { margin: 0 -10px; padding: 0 10px; }
+  /* No Centro o nome da marca quebra em linhas (invisiveis) e a faixa da marca fica com 98,5 px recolhida; mantida igual. */
+  :root[data-menu-recolhido] .side .marca { min-height: 98.5px; }
+  .side .marca img { max-width: 100%; }
+  :root[data-menu-recolhido] .side .quem { flex-direction: column; padding: 10px 0 0; }
+  :root[data-menu-recolhido] .side .quem .nome { display: none; }
+  .side .menu-dica { position: fixed; z-index: 60; transform: translateY(-50%); padding: 7px 11px; border-radius: 8px; background: #0b3544; color: #fefefe; font: 500 12.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; white-space: nowrap; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); pointer-events: none; animation: cc-menu-dica .18s cubic-bezier(.2, .8, .2, 1) both; }
+
+  /* Barra do topo */
+  .app-shell.cc > .top { grid-column: 2; grid-row: 1; position: relative; z-index: 20; height: var(--top-h); display: flex; align-items: center; gap: 16px; padding: 0 24px 0 32px; background: var(--color-surface); box-shadow: 0 1px 0 var(--color-divider); min-width: 0; }
+  .top .espaco { flex: 1; }
+  .top .ancora { position: relative; display: flex; align-items: center; }
+  .top .ponto-aviso { position: absolute; top: 7px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: #12a9d1; box-shadow: 0 0 0 2px var(--color-surface); }
+  .busca { position: relative; width: 440px; min-width: 220px; flex: 0 1 440px; }
+  .busca > .ph { position: absolute; left: 12px; top: 11px; font-size: 18px; color: var(--color-neutral-300); pointer-events: none; }
+  .busca .inp { padding: 0 60px 0 40px; background: var(--color-bg); cursor: text; }
+  .busca input::-webkit-search-cancel-button { display: none; }
+  .busca kbd { position: absolute; right: 10px; top: 10px; height: 20px; padding: 0 6px; border-radius: 5px; border: 0; background: transparent; box-shadow: inset 0 0 0 1px var(--color-divider); font: 11px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-neutral-300); display: grid; place-items: center; }
+  .pop { position: absolute; z-index: 40; background: var(--color-surface); border-radius: 14px; box-shadow: var(--shadow-pop); animation: cc-fade-up .18s ease both; }
+  .res { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--color-text); text-align: left; cursor: pointer; font: inherit; }
+  .res:hover, .res[aria-selected="true"] { background: var(--color-accent-900); }
+  .res .ic { width: 30px; height: 30px; border-radius: 9px; background: var(--color-accent-900); color: var(--color-accent-300); display: grid; place-items: center; flex: none; }
+  .res .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .res .tx b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .res .tx span { font-size: 11.5px; color: var(--color-neutral-300); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .selo { height: 32px; padding: 0 12px; border: 0; border-radius: 16px; font: 600 12px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; display: flex; align-items: center; gap: 7px; cursor: pointer; white-space: nowrap; }
+  .selo .ponto { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .selo.ok { background: var(--c-ok-soft); color: var(--c-ok); }
+  .selo.ok .ponto { background: #3ccf8e; }
+  .selo.off { background: var(--c-warn-soft); color: var(--c-warn); }
+  .selo.off .ponto { background: #e0a33a; }
+  .selo.enviando { background: var(--color-accent-900); color: var(--color-accent-300); }
+  .selo.enviando .ponto { background: #12a9d1; animation: cc-blink 1s ease-in-out infinite; }
+  .selo.falha { background: var(--c-err-soft); color: var(--c-err); }
+  .selo.falha .ponto { background: #b8452c; }
+  .selo.local { background: var(--c-muted-soft); color: var(--c-muted); }
+  .selo.local .ponto { background: var(--color-neutral-500); }
+
+  .suite { position: relative; }
+  .suite > .btn { height: 36px; padding: 0 12px; }
+  .suite > .btn .ph { color: var(--color-accent-300); }
+  .suite .pop { right: 0; top: 46px; width: 300px; padding: 8px; }
+  .suite .pop .lbl { display: block; padding: 6px 10px 8px; color: var(--color-accent-300); }
+  .suite .res { padding: 9px 10px; border-radius: 10px; text-decoration: none; }
+  .suite .res.atual { background: var(--color-accent-900); cursor: default; }
+  .suite .res .ic { width: 32px; height: 32px; }
+  .suite .sep { height: 1px; margin: 6px 4px; background: var(--color-divider); }
+}
+
+/* Abaixo de 1280 px o espacamento do topo encurta (igual ao Centro). */
+@media (min-width: 768px) and (max-width: 1279px) { .app-shell.cc > .top { gap: 12px; padding: 0 20px 0 24px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-anima .app-shell.cc, .menu-anima .app-shell.cc > .side, .side .nav, .side .nav::before, .side .nav .ph, .side .nav .rot, .side .recolher, .side .recolher .ph, .side .marca .simb { transition: none; }
+  .side .nav[aria-current="page"]::after, .side .menu-dica { animation: none; }
+}

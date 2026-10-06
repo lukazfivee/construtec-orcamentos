@@ -24,17 +24,17 @@
   --focus: #12a9d1;
 
   /* Acento (preenchimentos mantêm o valor nos dois temas; texto usa os tokens --tx-*) */
-  --blue: #0b7690;
-  --blue-hover: #09627a;
-  --blue-ink: #0a6b86;
+  --blue: #0a7896;
+  --blue-hover: #0b4a5c;
+  --blue-ink: #0a7896;
   --blue-soft: #e8f8fc;
   --green: #178442;
-  --green-ink: #15803d;
+  --green-ink: #1d7a4f;
   --green-soft: #f0f9f2;
   --amber: #9a5b00;
   --amber-soft: #fff5d9;
-  --danger: #b42318;
-  --danger-soft: #fff1f0;
+  --danger: #b8452c;
+  --danger-soft: #fdecea;
 
   /* Preenchimentos escuros com texto claro por cima */
   --fill-ink: #0b2530;
@@ -46,20 +46,20 @@
   --bd-muted: #5d7480;
 
   /* Status das propostas */
-  --status-draft-text: #8a4e00;
-  --status-draft-bg: #fef3e6;
-  --status-draft-border: #f1d693;
-  --status-review-text: #0b4a5c;
+  --status-draft-text: #8a5200;
+  --status-draft-bg: #fff5d9;
+  --status-draft-border: #e0a33a;
+  --status-review-text: #0a7896;
   --status-review-bg: #e8f8fc;
   --status-review-border: #b6e8f5;
   --status-sent-text: #55278c;
   --status-sent-bg: #f4ecfc;
   --status-sent-border: #dec3f5;
-  --status-approved-text: #176d39;
-  --status-approved-bg: #f0f9f2;
+  --status-approved-text: #1d7a4f;
+  --status-approved-bg: #e3f6ec;
   --status-approved-border: #94d3a8;
-  --status-rejected-text: #9e2323;
-  --status-rejected-bg: #fdeeee;
+  --status-rejected-text: #b8452c;
+  --status-rejected-bg: #fdecea;
   --status-rejected-border: #f9bebe;
 
   /* Catálogo, importação e kits (.od-) */
@@ -127,7 +127,7 @@
   --tx-amber-50: #f59e0b;
   --tx-cool-15: #132038;
   --tx-cool-39: #536074;
-  --tx-cool-30: #0b7690;
+  --tx-cool-30: #0a7896;
   --tx-cool-33: #445064;
   --tx-red-46: #bd2f2f;
   --tx-amber-30: #9a5b00;
@@ -242,36 +242,36 @@
   color-scheme: dark;
 
   /* Marca e navegação */
-  --nav: #021820;
+  --nav: #031f29;
   --nav-muted: #b9d4dd;
 
   /* Texto */
-  --ink: #e6f0f3;
-  --ink-secondary: #c2d6dd;
-  --muted: #9bb3bd;
-  --muted-ink: #b3c7cf;
+  --ink: #f2f8fa;
+  --ink-secondary: #d6e8ee;
+  --muted: #b9d4dd;
+  --muted-ink: #b9d4dd;
 
   /* Superfícies e linhas */
-  --surface: #0b2a36;
-  --surface-subtle: #07202a;
-  --line: #1b4352;
-  --line-strong: #4d7a8a;
-  --bg-line: #1b4352;
-  --bg-line-strong: #4d7a8a;
-  --focus: #3cc4e8;
+  --surface: #0b2f3b;
+  --surface-subtle: #031f29;
+  --line: #164656;
+  --line-strong: #5a8493;
+  --bg-line: #164656;
+  --bg-line-strong: #5a8493;
+  --focus: #5fd0ee;
 
   /* Acento (preenchimentos mantêm o valor nos dois temas; texto usa os tokens --tx-*) */
-  --blue: #0b7690;
-  --blue-hover: #0f8aa8;
-  --blue-ink: #7cd6ee;
-  --blue-soft: #0d3a49;
+  --blue: #0a7896;
+  --blue-hover: #0b4a5c;
+  --blue-ink: #5fd0ee;
+  --blue-soft: #0a3a48;
   --green: #178442;
-  --green-ink: #4ade80;
-  --green-soft: #0f2f24;
+  --green-ink: #3ccf8e;
+  --green-soft: #124547;
   --amber: #9a5b00;
-  --amber-soft: #3a2e12;
-  --danger: #ff9b8c;
-  --danger-soft: #3b1c1d;
+  --amber-soft: #2b423c;
+  --danger: #ff9d8a;
+  --danger-soft: #323b42;
 
   /* Preenchimentos escuros com texto claro por cima */
   --fill-ink: #1a6580;
@@ -279,39 +279,39 @@
   --fill-muted: #3a6071;
   --on-fill: #fefefe;
   --bd-ink: #9cb9c4;
-  --bd-surface: #0b2a36;
+  --bd-surface: #0b2f3b;
   --bd-muted: #6f909d;
 
   /* Status das propostas */
-  --status-draft-text: #f2b55f;
-  --status-draft-bg: #3b2a12;
+  --status-draft-text: #f2b544;
+  --status-draft-bg: #2b423c;
   --status-draft-border: #6b5320;
-  --status-review-text: #8fdcf2;
-  --status-review-bg: #0d3a49;
+  --status-review-text: #5fd0ee;
+  --status-review-bg: #0a3a48;
   --status-review-border: #1e6479;
   --status-sent-text: #d2b4f5;
   --status-sent-bg: #2c1d42;
   --status-sent-border: #573a85;
-  --status-approved-text: #7fe0a1;
-  --status-approved-bg: #0f2f24;
+  --status-approved-text: #3ccf8e;
+  --status-approved-bg: #124547;
   --status-approved-border: #27694a;
-  --status-rejected-text: #ffaaa0;
-  --status-rejected-bg: #3b1c1d;
+  --status-rejected-text: #ff9d8a;
+  --status-rejected-bg: #323b42;
   --status-rejected-border: #7a3434;
 
   /* Catálogo, importação e kits (.od-) */
-  --od-accent: #3cc4e8;
-  --od-accent-300: #7cd6ee;
-  --od-accent-700: #a6e4f4;
-  --od-accent-900: #0d3a49;
-  --od-ok-bg: #0f2f24;
-  --od-ok-fg: #6fdca0;
-  --od-warn-bg: #3a2e12;
-  --od-warn-fg: #f2b55f;
-  --od-bad-bg: #3b1c1d;
-  --od-bad-fg: #ffa08c;
-  --od-neu-bg: #14343f;
-  --od-neu-fg: #b3c9d1;
+  --od-accent: #12a9d1;
+  --od-accent-300: #5fd0ee;
+  --od-accent-700: #0b5a70;
+  --od-accent-900: #0a3a48;
+  --od-ok-bg: #124547;
+  --od-ok-fg: #3ccf8e;
+  --od-warn-bg: #2b423c;
+  --od-warn-fg: #f2b544;
+  --od-bad-bg: #323b42;
+  --od-bad-fg: #ff9d8a;
+  --od-neu-bg: #20434e;
+  --od-neu-fg: #b9d4dd;
 
   /* Sombras */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, .35);

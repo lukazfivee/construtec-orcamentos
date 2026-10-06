@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { ArrowUpRight, Building2, ChevronRight, CornerDownRight, FileText, Layers, Wrench, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
-import { CHAMADOPRO_URL } from './SuiteSwitcherPopover';
+import { CHAMADOPRO_URL, SUITE_MENU_TITLE } from './suiteMenu';
 
 // Seletor "Suite" no celular (Fase 4 da Suite mobile): folha inferior com os
 // apps da esteira. Dentro do app Android, Orcamentos e Centro de Custos trocam
@@ -44,7 +44,7 @@ export function MobileSuiteSheet({ proposal, onClose }: Props) {
       <div className="proposal-mobile-sheet suite-sheet" role="dialog" aria-modal="true" aria-labelledby="suite-sheet-title" onClick={(event) => event.stopPropagation()}>
         <div className="proposal-mobile-sheet-handle" />
         <div className="proposal-mobile-sheet-head">
-          <b id="suite-sheet-title"><Layers size={16} /> Esteira Operacional Construtec</b>
+          <b id="suite-sheet-title"><Layers size={16} /> {SUITE_MENU_TITLE}</b>
           <button type="button" aria-label="Fechar" onClick={onClose}><X size={18} /></button>
         </div>
 

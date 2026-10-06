@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { MailCheck, Save, Trash2, UserPlus, Users } from 'lucide-react';
 import type { AuthRole, AuthUser, AuthorizedEmailRecord, UserRecord } from '../shared/contracts';
 import { usersApi } from './api';
+import { SettingsCard } from './SettingsSections';
 
 // Contas sao do Centro de Custos (identidade compartilhada). Aqui o admin do
 // Orcamentos cria, desativa e exclui logins pelo diretorio central e escolhe o
@@ -11,9 +12,6 @@ type NewUserDraft = { name: string; email: string; password: string; role: AuthR
 
 const emptyUser: NewUserDraft = { name: '', email: '', password: '', role: 'commercial' };
 const roleLabels: Record<AuthRole, string> = { admin: 'Administrador', commercial: 'Comercial', viewer: 'Consulta' };
-const card = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', padding: '20px' } as const;
-const field = { display: 'grid', gap: '5px', fontSize: '10px' } as const;
-const secondaryButton = { height: '34px', padding: '0 10px', background: 'var(--surface)', border: '1px solid var(--line-strong)', borderRadius: '6px', cursor: 'pointer' } as const;
 
 type Props = {
   currentUser: AuthUser;
@@ -103,54 +101,49 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
   };
 
   return (
-    <section className="settings-card" style={card}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid var(--bd-cool-95-3)', paddingBottom: '12px' }}>
-        <Users size={19} color="var(--tx-cool-28-3)" />
-        <div><h2 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>Usuários e Permissões</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--muted)' }}>As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.</p></div>
-      </div>
-
-      <form onSubmit={createUser} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.25fr .9fr .85fr auto', gap: '8px', alignItems: 'end', padding: '12px', background: 'var(--surface-subtle)', border: '1px solid var(--line)', borderRadius: '6px', marginBottom: '14px' }}>
-        <label style={field}><span>Nome</span><input required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
-        <label style={field}><span>E-mail</span><input required type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>
-        <label style={field}><span>Senha inicial</span><input required type="password" minLength={10} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} /></label>
-        <label style={field}><span>Perfil no Orçamentos</span><select value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value as AuthRole })}><option value="commercial">Comercial</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
-        <button type="submit" className="primary" disabled={pending} style={{ height: '36px', border: '1px solid #12a9d1', borderRadius: '6px', padding: '0 12px' }}><UserPlus size={15} /> Criar</button>
+    <SettingsCard icon={Users} title="Usuários e Permissões" sub="As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.">
+      <form onSubmit={createUser} className="st-new-user">
+        <label className="od-fld"><span>Nome</span><input className="od-inp" required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
+        <label className="od-fld"><span>E-mail</span><input className="od-inp" required type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>
+        <label className="od-fld"><span>Senha inicial</span><input className="od-inp" required type="password" minLength={10} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} /></label>
+        <label className="od-fld"><span>Perfil no Orçamentos</span><select className="od-inp" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value as AuthRole })}><option value="commercial">Comercial</option><option value="viewer">Consulta</option><option value="admin">Administrador</option></select></label>
+        <button type="submit" className="od-btn p" disabled={pending}><UserPlus size={17} strokeWidth={1.5} /> Criar</button>
       </form>
 
-      <div style={{ display: 'grid', gap: '10px' }}>
+      <div className="st-users">
         {users.map((user) => (
-          <div key={user.id} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.25fr .82fr auto', gap: '8px 10px', alignItems: 'end', padding: '12px', border: '1px solid var(--line)', borderRadius: '6px', background: user.active ? 'var(--surface)' : 'var(--bg-cool-98)', opacity: user.active ? 1 : .72 }}>
-            <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: 'var(--muted)' }}><span>Nome {user.id === currentUser.id ? '• Você' : ''}</span><strong style={{ fontSize: '12px', color: 'var(--tx-cool-16)' }}>{user.name}</strong></div>
-            <div style={{ display: 'grid', gap: '4px', fontSize: '9px', color: 'var(--muted)' }}><span>E-mail</span><span style={{ fontSize: '12px', color: 'var(--tx-cool-16)' }}>{user.email}</span></div>
-            <label style={{ display: 'grid', gap: '4px', fontSize: '9px', color: 'var(--muted)' }} title={user.centroAdmin ? 'Administrador no Centro de Custos: o perfil muda lá.' : undefined}><span>Perfil{user.centroAdmin ? ' · pelo Centro' : ''}</span><select disabled={user.centroAdmin} value={user.role} onChange={(e) => updateDraft(user.id, { role: e.target.value as AuthRole })}>{Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-            <div style={{ display: 'flex', alignItems: 'end', gap: '7px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px', height: '36px', fontSize: '10px' }}><input type="checkbox" checked={user.active} onChange={(e) => updateDraft(user.id, { active: e.target.checked })} /> Ativo</label>
-              <button type="button" onClick={() => saveUser(user)} disabled={pending} style={secondaryButton}><Save size={14} /> Salvar</button>
-              {user.id !== currentUser.id && <button type="button" onClick={() => removeUser(user)} disabled={pending} style={{ ...secondaryButton, color: 'var(--danger)' }} aria-label={`Excluir login de ${user.name}`}><Trash2 size={14} /> Excluir login</button>}
+          <div key={user.id} className={`st-user${user.active ? '' : ' off'}`}>
+            <div className="st-cell"><span>Nome {user.id === currentUser.id ? '· Você' : ''}</span><strong>{user.name}</strong></div>
+            <div className="st-cell"><span>E-mail</span><strong>{user.email}</strong></div>
+            <label className="od-fld" title={user.centroAdmin ? 'Administrador no Centro de Custos: o perfil muda lá.' : undefined}><span>Perfil{user.centroAdmin ? ' · pelo Centro' : ''}</span><select className="od-inp" disabled={user.centroAdmin} value={user.role} onChange={(e) => updateDraft(user.id, { role: e.target.value as AuthRole })}>{Object.entries(roleLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <div className="st-user-actions">
+              <label className="st-check"><input type="checkbox" checked={user.active} onChange={(e) => updateDraft(user.id, { active: e.target.checked })} /> Ativo</label>
+              <button type="button" className="od-btn s sm" onClick={() => saveUser(user)} disabled={pending}><Save size={15} strokeWidth={1.5} /> Salvar</button>
+              {user.id !== currentUser.id && <button type="button" className="od-btn s sm danger" onClick={() => removeUser(user)} disabled={pending} aria-label={`Excluir login de ${user.name}`}><Trash2 size={15} strokeWidth={1.5} /> Excluir login</button>}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--bd-cool-95-3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <MailCheck size={16} color="var(--tx-cool-28-3)" />
-          <div><h3 style={{ margin: 0, fontSize: '12px', fontWeight: 700 }}>E-mails externos autorizados</h3><p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--muted)' }}>Contas fora do domínio @rcconstrutec.com.br só podem ser criadas para e-mails desta lista.</p></div>
+      <div className="st-sub">
+        <div className="st-subhead">
+          <MailCheck size={18} strokeWidth={1.5} />
+          <div><h3>E-mails externos autorizados</h3><p>Contas fora do domínio @rcconstrutec.com.br só podem ser criadas para e-mails desta lista.</p></div>
         </div>
-        <form onSubmit={authorizeEmail} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.3fr auto', gap: '8px', alignItems: 'end', marginBottom: '10px' }}>
-          <label style={field}><span>E-mail</span><input required type="email" maxLength={254} value={newEmail.email} onChange={(e) => setNewEmail({ ...newEmail, email: e.target.value })} /></label>
-          <label style={field}><span>Observação</span><input maxLength={200} value={newEmail.note} placeholder="Ex.: vendedor terceirizado" onChange={(e) => setNewEmail({ ...newEmail, note: e.target.value })} /></label>
-          <button type="submit" disabled={pending} style={secondaryButton}>Autorizar</button>
+        <form onSubmit={authorizeEmail} className="st-auth">
+          <label className="od-fld"><span>E-mail</span><input className="od-inp" required type="email" maxLength={254} value={newEmail.email} onChange={(e) => setNewEmail({ ...newEmail, email: e.target.value })} /></label>
+          <label className="od-fld"><span>Observação</span><input className="od-inp" maxLength={200} value={newEmail.note} placeholder="Ex.: vendedor terceirizado" onChange={(e) => setNewEmail({ ...newEmail, note: e.target.value })} /></label>
+          <button type="submit" className="od-btn s" disabled={pending}>Autorizar</button>
         </form>
         {emails.length === 0
-          ? <p style={{ fontSize: '10px', color: 'var(--muted)', margin: 0 }}>Nenhum e-mail externo autorizado.</p>
+          ? <p className="st-empty">Nenhum e-mail externo autorizado.</p>
           : emails.map((row) => (
-            <div key={row.email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: '1px solid var(--bd-cool-95-3)', fontSize: '11px' }}>
-              <span><strong>{row.email}</strong>{row.note ? <span style={{ color: 'var(--muted)' }}> · {row.note}</span> : null}</span>
-              <button type="button" onClick={() => revokeEmail(row.email)} disabled={pending} style={{ ...secondaryButton, height: '28px' }}>Revogar</button>
+            <div key={row.email} className="st-mail">
+              <span><strong>{row.email}</strong>{row.note ? <span className="muted"> · {row.note}</span> : null}</span>
+              <button type="button" className="od-btn s sm" onClick={() => revokeEmail(row.email)} disabled={pending}>Revogar</button>
             </div>
           ))}
       </div>
-    </section>
+    </SettingsCard>
   );
 }
