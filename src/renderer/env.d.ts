@@ -1,3 +1,4 @@
+import type { UpdaterState } from '../main/updater';
 import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ExsatSyncInfo, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 
 export {};
@@ -30,6 +31,11 @@ declare global {
       previewExsatAuto: () => Promise<ExsatBatchPreview>;
       exsatSyncInfo: () => Promise<ExsatSyncInfo>;
       recordExsatSync: (result: { created: number; updated: number }) => Promise<ExsatSyncInfo>;
+      updaterState?: () => Promise<UpdaterState>;
+      checkForUpdate?: () => Promise<UpdaterState>;
+      downloadUpdate?: () => Promise<UpdaterState>;
+      installUpdate?: () => Promise<UpdaterState>;
+      onUpdaterChange?: (callback: (state: UpdaterState) => void) => () => void;
       onExsatValidationProgress?: (callback: (data: { current: number; total: number; code: string }) => void) => () => void;
     };
   }

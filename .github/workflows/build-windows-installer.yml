@@ -53,7 +53,10 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Construtec-Orcamentos-Setup
-          path: out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe
+          path: |
+            out/make/squirrel.windows/x64/Construtec-Orcamentos-Setup.exe
+            out/make/squirrel.windows/x64/RELEASES
+            out/make/squirrel.windows/x64/*-full.nupkg
           if-no-files-found: error
           retention-days: 7
 
@@ -110,6 +113,35 @@ jobs:
             gh release upload $tag $asset --repo ${{ github.repository }} --clobber
             gh release edit $tag --repo ${{ github.repository }} --target ${{ github.sha }} --title 'Último instalador Windows' --notes 'Instalador mais recente do Construtec Orçamentos para Windows x64.' --latest
           }
+
+      - name: Publicar feed de atualização do aplicativo
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Feed do atualizador embutido no app (Squirrel.Windows): release fixa "windows-updates" com RELEASES + nupkg + latest.json.
+          # Só publica quando a versão do package.json ainda não tem pacote no feed; nunca sobrescreve um nupkg existente.
+          $dir = 'out/make/squirrel.windows/x64'
+          $tag = 'windows-updates'
+          $repo = '${{ github.repository }}'
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $nupkg = Get-ChildItem "$dir/*-$version-full.nupkg" | Select-Object -First 1
+          if (-not $nupkg) { throw "Pacote completo da versão $version não encontrado em $dir." }
+          if (-not (Test-Path "$dir/RELEASES")) { throw 'Arquivo RELEASES não encontrado.' }
+          gh release view $tag --repo $repo 2>$null | Out-Null
+          $exists = ($LASTEXITCODE -eq 0)
+          if ($exists) {
+            $names = gh release view $tag --repo $repo --json assets --jq '.assets[].name'
+            if ($names -contains $nupkg.Name) { Write-Host "Versão $version já está no feed; nada a publicar."; exit 0 }
+          } else {
+            gh release create $tag --repo $repo --target ${{ github.sha }} --title 'Feed de atualização do aplicativo' --notes 'Arquivos lidos pelo atualizador do Construtec Orçamentos. Não baixe daqui; use a release windows-latest.' --latest=false
+          }
+          $notes = if (Test-Path 'release-notes.txt') { (Get-Content 'release-notes.txt' -Raw -Encoding UTF8).Trim() } else { '' }
+          [pscustomobject]@{ version = $version; notes = $notes; publishedAt = (Get-Date).ToUniversalTime().ToString('o') } | ConvertTo-Json | Set-Content "$dir/latest.json" -Encoding UTF8
+          # Ordem importa: o pacote primeiro; RELEASES por último, só então os apps enxergam a versão nova.
+          gh release upload $tag $nupkg.FullName --repo $repo
+          gh release upload $tag "$dir/latest.json" --repo $repo --clobber
+          gh release upload $tag "$dir/RELEASES" --repo $repo --clobber
 
       - name: Publicar release versionada quando solicitado
         if: contains(github.event.head_commit.message, '[release]')

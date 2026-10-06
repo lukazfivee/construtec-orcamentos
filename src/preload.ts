@@ -20,6 +20,15 @@ contextBridge.exposeInMainWorld('construtec', {
   previewExsatAuto: () => ipcRenderer.invoke('exsat:preview-auto'),
   exsatSyncInfo: () => ipcRenderer.invoke('exsat:sync-info'),
   recordExsatSync: (result: { created: number; updated: number }) => ipcRenderer.invoke('exsat:record-sync', result),
+  updaterState: () => ipcRenderer.invoke('updater:state'),
+  checkForUpdate: () => ipcRenderer.invoke('updater:check'),
+  downloadUpdate: () => ipcRenderer.invoke('updater:download'),
+  installUpdate: () => ipcRenderer.invoke('updater:install'),
+  onUpdaterChange: (callback: (state: unknown) => void) => {
+    const listener = (_event: unknown, state: unknown) => callback(state);
+    ipcRenderer.on('updater:changed', listener);
+    return () => { ipcRenderer.removeListener('updater:changed', listener); };
+  },
   onExsatValidationProgress: (callback: (data: { current: number; total: number; code: string }) => void) => {
     const listener = (_event: unknown, data: { current: number; total: number; code: string }) => callback(data);
     ipcRenderer.on('exsat:validation-progress', listener);
