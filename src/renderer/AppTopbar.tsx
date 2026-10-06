@@ -15,6 +15,7 @@ import { isCloudRuntime } from './api';
 import { HelpModal } from './HelpModal';
 import { MobileSuiteSheet } from './MobileSuiteSheet';
 import { NotificationsPopover } from './NotificationsPopover';
+import { UpdateNotice } from './UpdateNotice';
 import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
 import { UserProfilePopover } from './UserProfilePopover';
 import { useTheme } from './theme';
@@ -106,6 +107,7 @@ export function AppTopbar({
         </button>
 
         <div className="top-actions">
+            <UpdateNotice />
             {/* Suíte Construtec / App Switcher */}
             <div className="top-action-anchor suite-switcher-container">
               <button

@@ -15,6 +15,7 @@ const entryPoints = [
   'src/server/services/proposal-sealing.test.ts',
   'src/server/services/calculations.test.ts',
   'src/main/exsatValidation.test.ts',
+  'src/main/updater.test.ts',
   'src/server/services/integration/integration-key.test.ts',
   'src/server/services/centro-identity.test.ts',
   'src/server/suiteGuard.test.ts',

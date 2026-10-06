@@ -4,6 +4,7 @@ import type { AppSettings } from '../shared/contracts';
 import { settingsApi } from './api';
 import { Seg } from './orcDeskUi';
 import { useSuitePermission } from './SuitePermissions';
+import { setUnsavedChanges } from './unsavedChanges';
 
 type Draft = Pick<AppSettings, 'defaultBdi' | 'defaultTaxPercentage' | 'defaultValidityDays' | 'pdfShowLogo' | 'pdfShowSignature'>;
 
@@ -43,6 +44,7 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
   useEffect(() => { setDraft(fromSettings(settings)); }, [settings]);
   const base = fromSettings(settings);
   const dirty = (Object.keys(draft) as Array<keyof Draft>).some((key) => (key === 'defaultBdi' && !seesBdi ? false : draft[key] !== base[key]));
+  useEffect(() => { setUnsavedChanges('padroes-da-empresa', dirty); return () => setUnsavedChanges('padroes-da-empresa', false); }, [dirty]);
   const off = loading || !isAdmin || saving;
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const days = VALIDITY.includes(draft.defaultValidityDays) ? VALIDITY : [...VALIDITY, draft.defaultValidityDays].sort((a, b) => a - b);

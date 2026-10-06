@@ -76,3 +76,9 @@ npm run make:windows
 - arquitetura preparada para futura integração ao Centro de Custos Construtec V3.
 
 Consulte [PRODUCT.md](PRODUCT.md) para o contexto durável do produto.
+
+## Atualização pelo próprio aplicativo (Windows)
+
+O app instalado pelo Squirrel verifica sozinho se há versão nova (ao abrir e no máximo a cada 6 horas) e também em **Configurações > Atualização do aplicativo**. O feed é a release fixa `windows-updates` deste repositório (público, sem token): `RELEASES`, `*-full.nupkg` e `latest.json` (notas).
+
+Para lançar uma versão: suba a versão em `package.json`, escreva as notas em `release-notes.txt` e faça merge em `main`. O workflow publica o feed só quando a versão ainda não existe nele (o `RELEASES` é enviado por último). Sem aumento de versão nada muda para quem já usa o app. A primeira instalação que contém o atualizador precisa ser manual; dali em diante o app se atualiza. Para testar contra outro feed, defina `CONSTRUTEC_UPDATE_URL`.

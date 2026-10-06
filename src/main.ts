@@ -9,6 +9,7 @@ import { buildProposalDocx, buildProposalHtml, proposalFileBaseName, proposalPdf
 import { selectCatalogImport } from './main/catalogImport';
 import { normalizeCatalogImportFile } from './main/catalogImportNormalize';
 import { disconnectExsat, exsatConnectionStatus, getExsatSyncInfo, openExsatLogin, previewAuthenticatedExsat, previewAuthenticatedExsatAuto, previewAuthenticatedExsatBatch, recordExsatSyncResult } from './main/exsatSession';
+import { registerUpdaterIpc } from './main/updaterIpc';
 import { disconnectWebmail, openWebmailWindow, webmailConnectionStatus } from './main/webmailSession';
 
 
@@ -245,6 +246,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('exsat:sync-info', () => getExsatSyncInfo());
   ipcMain.handle('exsat:record-sync', (_event, result: { created: number; updated: number }) => recordExsatSyncResult(result));
 
+  registerUpdaterIpc();
   await createWindow();
 
   app.on('activate', () => {

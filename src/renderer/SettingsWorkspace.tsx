@@ -14,6 +14,7 @@ import { DiscardedProposalsPanel } from './DiscardedProposalsPanel';
 import { authApi, settingsApi, systemApi } from './api';
 import { CompanyDefaultsPanel } from './CompanyDefaultsPanel';
 import { AppearancePanel } from './AppearancePanel';
+import { AppUpdatePanel } from './AppUpdatePanel';
 import { UsersAdminPanel } from './UsersAdminPanel';
 
 type SettingsWorkspaceProps = {
@@ -146,6 +147,8 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
           )}
 
           <AppearancePanel />
+
+          <AppUpdatePanel />
 
           <CompanyDefaultsPanel settings={settings} loading={loading} isAdmin={isAdmin} onSaved={setSettings} onNotice={onNotice} onError={onError} />
 

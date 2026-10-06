@@ -43,6 +43,7 @@ import './mobile-suite.css';
 import './menu-lateral.css';
 import './proposal-pages.css';
 import './theme-dark.css';
+import './updater.css';
 
 const rootElement = document.getElementById('root');
 
