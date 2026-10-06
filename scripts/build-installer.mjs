@@ -84,7 +84,7 @@ try {
     appDirectory: stagedAppDir,
     outputDirectory: stagedOutputDir,
     exe: 'ConstrutecOrcamentos.exe',
-    setupExe: 'Construtec-Orcamentos-1.0.5-Setup.exe',
+    setupExe: 'Construtec-Orcamentos-1.0.6-Setup.exe',
     title: 'Construtec Orçamentos',
     authors: 'Construtec Engenharia',
     description: 'Orçamentos profissionais, rápidos, seguros e offline para a Construtec Engenharia.',
@@ -115,7 +115,7 @@ try {
   }
 
   // Garantir atalho Setup.exe para compatibilidade
-  const namedSetup = path.join(finalOutputDir, 'Construtec-Orcamentos-1.0.5-Setup.exe');
+  const namedSetup = path.join(finalOutputDir, 'Construtec-Orcamentos-1.0.6-Setup.exe');
   const genericSetup = path.join(finalOutputDir, 'Setup.exe');
   if (existsSync(namedSetup) && !existsSync(genericSetup)) {
     copyFileSync(namedSetup, genericSetup);
