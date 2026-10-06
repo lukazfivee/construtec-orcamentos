@@ -193,7 +193,7 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
                 <div><h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>Ambiente e Armazenamento Local</h2><p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--muted)' }}>Arquitetura Local-First Construtec Orçamentos.</p></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px', fontSize: '11px' }}>
-                <div style={{ background: 'var(--surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}><span style={{ color: 'var(--muted)', display: 'block', fontSize: '10px' }}>Versão do App</span><b style={{ color: 'var(--ink)', fontSize: '13px' }}>v1.0.5</b></div>
+                <div style={{ background: 'var(--surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}><span style={{ color: 'var(--muted)', display: 'block', fontSize: '10px' }}>Versão do App</span><b style={{ color: 'var(--ink)', fontSize: '13px' }}>v1.0.6</b></div>
                 <div style={{ background: 'var(--surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}><span style={{ color: 'var(--muted)', display: 'block', fontSize: '10px' }}>Banco Local</span><b style={{ color: 'var(--tx-green-30)', fontSize: '13px' }}>PGlite / PostgreSQL</b></div>
                 <div style={{ background: 'var(--surface)', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--line)' }}><span style={{ color: 'var(--muted)', display: 'block', fontSize: '10px' }}>Modo de Operação</span><b style={{ color: 'var(--tx-cool-28-3)', fontSize: '13px' }}>Offline Local-First</b></div>
               </div>
