@@ -3,6 +3,8 @@ name: Backup PostgreSQL (nuvem)
 # Dump diario do banco Neon do Construtec Orçamentos. O repositorio e publico e
 # artifacts podem ser baixados por qualquer usuario logado no GitHub, por isso
 # o arquivo sai sempre criptografado (GPG simetrico, AES256) antes do upload.
+# A conta da Exsat (tabela exsat_credentials, senha ja criptografada no banco) fica de fora do dump: depois de restaurar, o
+# administrador digita a conta de novo.
 # Segredos: ORCAMENTOS_BACKUP_DATABASE_URL (usuario somente leitura) e
 # BACKUP_PASSPHRASE. Restauracao: docs/BACKUP-NUVEM.md (repositorio do Centro de Custos).
 
@@ -41,7 +43,7 @@ jobs:
           # Roda como o usuario do runner: arquivos criados como root nao
           # poderiam ser apagados com shred depois.
           docker run --rm --user "$(id -u):$(id -g)" -e DATABASE_URL -v "$PWD:/out" postgres:17-alpine \
-            sh -c 'pg_dump --format=custom --no-owner --no-privileges --dbname="$DATABASE_URL" --file=/out/orcamentos.dump \
+            sh -c 'pg_dump --format=custom --no-owner --no-privileges --exclude-table-data=exsat_credentials --dbname="$DATABASE_URL" --file=/out/orcamentos.dump \
               && pg_restore --list /out/orcamentos.dump > /out/orcamentos.list'
           test -s orcamentos.dump
           echo "Objetos no dump: $(grep -vc '^;' orcamentos.list)"

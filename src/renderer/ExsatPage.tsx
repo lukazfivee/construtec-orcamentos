@@ -76,7 +76,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div>
       <span className="od-bar"><span style={{ width: `${sync.phase.pct}%` }} /></span>
     </div>}
-    {!sync.desktop && <div className="od-note" style={{ margin: '0 20px 18px' }}><Info size={17} /><span>A varredura do EXSAT usa a conta conectada no aplicativo do computador. No site você vê o que mudou no catálogo e atualiza as propostas em edição.</span></div>}
+    {!sync.desktop && <div className="od-note" style={{ margin: '0 20px 18px' }}><Info size={17} /><span>No site, a conta da Exsat fica guardada no servidor e a varredura roda em Catálogo, Importar itens em lote, aba Exsat. Aqui você vê o que mudou no catálogo e atualiza as propostas em edição.</span></div>}
   </div>;
 
   const failure = sync.error ?? (data.error ? { kind: data.error.offline ? 'offline' as const : 'other' as const, message: data.error.message } : null);

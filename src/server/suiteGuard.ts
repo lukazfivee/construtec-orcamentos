@@ -53,6 +53,12 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
     return deny(response, 'Seu acesso não inclui o Orçamentos.');
   }
   const canSee = hasPermission(user, 'p10');
+  // Conta e varredura da Exsat: precos de revendedor (custo), so com p10. Cadastrar, trocar e remover a conta e do administrador.
+  if (path.startsWith('/api/exsat')) {
+    if (!canSee) return deny(response, 'Seu papel não permite usar a integração com a Exsat, que carrega custo.');
+    if (request.method !== 'GET' && path.startsWith('/api/exsat/credential') && user.role !== 'admin') return deny(response, 'Apenas administradores cadastram, trocam ou removem a conta da Exsat.');
+    return next();
+  }
   // Catalogo e kits carregam o custo do item. Sem p10 saem zerados e nao se grava (gravar devolveria o zero).
   if (path.startsWith('/api/catalog') || path.startsWith('/api/kits')) {
     const appliesKit = /^\/api\/kits\/[^/]+\/apply-to-proposal$/.test(path);

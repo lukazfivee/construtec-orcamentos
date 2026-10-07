@@ -20,6 +20,7 @@ import { clientLinksMigration } from '../migrations/017-client-links';
 import { clientLinksHardeningMigration } from '../migrations/018-client-links-hardening';
 import { outboxClaimMigration } from '../migrations/019-outbox-claim';
 import { proposalBodyBlocksMigration } from '../migrations/020-proposal-body-blocks';
+import { exsatServerSyncMigration } from '../migrations/021-exsat-server-sync';
 import { createProposal } from './proposals';
 import { createProposalLaborItem } from './proposalLabor';
 
@@ -33,7 +34,7 @@ export const createCriticalTestDatabase = async (protectApproved = true) => {
     centroAdminMigration,
     proposalCenterSnapshotsMigration,
     discardedProposalsMigration, outboxCenterDiscardedMigration, clientLinksMigration, clientLinksHardeningMigration, outboxClaimMigration,
-    proposalBodyBlocksMigration,
+    proposalBodyBlocksMigration, exsatServerSyncMigration,
     protectApproved ? approvedProposalGuardsMigration : ''].join('\n'));
   const userId = randomUUID(), clientId = randomUUID(), workId = randomUUID();
   await database.query("INSERT INTO users (id,name,email,password_hash,role) VALUES ($1,'Teste','fixture@example.invalid','not-a-password','admin')", [userId]);

@@ -107,8 +107,8 @@
         <div class="kv"><span>Itens no catálogo</span><b>${fmtN(count)}</b></div>
         <div class="kv"><span>Itens com preço novo</span><b>${fmtN(rows.length)}${rows.length ? ` · ${fmtN(up)} subiu, ${fmtN(down)} baixou` : ''}</b></div>
         <div class="kv"><span>Propostas em edição afetadas</span><b>${fmtN(proposals.length)}</b></div>
-        <p class="hint" style="margin-top:6px">A varredura do EXSAT usa a conta conectada no aplicativo do computador. Aqui você vê o que mudou no catálogo e atualiza as propostas em edição.</p>
-        <div class="ex-btns"><button class="btn2" type="button" id="x-reload">Atualizar lista</button>${OC.canEdit() && OC.can('p10') ? `<button class="btn" type="button" id="x-import">Importar página do EXSAT</button>` : ''}</div></div>`;
+        <p class="hint" style="margin-top:6px">A varredura do EXSAT usa a conta conectada, no aplicativo ou no site do computador (Catálogo, Importar itens em lote, aba Exsat). Aqui você vê o que mudou no catálogo e atualiza as propostas em edição.</p>
+        <div class="ex-btns"><button class="btn2" type="button" id="x-reload">Atualizar lista</button></div></div>`;
       const empty = `<div class="empty imp-state">${icon('check-circle', 32)}<b>Nenhum preço mudou</b><span>Os itens das propostas em edição continuam com o mesmo preço do catálogo. Quando o computador atualizar o catálogo pelo EXSAT, os avisos aparecem aqui e dentro de cada proposta.</span></div>`;
       const chips = `<div class="chips wrap" role="group" aria-label="Filtro">${[['todos', `Todos · ${rows.length}`], ['sub', `Subiram · ${up}`], ['des', `Baixaram · ${down}`]].map(([k, l]) => `<button class="chip-act" type="button" data-fil="${k}" aria-pressed="${filter === k}">${l}</button>`).join('')}</div>`;
       const list = rows.length ? `<div class="sec-row"><span class="label">Itens com preço novo</span></div>${chips}
@@ -122,8 +122,6 @@
         <p class="hint">Proposta em revisão, enviada ou aprovada mantém os preços; os novos entram na próxima revisão.</p>` : '';
       body.innerHTML = `${status}${proposals.length ? '' : empty}${list}${props}`;
       OC.$('#x-reload', body).addEventListener('click', () => { if (!busy) load(); });
-      const imp = OC.$('#x-import', body);
-      if (imp) imp.addEventListener('click', () => OC.open('imp'));
       OC.$$('[data-fil]', body).forEach((b) => b.addEventListener('click', () => { filter = b.dataset.fil; paint(proposals, count); }));
       OC.$$('[data-see]', body).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.see, tab: 'itens' })));
       OC.$$('[data-upd]', body).forEach((b) => b.addEventListener('click', () => {

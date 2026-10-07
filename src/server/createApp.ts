@@ -5,6 +5,7 @@ import { createAuthRouter } from './routes/auth';
 import { createCatalogRouter } from './routes/catalog';
 import { createClientsRouter } from './routes/clients';
 import { createDashboardRouter } from './routes/dashboard';
+import { createExsatRouter } from './routes/exsat';
 import { createNotificationsRouter } from './routes/notifications';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
@@ -201,6 +202,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   });
 
   api.use('/api/catalog', createCatalogRouter(database));
+  api.use('/api/exsat', createExsatRouter(database));
   api.use('/api/clients', createClientsRouter(database));
   api.use('/api/proposals', createProposalDiscardRouter(database));
   api.use('/api/proposals', createProposalTrackingRouter(database));
@@ -225,6 +227,12 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
         ? issues.map((i) => `${i.path.length ? i.path.join('.') + ': ' : ''}${i.message}`).join(', ')
         : 'Dados inválidos.';
       response.status(400).json({ error: `Dados inválidos: ${details}` });
+      return;
+    }
+    // Erro ao ler o corpo (JSON invalido ou grande demais): o erro traz o corpo cru, que pode ter senha. Nao vai a log nem a tela.
+    const bodyErrorType = (error as { type?: unknown } | null)?.type;
+    if (typeof bodyErrorType === 'string' && bodyErrorType.startsWith('entity.')) {
+      response.status(bodyErrorType === 'entity.too.large' ? 413 : 400).json({ error: 'Corpo da requisição inválido.' });
       return;
     }
     if (error instanceof CentroIdentityError) {
@@ -315,18 +323,6 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     }
     if (error instanceof Error && error.message === 'KIT_EMPTY') {
       response.status(422).json({ error: 'O kit selecionado não possui itens.' });
-      return;
-    }
-    if (error instanceof Error && error.message === 'EXSAT_URL_INVALID') {
-      response.status(400).json({ error: 'Use um endereço HTTPS do site exsat.com.br.' });
-      return;
-    }
-    if (error instanceof Error && error.message === 'EXSAT_NO_PRODUCTS') {
-      response.status(422).json({ error: 'Nenhum produto foi identificado nessa página da Exsat.' });
-      return;
-    }
-    if (error instanceof Error && error.message === 'EXSAT_UNAVAILABLE') {
-      response.status(502).json({ error: 'Não foi possível consultar a Exsat agora.' });
       return;
     }
     if (error instanceof Error) {

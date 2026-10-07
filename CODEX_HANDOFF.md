@@ -1,5 +1,17 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-10-07 BRT - Login da Exsat no servidor (aba Exsat do site) (Claude Code)
+
+- Base: `origin/main` (com o PR #141), branch `feat/exsat-login-servidor`. Decisões do Lucas: só entra preço lido com login (o caminho público por URL saiu), a senha da Exsat pode passar pelo servidor se for criptografada, o catálogo inteiro pode ser varrido (sem o teto de 500) e só entram itens com preço real (sem preço é contado e informado).
+- Login por HTTP, sem navegador: `GET /central-cliente/login/` e `POST /ajax/actions` (`action=enterAccount`, `email`, `password`; resposta JSON `redirect` ou `danger`). Hoje não há captcha nem token de formulário. Se aparecer desafio, o servidor para com `EXSAT_CHALLENGE` e manda usar o aplicativo (não contorna). Visto só na página pública; nenhum login real foi feito nos testes.
+- Servidor: `exsatCrypto.ts` (AES-256-GCM, chave `EXSAT_CREDENTIAL_KEY` no secret do Worker, falha fechado), migração 021 (`exsat_credentials`, `exsat_sync_jobs`, `exsat_sync_items`), `exsatServerSession.ts` (login, cookie só em memória, pausa depois de falha: 1 min na 1ª recusa, 30 min na 2ª seguida ou com desafio), `exsatSyncRunner.ts` (um departamento por vez, 1,2 a 2 s entre páginas, estado salvo a cada página, retomável), `routes/exsat.ts` (`/api/exsat`: status, credential, sync, resume, cancel, items). `suiteGuard`: p10 em tudo; cadastrar, trocar e remover a conta só admin.
+- Preço: só do cartão do produto (`price-current`) em página com o marcador da conta logada. O JSON de analytics da Exsat (`dataLayer`) traz `price` até sem login e por isso só serve para fabricante e categoria.
+- Tela: `ExsatAccountCard` na aba Exsat do site (usuário, senha que nunca volta, Salvar e conectar, Conectada ou Não conectada, Atualizar catálogo com barra de progresso, Retomar, Cancelar, Conferir alterações). A conferência usa a tabela do diálogo e importa em lotes de 500. No aplicativo do computador nada mudou.
+- Saiu: `POST /api/catalog/import/exsat` (preço público sem login), `catalogApi.previewExsat`, o cartão "Só no aplicativo" e, no `/m/`, "Página do EXSAT" e "Importar página do EXSAT".
+- Backup: o dump diário passa a usar `--exclude-table-data=exsat_credentials`.
+- Testes novos em `scripts/test-critical.mjs`: `exsatCrypto`, `exsatLogin`, `exsatSync`, `routes/exsat`. Site da Exsat de mentira em `exsatMockSite.ts`.
+- Falta (Lucas): criar o secret `EXSAT_CREDENTIAL_KEY` (ver `cloudflare/api-container/README.md`), publicar e entrar uma vez com a conta em Catálogo, Importar itens em lote, Exsat.
+
 ## 2026-10-02 BRT - Desktop Orçamentos: catálogo, importação, EXSAT e cadastros (Rodada 24) (Claude Code)
 
 - Base: `main` em `01900d6`, branch `feat/desktop-orc-catalogo`. Protótipo em `docs/suite-desktop/prototipo-orcamentos/Rodada24.dc.html`.
