@@ -14,6 +14,14 @@ type SettingsWorkspaceProps = {
   onError: (message: string) => void;
 };
 
+const SETTINGS_TABS = [
+  ['geral', 'Geral'],
+  ['empresa', 'Empresa e propostas'],
+  ['usuarios', 'Usuários'],
+  ['sistema', 'Sistema'],
+] as const;
+type SettingsTab = (typeof SETTINGS_TABS)[number][0];
+
 const initialSettings: AppSettings = {
   companyName: 'LAC CONSTRUTEC CONSTRUTORA EIRELI',
   tradeName: 'CONSTRUTEC',
@@ -112,6 +120,8 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
   };
 
   const settingDisabled = loading || !isAdmin;
+  const [tab, setTab] = useState<SettingsTab>('geral');
+  const visibleTabs = SETTINGS_TABS.filter(([key]) => key !== 'usuarios' || (isAdmin && currentUser));
 
   return (
     <main className="management-workspace settings-workspace">
@@ -128,6 +138,12 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
         </div>
       </header>
 
+      <div className="st-tabs" role="tablist" aria-label="Seções das configurações">
+        {visibleTabs.map(([key, label]) => (
+          <button key={key} type="button" role="tab" id={`st-tab-${key}`} aria-selected={tab === key} aria-controls={`st-pane-${key}`} className="tab" onClick={() => setTab(key)}>{label}</button>
+        ))}
+      </div>
+
       <div className="settings-body">
         <div className="st-stack">
           {!loading && !isAdmin && (
@@ -136,20 +152,34 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
             </div>
           )}
 
-          <AppearancePanel />
+          <div className="st-pane" id="st-pane-geral" role="tabpanel" aria-labelledby="st-tab-geral" hidden={tab !== 'geral'}>
+            <AppearancePanel />
 
-          <AppUpdatePanel />
+            <AppUpdatePanel />
 
-          <CompanyDefaultsPanel settings={settings} loading={loading} isAdmin={isAdmin} onSaved={setSettings} onNotice={onNotice} onError={onError} />
+            <CompanyDefaultsPanel settings={settings} loading={loading} isAdmin={isAdmin} onSaved={setSettings} onNotice={onNotice} onError={onError} />
+          </div>
 
           <form id="settings-form" className="st-form" onSubmit={(e) => void saveSettings(e)}>
-            <CompanyDataCard settings={settings} disabled={settingDisabled} onChange={setSettings} />
-            <NewProposalParamsCard settings={settings} disabled={settingDisabled} onChange={setSettings} />
-            <EnvironmentCard isAdmin={isAdmin} backupPending={backupPending} restorePending={restorePending} onBackup={() => void createBackup()} onRestore={() => void restoreBackup()} />
+            <div className="st-pane" id="st-pane-empresa" role="tabpanel" aria-labelledby="st-tab-empresa" hidden={tab !== 'empresa'}>
+              <CompanyDataCard settings={settings} disabled={settingDisabled} onChange={setSettings} />
+              <NewProposalParamsCard settings={settings} disabled={settingDisabled} onChange={setSettings} />
+            </div>
+            <div className="st-pane" id="st-pane-sistema-ambiente" hidden={tab !== 'sistema'}>
+              <EnvironmentCard isAdmin={isAdmin} backupPending={backupPending} restorePending={restorePending} onBackup={() => void createBackup()} onRestore={() => void restoreBackup()} />
+            </div>
           </form>
 
-          {isAdmin && currentUser && <UsersAdminPanel currentUser={currentUser} onNotice={onNotice} onError={onError} />}
-          {isAdmin && <DiscardedProposalsPanel onNotice={onNotice} onError={onError} />}
+          {isAdmin && currentUser && (
+            <div className="st-pane" id="st-pane-usuarios" role="tabpanel" aria-labelledby="st-tab-usuarios" hidden={tab !== 'usuarios'}>
+              <UsersAdminPanel currentUser={currentUser} onNotice={onNotice} onError={onError} />
+            </div>
+          )}
+          {isAdmin && (
+            <div className="st-pane" id="st-pane-sistema" role="tabpanel" aria-labelledby="st-tab-sistema" hidden={tab !== 'sistema'}>
+              <DiscardedProposalsPanel onNotice={onNotice} onError={onError} />
+            </div>
+          )}
         </div>
       </div>
     </main>

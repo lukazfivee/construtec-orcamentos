@@ -112,11 +112,11 @@ export function ProposalCommercialConditionsPanel({
   };
 
   return (
-    <div className="history-region">
+    <div className="history-region conditions-region">
       <div className="history-heading">
         <div><FileText size={18} /><span><b>Condições comerciais</b><small>Edita o que aparece no PDF/Word do cliente.</small></span></div>
       </div>
-      <div className="form-grid" style={{ padding: 20, maxWidth: 960 }}>
+      <div className="form-grid conditions-grid">
         <label>Validade da proposta
           <input
             type="date"
@@ -142,7 +142,6 @@ export function ProposalCommercialConditionsPanel({
             defaultValue={commercialConditions.scope}
             maxLength={300}
             disabled={!editable || mutationPending}
-            style={{ minHeight: 88, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }}
             onBlur={(event) => updateCommercialCondition('scope', event.currentTarget.value)}
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
@@ -159,7 +158,6 @@ export function ProposalCommercialConditionsPanel({
             maxLength={240}
             placeholder="Ex.: 40% entrada, 60% na entrega"
             disabled={!editable || mutationPending}
-            style={{ minHeight: 70, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }}
             onBlur={(event) => updateCommercialCondition('paymentTerms', event.currentTarget.value)}
           />
         </label>
@@ -180,7 +178,6 @@ export function ProposalCommercialConditionsPanel({
             defaultValue={commercialConditions.notes}
             maxLength={500}
             disabled={!editable || mutationPending}
-            style={{ minHeight: 82, resize: 'vertical', padding: 10, border: '1px solid var(--line-strong)', borderRadius: 5 }}
             onBlur={(event) => updateCommercialCondition('notes', event.currentTarget.value)}
           />
         </label>

@@ -22,141 +22,64 @@ type Props = {
 
 export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveItem }: Props) {
   return (
-    <div className="kit-items-section" style={{ marginTop: '24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 600 }}>
-          Itens que compõem este kit ({items.length})
-        </h3>
-        <button
-          type="button"
-          onClick={onOpenPicker}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            height: '30px',
-            padding: '0 10px',
-            fontSize: '11px',
-            background: 'var(--status-review-bg)',
-            color: 'var(--tx-cool-28-3)',
-            border: '1px solid var(--bd-cool-87)',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          <Plus size={14} /> Adicionar item do catálogo
+    <div className="kit-items-section">
+      <div className="kit-items-head">
+        <h3>Itens que compõem este kit ({items.length})</h3>
+        <button type="button" className="kit-add-btn" onClick={onOpenPicker}>
+          <Plus size={16} /> Adicionar item do catálogo
         </button>
       </div>
 
       {items.length > 0 ? (
-        <div
-          className="kit-table-wrapper"
-          style={{
-            border: '1px solid var(--line)',
-            borderRadius: '8px',
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            background: 'var(--surface)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-          }}
-        >
-          <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', fontSize: '11.5px', tableLayout: 'fixed' }}>
+        <div className="kit-table-wrapper">
+          <table>
             <colgroup>
-              <col style={{ width: '16%' }} />
-              <col style={{ width: '34%' }} />
-              <col style={{ width: '7%' }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: '11%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '7%' }} />
+              <col className="kc-code" />
+              <col className="kc-desc" />
+              <col className="kc-unit" />
+              <col className="kc-cost" />
+              <col className="kc-qty" />
+              <col className="kc-total" />
+              <col className="kc-act" />
             </colgroup>
-            <thead style={{ background: 'var(--bg-cool-98)' }}>
+            <thead>
               <tr>
-                <th style={{ padding: '8px 10px', textAlign: 'left' }}>Código</th>
-                <th style={{ padding: '8px 10px', textAlign: 'left' }}>Descrição</th>
-                <th style={{ padding: '8px 8px', textAlign: 'center' }}>Un.</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Custo un.</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Qtd.</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Total</th>
-                <th
-                  style={{
-                    padding: '8px 8px',
-                    textAlign: 'center',
-                    position: 'sticky',
-                    right: 0,
-                    background: 'var(--bg-cool-98)',
-                    zIndex: 2,
-                    boxShadow: '-3px 0 6px -2px rgba(0,0,0,0.06)',
-                  }}
-                  aria-label="Ações"
-                >
-                  Ação
-                </th>
+                <th>Código</th>
+                <th>Descrição</th>
+                <th className="kit-c">Un.</th>
+                <th className="kit-n">Custo un.</th>
+                <th className="kit-n">Qtd.</th>
+                <th className="kit-n">Total</th>
+                <th className="kit-c kit-sticky" aria-label="Ações">Ação</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.productId} className="kit-item-row" style={{ borderTop: '1px solid var(--line)' }}>
-                  <td style={{ padding: '6px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <b>{item.code}</b>
-                  </td>
-                  <td style={{ padding: '6px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.description}>
-                    {item.description}
-                  </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center' }}>{item.unit}</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>{costText(money.format(item.currentCost))}</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>
+                <tr key={item.productId} className="kit-item-row">
+                  <td className="kit-clip"><b>{item.code}</b></td>
+                  <td className="kit-clip" title={item.description}>{item.description}</td>
+                  <td className="kit-c">{item.unit}</td>
+                  <td className="kit-n">{costText(money.format(item.currentCost))}</td>
+                  <td className="kit-n">
                     <input
                       type="number"
                       min="0.001"
                       step="any"
+                      aria-label={`Quantidade de ${item.description}`}
                       value={item.quantity}
                       onChange={(e) => onUpdateQuantity(item.productId, Number(e.target.value))}
-                      style={{
-                        width: '65px',
-                        height: '26px',
-                        padding: '0 6px',
-                        textAlign: 'right',
-                        border: '1px solid var(--line-strong)',
-                        borderRadius: '4px',
-                      }}
                     />
                   </td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>
-                    {costText(money.format(item.currentCost * item.quantity))}
-                  </td>
-                  <td
-                    style={{
-                      padding: '6px 8px',
-                      textAlign: 'center',
-                      position: 'sticky',
-                      right: 0,
-                      background: 'var(--surface)',
-                      zIndex: 1,
-                      boxShadow: '-3px 0 6px -2px rgba(0,0,0,0.06)',
-                    }}
-                  >
+                  <td className="kit-n kit-strong">{costText(money.format(item.currentCost * item.quantity))}</td>
+                  <td className="kit-c kit-sticky">
                     <button
                       type="button"
                       className="kit-item-remove-btn"
                       title={`Excluir ${item.description} do kit`}
                       aria-label={`Excluir ${item.description}`}
                       onClick={() => onRemoveItem(item.productId)}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '28px',
-                        height: '28px',
-                        border: '1px solid var(--bd-red-82)',
-                        background: 'var(--bg-red-97)',
-                        color: 'var(--tx-red-51)',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        transition: 'all 120ms ease',
-                      }}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
@@ -165,7 +88,7 @@ export function KitItemsTable({ items, onOpenPicker, onUpdateQuantity, onRemoveI
           </table>
         </div>
       ) : (
-        <p style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '11px', padding: '12px 0' }}>
+        <p className="kit-empty">
           Nenhum item adicionado ao kit. Clique em &quot;Adicionar item do catálogo&quot; para montar a composição.
         </p>
       )}

@@ -100,6 +100,7 @@ export function ProposalSummaryPanel({
   return (
     <>
       <aside className="commercial-panel">
+        <section className="panel-card summary-card" aria-label="Resumo comercial">
         <button
           type="button"
           className="panel-title panel-title-toggle"
@@ -126,8 +127,9 @@ export function ProposalSummaryPanel({
         )}
         {/* Item mais importante do painel: fica visível mesmo com "Resumo comercial" recolhido. */}
         <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
+        </section>
 
-        <div className="panel-section" style={canSeeCost ? undefined : { display: 'none' }}>
+        <div className="panel-card panel-section" style={canSeeCost ? undefined : { display: 'none' }}>
           <button
             type="button"
             className="panel-section-toggle"
@@ -202,7 +204,7 @@ export function ProposalSummaryPanel({
           <span>{proposal.isLatest ? 'Custos-base preservados nesta revisão' : 'Revisão histórica · somente leitura'}</span>
         </div>
 
-        <div className="panel-section actions">
+        <div className="panel-card panel-section actions">
           <button
             type="button"
             className="panel-section-toggle"
