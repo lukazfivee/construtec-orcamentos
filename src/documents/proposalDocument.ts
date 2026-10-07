@@ -1,6 +1,6 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
-import { anchorCss, CLOSING_END_MARK } from './proposalClosingAnchor';
+import { CLOSING_END_MARK, closingEndCss } from './proposalClosingEnd';
 import { BODY_HTML_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
 import { documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
 import { proposalLogoBase64, proposalPresentation, proposalWatermarkBase64, watermarkEnabled } from './proposalPresentation';
@@ -151,7 +151,7 @@ ${conditionsHtml('2. Condições Comerciais')}
   const hasLetter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
   const hasClosing = Boolean(bodyParts?.some((part) => part.kind === 'fechamento'));
   const textContext = { showSignature, company: content.company, brand: content.brand };
-  // Fechamento por ultimo: fica fora do corpo para ser ancorado no fim da ultima pagina (proposalClosingAnchor).
+  // Fechamento por ultimo: fica num bloco proprio, inteiro na mesma pagina, com o aviso de validade do celular dentro (proposalClosingEnd).
   const closingLast = bodyParts?.[bodyParts.length - 1]?.kind === 'fechamento';
   const renderPart = (part: BodyPart) => (part.kind === 'itens' ? pricingHtml(part.title, part.caption) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part, textContext));
   const bodyMain = (closingLast ? bodyParts!.slice(0, -1) : bodyParts ?? []).map(renderPart).join('\n');
@@ -244,7 +244,7 @@ Contato: ${content.phone} • ${content.email}`;
     @media print {
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .document-footer { display: none; }
-    }${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? anchorCss(hasLetter ? 235 : 267) : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null, brand: content.brand, reference: runReference, footer: runFooter }) : ''}
+    }${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? closingEndCss : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null, brand: content.brand, reference: runReference, footer: runFooter }) : ''}
   </style>
 </head>
 <body>

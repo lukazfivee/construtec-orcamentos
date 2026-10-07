@@ -3,7 +3,7 @@
 // So leva precos de venda: custo, BDI e margem nunca entram, com ou sem a permissao p10.
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { getProposalFinancials } from '../shared/proposalFinancials';
-import { CLOSING_END_MARK } from './proposalClosingAnchor';
+import { CLOSING_END_MARK } from './proposalClosingEnd';
 import { buildProposalHtml } from './proposalDocument';
 import { date, escapeHtml, money } from './proposalDocumentCommon';
 
