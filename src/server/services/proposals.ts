@@ -28,7 +28,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   const [itemResult, laborItems, standardMonthlyHours, proposalResult] = await Promise.all([
     database.query<ItemRow & { catalog_cost?: string | null }>(`
     SELECT pi.id, pi.snapshot_code, pi.snapshot_description, pi.snapshot_category, pi.quantity::text,
-      pi.snapshot_unit, pi.snapshot_unit_cost::text, pi.sale_unit_price::text, pr.current_cost::text AS catalog_cost
+      pi.snapshot_unit, pi.snapshot_unit_cost::text, pi.sale_unit_price::text, pr.current_cost::text AS catalog_cost, (pi.catalog_product_id IS NOT NULL) AS in_catalog
     FROM proposal_items pi
     LEFT JOIN products pr ON pr.code = pi.snapshot_code AND pr.active = true
     WHERE pi.proposal_id = $1
@@ -86,6 +86,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       unitSale,
       totalSale: multiplyDecimal([item.quantity, item.sale_unit_price]),
       catalogCurrentCost,
+      inCatalog: item.in_catalog !== false,
     };
   });
 

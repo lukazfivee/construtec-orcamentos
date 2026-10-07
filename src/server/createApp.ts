@@ -17,6 +17,7 @@ import { createPublicClientLinkRouter } from './routes/publicClientLink';
 import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
 import { createBodySettingsRouter, createProposalBodyRouter } from './routes/proposalBody';
+import { createProposalCustomItemsRouter } from './routes/proposalCustomItems';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
@@ -210,6 +211,7 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.use('/api/proposals', createProposalDocumentRouter(database));
   api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || '', Boolean(cloud)));
   api.use('/api/proposals', createProposalBodyRouter(database));
+  api.use('/api/proposals', createProposalCustomItemsRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createBodySettingsRouter(database));
@@ -311,6 +313,10 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
     }
     if (error instanceof Error && error.message === 'WORK_DUPLICATE') {
       response.status(409).json({ error: 'Já existe uma obra com esse nome para o cliente.' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'ITEM_ALREADY_IN_CATALOG') {
+      response.status(409).json({ error: 'Este item já está no catálogo.' });
       return;
     }
     if (error instanceof Error && error.message === 'PRODUCT_DUPLICATE') {
