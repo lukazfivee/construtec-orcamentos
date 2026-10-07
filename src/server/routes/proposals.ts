@@ -4,7 +4,7 @@ import type { AuthUser } from '../../shared/contracts';
 import { hasPermission } from '../services/suiteAccess';
 import type { LocalDatabase } from '../services/database';
 import {
-  attributeAuditEvent, attributeCreatedProposalItemAudit, attributeDuplicatedProposalItemAudit,
+  attributeAuditEvent, attributeDuplicatedProposalItemAudit,
 } from '../services/auditAttribution';
 import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
@@ -228,8 +228,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const input = addItemSchema.parse(request.body);
-      await addProductToProposal(database, proposalId, input.productId, input.quantity);
-      await attributeCreatedProposalItemAudit(database, actor(response).id, proposalId, input.productId);
+      await addProductToProposal(database, proposalId, input.productId, input.quantity, actor(response).id);
       response.status(201).json({ proposal: await getProposalById(database, proposalId) });
     } catch (error) { next(error); }
   });

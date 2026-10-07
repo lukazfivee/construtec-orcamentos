@@ -37,9 +37,9 @@ export const createPostgresDatabase = (connectionString: string): LocalDatabase 
       const client = await pool.connect();
       let discard = false;
       try {
-        await client.query('BEGIN');
         // ponytail: serialize writes like PGlite; use per-proposal locks if throughput requires it.
-        await client.query('SELECT pg_advisory_xact_lock(178241, 2)');
+        // Uma ida so ao banco (protocolo simples): cada ida custa a latencia da rede ate o Neon.
+        await client.query('BEGIN; SELECT pg_advisory_xact_lock(178241, 2)');
         const result = await callback(queries(client));
         const committed = await client.query('COMMIT');
         if (committed.command !== 'COMMIT') throw new Error('TRANSACTION_ABORTED');
