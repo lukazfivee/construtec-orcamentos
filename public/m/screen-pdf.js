@@ -40,7 +40,7 @@
         <table class="pg-tab"><tbody>${chunk.map((r) => (r.cat
           ? `<tr class="pg-cat"><td colspan="${c.modelo === 'completo' ? 3 : 1}">${esc(r.cat)}</td><td>${esc(OC.money(r.sum))}</td></tr>`
           : `<tr><td>${esc(r.it.description)}</td><td>${esc(OC.num(r.it.quantity))} ${esc(r.it.unit)}</td><td>${esc(OC.money(r.it.unitSale))}</td><td>${esc(OC.money(r.it.totalSale))}</td></tr>`)).join('')}</tbody></table>
-        ${last ? `<div class="pg-total"><small>Valor total da proposta · impostos inclusos</small><b>${esc(OC.money(total))}</b></div>
+        ${last ? `<div class="pg-total"><small>Valor total da proposta</small><b>${esc(OC.money(total))}</b></div>
           ${c.validade && p.validUntil ? `<p class="pg-note">Proposta válida até ${esc(OC.dateFull(p.validUntil))}.</p>` : ''}` : ''}` });
     }
     if (c.condicoes) {

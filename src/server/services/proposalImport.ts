@@ -77,7 +77,7 @@ export const importProposalItemsBatch = async (
       }
 
       const saleUnitPrice = item.unitSale !== undefined && item.unitSale >= 0
-        ? item.unitSale
+        ? roundMoney(item.unitSale / (1 + Number(proposal.tax_percentage ?? 0) / 100))
         : roundMoney(unitCost * bdiMultiplier);
 
       await transaction.query(`

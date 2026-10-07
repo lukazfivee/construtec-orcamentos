@@ -75,7 +75,7 @@ export const getDashboardSummary = async (database: LocalDatabase): Promise<Dash
       proposals_count: string;
     }>(`
       WITH current_proposals AS (
-        SELECT p.id, p.bdi_multiplier
+        SELECT p.id, p.bdi_multiplier, p.tax_percentage
         FROM proposals p
         WHERE NOT EXISTS (
           SELECT 1 FROM proposals newer
@@ -88,12 +88,12 @@ export const getDashboardSummary = async (database: LocalDatabase): Promise<Dash
         pi.snapshot_unit AS unit,
         COALESCE(pi.snapshot_category, 'Outros') AS category,
         SUM(pi.quantity)::text AS total_quantity,
-        ROUND(SUM(pi.quantity * pi.snapshot_unit_cost * cp.bdi_multiplier), 2)::text AS total_value,
+        ROUND(SUM(pi.quantity * pi.snapshot_unit_cost * cp.bdi_multiplier * (1 + COALESCE(cp.tax_percentage, 0) / 100)), 2)::text AS total_value,
         COUNT(DISTINCT pi.proposal_id)::text AS proposals_count
       FROM proposal_items pi
       JOIN current_proposals cp ON cp.id = pi.proposal_id
       GROUP BY pi.snapshot_code, pi.snapshot_description, pi.snapshot_unit, pi.snapshot_category
-      ORDER BY ROUND(SUM(pi.quantity * pi.snapshot_unit_cost * cp.bdi_multiplier), 2) DESC
+      ORDER BY ROUND(SUM(pi.quantity * pi.snapshot_unit_cost * cp.bdi_multiplier * (1 + COALESCE(cp.tax_percentage, 0) / 100)), 2) DESC
       LIMIT 12
     `),
     database.query<{

@@ -80,7 +80,7 @@ test('PDF: validade so conta com data; sem p10 a mao de obra vem do valor final'
   assert.ok(!buildPdfPages(sem, defaultPdfChoices()).map((page) => page.html).join('').includes('Válida até'));
   const labor = { id: 'l', description: 'Equipe' } as NonNullable<ProposalDetail['laborItems']>[number];
   const masked = proposal({ laborItems: [labor], taxPercentage: 10, totals: { ...proposal().totals, labor: 0, finalValue: 5500 } });
-  assert.equal(laborSale(masked), 700);
+  assert.equal(laborSale(masked), 1200, "valor final 5500 menos os itens, que ja vem com o imposto");
   assert.ok(hasPdfContent(proposal({ items: [], laborItems: [labor], totals: { ...proposal().totals, labor: 1000, finalValue: 1370 } })));
   assert.ok(!hasPdfContent(proposal({ items: [] })));
 });

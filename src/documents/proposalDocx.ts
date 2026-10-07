@@ -86,12 +86,10 @@ export const createProposalDocument = (
   const validUntil = proposal.validUntil ? date.format(new Date(`${proposal.validUntil}T00:00:00Z`)) : 'A definir';
   const conditions = parseCommercialConditions(proposal.scope);
   const includeLabor = options?.includeLabor ?? true;
-  const materialsTotal = commercialMaterialsTotal(proposal);
-  const laborTotal = includeLabor ? commercialLaborTotal(proposal) : 0;
   const financials = getProposalFinancials(proposal);
   const total = financials.finalValue;
-  const taxPercentage = proposal.taxPercentage ?? 0;
-  const taxAmount = financials.taxAmount ?? 0;
+  const laborTotal = includeLabor ? commercialLaborTotal(proposal) : 0;
+  const materialsTotal = laborTotal > 0 ? Math.round((total - laborTotal + Number.EPSILON) * 100) / 100 : total;
   const showCodes = options?.showProductCodes ?? true;
   const groupByCategory = options?.groupByCategory ?? true;
   const includeTerms = options?.includeCommercialTerms ?? true;
@@ -187,9 +185,6 @@ export const createProposalDocument = (
     laborTotal > 0
       ? new TableRow({ children: [cell(`Total de Materiais\n${money.format(materialsTotal)}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`Total de Mão de Obra\n${money.format(laborTotal)}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] })
       : new TableRow({ children: [cell(`Subtotal de Itens e Serviços\n${money.format(materialsTotal)}`, CONTENT_WIDTH, { fill: LIGHT_BLUE, isMeta: true })] }),
-    ...(taxAmount > 0
-      ? [new TableRow({ children: [cell(`Impostos (${String(taxPercentage).replace('.', ',')}%)\n${money.format(taxAmount)}`, CONTENT_WIDTH, { fill: LIGHT_BLUE, isMeta: true, columnSpan: laborTotal > 0 ? 2 : undefined })] })]
-      : []),
   ];
 
   const itemsSection = (title: string, caption = '') => [
