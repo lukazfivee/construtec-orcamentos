@@ -125,3 +125,7 @@ test('a busca do topo abre com Ctrl K e o atalho aparece no campo', () => {
   assert.match(app, /action === 'k'/);
   assert.match(app, /openSearch\(\)/);
 });
+
+test('KPIs do inicio quebram em duas colunas no mesmo ponto do Centro (1379px)', () => {
+  assert.match(read('src/paginas-centro.css'), /max-width: 1379px\)[\s\S]*home-workspace:not\(\.proposals-list-workspace\) \.kpi-grid \{ grid-template-columns: repeat\(2/);
+});
