@@ -1,5 +1,11 @@
 /* Telas do desktop do Orçamentos com as proporcoes do Centro de Custos: Inicio, Central de Propostas, PDF e comparativo.
    Complementa paginas-centro.css (moldura, cabecalho, KPI, cartoes, botoes, campos, chips, tabelas). So no desktop. */
+/* Celular: o eyebrow mantem o aspecto da etiqueta anterior (so na Central de Propostas). */
+@media (max-width: 767px) {
+  .cab .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-ink); }
+  .management-header.cab .eyebrow { display: none; }
+}
+
 @media (min-width: 768px) {
   .app-shell.cc .proposals-list-workspace .home-body > * { flex: none; }
 
@@ -9,19 +15,19 @@
   .app-shell.cc .home-card-header > div svg { width: 18px; height: 18px; stroke-width: 1.5; color: var(--color-accent-300); }
   .app-shell.cc .home-card-header h2, .app-shell.cc .home-panel-header h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; letter-spacing: 0; color: var(--color-text); }
   .app-shell.cc .home-panel-header p { margin: 0; font-size: 12px; color: var(--color-neutral-300); }
-  .app-shell.cc .home-card-header button { height: 32px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--color-accent-300); font: 600 13.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+  .app-shell.cc .home-card-header button { height: 32px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--color-accent-300); font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
   .app-shell.cc .home-card-header button:hover { background: var(--color-accent-900); }
   .app-shell.cc .home-table-container, .app-shell.cc .proposals-table-wrapper { padding: 0; overflow-x: auto; }
 
   /* ---------- Acoes rapidas e abas do Inicio ---------- */
   .app-shell.cc .quick-actions-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px 14px; }
   .app-shell.cc .quick-actions-title { margin: 0 4px 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300); }
-  .app-shell.cc .quick-actions-bar button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); font: 600 12.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+  .app-shell.cc .quick-actions-bar button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
   .app-shell.cc .quick-actions-bar button:hover { background: var(--color-accent-900); }
   .app-shell.cc .quick-action-icon { display: inline-grid; place-items: center; color: var(--color-accent-300); }
   .app-shell.cc .quick-action-label { font: inherit; }
   .app-shell.cc .home-view-switcher, .app-shell.cc .filter-chips { display: inline-flex; flex-wrap: nowrap; align-self: flex-start; align-items: center; gap: 2px; padding: 3px; border-radius: 11px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
-  .app-shell.cc .home-tab-pill, .app-shell.cc .filter-chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; color: var(--color-neutral-300); font: 600 12.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; white-space: nowrap; cursor: pointer; transition: none; }
+  .app-shell.cc .home-tab-pill, .app-shell.cc .filter-chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; color: var(--color-neutral-300); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; white-space: nowrap; cursor: pointer; transition: none; }
   .app-shell.cc .home-tab-pill:hover, .app-shell.cc .filter-chip:hover { background: transparent; color: var(--color-text); border: 0; }
   .app-shell.cc .home-tab-pill.active, .app-shell.cc .filter-chip.active { background: var(--color-surface); color: var(--color-text); border: 0; box-shadow: 0 1px 2px rgba(3, 31, 41, .1), 0 0 0 1px var(--color-divider); }
   .app-shell.cc .home-tab-pill svg { width: 16px; height: 16px; stroke-width: 1.5; }
@@ -67,7 +73,7 @@
   .app-shell.cc .table-action-btn.danger:hover:not(:disabled) { background: var(--c-err-soft); color: var(--c-err); }
   .app-shell.cc .table-action-btn svg { width: 17px; height: 17px; stroke-width: 1.5; }
   .app-shell.cc .table-action-btn .btn-label { display: none; }
-  .app-shell.cc .table-action-btn.primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; height: 32px; padding: 0 12px; margin-right: 4px; border-radius: 8px; background: var(--color-brand); color: var(--on-brand); font: 600 12.5px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
+  .app-shell.cc .table-action-btn.primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; height: 32px; padding: 0 12px; margin-right: 4px; border-radius: 8px; background: var(--color-brand); color: var(--on-brand); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
   .app-shell.cc .table-action-btn.primary:hover:not(:disabled) { background: #0b4a5c; color: var(--on-brand); }
   .app-shell.cc .table-action-btn.primary .btn-label { display: inline; }
   .app-shell.cc .table-action-btn.primary svg { width: 15px; height: 15px; }

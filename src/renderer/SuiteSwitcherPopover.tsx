@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowUpRight, Building2, FileText, Headset, Mail } from 'lucide-react';
+import { ChartColumn, FileText, Mail, SquareArrowOutUpRight, Wrench } from 'lucide-react';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
 import type { SuiteAppId, SuiteMenuEntry } from './suiteMenu';
 import { SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL } from './suiteMenu';
@@ -16,8 +16,8 @@ interface SuiteSwitcherPopoverProps {
 // Icones Lucide equivalentes aos Phosphor do Centro (file-text, chart-bar, wrench, envelope-simple), traço 1.5.
 const ICONS: Record<SuiteAppId, LucideIcon> = {
   orcamentos: FileText,
-  'centro-custos': Building2,
-  chamadopro: Headset,
+  'centro-custos': ChartColumn,
+  chamadopro: Wrench,
   webmail: Mail,
 };
 
@@ -96,6 +96,14 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
       </>
     );
     if (entry.id === activeApp) {
+      /* O app atual aparece marcado e, como o Orcamentos tambem e destino de volta a lista de propostas, continua clicavel. */
+      if (entry.id === 'orcamentos') {
+        return (
+          <button key={entry.id} type="button" className="res atual" role="menuitem" aria-current="page" onClick={() => activate(entry)}>
+            {body}<span className="chip ok">Atual</span>
+          </button>
+        );
+      }
       return (
         <div key={entry.id} className="res atual" role="menuitem" aria-current="page">
           {body}<span className="chip ok">Atual</span>
@@ -104,7 +112,7 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
     }
     return (
       <button key={entry.id} type="button" className="res" role="menuitem" onClick={() => activate(entry)}>
-        {body}<ArrowUpRight size={15} strokeWidth={1.5} />
+        {body}<SquareArrowOutUpRight size={15} strokeWidth={1.5} />
       </button>
     );
   };
