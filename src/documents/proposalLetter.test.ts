@@ -121,3 +121,17 @@ test('paginas do PDF do desktop com carta: carta e fechamento nas paginas, assin
   const noSign = buildPdfPages(proposal, defaultPdfChoices(proposal), { pdfShowLogo: true, pdfShowSignature: false }).map((page) => page.html).join('');
   assert.doesNotMatch(noSign, /pg-sign/);
 });
+
+test('PDF com fechamento: ele fica numa pagina propria alinhada ao fim e o aviso de validade do celular entra junto', async () => {
+  const { buildMobileProposalHtml } = await import('./proposalMobileDocument');
+  const html = buildProposalHtml(make(letterBlocks()), settings);
+  assert.match(html, /@media print \{\s*\.closing-end \{ break-before: page; min-height: 234mm;[^}]*justify-content: flex-end/);
+  assert.equal((html.match(/class="closing-end"/g) ?? []).length, 1);
+  inOrder(html, ['class="closing-end"', 'No aguardo de breve pronunciamento', 'class="signature"', '<!--closing-end-->', '</div>', '</body>']);
+  const mobile = buildMobileProposalHtml(make(letterBlocks()), settings, { model: 'completo', cover: false, terms: true, validity: true });
+  inOrder(mobile, ['class="closing-end"', 'class="signature"', 'class="m-validity"', '</div>', '</body>']);
+  assert.doesNotMatch(mobile, /<!--closing-end-->/);
+  assert.equal(mobile.indexOf('<p class="m-validity">') > mobile.indexOf('class="closing-end"'), true);
+  const legacy = buildProposalHtml(make(null), settings);
+  assert.doesNotMatch(legacy, /closing-end/);
+});

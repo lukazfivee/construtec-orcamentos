@@ -1,5 +1,6 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
-import { resolveBodyParts } from '../shared/proposalBody';
+import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
+import { anchorCss, CLOSING_END_MARK } from './proposalClosingAnchor';
 import { BODY_HTML_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
 import { documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
 import { proposalLogoBase64, proposalPresentation, proposalWatermarkBase64, watermarkEnabled } from './proposalPresentation';
@@ -148,7 +149,11 @@ ${conditionsHtml('2. Condições Comerciais')}
   const hasLetter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
   const hasClosing = Boolean(bodyParts?.some((part) => part.kind === 'fechamento'));
   const textContext = { showSignature, company: content.company, brand: content.brand };
-  const bodyMain = (bodyParts ?? []).map((part) => (part.kind === 'itens' ? pricingHtml(part.title, part.caption) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part, textContext))).join('\n');
+  // Fechamento por ultimo: fica fora do corpo para ser ancorado no fim da ultima pagina (proposalClosingAnchor).
+  const closingLast = bodyParts?.[bodyParts.length - 1]?.kind === 'fechamento';
+  const renderPart = (part: BodyPart) => (part.kind === 'itens' ? pricingHtml(part.title, part.caption) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part, textContext));
+  const bodyMain = (closingLast ? bodyParts!.slice(0, -1) : bodyParts ?? []).map(renderPart).join('\n');
+  const closingBlock = closingLast ? renderPart(bodyParts![bodyParts!.length - 1]) : '';
   const main = bodyParts ? bodyMain : legacyMain;
   // Carta de abertura: cabecalho com logo em todas as paginas no lugar do timbrado e do quadro de identificacao.
   const runReference = `${proposal.number} • Revisão ${String(proposal.revision).padStart(2, '0')}`;
@@ -235,7 +240,7 @@ Contato: ${content.phone} • ${content.email}`;
     @media print {
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .document-footer { display: none; }
-    }${bodyParts ? BODY_HTML_CSS : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null, brand: content.brand, reference: runReference, footer: runFooter }) : ''}
+    }${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? anchorCss(hasLetter ? 235 : 267) : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null, brand: content.brand, reference: runReference, footer: runFooter }) : ''}
   </style>
 </head>
 <body>
@@ -274,6 +279,7 @@ Contato: ${content.phone} • ${content.email}`;
 
   <h1>PROPOSTA TÉCNICA COMERCIAL</h1>`}
 ${main}
+  ${closingLast ? `<div class="closing-end">${closingBlock}${CLOSING_END_MARK}</div>` : ''}
 
   ${hasClosing ? '' : `<p class="closing">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>`}
 
