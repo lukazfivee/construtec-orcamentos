@@ -48,13 +48,14 @@ const cellBorders = { top: borderLine, bottom: borderLine, left: borderLine, rig
 const cell = (
   text: string,
   width: number,
-  options: { bold?: boolean; align?: typeof AlignmentType[keyof typeof AlignmentType]; fill?: string; color?: string; isMeta?: boolean; columnSpan?: number } = {}
+  options: { bold?: boolean; align?: typeof AlignmentType[keyof typeof AlignmentType]; fill?: string; color?: string; isMeta?: boolean; columnSpan?: number; keepNext?: boolean } = {}
 ) => {
   const lines = text.split('\n');
   const paragraphs = lines.map((lineText, idx) => {
     const isLabel = options.isMeta && idx === 0 && lines.length > 1;
     return new Paragraph({
       alignment: options.align,
+      keepNext: options.keepNext,
       spacing: { before: idx > 0 ? 30 : 0, after: 0, line: 276 },
       children: [
         new TextRun({
@@ -105,15 +106,18 @@ export const createProposalDocument = (
       ],
     });
 
+  // Planilha orcamentaria: celulas com "manter com a proxima" mantem a tabela inteira numa pagina quando ela cabe; maior que uma pagina, o Word quebra entre linhas.
+  const kcell = (text: string, width: number, opts: Parameters<typeof cell>[2] = {}) => cell(text, width, { ...opts, keepNext: true });
   const headerRow = new TableRow({
     tableHeader: true,
+    cantSplit: true,
     children: [
-      cell('ITEM', 700, { bold: true, align: AlignmentType.CENTER, fill: NAVY, color: WHITE }),
-      cell('DESCRIÇÃO', 4638, { bold: true, fill: NAVY, color: WHITE }),
-      cell('UN.', 650, { bold: true, align: AlignmentType.CENTER, fill: NAVY, color: WHITE }),
-      cell('QTD.', 850, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
-      cell('VALOR UNIT.', 1350, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
-      cell('VALOR TOTAL', 1450, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
+      kcell('ITEM', 700, { bold: true, align: AlignmentType.CENTER, fill: NAVY, color: WHITE }),
+      kcell('DESCRIÇÃO', 4638, { bold: true, fill: NAVY, color: WHITE }),
+      kcell('UN.', 650, { bold: true, align: AlignmentType.CENTER, fill: NAVY, color: WHITE }),
+      kcell('QTD.', 850, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
+      kcell('VALOR UNIT.', 1350, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
+      kcell('VALOR TOTAL', 1450, { bold: true, align: AlignmentType.RIGHT, fill: NAVY, color: WHITE }),
     ],
   });
 
@@ -134,13 +138,14 @@ export const createProposalDocument = (
     docxIndex += 1;
     const descText = showCodes && item.code ? `${item.code}\n${item.description}` : item.description;
     return new TableRow({
+      cantSplit: true,
       children: [
-        cell(String(docxIndex), 700, { align: AlignmentType.CENTER }),
-        cell(descText, 4638, { isMeta: Boolean(showCodes && item.code) }),
-        cell(item.unit, 650, { align: AlignmentType.CENTER }),
-        cell(quantity.format(item.quantity), 850, { align: AlignmentType.RIGHT }),
-        cell(money.format(item.unitSale), 1350, { align: AlignmentType.RIGHT }),
-        cell(money.format(item.totalSale), 1450, { bold: true, align: AlignmentType.RIGHT }),
+        kcell(String(docxIndex), 700, { align: AlignmentType.CENTER }),
+        kcell(descText, 4638, { isMeta: Boolean(showCodes && item.code) }),
+        kcell(item.unit, 650, { align: AlignmentType.CENTER }),
+        kcell(quantity.format(item.quantity), 850, { align: AlignmentType.RIGHT }),
+        kcell(money.format(item.unitSale), 1350, { align: AlignmentType.RIGHT }),
+        kcell(money.format(item.totalSale), 1450, { bold: true, align: AlignmentType.RIGHT }),
       ],
     });
   };
@@ -161,13 +166,14 @@ export const createProposalDocument = (
     docxIndex += 1;
     laborRows.push(
       new TableRow({
+        cantSplit: true,
         children: [
-          cell(String(docxIndex), 700, { align: AlignmentType.CENTER }),
-          cell('Mão de obra técnica\nServiços técnicos e operacionais conforme escopo.', 4638, { isMeta: true }),
-          cell('vb', 650, { align: AlignmentType.CENTER }),
-          cell('1', 850, { align: AlignmentType.RIGHT }),
-          cell(money.format(laborTotal), 1350, { align: AlignmentType.RIGHT }),
-          cell(money.format(laborTotal), 1450, { bold: true, align: AlignmentType.RIGHT }),
+          kcell(String(docxIndex), 700, { align: AlignmentType.CENTER }),
+          kcell('Mão de obra', 4638),
+          kcell('vb', 650, { align: AlignmentType.CENTER }),
+          kcell('1', 850, { align: AlignmentType.RIGHT }),
+          kcell(money.format(laborTotal), 1350, { align: AlignmentType.RIGHT }),
+          kcell(money.format(laborTotal), 1450, { bold: true, align: AlignmentType.RIGHT }),
         ],
       })
     );
