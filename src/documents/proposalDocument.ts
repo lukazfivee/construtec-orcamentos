@@ -2,7 +2,7 @@ import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine }
 import { resolveBodyParts } from '../shared/proposalBody';
 import { BODY_HTML_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
 import { documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
-import { proposalLogoBase64, proposalPresentation } from './proposalPresentation';
+import { proposalLogoBase64, proposalPresentation, proposalWatermarkBase64, watermarkEnabled } from './proposalPresentation';
 
 export { proposalFileBaseName } from './proposalDocumentCommon';
 export { buildProposalDocx, buildProposalDocxBlob } from './proposalDocx';
@@ -47,6 +47,7 @@ export const buildProposalHtml = (
   const logo = proposalLogoBase64();
   const showLogo = settings?.pdfShowLogo ?? true;
   const showSignature = settings?.pdfShowSignature ?? true;
+  const watermark = watermarkEnabled(settings, options);
   let index = 0;
   const showCodes = options?.showProductCodes ?? true;
 
@@ -225,6 +226,7 @@ Contato: ${content.phone} • ${content.email}`;
     .footer-text { font-size: 6.8pt; color: #1e293b; line-height: 1.35; margin-bottom: 1px; }
     .footer-text b { font-weight: bold; color: #0f172a; }
     
+    .watermark { position: fixed; top: 50%; left: 50%; width: 150mm; height: 55mm; margin: -27.5mm 0 0 -75mm; background: url(data:image/png;base64,${proposalWatermarkBase64()}) center / contain no-repeat; z-index: -1; pointer-events: none; }
     @media screen {
       body { max-width: 210mm; margin: 15px auto; padding: 14mm; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border-radius: 3px; }
     }
@@ -235,6 +237,7 @@ Contato: ${content.phone} • ${content.email}`;
   </style>
 </head>
 <body>
+  ${watermark ? '<div class="watermark" aria-hidden="true"></div>' : ''}
   ${hasLetter ? runHeader : `<header class="timbrado-header">
     <div class="timbrado-left">
       ${showLogo ? `<img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">` : ''}

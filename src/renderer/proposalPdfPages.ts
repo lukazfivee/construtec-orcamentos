@@ -4,15 +4,20 @@
 import type { AppSettings, ProposalDetail } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
 import { commercialLaborTotal, escapeHtml, parseCommercialConditions } from '../documents/proposalDocumentCommon';
+import { proposalWatermarkBase64 } from '../documents/proposalPresentation';
 import { bodyTextPagesHtml } from './proposalPdfBodyPages';
 
-export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean };
+// marca: marca d'agua deste PDF; null vale o padrao da empresa (Configuracoes).
+export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean; marca: boolean | null };
 export type PdfPage = { label: 'Capa' | 'Itens' | 'Condições' | 'Texto'; html: string };
 
 // Proposta com carta de abertura ja comeca no texto da carta: a capa fica desligada ate a pessoa ligar.
 export const defaultPdfChoices = (proposal?: ProposalDetail): PdfChoices => ({
-  modelo: 'completo', capa: !proposal?.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled), condicoes: true, validade: true,
+  modelo: 'completo', capa: !proposal?.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled), condicoes: true, validade: true, marca: null,
 });
+
+// Logo esmaecida ao fundo da pagina de pre-visualizacao (o PDF real usa .watermark do documento do servidor).
+export const watermarkOverlayHtml = () => `<div style="position:absolute;inset:0;z-index:0;pointer-events:none;background:url(data:image/png;base64,${proposalWatermarkBase64()}) center / 78% auto no-repeat"></div>`;
 
 export const PDF_PAGE_WIDTH = 396;
 export const PDF_PAGE_HEIGHT = 560;
@@ -46,13 +51,13 @@ export const hasPdfContent = (proposal: ProposalDetail) => proposal.items.length
 export const effectiveChoices = (choices: PdfChoices, proposal: ProposalDetail): PdfChoices => ({ ...choices, validade: choices.validade && Boolean(proposal.validUntil) });
 
 export const pdfQuery = (choices: PdfChoices) =>
-  `modelo=${choices.modelo}&capa=${choices.capa ? 1 : 0}&condicoes=${choices.condicoes ? 1 : 0}&validade=${choices.validade ? 1 : 0}`;
+  `modelo=${choices.modelo}&capa=${choices.capa ? 1 : 0}&condicoes=${choices.condicoes ? 1 : 0}&validade=${choices.validade ? 1 : 0}${choices.marca === null ? '' : `&marca=${choices.marca ? 1 : 0}`}`;
 
 export const pdfFileName = (proposal: ProposalDetail) => `${proposal.number}-${revLabel(proposal.revision).replace(' ', '-')}`;
 
 type Row = { weight: number } & ({ cat: string; sum: number } | { item: { description: string; quantity: number; unit: string; unitSale: number; totalSale: number } });
 
-export type PdfBranding = Pick<AppSettings, 'pdfShowLogo' | 'pdfShowSignature'>;
+export type PdfBranding = Pick<AppSettings, 'pdfShowLogo' | 'pdfShowSignature'> & Partial<Pick<AppSettings, 'pdfWatermark'>>;
 
 // Quebra as linhas em paginas pelo peso (linhas visuais); a ultima pagina guarda espaco para o total e a validade.
 export const paginateRows = <T extends { weight: number }>(rows: T[]): T[][] => {

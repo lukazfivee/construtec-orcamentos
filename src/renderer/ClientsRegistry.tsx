@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowLeft, Building2, MapPin, Pencil, Plus, Save, Search } from 'lucide-react';
-import type { ClientRecord, WorkRecord } from '../shared/contracts';
+import type { ClientContact, ClientRecord, WorkRecord } from '../shared/contracts';
+import { ClientContactFields, emptyContact } from './ClientContactFields';
 import { clientsApi } from './api';
 
 type ClientsRegistryProps = {
@@ -13,6 +14,7 @@ type ClientDraft = {
   legalName: string;
   tradeName: string;
   document: string;
+  contact: ClientContact;
 };
 
 type WorkDraft = {
@@ -22,7 +24,7 @@ type WorkDraft = {
   active: boolean;
 };
 
-const emptyClient: ClientDraft = { legalName: '', tradeName: '', document: '' };
+const emptyClient: ClientDraft = { legalName: '', tradeName: '', document: '', contact: emptyContact };
 const emptyWork: WorkDraft = { id: null, name: '', address: '', active: true };
 
 const displayName = (client: ClientRecord) => client.tradeName?.trim() || client.legalName;
@@ -74,6 +76,7 @@ export function ClientsRegistry({ onBack, onNotice, onError }: ClientsRegistryPr
       legalName: selectedClient.legalName,
       tradeName: selectedClient.tradeName ?? '',
       document: selectedClient.document ?? '',
+      contact: selectedClient.contact ?? emptyContact,
     });
     setEditingWork(false);
     setWorkDraft(emptyWork);
@@ -101,6 +104,7 @@ export function ClientsRegistry({ onBack, onNotice, onError }: ClientsRegistryPr
         legalName: clientDraft.legalName.trim(),
         tradeName: clientDraft.tradeName.trim() || null,
         document: clientDraft.document.trim() || null,
+        contact: clientDraft.contact,
       };
       if (creatingClient) {
         const result = await clientsApi.create(input);
@@ -190,6 +194,7 @@ export function ClientsRegistry({ onBack, onNotice, onError }: ClientsRegistryPr
                   <label><span>Nome fantasia</span><input maxLength={180} value={clientDraft.tradeName} onChange={(event) => setClientDraft((current) => ({ ...current, tradeName: event.target.value }))} /></label>
                   <label><span>CPF ou CNPJ</span><input maxLength={30} value={clientDraft.document} onChange={(event) => setClientDraft((current) => ({ ...current, document: event.target.value }))} /></label>
                 </div>
+                <ClientContactFields value={clientDraft.contact} onChange={(contact) => setClientDraft((current) => ({ ...current, contact }))} />
               </form>
 
               {!creatingClient && selectedClient && (

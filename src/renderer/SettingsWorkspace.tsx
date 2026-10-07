@@ -36,6 +36,8 @@ const initialSettings: AppSettings = {
   defaultTaxPercentage: 0,
   pdfShowLogo: true,
   pdfShowSignature: true,
+  letterPlace: 'Salvador / BA',
+  pdfWatermark: false,
 };
 
 
@@ -74,8 +76,8 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
     setSaving(true);
     try {
       // BDI, impostos, validade e PDF salvam em "Padroes da empresa" (painel proprio).
-      const { defaultBdi, defaultValidityDays, defaultTaxPercentage, pdfShowLogo, pdfShowSignature, ...company } = settings;
-      void defaultBdi; void defaultValidityDays; void defaultTaxPercentage; void pdfShowLogo; void pdfShowSignature;
+      const { defaultBdi, defaultValidityDays, defaultTaxPercentage, pdfShowLogo, pdfShowSignature, letterPlace, pdfWatermark, ...company } = settings;
+      void defaultBdi; void defaultValidityDays; void defaultTaxPercentage; void pdfShowLogo; void pdfShowSignature; void letterPlace; void pdfWatermark;
       const result = await settingsApi.update(company);
       setSettings(result.settings);
       onNotice('Configurações salvas com sucesso.');

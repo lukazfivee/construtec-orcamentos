@@ -3,6 +3,8 @@ import {
   BorderStyle,
   Footer,
   Header,
+  HorizontalPositionAlign,
+  HorizontalPositionRelativeFrom,
   ImageRun,
   PageNumber,
   Paragraph,
@@ -11,13 +13,26 @@ import {
   TableCell,
   TableRow,
   TextRun,
+  TextWrappingType,
+  VerticalPositionAlign,
+  VerticalPositionRelativeFrom,
   WidthType,
 } from 'docx';
 import type { AppSettings, ProposalDetail } from '../shared/contracts';
-import { proposalLogo } from './proposalPresentation';
+import { proposalLogo, proposalWatermark } from './proposalPresentation';
 import { BLUE, date, MUTED, NAVY } from './proposalDocumentCommon';
 
 export const CONTENT_WIDTH = 9638; // 170mm (A4 11906 - 2 * 1134 margins)
+
+// Logo esmaecida atras do texto, no centro da pagina; vai dentro de um paragrafo do cabecalho (aparece em todas as paginas).
+const watermarkRuns = (on: boolean) => (on ? [new ImageRun({
+  type: 'png', data: proposalWatermark(), transformation: { width: 520, height: 190 }, altText: { name: 'Marca dagua', description: 'Logo da Construtec', title: 'Marca dagua' },
+  floating: {
+    horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, align: HorizontalPositionAlign.CENTER },
+    verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, align: VerticalPositionAlign.CENTER },
+    wrap: { type: TextWrappingType.NONE }, behindDocument: true, allowOverlap: true,
+  },
+})] : []);
 
 export const buildFirstPageHeader = (proposal: ProposalDetail, settings?: AppSettings) => {
   const companyName = settings?.companyName?.trim() || 'LAC CONSTRUTEC CONSTRUTORA EIRELI';
@@ -64,7 +79,7 @@ export const buildFirstPageHeader = (proposal: ProposalDetail, settings?: AppSet
 };
 
 // Carta de abertura: logo e referencia da proposta em todas as paginas, com filete azul-marinho (como a proposta feita a mao).
-export const buildRunningHeader = (proposal: ProposalDetail, settings?: AppSettings) => {
+export const buildRunningHeader = (proposal: ProposalDetail, settings?: AppSettings, watermark = false) => {
   const showLogo = settings?.pdfShowLogo ?? true;
   const brand = (settings?.tradeName?.trim() || 'CONSTRUTEC').toUpperCase();
   const none = { style: BorderStyle.NONE };
@@ -82,8 +97,8 @@ export const buildRunningHeader = (proposal: ProposalDetail, settings?: AppSetti
               borders: { top: none, left: none, right: none, bottom },
               margins: { top: 0, bottom: 40, left: 0, right: 0 },
               children: [new Paragraph({ spacing: { after: 0 }, children: showLogo
-                ? [new ImageRun({ data: proposalLogo(), transformation: { width: 150, height: 55 }, type: 'png' })]
-                : [new TextRun({ text: brand, bold: true, size: 26, color: '163D69', font: 'Arial' })] })],
+                ? [new ImageRun({ data: proposalLogo(), transformation: { width: 150, height: 55 }, type: 'png' }), ...watermarkRuns(watermark)]
+                : [new TextRun({ text: brand, bold: true, size: 26, color: '163D69', font: 'Arial' }), ...watermarkRuns(watermark)] })],
             }),
             new TableCell({
               width: { size: 3200, type: WidthType.DXA }, verticalAlign: 'bottom',
@@ -98,7 +113,7 @@ export const buildRunningHeader = (proposal: ProposalDetail, settings?: AppSetti
   });
 };
 
-export const buildContinuationHeader = (proposal: ProposalDetail, settings?: AppSettings) => {
+export const buildContinuationHeader = (proposal: ProposalDetail, settings?: AppSettings, watermark = false) => {
   const brand = (settings?.tradeName?.trim() || 'CONSTRUTEC').toUpperCase();
   const border = { style: BorderStyle.SINGLE, size: 8, color: BLUE };
   return new Header({
@@ -114,7 +129,7 @@ export const buildContinuationHeader = (proposal: ProposalDetail, settings?: App
                 width: { size: 6438, type: WidthType.DXA },
                 borders: { top: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, bottom: border },
                 margins: { top: 0, bottom: 40, left: 0, right: 0 },
-                children: [new Paragraph({ children: [new TextRun({ text: `${brand} • Proposta Comercial ${proposal.number} (Rev. ${String(proposal.revision).padStart(2, '0')})`, size: 14, color: NAVY, bold: true, font: 'Arial' })] })],
+                children: [new Paragraph({ children: [new TextRun({ text: `${brand} • Proposta Comercial ${proposal.number} (Rev. ${String(proposal.revision).padStart(2, '0')})`, size: 14, color: NAVY, bold: true, font: 'Arial' }), ...watermarkRuns(watermark)] })],
               }),
               new TableCell({
                 width: { size: 3200, type: WidthType.DXA },

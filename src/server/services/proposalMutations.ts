@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { parseCommercialConditions } from '../../documents/proposalDocumentCommon';
 import { seedBodyBlocks } from '../../shared/proposalBody';
-import { findBodyModel, modelBodyBlocks, type BodyModelId } from '../../shared/proposalBodyModels';
+import { findBodyModel, modelBodyBlocks } from '../../shared/proposalBodyModels';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal } from './proposalCommon';
 import { getDefaultBody } from './proposalBody';
-import { getNewProposalDefaults } from './settings';
+import { getCompanyBodyModels } from './proposalBodyModelStore';
+import { getAppSettings, getNewProposalDefaults } from './settings';
 
 export const createProposal = async (
   database: LocalDatabase,
@@ -16,7 +17,7 @@ export const createProposal = async (
     scope: string;
     bdiMultiplier?: number;
     validUntil?: string | null;
-    bodyModel?: BodyModelId;
+    bodyModel?: string;
   },
 ): Promise<string> => {
   return database.transaction(async (transaction) => {
@@ -50,8 +51,9 @@ export const createProposal = async (
     const defaults = await getNewProposalDefaults(transaction);
     // Corpo padrao da empresa (se houver): a proposta ja nasce com ele; sem ele, usa o layout fixo de sempre.
     // Modelo escolhido na criacao (proposta de servico ou de fornecimento) vale no lugar do corpo padrao; o escopo digitado entra pela variavel {{escopo}}.
-    const model = findBodyModel(input.bodyModel);
-    const body = model ? modelBodyBlocks(model) : seedBodyBlocks(await getDefaultBody(transaction), parseCommercialConditions(input.scope).scope);
+    const model = findBodyModel(input.bodyModel, input.bodyModel ? await getCompanyBodyModels(transaction) : []);
+    const place = (await getAppSettings(transaction)).letterPlace;
+    const body = model ? modelBodyBlocks(model, undefined, place) : seedBodyBlocks(await getDefaultBody(transaction), parseCommercialConditions(input.scope).scope);
 
     await transaction.query(`
       INSERT INTO proposals

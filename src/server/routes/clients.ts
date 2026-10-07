@@ -10,6 +10,10 @@ const clientSchema = z.object({
   legalName: z.string().trim().min(2).max(180),
   tradeName: z.string().trim().max(180).nullable().optional(),
   document: z.string().trim().max(30).nullable().optional(),
+  contact: z.object({
+    name: z.string().trim().max(120), role: z.string().trim().max(120), department: z.string().trim().max(120),
+    email: z.string().trim().max(160), phone: z.string().trim().max(40),
+  }).partial().optional(),
 });
 const workSchema = z.object({
   name: z.string().trim().min(2).max(180),
