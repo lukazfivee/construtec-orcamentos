@@ -42,7 +42,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
     return `${names.join(', ')}${more} ${frozen.length === 1 ? 'mantém' : 'mantêm'} os preços de quando ${frozen.length === 1 ? 'foi montada' : 'foram montadas'}. Os preços novos entram se você criar a próxima revisão.`;
   }, [frozen]);
 
-  const header = <PageHead eyebrow="Catálogo" title="Integração EXSAT" sub="Preços do distribuidor chegando no catálogo e nas propostas">
+  const header = <PageHead eyebrow="Cadastros" title="Integração EXSAT" sub="Preços do distribuidor chegando no catálogo e nas propostas">
     <button type="button" className="od-btn s" onClick={onBack}>Voltar ao catálogo</button>
     <button type="button" className="od-btn p" disabled={!!reason || sync.busy} title={reason || undefined} onClick={() => void sync.run()}>
       {sync.busy ? <Loader2 size={17} className="od-spin" /> : <RefreshCw size={17} />}{sync.busy ? `Sincronizando… ${sync.phase.pct}%` : 'Sincronizar agora'}

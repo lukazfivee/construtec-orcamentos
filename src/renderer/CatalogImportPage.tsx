@@ -289,13 +289,13 @@ export function CatalogImportPage({ canWrite, catalogCount, supplierHints, usedI
   const imp = useCatalogImport(() => { onImported(); onNotice('Catálogo atualizado.'); });
   const { phase, file } = imp;
   if (!canWrite) return <main className="od-page"><div className="od-stack">
-    <PageHead eyebrow="Catálogo" title="Importar lista de preços" sub="De um fornecedor para o catálogo, conferindo cada linha antes de entrar" />
+    <PageHead eyebrow="Cadastros" title="Importar lista de preços" sub="De um fornecedor para o catálogo, conferindo cada linha antes de entrar" />
     <div className="od-card"><EmptyState icon={ShieldCheck} title="Importar catálogo não está liberado para o seu papel"
       actions={<button type="button" className="od-btn s" onClick={onBack}>Voltar ao catálogo</button>}>O catálogo carrega o custo dos itens; só quem vê custo e edita pode importar.</EmptyState></div>
   </div></main>;
 
   return <main className="od-page" aria-busy={phase === 'read' || phase === 'conferir' || phase === 'run'}><div className="od-stack">
-    <PageHead eyebrow="Catálogo" title="Importar lista de preços" sub="De um fornecedor para o catálogo, conferindo cada linha antes de entrar">
+    <PageHead eyebrow="Cadastros" title="Importar lista de preços" sub="De um fornecedor para o catálogo, conferindo cada linha antes de entrar">
       {phase === 'file' && <button type="button" className="od-btn s" onClick={() => downloadText('modelo-catalogo.csv', templateCsv())}><FileDown size={17} />Baixar modelo</button>}
     </PageHead>
     <Stepper phase={phase} />

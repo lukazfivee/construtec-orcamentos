@@ -15,6 +15,8 @@ import { ProposalEditorWorkspace } from './ProposalEditorWorkspace';
 import { ProposalPdfView } from './ProposalPdfView';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
+import type { ProposalViewMode } from './proposalNav';
+import { countPendingProposals, INITIAL_PROPOSAL_VIEW_MODE, viewModeOnSelectNav } from './proposalNav';
 import { useProposalDeepLink } from './useProposalDeepLink';
 import { SuiteUserProvider, setCurrentSuiteUser } from './SuitePermissions';
 
@@ -35,7 +37,7 @@ export function App({ user, onLogout }: AppProps = {}) {
   const [documentPending, setDocumentPending] = useState(false);
   const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
   const [newProposalOpen, setNewProposalOpen] = useState(false);
-  const [proposalViewMode, setProposalViewMode] = useState<'editor' | 'list' | 'pdf' | 'compare'>('editor');
+  const [proposalViewMode, setProposalViewMode] = useState<ProposalViewMode>(INITIAL_PROPOSAL_VIEW_MODE);
   // Comparativo (Rodada 23): revisao de partida (vazio = primeira x ultima) e aba com que o editor reabre ao voltar.
   const [compareFrom, setCompareFrom] = useState<string | undefined>(undefined);
   const [editorSection, setEditorSection] = useState<'Histórico' | undefined>(undefined);
@@ -162,6 +164,18 @@ export function App({ user, onLogout }: AppProps = {}) {
     }
   }, [documentPending, proposal]);
 
+  /* Busca do topo (Ctrl K): no editor abre a busca do catalogo; nas demais telas leva a lista de propostas e foca a busca dela. */
+  const openSearch = useCallback(() => {
+    if (activeNav === 'Propostas' && proposalViewMode === 'editor' && proposal) {
+      setCatalogOpen(true);
+      return;
+    }
+    setActiveNav('Propostas');
+    setProposalViewMode('list');
+    setCatalogOpen(false);
+    window.setTimeout(() => document.querySelector<HTMLInputElement>('[data-proposals-search]')?.focus(), 80);
+  }, [activeNav, proposal, proposalViewMode]);
+
   useEffect(() => {
     const announce = (message: string) => {
       setNotice(message);
@@ -171,9 +185,8 @@ export function App({ user, onLogout }: AppProps = {}) {
       if (event.ctrlKey || event.metaKey) {
         const action = event.key.toLowerCase();
         if (['k', 'i', 's', 'p', 'g'].includes(action)) event.preventDefault();
-        if (action === 'k' && activeNav === 'Propostas') {
-          setCatalogOpen(true);
-          announce('Busca local aberta.');
+        if (action === 'k') {
+          openSearch();
         } else if (action === 'i') {
           if (proposal?.isLatest) setCatalogOpen(true);
           else announce('Esta revisão é somente para consulta. Abra a revisão atual para editar.');
@@ -189,16 +202,18 @@ export function App({ user, onLogout }: AppProps = {}) {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activeNav, createRevision, exportProposal, previewProposal, proposal?.isLatest]);
+  }, [openSearch, createRevision, exportProposal, previewProposal, proposal?.isLatest]);
 
   return (
     <SuiteUserProvider value={user ?? null}>
-    <div className="app-shell">
+    <div className="app-shell cc">
       <AppTopbar
         user={user}
         activeNav={activeNav}
         proposal={proposal}
         onOpenCatalog={() => setCatalogOpen(true)}
+        onSearch={openSearch}
+        editorOpen={activeNav === 'Propostas' && proposalViewMode === 'editor' && Boolean(proposal)}
         onLogout={onLogout}
         onSelectApp={(app) => {
           if (app === 'centro-custos') {
@@ -206,6 +221,8 @@ export function App({ user, onLogout }: AppProps = {}) {
             else setActiveNav('Centro de Custos');
           } else if (app === 'orcamentos') {
             setActiveNav('Propostas');
+            setProposalViewMode(viewModeOnSelectNav());
+            setCatalogOpen(false);
           }
         }}
         onOpenMobileMenu={() => setMobileMenuOpen(true)}
@@ -220,8 +237,10 @@ export function App({ user, onLogout }: AppProps = {}) {
           setMobileMenuOpen((open) => !open);
         }}
         onCloseMobileMenu={() => setMobileMenuOpen(false)}
+        pendingProposals={countPendingProposals(proposalTabs)}
         onSelectNav={(label) => {
           setActiveNav(label);
+          setProposalViewMode(viewModeOnSelectNav());
           setCatalogOpen(false);
           setMobileMenuOpen(false);
           setError('');

@@ -1,0 +1,95 @@
+/* Telas do desktop do Orçamentos com as proporcoes do Centro de Custos: Inicio, Central de Propostas, PDF e comparativo.
+   Complementa paginas-centro.css (moldura, cabecalho, KPI, cartoes, botoes, campos, chips, tabelas). So no desktop. */
+/* Celular: o eyebrow mantem o aspecto da etiqueta anterior (so na Central de Propostas). */
+@media (max-width: 767px) {
+  .cab .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-ink); }
+  .management-header.cab .eyebrow { display: none; }
+}
+
+@media (min-width: 768px) {
+  .app-shell.cc .proposals-list-workspace .home-body > * { flex: none; }
+
+  /* ---------- Cabecalho de bloco (.bcab): titulo 15/600 e link em botao pequeno ---------- */
+  .app-shell.cc .home-card-header, .app-shell.cc .home-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 6px; background: transparent; border: 0; }
+  .app-shell.cc .home-card-header > div { display: flex; align-items: center; gap: 10px; }
+  .app-shell.cc .home-card-header > div svg { width: 18px; height: 18px; stroke-width: 1.5; color: var(--color-accent-300); }
+  .app-shell.cc .home-card-header h2, .app-shell.cc .home-panel-header h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; letter-spacing: 0; color: var(--color-text); }
+  .app-shell.cc .home-panel-header p { margin: 0; font-size: 12px; color: var(--color-neutral-300); }
+  .app-shell.cc .home-card-header button { height: 32px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--color-accent-300); font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+  .app-shell.cc .home-card-header button:hover { background: var(--color-accent-900); }
+  .app-shell.cc .home-table-container, .app-shell.cc .proposals-table-wrapper { padding: 0; overflow-x: auto; }
+
+  /* ---------- Acoes rapidas e abas do Inicio ---------- */
+  .app-shell.cc .quick-actions-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px 14px; }
+  .app-shell.cc .quick-actions-title { margin: 0 4px 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300); }
+  .app-shell.cc .quick-actions-bar button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+  .app-shell.cc .quick-actions-bar button:hover { background: var(--color-accent-900); }
+  .app-shell.cc .quick-action-icon { display: inline-grid; place-items: center; color: var(--color-accent-300); }
+  .app-shell.cc .quick-action-label { font: inherit; }
+  .app-shell.cc .home-view-switcher, .app-shell.cc .filter-chips { display: inline-flex; flex-wrap: nowrap; align-self: flex-start; align-items: center; gap: 2px; padding: 3px; border-radius: 11px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
+  .app-shell.cc .home-tab-pill, .app-shell.cc .filter-chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; color: var(--color-neutral-300); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; white-space: nowrap; cursor: pointer; transition: none; }
+  .app-shell.cc .home-tab-pill:hover, .app-shell.cc .filter-chip:hover { background: transparent; color: var(--color-text); border: 0; }
+  .app-shell.cc .home-tab-pill.active, .app-shell.cc .filter-chip.active { background: var(--color-surface); color: var(--color-text); border: 0; box-shadow: 0 1px 2px rgba(3, 31, 41, .1), 0 0 0 1px var(--color-divider); }
+  .app-shell.cc .home-tab-pill svg { width: 16px; height: 16px; stroke-width: 1.5; }
+  .app-shell.cc .home-tab-pill .tab-counter, .app-shell.cc .chip-count { height: 20px; padding: 0 7px; border-radius: 10px; background: var(--c-muted-soft); color: var(--c-muted); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; }
+  .app-shell.cc .home-tab-pill.active .tab-counter, .app-shell.cc .filter-chip.active .chip-count { background: var(--color-accent-900); color: var(--color-accent-300); }
+  .app-shell.cc .home-tab-pill .tab-counter.highlight { background: var(--c-ok-soft); color: var(--c-ok); }
+
+  /* ---------- Central de Propostas: filtros (.filtros), tabela (.tabela) e rodape (.rodape) ---------- */
+  .app-shell.cc .proposals-filter-bar-container { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 14px 16px; overflow: visible; }
+  .app-shell.cc .proposals-filter-top-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 10px; }
+  .app-shell.cc .search-box { position: relative; display: block; flex: 0 1 300px; min-width: 220px; height: auto; padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .app-shell.cc .search-box > svg { position: absolute; left: 12px; top: 11px; width: 18px; height: 18px; stroke-width: 1.5; color: var(--color-neutral-300); pointer-events: none; }
+  .app-shell.cc .search-box input { width: 100%; padding: 0 36px 0 38px; }
+  .app-shell.cc .search-box .clear-btn { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 8px; }
+  .app-shell.cc .filter-select-group { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 10px; flex: 1; min-width: 0; }
+  .app-shell.cc .filter-select-wrapper { position: relative; display: inline-flex; align-items: center; }
+  .app-shell.cc .filter-select-icon { left: 12px; width: 16px; height: 16px; stroke-width: 1.5; color: var(--color-neutral-300); }
+  .app-shell.cc .filter-select { width: 200px; padding: 0 32px 0 36px; cursor: pointer; text-overflow: ellipsis; }
+  .app-shell.cc .filter-select:hover { box-shadow: inset 0 0 0 1px var(--color-field); }
+  .app-shell.cc .btn-export-csv { margin-left: auto; }
+  .app-shell.cc .btn-export-csv svg, .app-shell.cc .clear-filters-btn svg { width: 17px; height: 17px; stroke-width: 1.5; }
+  .app-shell.cc .table-panel { padding: 0; }
+  .app-shell.cc .table-panel .home-panel-header { flex-direction: column; align-items: flex-start; gap: 2px; padding: 18px 20px 12px; }
+  .app-shell.cc .proposals-table-wrapper { container-type: inline-size; }
+  @container (max-width: 1210px) { .col-updated { display: none; } }
+  @container (max-width: 980px) { .col-items { display: none; } }
+  .app-shell.cc .proposals-table th, .app-shell.cc .proposals-table td { padding-left: 10px; padding-right: 10px; }
+  .app-shell.cc .proposals-table th:first-child, .app-shell.cc .proposals-table td:first-child { padding-left: 16px; }
+  .app-shell.cc .proposals-table th:last-child, .app-shell.cc .proposals-table td:last-child { padding-right: 16px; }
+  .app-shell.cc .proposals-table .sortable-th { cursor: pointer; user-select: none; }
+  .app-shell.cc .proposals-table .sortable-th svg { width: 12px; height: 12px; margin-left: 4px; vertical-align: -1px; stroke-width: 1.5; }
+  .app-shell.cc .proposals-table .text-right { text-align: right; }
+  .app-shell.cc .proposal-number-badge { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .app-shell.cc .proposal-client-cell .client-name { font-size: 13px; font-weight: 600; }
+  .app-shell.cc .proposal-client-cell .work-name { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .proposal-client-cell .work-name svg { width: 12px; height: 12px; stroke-width: 1.5; }
+  .app-shell.cc .proposal-date-cell { font-size: 12.5px; white-space: nowrap; color: var(--color-text); }
+  .app-shell.cc .proposal-date-cell svg { width: 12px; height: 12px; margin-right: 4px; vertical-align: -1px; stroke-width: 1.5; color: var(--color-neutral-300); }
+  .app-shell.cc .status-select { height: 24px; padding: 0 22px 0 9px; border: 0; border-radius: 12px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+  .app-shell.cc .proposal-actions-cell { white-space: nowrap; }
+  .app-shell.cc .table-action-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 9px; background: transparent; color: var(--color-neutral-300); box-shadow: none; cursor: pointer; transition: background-color .15s ease, color .15s ease; vertical-align: middle; }
+  .app-shell.cc .table-action-btn:hover:not(:disabled) { background: var(--color-accent-900); color: var(--color-accent-300); }
+  .app-shell.cc .table-action-btn.danger:hover:not(:disabled) { background: var(--c-err-soft); color: var(--c-err); }
+  .app-shell.cc .table-action-btn svg { width: 17px; height: 17px; stroke-width: 1.5; }
+  .app-shell.cc .table-action-btn .btn-label { display: none; }
+  .app-shell.cc .table-action-btn.primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; height: 32px; padding: 0 12px; margin-right: 4px; border-radius: 8px; background: var(--color-brand); color: var(--on-brand); font: 600 12.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
+  .app-shell.cc .table-action-btn.primary:hover:not(:disabled) { background: #0b4a5c; color: var(--on-brand); }
+  .app-shell.cc .table-action-btn.primary .btn-label { display: inline; }
+  .app-shell.cc .table-action-btn.primary svg { width: 15px; height: 15px; }
+  .app-shell.cc .proposals-footer-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 0; padding: 12px 16px; background: var(--color-surface); border: 0; border-radius: 14px; box-shadow: var(--shadow-sm-cc), 0 1px 2px rgba(3, 31, 41, .04); font-size: 13px; }
+  .app-shell.cc .summary-left-col, .app-shell.cc .summary-center-col, .app-shell.cc .summary-right-col { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .app-shell.cc .summary-right-col { margin-left: auto; }
+  .app-shell.cc .summary-pill, .app-shell.cc .summary-total-callout, .app-shell.cc .summary-filter-active-tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border: 0; border-radius: 12px; font-size: 11.5px; font-weight: 600; }
+  .app-shell.cc .summary-pill.pill-approved { background: var(--c-ok-soft); color: var(--c-ok); }
+  .app-shell.cc .summary-pill.pill-negotiation, .app-shell.cc .summary-filter-active-tag { background: var(--c-warn-soft); color: var(--c-warn); }
+  .app-shell.cc .summary-total-callout { background: var(--color-accent-900); color: var(--color-accent-300); }
+  .app-shell.cc .summary-total-callout strong, .app-shell.cc .summary-pill strong { font-size: 11.5px; }
+  .app-shell.cc .summary-metric { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-neutral-300); }
+  .app-shell.cc .summary-metric strong { color: var(--color-text); font-weight: 600; }
+  .app-shell.cc .summary-pill small { font-size: 11.5px; font-weight: 600; }
+  .app-shell.cc .empty-state { padding: 48px 16px; gap: 10px; color: var(--color-neutral-300); }
+  .app-shell.cc .empty-state h4 { font-size: 16px; font-weight: 600; color: var(--color-text); }
+  .app-shell.cc .empty-state p { font-size: 13.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .empty-state-icon { width: 32px; height: 32px; color: var(--color-accent-300); stroke-width: 1.5; }
+}

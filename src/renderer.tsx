@@ -40,9 +40,13 @@ import './suite-bolder.css';
 import './desktop-polish.css';
 import './mobile-responsive.css';
 import './mobile-suite.css';
-import './menu-lateral.css';
 import './proposal-pages.css';
 import './theme-dark.css';
+import './shell-centro.css';
+import './paginas-centro.css';
+import './telas-centro.css';
+import './editor-centro.css';
+import './config-centro.css';
 import './updater.css';
 
 const rootElement = document.getElementById('root');

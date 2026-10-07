@@ -1,27 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  Building2,
-  ExternalLink,
-  FileSpreadsheet,
-  Headset,
-  Layers,
-} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { ChartColumn, FileText, Mail, SquareArrowOutUpRight, Wrench } from 'lucide-react';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
+import type { SuiteAppId, SuiteMenuEntry } from './suiteMenu';
+import { SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL } from './suiteMenu';
 
-/* Dominio oficial do ChamadoPro na Suite Construtec. */
-export const CHAMADOPRO_URL = 'https://chamadopro-app.lucas-coelho5923.workers.dev/';
+export { CHAMADOPRO_URL } from './suiteMenu';
 
 interface SuiteSwitcherPopoverProps {
   activeApp?: 'orcamentos' | 'centro-custos';
-  onSelectApp?: (app: 'orcamentos' | 'centro-custos' | 'hub') => void;
+  onSelectApp?: (app: 'orcamentos' | 'centro-custos') => void;
   onClose: () => void;
 }
 
-export function SuiteSwitcherPopover({
-  activeApp = 'orcamentos',
-  onSelectApp,
-  onClose,
-}: SuiteSwitcherPopoverProps) {
+// Icones Lucide equivalentes aos Phosphor do Centro (file-text, chart-bar, wrench, envelope-simple), traço 1.5.
+const ICONS: Record<SuiteAppId, LucideIcon> = {
+  orcamentos: FileText,
+  'centro-custos': ChartColumn,
+  chamadopro: Wrench,
+  webmail: Mail,
+};
+
+/* Menu Suite identico ao do Centro de Custos: mesmos destinos, textos e marcador "Atual". */
+export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, onClose }: SuiteSwitcherPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [centroUrl, setCentroUrl] = useState(CENTRO_CUSTOS_CLOUD_URL);
 
@@ -30,20 +31,30 @@ export function SuiteSwitcherPopover({
   }, []);
 
   useEffect(() => {
+    (popoverRef.current?.querySelector<HTMLElement>('button.res') ?? null)?.focus();
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') {
+        onClose();
+        document.getElementById('btn-suite-switcher')?.focus();
+      }
+      if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && popoverRef.current) {
+        const items = Array.from(popoverRef.current.querySelectorAll<HTMLElement>('button.res'));
+        if (!items.length) return;
+        event.preventDefault();
+        const index = items.indexOf(document.activeElement as HTMLElement);
+        const next = event.key === 'ArrowDown' ? Math.min(items.length - 1, index + 1) : Math.max(0, index - 1);
+        items[next].focus();
+      }
     };
     const handlePointerDown = (event: PointerEvent) => {
-      if (popoverRef.current && popoverRef.current.contains(event.target as Node)) {
-        return;
-      }
+      if (popoverRef.current?.contains(event.target as Node)) return;
       const toggleBtn = document.getElementById('btn-suite-switcher');
-      if (toggleBtn && (toggleBtn === event.target || toggleBtn.contains(event.target as Node))) {
-        return;
-      }
+      if (toggleBtn && (toggleBtn === event.target || toggleBtn.contains(event.target as Node))) return;
       onClose();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     document.addEventListener('pointerdown', handlePointerDown);
     return () => {
@@ -54,115 +65,64 @@ export function SuiteSwitcherPopover({
 
   const handleOpenUrl = (url: string) => {
     try {
-      if (window.construtec?.openExternal) {
-        void window.construtec.openExternal(url);
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
+      if (window.construtec?.openExternal) void window.construtec.openExternal(url);
+      else window.open(url, '_blank', 'noopener,noreferrer');
     } catch {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
     onClose();
   };
 
-  const handleSelectModule = (app: 'orcamentos' | 'centro-custos') => {
-    if (app === 'centro-custos') {
+  const activate = (entry: SuiteMenuEntry) => {
+    if (entry.id === 'webmail' && window.construtec?.openWebmail) {
+      void window.construtec.openWebmail();
+      onClose();
+    } else if (entry.id === 'centro-custos') {
       handleOpenUrl(centroUrl);
-      return;
-    }
-    if (onSelectApp) {
-      onSelectApp(app);
+    } else if (entry.id === 'orcamentos') {
+      onSelectApp?.('orcamentos');
       onClose();
-    } else {
-      onClose();
+    } else if (entry.url) {
+      handleOpenUrl(entry.url);
     }
   };
 
-  return (
-    <div
-      className="suite-dropdown-menu"
-      ref={popoverRef}
-      role="menu"
-      aria-label="Alternar entre sistemas da Suíte Construtec"
-    >
-      <div className="suite-dropdown-header">
-        <Layers size={12} style={{ display: 'inline', marginRight: 5, verticalAlign: '-1px' }} />
-        Esteira Operacional Construtec
-      </div>
-
-      {activeApp === 'orcamentos' ? (
-        <div className="suite-dropdown-item current-system" role="menuitem" aria-current="page">
-          <span className="suite-item-icon">
-            <FileSpreadsheet size={15} />
-          </span>
-          <div className="suite-item-text">
-            <strong>Construtec Orçamentos</strong>
-            <small>Etapa 01: Propostas e BDI</small>
-          </div>
-          <span className="suite-current-badge">Atual</span>
+  const renderEntry = (entry: SuiteMenuEntry) => {
+    const Icon = ICONS[entry.id];
+    const body = (
+      <>
+        <span className="ic"><Icon size={17} strokeWidth={1.5} /></span>
+        <span className="tx"><b>{entry.title}</b><span>{entry.subtitle}</span></span>
+      </>
+    );
+    if (entry.id === activeApp) {
+      /* O app atual aparece marcado e, como o Orcamentos tambem e destino de volta a lista de propostas, continua clicavel. */
+      if (entry.id === 'orcamentos') {
+        return (
+          <button key={entry.id} type="button" className="res atual" role="menuitem" aria-current="page" onClick={() => activate(entry)}>
+            {body}<span className="chip ok">Atual</span>
+          </button>
+        );
+      }
+      return (
+        <div key={entry.id} className="res atual" role="menuitem" aria-current="page">
+          {body}<span className="chip ok">Atual</span>
         </div>
-      ) : (
-        <button
-          type="button"
-          className="suite-dropdown-item"
-          onClick={() => handleSelectModule('orcamentos')}
-          role="menuitem"
-        >
-          <span className="suite-item-icon">
-            <FileSpreadsheet size={15} />
-          </span>
-          <div className="suite-item-text">
-            <strong>Construtec Orçamentos</strong>
-            <small>Etapa 01: Propostas e BDI</small>
-          </div>
-        </button>
-      )}
-
-      {activeApp === 'centro-custos' ? (
-        <div className="suite-dropdown-item current-system" role="menuitem" aria-current="page">
-          <span className="suite-item-icon">
-            <Building2 size={15} />
-          </span>
-          <div className="suite-item-text">
-            <strong>Centro de Custos v3</strong>
-            <small>Etapa 02: Gestão ativa de obras</small>
-          </div>
-          <span className="suite-current-badge">Atual</span>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="suite-dropdown-item"
-          onClick={() => handleSelectModule('centro-custos')}
-          role="menuitem"
-        >
-          <span className="suite-item-icon">
-            <Building2 size={15} />
-          </span>
-          <div className="suite-item-text">
-            <strong>Centro de Custos v3</strong>
-            <small>Etapa 02: Gestão ativa de obras</small>
-          </div>
-          <ExternalLink size={12} className="suite-item-ext" />
-        </button>
-      )}
-
-      <button
-        type="button"
-        className="suite-dropdown-item"
-        onClick={() => handleOpenUrl(CHAMADOPRO_URL)}
-        role="menuitem"
-        title="Abrir Chamados e O.S. em nova aba"
-      >
-        <span className="suite-item-icon">
-          <Headset size={15} />
-        </span>
-        <div className="suite-item-text">
-          <strong>Chamados &amp; O.S.</strong>
-          <small>Etapa 03: ChamadoPro integrado</small>
-        </div>
-        <ExternalLink size={12} className="suite-item-ext" />
+      );
+    }
+    return (
+      <button key={entry.id} type="button" className="res" role="menuitem" onClick={() => activate(entry)}>
+        {body}<SquareArrowOutUpRight size={15} strokeWidth={1.5} />
       </button>
+    );
+  };
+
+  return (
+    <div className="pop" ref={popoverRef} role="menu" aria-label={SUITE_MENU_TITLE}>
+      <span className="lbl">{SUITE_MENU_TITLE}</span>
+      {SUITE_APPS.map(renderEntry)}
+      <div className="sep" role="separator" />
+      {renderEntry(SUITE_WEBMAIL)}
     </div>
   );
 }

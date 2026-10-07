@@ -70,27 +70,27 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
     <span><b>{title}</b><small>{sub}</small></span><span className="od-knob" />
   </button>;
 
-  return <section className="od-scope" aria-label="Padrões da empresa" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+  return <section className="od-scope" aria-label="Padrões da empresa">
+    <div className="od-sechead">
       <span className="od-eyebrow">Administração</span>
-      <h2 style={{ margin: 0, font: '600 20px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif' }}>Padrões da empresa</h2>
+      <h2>Padrões da empresa</h2>
       <span className="od-sub">Valem para as próximas propostas; as que já existem mantêm os valores delas</span>
     </div>
     {!loading && !isAdmin && <div className="od-note"><ShieldCheck size={17} /><span>Padrões em modo de consulta. Apenas administradores podem alterar.</span></div>}
     <div className="od-grid-2">
-      <div className="od-card pad" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="od-card pad od-col">
         <span className="od-grow"><b>Preço</b><span>BDI e impostos que toda proposta nova recebe</span></span>
         {seesBdi ? <>
-          <span className="od-lbl" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12 }}>BDI · multiplicador sobre o custo</span>
+          <span className="od-lbl plain">BDI · multiplicador sobre o custo</span>
           <Stepper label="BDI" value={draft.defaultBdi} text={`${draft.defaultBdi.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ×`} step={0.05} min={1} max={10} disabled={off} onChange={(v) => set('defaultBdi', v)} />
         </> : <div className="od-note"><EyeOff size={17} /><span>Seu perfil não vê BDI. O restante dos padrões funciona igual.</span></div>}
-        <span className="od-lbl" style={{ textTransform: 'none', letterSpacing: 0, fontSize: 12 }}>Impostos · % sobre o valor com BDI</span>
+        <span className="od-lbl plain">Impostos · % sobre o valor com BDI</span>
         <Stepper label="impostos" value={draft.defaultTaxPercentage} text={`${draft.defaultTaxPercentage.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}%`} step={0.5} min={0} max={100} disabled={off} onChange={(v) => set('defaultTaxPercentage', v)} />
         <div className="od-fld"><span>Validade da proposta</span>
           <Seg<string> label="Validade" value={String(draft.defaultValidityDays)} disabled={off} onChange={(v) => set('defaultValidityDays', Number(v))} options={days.map((d) => [String(d), `${d} dias`] as const)} />
         </div>
       </div>
-      <div className="od-card pad" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="od-card pad od-col">
         <span className="od-grow"><b>PDF da proposta</b><span>O que sai em todo PDF enviado ao cliente</span></span>
         {toggle('pdfShowLogo', 'Logo da Construtec na capa', 'Versão branca sobre o azul-marinho')}
         {toggle('pdfShowSignature', 'Assinatura de quem envia', 'Nome e cargo no fim das condições')}

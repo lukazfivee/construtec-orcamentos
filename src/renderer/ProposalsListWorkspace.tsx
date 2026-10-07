@@ -201,13 +201,13 @@ export function ProposalsListWorkspace({
 
   return (
     <div className="home-workspace proposals-list-workspace">
-      <header className="home-header">
-        <div>
-          <span className="app-badge">Gestão de Orçamentos</span>
+      <header className="home-header cab">
+        <div className="tit">
+          <span className="eyebrow">Comercial</span>
           <h1>Central de Propostas</h1>
-          <p>Visualize, filtre, edite o status e gerencie todas as propostas comerciais da Construtec.</p>
+          <p className="sub">Visualize, filtre, edite o status e gerencie todas as propostas comerciais da Construtec.</p>
         </div>
-        <div className="home-header-actions">
+        <div className="home-header-actions acoes">
           <button
             type="button"
             className="secondary-btn"

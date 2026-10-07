@@ -46,7 +46,7 @@ export function KitsOverview({ onEdit, onOpenProposal, onNewProposalWithKit, onN
     return () => { active = false; };
   }, [selected]);
 
-  const head = <PageHead eyebrow="Comercial" title="Kits" sub="Conjuntos de itens que entram de uma vez na proposta">
+  const head = <PageHead eyebrow="Cadastros" title="Kits" sub="Conjuntos de itens que entram de uma vez na proposta">
     <button type="button" className="od-btn s" onClick={onEdit}><PackagePlus size={17} />Cadastrar kits</button>
     {canEdit && <button type="button" className="od-btn p" disabled={!detail || detail.items.length === 0} onClick={() => setDrawer(true)}><Layers size={17} />Usar em proposta</button>}
   </PageHead>;

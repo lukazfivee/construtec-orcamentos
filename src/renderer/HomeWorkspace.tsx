@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   FilePlus2,
   FileText,
-  Grid2X2,
   Layers3,
   PackagePlus,
   RefreshCw,
@@ -73,22 +72,20 @@ export function HomeWorkspace({
 
   return (
     <main className="management-workspace home-workspace">
-      <header className="management-header">
-        <div>
-          <Grid2X2 size={25} />
-          <span>
-            <h1>Início</h1>
-            <p>Visão geral de orçamentos, inteligência comercial e atalhos operacionais.</p>
-          </span>
+      <header className="management-header cab">
+        <div className="tit">
+          <span className="eyebrow">Visão geral</span>
+          <h1>Início</h1>
+          <p className="sub">Visão geral de orçamentos, inteligência comercial e atalhos operacionais.</p>
         </div>
-        <span className="management-header-actions">
+        <div className="acoes management-header-actions">
           <button type="button" onClick={() => void loadData()} disabled={loading}>
             <RefreshCw size={16} className={loading ? 'spinning' : ''} /> Atualizar
           </button>
           <button type="button" className="primary" onClick={onNewProposal}>
             <FilePlus2 size={16} /> Nova proposta
           </button>
-        </span>
+        </div>
       </header>
 
       <div className="home-body">
