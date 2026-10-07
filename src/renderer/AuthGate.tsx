@@ -134,7 +134,7 @@ export function AuthGate() {
     return (
       <main className="auth-shell auth-loading" aria-busy="true">
         <img src={brandLogo} alt="Construtec Orçamentos" className="auth-loading-logo" />
-        <LoaderCircle className="spinning" size={26} />
+        <div className="auth-loading-bar" aria-hidden="true"><i /></div>
         <strong>{isCloud ? 'Conectando…' : 'Preparando ambiente local…'}</strong>
       </main>
     );

@@ -10,21 +10,57 @@
     var(--surface-subtle);
 }
 
+/* Tela de abertura animada (igual a do Centro): logo que respira sobre um brilho, barra de progresso e pontinhos no texto. */
 .auth-loading {
+  position: relative;
+  overflow: hidden;
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 12px;
+  gap: 14px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 13.5px;
 }
 
+.auth-loading::before {
+  content: "";
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 127, 159, .22), transparent 68%);
+  animation: auth-abertura-brilho 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.auth-loading > * { position: relative; }
+
 .auth-loading-logo {
-  height: 48px;
+  height: 52px;
   width: auto;
-  max-width: 210px;
+  max-width: 230px;
   object-fit: contain;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  animation: auth-abertura-entrada .7s ease-out both, auth-abertura-respira 2.6s ease-in-out .7s infinite;
+}
+
+.auth-loading-bar { width: 180px; height: 3px; border-radius: 3px; overflow: hidden; background: rgba(13, 127, 159, .18); }
+.auth-loading-bar i { display: block; width: 40%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, transparent, #0d7f9f, transparent); animation: auth-abertura-barra 1.3s ease-in-out infinite; }
+.auth-loading strong { font-weight: 600; letter-spacing: .01em; }
+.auth-loading strong::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: auth-abertura-pontos 1.4s steps(1, end) infinite; }
+
+@keyframes auth-abertura-entrada { from { opacity: 0; transform: translateY(8px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes auth-abertura-respira { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.045); opacity: .82; } }
+@keyframes auth-abertura-brilho { 0%, 100% { transform: scale(.85); opacity: .6; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes auth-abertura-barra { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@keyframes auth-abertura-pontos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+
+/* A abertura avisa que o app esta carregando: mantem a animacao mesmo com "reduzir movimento" (sem o logo respirando). */
+@media (prefers-reduced-motion: reduce) {
+  .auth-loading::before { animation: auth-abertura-brilho 3.2s ease-in-out infinite !important; }
+  .auth-loading-logo { animation: auth-abertura-entrada .7s ease-out both !important; }
+  .auth-loading-bar i { animation: auth-abertura-barra 1.3s ease-in-out infinite !important; }
+  .auth-loading strong::after { animation: auth-abertura-pontos 1.4s steps(1, end) infinite !important; }
 }
 
 .auth-card {
