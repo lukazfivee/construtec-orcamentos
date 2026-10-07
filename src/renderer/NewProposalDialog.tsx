@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, CalendarDays, FilePlus2, MapPin, X } from 'lucide-react';
+import { Building2, CalendarDays, FilePlus2, FileText, MapPin, X } from 'lucide-react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
+import { BODY_MODELS, findBodyModel } from '../shared/proposalBodyModels';
 import { clientsApi, proposalApi, settingsApi } from './api';
 
 type Props = {
@@ -18,6 +19,7 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
   const [isCreatingWork, setIsCreatingWork] = useState(false);
   const [scope, setScope] = useState('');
   const [validUntil, setValidUntil] = useState('');
+  const [bodyModel, setBodyModel] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -121,9 +123,11 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
         workId: finalWorkId,
         scope: scope.trim(),
         validUntil: validUntil || null,
+        ...(bodyModel ? { bodyModel: bodyModel as 'servico' | 'fornecimento' } : {}),
       });
       onCreated(result.proposal);
       setScope('');
+      setBodyModel('');
       setValidUntil('');
       setNewWorkName('');
       setIsCreatingWork(false);
@@ -250,6 +254,15 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
               disabled={loading}
               onChange={(event) => setScope(event.target.value)}
             />
+          </label>
+
+          <label htmlFor="new-proposal-model" className="wide">
+            <span><FileText size={15} /> Modelo do documento</span>
+            <select id="new-proposal-model" value={bodyModel} disabled={loading} onChange={(event) => setBodyModel(event.target.value)}>
+              <option value="">Padrão da empresa</option>
+              {BODY_MODELS.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
+            </select>
+            {bodyModel && <small>{findBodyModel(bodyModel)?.description} Preencha o que estiver entre colchetes na aba Corpo e condições.</small>}
           </label>
 
           <label htmlFor="new-proposal-validity" className="wide">

@@ -212,3 +212,16 @@
 .drawer-row { display: flex; flex-wrap: wrap; gap: 8px; }
 fieldset.drawer-field legend { padding: 0; margin-bottom: 6px; color: var(--muted); font-size: 12px; }
 fieldset.drawer-field { border: 0; padding: 0; margin: 0; }
+
+/* ---------- carta de abertura, subtítulos, legenda da planilha e assinatura na pré-visualização do documento ---------- */
+.sheet-letter p { margin: 0 0 6px; font-size: 8.5pt; line-height: 1.45; color: var(--tx-cool-13); white-space: pre-line; }
+.sheet-letter .sheet-letter-to { font-weight: 700; text-transform: uppercase; }
+.sheet-letter .sheet-letter-att { display: flex; gap: 6px; }
+.sheet-letter .sheet-letter-ref { font-weight: 700; text-align: justify; }
+.sheet-letter-title { margin: 14px 0 10px; text-align: center; font-size: 13pt; font-weight: 700; color: var(--status-review-text); text-decoration: underline; text-transform: uppercase; }
+.sheet-h3 { margin: 6px 0 3px; font-size: 8.5pt; font-weight: 700; color: var(--status-review-text); }
+.sheet-caption { margin: 2px 0 0; padding: 4px 6px; text-align: center; font-size: 7.5pt; font-weight: 700; color: var(--status-review-text); background: var(--bg-cool-94-2); border-left: 3px solid #12a9d1; }
+.sheet-closing-block { margin-top: 8px; }
+.sheet-signature { display: grid; width: 220px; margin-top: 28px; padding-top: 5px; border-top: 1px solid var(--status-review-text); font-size: 8pt; color: var(--tx-cool-29-2); }
+.sheet-signature b { color: var(--status-review-text); }
+.new-proposal-dialog label small { font-weight: 400; color: var(--muted); font-size: 10px; line-height: 1.4; }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, FileText, Trash2 } from 'lucide-react';
 import { BUILTIN_BODY_TEMPLATES, emptyBodyBlock, legacyBodyBlocks, type BodyBlock, type BodyTemplate } from '../shared/proposalBody';
+import { BODY_MODELS, findBodyModel, modelBodyBlocks } from '../shared/proposalBodyModels';
 import { settingsApi } from './api';
 import { InsertRow } from './ProposalBodyBuilder';
 import { ProposalBodyCard } from './ProposalBodyCard';
@@ -65,7 +66,7 @@ export function CompanyDefaultBody({ isAdmin, loading, onNotice, onError }: Prop
   };
   const row = (at: number) => draft && (
     <InsertRow
-      at={at} open={openAt === at} full={!canAddBlock(draft)} templates={templates}
+      at={at} open={openAt === at} full={!canAddBlock(draft)} templates={templates} blocks={draft}
       onToggle={() => setOpenAt(openAt === at ? null : at)} onAdd={(type) => add(emptyBodyBlock(type), at)} onTemplate={(id) => addTemplate(id, at)}
     />
   );
@@ -76,7 +77,13 @@ export function CompanyDefaultBody({ isAdmin, loading, onNotice, onError }: Prop
       {!draft ? (
         <>
           <p className="body-note">Sem corpo padrão: as propostas novas usam o documento no formato padrão.</p>
-          <button type="button" className="od-btn s" disabled={off} onClick={() => setDraft(legacyBodyBlocks(''))}><FileText size={17} />Definir corpo padrão</button>
+          <div className="body-defaults-start">
+            <button type="button" className="od-btn s" disabled={off} onClick={() => setDraft(legacyBodyBlocks(''))}><FileText size={17} />Definir corpo padrão</button>
+            <select className="body-model-select" aria-label="Começar de um modelo de proposta" value="" disabled={off} onChange={(event) => { const model = findBodyModel(event.currentTarget.value); if (model) setDraft(modelBodyBlocks(model)); }}>
+              <option value="">Começar de um modelo…</option>
+              {BODY_MODELS.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
+            </select>
+          </div>
         </>
       ) : (
         <div className="body-list">

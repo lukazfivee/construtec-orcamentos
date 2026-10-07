@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { parseCommercialConditions } from '../../documents/proposalDocumentCommon';
 import { seedBodyBlocks } from '../../shared/proposalBody';
+import { findBodyModel, modelBodyBlocks, type BodyModelId } from '../../shared/proposalBodyModels';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal } from './proposalCommon';
@@ -15,6 +16,7 @@ export const createProposal = async (
     scope: string;
     bdiMultiplier?: number;
     validUntil?: string | null;
+    bodyModel?: BodyModelId;
   },
 ): Promise<string> => {
   return database.transaction(async (transaction) => {
@@ -47,7 +49,9 @@ export const createProposal = async (
     // Padroes da empresa (Rodada 24): BDI e impostos das propostas novas.
     const defaults = await getNewProposalDefaults(transaction);
     // Corpo padrao da empresa (se houver): a proposta ja nasce com ele; sem ele, usa o layout fixo de sempre.
-    const body = seedBodyBlocks(await getDefaultBody(transaction), parseCommercialConditions(input.scope).scope);
+    // Modelo escolhido na criacao (proposta de servico ou de fornecimento) vale no lugar do corpo padrao; o escopo digitado entra pela variavel {{escopo}}.
+    const model = findBodyModel(input.bodyModel);
+    const body = model ? modelBodyBlocks(model) : seedBodyBlocks(await getDefaultBody(transaction), parseCommercialConditions(input.scope).scope);
 
     await transaction.query(`
       INSERT INTO proposals

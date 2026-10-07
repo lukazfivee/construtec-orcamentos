@@ -23,7 +23,7 @@ test('variaveis: cliente, obra, numero, revisao, valor total de venda, validade 
 
 test('variaveis nunca leem custo, BDI ou margem e o valor nao e reinterpretado', () => {
   const variables = bodyVariables(proposal);
-  assert.equal(Object.keys(variables).sort().join(','), 'cliente,numero,obra,responsavel,revisao,validade,valor_total');
+  assert.equal(Object.keys(variables).sort().join(','), 'cliente,escopo,numero,obra,responsavel,revisao,validade,valor_total');
   assert.doesNotMatch(JSON.stringify(variables), /1,25|30,00|40/);
   assert.equal(resolveBodyText('{{cliente}}', { ...variables, cliente: '{{obra}}' }), '{{obra}}');
   assert.match(bodyVariables({ ...proposal, validUntil: null }).validade, /a definir/);
@@ -35,7 +35,7 @@ test('paragrafos respeitam quebras de linha e lista vira marcadores', () => {
     block({ id: 'b', type: 'lista', text: '- Um\n* Dois\n• Tres\n\nQuatro' }),
   ));
   assert.deepEqual(parts.slice(0, 4), [
-    { kind: 'heading', text: 'Escopo' },
+    { kind: 'heading', text: 'Escopo', sub: false },
     { kind: 'paragraph', lines: ['Linha 1', 'Linha 2'] },
     { kind: 'paragraph', lines: ['Segundo paragrafo'] },
     { kind: 'list', items: ['Um', 'Dois', 'Tres', 'Quatro'] },
@@ -52,7 +52,7 @@ test('ordem: segue a lista, blocos desligados e vazios somem, tabela de itens se
     block({ id: 'cond', type: 'condicoes', title: 'Condicoes' }),
   ]);
   assert.deepEqual(parts.map((part) => part.kind), ['paragraph', 'itens', 'heading', 'condicoes']);
-  assert.deepEqual(parts[1], { kind: 'itens', title: 'Composição e precificação' });
+  assert.deepEqual(parts[1], { kind: 'itens', title: 'Composição e precificação', caption: '' });
 });
 
 test('limpeza do texto remove controle e formatacao invisivel (inclui U+202E e zero-width)', () => {

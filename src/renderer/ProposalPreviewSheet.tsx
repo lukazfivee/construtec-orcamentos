@@ -12,6 +12,7 @@ import {
   quantity,
   roundMoney,
 } from '../documents/proposalDocumentCommon';
+import { ClosingPreview, LetterPreview } from './ProposalPreviewLetter';
 
 interface ProposalPreviewSheetProps {
   proposal: ProposalDetail;
@@ -214,10 +215,14 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
       )}
     </>
   );
+  const hasLetter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
+  const hasClosing = Boolean(bodyParts?.some((part) => part.kind === 'fechamento'));
   const bodyNode = (part: BodyPart, index: number) => {
-    if (part.kind === 'itens') return <React.Fragment key={index}>{pricingNode(part.title)}</React.Fragment>;
+    if (part.kind === 'itens') return <React.Fragment key={index}>{part.caption && <div className="sheet-caption">{part.caption}</div>}{pricingNode(part.title)}</React.Fragment>;
     if (part.kind === 'condicoes') return <React.Fragment key={index}>{conditionsNode(part.title)}</React.Fragment>;
-    if (part.kind === 'heading') return <div key={index} className="sheet-h2">{part.text}</div>;
+    if (part.kind === 'carta') return <LetterPreview key={index} part={part} />;
+    if (part.kind === 'fechamento') return <ClosingPreview key={index} part={part} company="LAC CONSTRUTEC CONSTRUTORA EIRELI" brand="CONSTRUTEC" showSignature />;
+    if (part.kind === 'heading') return <div key={index} className={part.sub ? 'sheet-h3' : 'sheet-h2'}>{part.text}</div>;
     if (part.kind === 'paragraph') return <p key={index} className="sheet-copy" style={{ whiteSpace: 'pre-line' }}>{part.lines.join('\n')}</p>;
     return <ul key={index} className="sheet-copy">{part.items.map((item, at) => <li key={at}>{item}</li>)}</ul>;
   };
@@ -247,8 +252,8 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
         </div>
       </header>
 
-      {/* 2. Quadro de Identificação */}
-      <div className="sheet-identity-box">
+      {/* 2. Quadro de Identificação (a carta de abertura substitui o quadro e o título) */}
+      {!hasLetter && <div className="sheet-identity-box">
         <table className="sheet-identity-table">
           <tbody>
             <tr>
@@ -269,10 +274,10 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
             </tr>
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {/* 3. Título e Preâmbulo */}
-      <div className="sheet-h1">PROPOSTA TÉCNICA COMERCIAL</div>
+      {!hasLetter && <div className="sheet-h1">PROPOSTA TÉCNICA COMERCIAL</div>}
       {bodyParts ? bodyParts.map(bodyNode) : (
         <>
           {introNode}
@@ -281,9 +286,11 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
         </>
       )}
 
-      <p className="sheet-closing">
-        Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.
-      </p>
+      {!hasClosing && (
+        <p className="sheet-closing">
+          Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.
+        </p>
+      )}
 
       {/* 9. Rodapé Timbrado Oficial */}
       <footer className="sheet-timbrado-footer">

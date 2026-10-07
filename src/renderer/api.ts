@@ -129,7 +129,7 @@ export type DiscardedProposalRecord = {
 export const proposalApi = {
   list: () => request<{ proposals: ProposalSummary[] }>('/api/proposals'),
   current: () => request<{ proposal: ProposalDetail }>('/api/proposals/current'),
-  create: (input: { clientId: string; workId: string; scope: string; validUntil: string | null }) => request<{ proposal: ProposalDetail }>(
+  create: (input: { clientId: string; workId: string; scope: string; validUntil: string | null; bodyModel?: 'servico' | 'fornecimento' }) => request<{ proposal: ProposalDetail }>(
     '/api/proposals', { method: 'POST', body: JSON.stringify(input) },
   ),
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),

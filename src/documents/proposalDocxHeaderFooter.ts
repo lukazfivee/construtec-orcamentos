@@ -7,6 +7,7 @@ import {
   PageNumber,
   Paragraph,
   Table,
+  TableBorders,
   TableCell,
   TableRow,
   TextRun,
@@ -31,6 +32,7 @@ export const buildFirstPageHeader = (proposal: ProposalDetail, settings?: AppSet
 
   return new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+    borders: TableBorders.NONE,
     columnWidths: [6438, 3200],
     rows: [
       new TableRow({
@@ -61,6 +63,41 @@ export const buildFirstPageHeader = (proposal: ProposalDetail, settings?: AppSet
   });
 };
 
+// Carta de abertura: logo e referencia da proposta em todas as paginas, com filete azul-marinho (como a proposta feita a mao).
+export const buildRunningHeader = (proposal: ProposalDetail, settings?: AppSettings) => {
+  const showLogo = settings?.pdfShowLogo ?? true;
+  const brand = (settings?.tradeName?.trim() || 'CONSTRUTEC').toUpperCase();
+  const none = { style: BorderStyle.NONE };
+  const bottom = { style: BorderStyle.SINGLE, size: 12, color: '163D69' };
+  return new Header({
+    children: [
+      new Table({
+        width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+        borders: TableBorders.NONE,
+        columnWidths: [6438, 3200],
+        rows: [new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 6438, type: WidthType.DXA }, verticalAlign: 'bottom',
+              borders: { top: none, left: none, right: none, bottom },
+              margins: { top: 0, bottom: 40, left: 0, right: 0 },
+              children: [new Paragraph({ spacing: { after: 0 }, children: showLogo
+                ? [new ImageRun({ data: proposalLogo(), transformation: { width: 150, height: 55 }, type: 'png' })]
+                : [new TextRun({ text: brand, bold: true, size: 26, color: '163D69', font: 'Arial' })] })],
+            }),
+            new TableCell({
+              width: { size: 3200, type: WidthType.DXA }, verticalAlign: 'bottom',
+              borders: { top: none, left: none, right: none, bottom },
+              margins: { top: 0, bottom: 40, left: 0, right: 0 },
+              children: [new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 0 }, children: [new TextRun({ text: `${proposal.number} • Revisão ${String(proposal.revision).padStart(2, '0')}`, size: 15, color: MUTED, font: 'Arial' })] })],
+            }),
+          ],
+        })],
+      }),
+    ],
+  });
+};
+
 export const buildContinuationHeader = (proposal: ProposalDetail, settings?: AppSettings) => {
   const brand = (settings?.tradeName?.trim() || 'CONSTRUTEC').toUpperCase();
   const border = { style: BorderStyle.SINGLE, size: 8, color: BLUE };
@@ -68,6 +105,7 @@ export const buildContinuationHeader = (proposal: ProposalDetail, settings?: App
     children: [
       new Table({
         width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+        borders: TableBorders.NONE,
         columnWidths: [6438, 3200],
         rows: [
           new TableRow({
@@ -92,7 +130,7 @@ export const buildContinuationHeader = (proposal: ProposalDetail, settings?: App
   });
 };
 
-export const buildDocFooter = (settings?: AppSettings) => {
+export const buildDocFooter = (settings?: AppSettings, detailed = false) => {
   const companyName = settings?.companyName?.trim() || 'LAC CONSTRUTEC CONSTRUTORA EIRELI';
   const companyDoc = settings?.document?.trim() || '32.992.946/0001-78';
   const border = { style: BorderStyle.SINGLE, size: 8, color: BLUE };
@@ -100,6 +138,7 @@ export const buildDocFooter = (settings?: AppSettings) => {
     children: [
       new Table({
         width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+        borders: TableBorders.NONE,
         columnWidths: [7000, 2638],
         rows: [
           new TableRow({
@@ -108,7 +147,10 @@ export const buildDocFooter = (settings?: AppSettings) => {
                 width: { size: 7000, type: WidthType.DXA },
                 borders: { top: border, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE } },
                 margins: { top: 50, bottom: 0, left: 0, right: 0 },
-                children: [new Paragraph({ children: [new TextRun({ text: `${companyName} • CNPJ: ${companyDoc}`, size: 13, color: MUTED, font: 'Arial' })] })],
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: `${companyName} • CNPJ: ${companyDoc}`, size: 13, color: MUTED, font: 'Arial' })] }),
+                  ...(detailed ? [new Paragraph({ children: [new TextRun({ text: `Sede: ${settings?.address?.trim() || 'Rua Metodio Coelho, 62, Ed. Cidadella Center I, Sala 112, Salvador/BA'} • Contato: ${settings?.phone?.trim() || '(71) 99294-1099'} • ${settings?.email?.trim() || 'supervisao@rcconstrutec.com.br'}`, size: 13, color: MUTED, font: 'Arial' })] })] : []),
+                ],
               }),
               new TableCell({
                 width: { size: 2638, type: WidthType.DXA },

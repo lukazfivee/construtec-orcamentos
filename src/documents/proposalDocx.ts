@@ -8,6 +8,7 @@ import {
   ShadingType,
   Table,
   TableCell,
+  TableLayoutType,
   TableRow,
   TextRun,
   WidthType,
@@ -15,7 +16,7 @@ import {
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { resolveBodyParts } from '../shared/proposalBody';
 import { getProposalFinancials } from '../shared/proposalFinancials';
-import { bodyTextParagraphs } from './proposalDocxBody';
+import { bodyTextParagraphs, captionParagraph } from './proposalDocxBody';
 import {
   BLUE,
   commercialLaborTotal,
@@ -36,6 +37,7 @@ import {
   buildContinuationHeader,
   buildDocFooter,
   buildFirstPageHeader,
+  buildRunningHeader,
   CONTENT_WIDTH,
 } from './proposalDocxHeaderFooter';
 
@@ -189,12 +191,15 @@ export const createProposalDocument = (
       : []),
   ];
 
-  const itemsSection = (title: string) => [
+  const itemsSection = (title: string, caption = '') => [
   new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: title }),
-  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: [700, 4638, 650, 850, 1350, 1450], rows: docRows }),
-  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: laborTotal > 0 ? [4819, 4819] : [CONTENT_WIDTH], rows: summaryRows }),
+  ...(caption ? [captionParagraph(caption)] : []),
+  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: [700, 4638, 650, 850, 1350, 1450], rows: docRows }),
+  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: laborTotal > 0 ? [4819, 4819] : [CONTENT_WIDTH], rows: summaryRows }),
   new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+    layout: TableLayoutType.FIXED,
+    columnWidths: [CONTENT_WIDTH],
     rows: [
       new TableRow({
         children: [
@@ -235,8 +240,12 @@ export const createProposalDocument = (
       ]
     : []);
   const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  const hasLetter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
+  const hasClosing = Boolean(bodyParts?.some((part) => part.kind === 'fechamento'));
+  const showSignature = settings?.pdfShowSignature ?? true;
+  const textContext = { showSignature, company: settings?.companyName?.trim() || 'LAC CONSTRUTEC CONSTRUTORA EIRELI', brand: settings?.tradeName?.trim() || 'CONSTRUTEC', letter: hasLetter };
   const mainChildren = bodyParts
-    ? bodyParts.flatMap((part) => (part.kind === 'itens' ? itemsSection(part.title) : part.kind === 'condicoes' ? conditionsSection(part.title) : bodyTextParagraphs(part)))
+    ? bodyParts.flatMap((part) => (part.kind === 'itens' ? itemsSection(part.title, part.caption) : part.kind === 'condicoes' ? conditionsSection(part.title) : bodyTextParagraphs(part, textContext)))
     : [...itemsSection('Composição da proposta'), ...conditionsSection('Condições comerciais')];
 
   return new Document({
@@ -244,18 +253,19 @@ export const createProposalDocument = (
       default: { document: { run: { font: 'Arial', size: 20, color: INK }, paragraph: { spacing: { after: 100, line: 260 } } } },
       paragraphStyles: [
         { id: 'ProposalTitle', name: 'Proposal Title', basedOn: 'Normal', run: { font: 'Arial', size: 30, bold: true, color: '163D69', allCaps: true }, paragraph: { spacing: { before: 140, after: 50 } } },
+        { id: 'ProposalSubheading', name: 'Proposal Subheading', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: 'Arial', size: 20, bold: true, color: '163D69' }, paragraph: { spacing: { before: 160, after: 60 }, keepNext: true } },
         { id: 'ProposalHeading', name: 'Proposal Heading', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: 'Arial', size: 21, bold: true, color: '163D69', allCaps: true }, paragraph: { spacing: { before: 200, after: 60 }, keepNext: true } },
       ],
     },
     sections: [
       {
-        properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 } } },
-        headers: { default: buildContinuationHeader(proposal, settings) },
-        footers: { default: buildDocFooter(settings) },
+        properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: hasLetter ? 1900 : 1134, right: 1134, bottom: hasLetter ? 1400 : 1134, left: 1134, header: 500, footer: 500 } } },
+        headers: { default: hasLetter ? buildRunningHeader(proposal, settings) : buildContinuationHeader(proposal, settings) },
+        footers: { default: buildDocFooter(settings, hasLetter) },
         children: [
-          buildFirstPageHeader(proposal, settings),
-          new Paragraph({ style: 'ProposalTitle', text: 'Proposta Técnica-Comercial' }),
+          ...(hasLetter ? [] : [buildFirstPageHeader(proposal, settings), new Paragraph({ style: 'ProposalTitle', text: 'Proposta Técnica-Comercial' })]),
           ...(bodyParts ? [] : [new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: 'Apresentamos nossa composição comercial para o escopo descrito a seguir.', color: MUTED, size: 18 })] })]),
+          ...(hasLetter ? [] : [
           new Table({
             width: { size: CONTENT_WIDTH, type: WidthType.DXA },
             columnWidths: [4819, 4819],
@@ -263,9 +273,10 @@ export const createProposalDocument = (
               new TableRow({ children: [cell(`CLIENTE\n${proposal.clientName}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`OBRA / LOCAL\n${proposal.workName || '—'}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] }),
               new TableRow({ children: [bodyParts ? cell(`REFERÊNCIA\n${proposal.number} | Rev. ${String(proposal.revision).padStart(2, '0')}`, 4819, { fill: LIGHT_BLUE, isMeta: true }) : cell(`ESCOPO\n${conditions.scope || 'A definir'}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`RESPONSÁVEL\n${proposal.responsibleName || '—'}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] }),
             ],
-          }),
+          })
+          ]),
           ...mainChildren,
-          ...((settings?.pdfShowSignature ?? true)
+          ...((showSignature && !hasClosing)
             ? [
                 new Paragraph({
                   spacing: { before: 600, after: 0 },
