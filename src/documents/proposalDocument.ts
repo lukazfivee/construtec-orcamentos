@@ -103,6 +103,7 @@ export const buildProposalHtml = (
     .join('');
 
   const pricingHtml = (title: string, caption = '') => `
+  <div class="pricing-block">
   <h2>${escapeHtml(title)}</h2>
   ${caption ? `<div class="pricing-caption">${escapeHtml(caption)}</div>` : ''}
   <table class="pricing">
@@ -130,6 +131,7 @@ export const buildProposalHtml = (
   <table class="summary">
     <tbody>${summary}</tbody>
   </table>
+  </div>
 `;
   const conditionsHtml = (title: string) => `
   <section class="commercial-box">
@@ -201,7 +203,9 @@ Contato: ${content.phone} • ${content.email}`;
     table.pricing { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 1.5mm; }
     thead { display: table-header-group; break-after: avoid; }
     table { line-height: 1.35; }
-    table.pricing { break-inside: avoid; page-break-inside: avoid; }
+    /* Titulo, legenda, planilha e totais formam um bloco so: vai inteiro para a pagina seguinte quando nao cabe no que sobra
+       (a barra de valor total nunca fica sozinha); se for maior que uma pagina, quebra entre linhas. */
+    .pricing-block { break-inside: avoid; page-break-inside: avoid; }
     th, td { padding: 1.8mm 1.5mm; border-bottom: 1px solid #d4e2e7; vertical-align: top; font-size: 8pt; overflow-wrap: anywhere; }
     thead th { background: #163d69; color: #fff; font-size: 7.5pt; text-align: left; font-weight: bold; border-bottom: 2px solid #12A9D1; }
     tr { break-inside: avoid; page-break-inside: avoid; }
