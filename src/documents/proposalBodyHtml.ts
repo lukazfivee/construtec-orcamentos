@@ -9,7 +9,10 @@ export const BODY_HTML_CSS = `
     ul.body-list { margin: 0 0 2mm; padding-left: 5mm; font-size: 8.5pt; }
     ul.body-list li { margin: 0 0 0.8mm; overflow-wrap: anywhere; break-inside: avoid; page-break-inside: avoid; }
     h3.sub { margin: 3mm 0 1.5mm; font-size: 8.8pt; color: #163d69; break-after: avoid; page-break-after: avoid; }
-    table.pricing { break-after: avoid; page-break-after: avoid; }
+    table.pricing { break-after: avoid; page-break-after: avoid; line-height: 1.25; }
+    table.pricing th, table.pricing td { padding: 1mm 1.5mm; }
+    table.pricing + table.summary th, table.pricing + table.summary td { padding-top: 1mm; padding-bottom: 1mm; }
+    .grand-total th, .grand-total td { padding-top: 0.8mm; padding-bottom: 0.8mm; }
     table.pricing tbody:last-of-type tr:last-child { break-after: avoid; page-break-after: avoid; }
     table.summary { break-before: avoid; page-break-before: avoid; }
     .pricing-caption { margin: 1.5mm 0 0; padding: 1.6mm 2mm; background: #eaf3f6; border-left: 3px solid #12A9D1; color: #163d69; font-weight: bold; font-size: 8pt; text-align: center; break-after: avoid; page-break-after: avoid; }`;
