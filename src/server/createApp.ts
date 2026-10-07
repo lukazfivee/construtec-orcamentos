@@ -15,6 +15,7 @@ import { createProposalClientLinkRouter } from './routes/proposalClientLink';
 import { createPublicClientLinkRouter } from './routes/publicClientLink';
 import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
+import { createBodySettingsRouter, createProposalBodyRouter } from './routes/proposalBody';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
 import { verifyUserSession } from './services/auth';
@@ -206,8 +207,10 @@ export const createApp = (database: LocalDatabase, apiToken: string) => {
   api.use('/api/proposals', createProposalPriceDriftRouter(database));
   api.use('/api/proposals', createProposalDocumentRouter(database));
   api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || '', Boolean(cloud)));
+  api.use('/api/proposals', createProposalBodyRouter(database));
   api.use('/api/proposals', createProposalsRouter(database));
   api.use('/api/kits', createKitsRouter(database));
+  api.use('/api/settings', createBodySettingsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));
   api.use('/api/users', createUsersRouter(database));
   api.use('/api/system', createSystemRouter(database));

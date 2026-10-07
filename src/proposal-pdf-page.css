@@ -20,3 +20,7 @@ html, body { margin: 0; overflow: hidden; }
 .pg-cover dd, .pg-terms dd { margin: 0; }
 .pg-sign { margin-top: 40px; color: #163d69; }
 .pg-foot { position: absolute; left: 22px; right: 22px; bottom: 12px; display: flex; justify-content: space-between; border-top: 1px solid #12a9d1; padding-top: 4px; font-size: 8px; color: #52616b; }
+.pg-h { margin: 8px 0 4px; font-size: 10.5px; font-weight: 700; color: #163d69; text-transform: uppercase; }
+.pg-p { margin: 0 0 6px; white-space: pre-line; overflow-wrap: anywhere; }
+.pg-ul { margin: 0 0 6px; padding-left: 14px; }
+.pg-ul li { margin: 0 0 2px; overflow-wrap: anywhere; }

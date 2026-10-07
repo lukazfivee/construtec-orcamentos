@@ -1,6 +1,7 @@
 import { multiplyDecimal, sumDecimal } from '../../shared/decimal';
 import { calculateProposalTotals } from '../../shared/proposalFinancials';
 import type { ProposalDetail, ProposalLine, ProposalSummary } from '../../shared/contracts';
+import type { BodyBlock } from '../../shared/proposalBody';
 import { baseCostSql, finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
 import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
@@ -16,7 +17,7 @@ export * from './proposalLifecycle';
 
 type ProposalRow = {
   id: string; series_id?: string; client_id: string; work_id: string | null; proposal_number: string;
-  revision: number; client_name: string; work_name: string; scope: string; status: ProposalDetail['status'];
+  revision: number; client_name: string; work_name: string; scope: string; body_blocks: BodyBlock[] | null; status: ProposalDetail['status'];
   bdi_multiplier: string; tax_percentage?: string | null; valid_until: string | null; responsible_name: string;
   updated_at: string; is_latest: boolean; has_approved_revision: boolean;
   cost_center_id: number | null; contract_id: string | null; center_url: string | null;
@@ -26,7 +27,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   const proposalResult = await database.query<ProposalRow>(`
     SELECT p.id, p.series_id::text AS series_id, p.client_id, p.work_id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
-      COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.status, p.bdi_multiplier::text,
+      COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.body_blocks, p.status, p.bdi_multiplier::text,
       COALESCE(p.tax_percentage, 0)::text AS tax_percentage,
       p.valid_until::text, u.name AS responsible_name, p.updated_at::text,
       NOT EXISTS (
@@ -106,6 +107,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     clientName: proposal.client_name,
     workName: proposal.work_name,
     scope: proposal.scope,
+    bodyBlocks: proposal.body_blocks ?? null,
     status: proposal.status,
     bdiMultiplier,
     taxPercentage,

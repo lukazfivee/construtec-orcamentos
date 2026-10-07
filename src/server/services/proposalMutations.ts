@@ -1,7 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import { parseCommercialConditions } from '../../documents/proposalDocumentCommon';
+import { seedBodyBlocks } from '../../shared/proposalBody';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal } from './proposalCommon';
+import { getDefaultBody } from './proposalBody';
 import { getNewProposalDefaults } from './settings';
 
 export const createProposal = async (
@@ -43,12 +46,14 @@ export const createProposal = async (
     const proposalId = randomUUID();
     // Padroes da empresa (Rodada 24): BDI e impostos das propostas novas.
     const defaults = await getNewProposalDefaults(transaction);
+    // Corpo padrao da empresa (se houver): a proposta ja nasce com ele; sem ele, usa o layout fixo de sempre.
+    const body = seedBodyBlocks(await getDefaultBody(transaction), parseCommercialConditions(input.scope).scope);
 
     await transaction.query(`
       INSERT INTO proposals
         (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-         snapshot_work_name, scope, status, bdi_multiplier, valid_until, created_by, tax_percentage)
-      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9, $10, $11)
+         snapshot_work_name, scope, body_blocks, status, bdi_multiplier, valid_until, created_by, tax_percentage)
+      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, $12::jsonb, 'draft', $8, $9, $10, $11)
     `, [
       proposalId,
       proposalNumber,
@@ -61,6 +66,7 @@ export const createProposal = async (
       input.validUntil ?? null,
       userId,
       defaults.taxPercentage,
+      body ? JSON.stringify(body) : null,
     ]);
 
     await transaction.query(`

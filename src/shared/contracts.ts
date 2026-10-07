@@ -1,3 +1,5 @@
+import type { BodyBlock } from './proposalBody';
+
 export type CatalogProduct = {
   id: string;
   code: string;
@@ -102,6 +104,8 @@ export type ProposalDetail = {
   clientName: string;
   workName: string;
   scope: string;
+  /** Corpo montado pelo usuario; null ou ausente = documento no layout fixo de sempre. */
+  bodyBlocks?: BodyBlock[] | null;
   status: 'draft' | 'review' | 'sent' | 'approved' | 'rejected';
   bdiMultiplier: number;
   taxPercentage?: number;

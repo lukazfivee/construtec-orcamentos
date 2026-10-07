@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { canChangeProposalStatus } from '../../shared/proposalStatus';
 import type { ProposalDetail, ProposalRevisionSummary } from '../../shared/contracts';
+import type { BodyBlock } from '../../shared/proposalBody';
 import { copyProposalLabor } from './proposalLabor';
 import { finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
@@ -35,9 +36,9 @@ export const createRevisionIn = async (
   const created = await transaction.query<{ revision: number }>(`
     INSERT INTO proposals
       (id, series_id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-       snapshot_work_name, scope, status, bdi_multiplier, tax_percentage, valid_until, created_by)
+       snapshot_work_name, scope, body_blocks, status, bdi_multiplier, tax_percentage, valid_until, created_by)
     SELECT $2, series_id, proposal_number, revision + 1, client_id, work_id, work_name, snapshot_client_name,
-      snapshot_work_name, scope, 'draft', bdi_multiplier, COALESCE(tax_percentage, 0), valid_until, created_by
+      snapshot_work_name, scope, body_blocks, 'draft', bdi_multiplier, COALESCE(tax_percentage, 0), valid_until, created_by
     FROM proposals
     WHERE id = $1
     RETURNING revision
@@ -251,12 +252,13 @@ export const cloneProposal = async (
       snapshot_client_name: string;
       snapshot_work_name: string;
       scope: string;
+      body_blocks: BodyBlock[] | null;
       bdi_multiplier: string;
       tax_percentage: string;
       proposal_number: string;
     }>(`
       SELECT p.client_id, p.work_id, p.work_name, p.snapshot_client_name,
-        p.snapshot_work_name, p.scope, p.bdi_multiplier::text, COALESCE(p.tax_percentage, 0)::text AS tax_percentage, p.proposal_number
+        p.snapshot_work_name, p.scope, p.body_blocks, p.bdi_multiplier::text, COALESCE(p.tax_percentage, 0)::text AS tax_percentage, p.proposal_number
       FROM proposals p
       WHERE p.id = $1 FOR UPDATE
     `, [sourceProposalId]);
@@ -289,8 +291,8 @@ export const cloneProposal = async (
     await transaction.query(`
       INSERT INTO proposals
         (id, proposal_number, revision, client_id, work_id, work_name, snapshot_client_name,
-         snapshot_work_name, scope, status, bdi_multiplier, tax_percentage, created_by)
-      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, 'draft', $8, $9, $10)
+         snapshot_work_name, scope, body_blocks, status, bdi_multiplier, tax_percentage, created_by)
+      VALUES ($1, $2, 0, $3, $4, $5, $6, $5, $7, $11::jsonb, 'draft', $8, $9, $10)
     `, [
       newProposalId,
       newProposalNumber,
@@ -302,6 +304,7 @@ export const cloneProposal = async (
       Number(source.bdi_multiplier),
       Number(source.tax_percentage),
       userId,
+      source.body_blocks ? JSON.stringify(source.body_blocks) : null,
     ]);
 
     const items = await transaction.query<LifecycleItemRow>(`
