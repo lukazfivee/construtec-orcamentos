@@ -49,6 +49,7 @@ import './editor-centro.css';
 import './config-centro.css';
 import './editor-itens-centro.css';
 import './editor-paineis-centro.css';
+import './editor-layout-centro.css';
 import './telas-internas-centro.css';
 import './dialogos-centro.css';
 import './updater.css';
