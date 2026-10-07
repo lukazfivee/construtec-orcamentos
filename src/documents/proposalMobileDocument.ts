@@ -32,7 +32,7 @@ export const parseMobileDocumentChoices = (query: Record<string, unknown>): Mobi
 export const mobileExportOptions = (choices: MobileDocumentChoices): ProposalExportOptions => ({
   format: 'pdf',
   groupByCategory: false,
-  showProductCodes: choices.model === 'completo',
+  showProductCodes: false,
   includeLabor: true,
   includeCommercialTerms: choices.terms,
   includeNotes: choices.model === 'completo',

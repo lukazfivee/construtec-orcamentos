@@ -91,12 +91,18 @@ export const buildProposalHtml = (
       : '';
 
   const tableBody = groups + labor || '<tbody><tr><td colspan="6" class="center muted">Nenhum item incluído nesta revisão.</td></tr></tbody>';
-  const summary = content.summary
-    .map(
-      ([label, value], i) =>
-        `<tr class="${i === content.summary.length - 1 ? 'grand-total' : ''}"><th>${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td></tr>`
-    )
-    .join('');
+  // Materiais e servicos lado a lado (como no Word); impostos e total ocupam a linha toda.
+  const summaryCell = ([label, value]: [string, string]) => `<th>${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td>`;
+  const summaryWide = ([label, value]: [string, string], className = '') =>
+    `<tr${className ? ` class="${className}"` : ''}><th colspan="3">${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td></tr>`;
+  const grandTotal = content.summary[content.summary.length - 1];
+  const rest = content.summary.slice(0, -1);
+  const pair = content.labor > 0 && rest.length >= 2 ? rest.slice(0, 2) : [];
+  const summary = [
+    pair.length ? `<tr>${pair.map((entry) => summaryCell(entry as [string, string])).join('')}</tr>` : '',
+    ...rest.slice(pair.length).map((entry) => summaryWide(entry)),
+    summaryWide(grandTotal, 'grand-total'),
+  ].join('');
 
   const terms = content.terms
     .map(([label, value]) => `<p class="term"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>`)
@@ -129,6 +135,7 @@ export const buildProposalHtml = (
   </table>
 
   <table class="summary">
+    <colgroup><col style="width: 35%"><col style="width: 15%"><col style="width: 35%"><col style="width: 15%"></colgroup>
     <tbody>${summary}</tbody>
   </table>
   </div>
@@ -217,9 +224,9 @@ Contato: ${content.phone} • ${content.email}`;
     .item-code { display: block; color: #60717a; font-size: 6.8pt; margin-top: 0.5mm; }
     .muted { color: #5D7480; }
     
-    .summary { width: 100%; border-collapse: collapse; margin-top: 2.5mm; break-inside: avoid; page-break-inside: avoid; }
-    .summary th { text-align: left; width: 70%; font-weight: normal; padding: 1.5mm 2mm; font-size: 8.5pt; border-bottom: 1px solid #e1edf2; }
-    .summary td { width: 30%; padding: 1.5mm 2mm; font-size: 8.5pt; border-bottom: 1px solid #e1edf2; }
+    .summary { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 2.5mm; break-inside: avoid; page-break-inside: avoid; }
+    .summary th { text-align: left; font-weight: normal; padding: 1.5mm 2mm; font-size: 8.5pt; border-bottom: 1px solid #e1edf2; }
+    .summary td { padding: 1.5mm 2mm; font-size: 8.5pt; border-bottom: 1px solid #e1edf2; }
     .grand-total th, .grand-total td { background: #d9edf3; font-size: 9pt; font-weight: bold; color: #163d69; border-top: 1.5px solid #12A9D1; border-bottom: 2px solid #163d69; }
     
     .commercial-box { margin-top: 3.5mm; break-inside: avoid; page-break-inside: avoid; }
