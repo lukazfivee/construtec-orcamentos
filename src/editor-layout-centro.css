@@ -1,0 +1,89 @@
+/* Editor da proposta (desktop): UMA rolagem vertical na coluna central, cabecalho compacto e painel lateral sem rolagem.
+   Antes, abas, cabecalho, etapas, campos e barra de ferramentas somavam ~390 px fixos e cada painel (.labor-panel, tabela de itens,
+   Condicoes, Kits) cortava ou rolava por conta propria. Aqui o contêiner central (.proposal-editor) rola; os paineis crescem com o
+   conteudo; as abas internas e o cabecalho de colunas da tabela ficam fixos no topo da coluna. Vale so no desktop (>= 768 px). */
+@media (min-width: 768px) {
+  .app-shell.cc .workspace { grid-template-rows: 40px minmax(0, 1fr); }
+  .app-shell.cc .proposal-tabs { height: 40px; }
+
+  /* Coluna central: a unica rolagem vertical */
+  .app-shell.cc .proposal-editor { display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+  .app-shell.cc .proposal-editor > * { flex: none; }
+  .app-shell.cc .proposal-editor > .section-tabs { position: sticky; top: 0; z-index: 6; flex: 0 0 40px; height: 40px; background: var(--color-surface); }
+
+  /* Cabecalho compacto: numero, revisao e acoes na mesma linha; etapas na linha seguinte. O subtitulo (obra · cliente) repete os campos abaixo. */
+  .app-shell.cc .proposal-flow { padding: 12px 32px 10px; gap: 8px; }
+  .app-shell.cc .proposal-flow-top { align-items: center; gap: 16px; }
+  .app-shell.cc .proposal-flow-title { flex: 1 1 0; min-width: 0; }
+  .app-shell.cc .proposal-flow-title > div { flex-wrap: nowrap; gap: 10px; }
+  .app-shell.cc .proposal-flow-title h1 { font-size: 22px; }
+  .app-shell.cc .proposal-flow-title p { display: none; }
+  .app-shell.cc .proposal-flow-actions { flex: none; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 8px; }
+  .app-shell.cc .proposal-flow-bottom { gap: 12px; }
+  .app-shell.cc .proposal-flow-hint:empty { display: none; }
+
+  /* Campos da proposta em uma linha compacta */
+  .app-shell.cc .meta-field { gap: 2px; padding: 8px 16px; justify-content: center; }
+  .app-shell.cc .meta-field:first-child { padding-left: 32px; }
+  .app-shell.cc .meta-field > span, .app-shell.cc .meta-field > label { line-height: 1.4; }
+  .app-shell.cc .meta-field button { min-height: 22px; line-height: 1.5; }
+  .app-shell.cc .meta-field button .meta-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Barra de ferramentas e abas internas */
+  .app-shell.cc .toolbar { padding: 6px 32px; row-gap: 6px; }
+  .app-shell.cc .proposal-items-panel .proposal-filter-bar, .app-shell.cc .proposal-items-panel .proposal-divergence-banner { flex: none; }
+
+  /* Paineis das abas: crescem com o conteudo (sem overflow proprio) e deixam respiro no fim */
+  .app-shell.cc .proposal-items-panel, .app-shell.cc .history-region, .app-shell.cc .labor-panel, .app-shell.cc .proposal-kits-panel {
+    flex: none; min-height: auto; height: auto; overflow: visible;
+  }
+  .app-shell.cc .proposal-items-panel { display: block; padding-bottom: 24px; }
+  .app-shell.cc .proposal-items-panel .table-region { overflow: visible; }
+  .app-shell.cc .proposal-items-panel .proposal-items-table thead th { top: 40px; z-index: 4; }
+  .app-shell.cc .proposal-items-panel .add-line { display: block; padding-bottom: 10px; }
+  .app-shell.cc .kp-list-pane { max-height: none; overflow: visible; }
+  .app-shell.cc .kp-list { overflow: visible; }
+
+  /* Painel lateral: cabe na altura da janela sem rolagem propria (a rolagem fica como reserva para janelas muito baixas) */
+  .app-shell.cc .commercial-panel { gap: 10px; padding: 12px 14px 14px; }
+  .app-shell.cc .commercial-panel .panel-card { gap: 4px; padding: 12px 14px; }
+  .app-shell.cc .commercial-panel .panel-title { padding: 0 0 4px; }
+  .app-shell.cc .commercial-panel .amount { min-height: 22px; }
+  .app-shell.cc .commercial-panel .amount.blue { margin-top: 2px; padding-top: 8px; gap: 2px; }
+  .app-shell.cc .commercial-panel .panel-section { padding: 12px 14px; gap: 4px; }
+  .app-shell.cc .commercial-panel .panel-section label { min-height: 36px; }
+  .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { height: 34px; }
+  .app-shell.cc .commercial-panel .frozen-state { padding: 8px 12px; font-size: 12.5px; }
+  .app-shell.cc .commercial-panel .panel-footnote { padding-top: 0; }
+  .app-shell.cc .commercial-panel .panel-footnote p { font-size: 11.5px; line-height: 1.4; }
+  .app-shell.cc .commercial-panel .panel-section.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .app-shell.cc .commercial-panel .panel-section.actions > .panel-section-toggle,
+  .app-shell.cc .commercial-panel .panel-section.actions > .generate,
+  .app-shell.cc .commercial-panel .panel-section.actions > div { grid-column: 1 / -1; }
+  .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { height: 36px; padding: 0 10px; gap: 6px; justify-content: center; font-size: 12.5px; white-space: nowrap; }
+  .app-shell.cc .commercial-panel .panel-section.actions > .generate { height: 40px; }
+}
+@media (min-width: 768px) {
+  /* Aviso de custos preservados: linha de apoio, nao um cartao */
+  .app-shell.cc .commercial-panel .frozen-state { padding: 0 4px; background: transparent; color: var(--c-ok); gap: 8px; font-size: 12px; line-height: 1.4; }
+  .app-shell.cc .commercial-panel .frozen-state svg { width: 15px; height: 15px; flex: none; }
+  .app-shell.cc .commercial-panel .panel-section.actions button.btn-gerar-centro { height: 36px !important; padding: 0 10px !important; justify-content: center !important; font-size: 12.5px !important; }
+  .app-shell.cc .commercial-panel .panel-section.actions .gerar-centro-feedback { margin-top: 8px; }
+}
+@media (min-width: 768px) {
+  /* Acoes: o botao principal fica por ultimo na grade, abaixo dos secundarios */
+  .app-shell.cc .commercial-panel .panel-section.actions > .generate { order: 20; }
+  .app-shell.cc .commercial-panel .panel-section.actions > div { order: 10; }
+  .app-shell.cc .commercial-panel .panel-section.actions > .panel-section-toggle { margin-bottom: 0; }
+}
+@media (min-width: 768px) {
+  .app-shell.cc .commercial-panel { gap: 8px; padding: 12px 14px 8px; }
+  .app-shell.cc .commercial-panel .amount { min-height: 20px; }
+  .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { padding: 0 6px; }
+}
+@media (min-width: 768px) {
+  /* Tabela de Mao de obra (13 colunas): rola so na horizontal; a coluna Funcao fica fixa a esquerda */
+  .app-shell.cc .labor-table-region { overflow-x: auto; overflow-y: visible; }
+  .app-shell.cc .labor-table th:first-child, .app-shell.cc .labor-table td:first-child { position: sticky; left: 0; z-index: 1; background: var(--color-surface); }
+  .app-shell.cc .labor-table tfoot td:first-child { background: var(--color-bg); }
+}

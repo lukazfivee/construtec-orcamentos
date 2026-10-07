@@ -3,7 +3,6 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
-  Eye,
   FilePlus2,
   LockKeyhole,
   Save,
@@ -64,7 +63,7 @@ export function ProposalSummaryPanel({
 }: Props) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
-  const [paramsCollapsed, setParamsCollapsed] = useState(false);
+  const [paramsCollapsed, setParamsCollapsed] = useState(true);
   const [actionsCollapsed, setActionsCollapsed] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   // p10 (custo, BDI e margem) e p11 (enviar e aprovar). Documentos saem do calculo de custo: sem p10 nao se gera.
@@ -193,16 +192,18 @@ export function ProposalSummaryPanel({
             </span>
           </label>
           <label>
-            Encargos <span className="locked-input">87,25% <ChevronDown size={14} /></span>
+            Encargos <span className="locked-input">87,25%</span>
           </label>
           </>
           )}
         </div>
 
-        <div className="frozen-state">
-          <LockKeyhole size={17} />
-          <span>{proposal.isLatest ? 'Custos-base preservados nesta revisão' : 'Revisão histórica · somente leitura'}</span>
-        </div>
+        {!proposal.isLatest && (
+          <div className="frozen-state">
+            <LockKeyhole size={17} />
+            <span>Revisão histórica · somente leitura</span>
+          </div>
+        )}
 
         <div className="panel-card panel-section actions">
           <button
@@ -215,8 +216,8 @@ export function ProposalSummaryPanel({
             {actionsCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           </button>
           {!actionsCollapsed && (
-            <button type="button" disabled={!proposal.isLatest || mutationPending} onClick={onCreateRevision}>
-              <Save size={18} /> Criar revisão <kbd>Ctrl+S</kbd>
+            <button type="button" disabled={!proposal.isLatest || mutationPending} onClick={onCreateRevision} title="Criar a próxima revisão (Ctrl+S)">
+              <Save size={18} /> Criar revisão
             </button>
           )}
           {!actionsCollapsed && (
@@ -224,14 +225,9 @@ export function ProposalSummaryPanel({
               type="button"
               disabled={mutationPending}
               onClick={onCloneProposal}
-              title="Clonar este orçamento gerando um novo número"
+              title="Clonar este orçamento gerando um novo número" aria-label="Clonar proposta"
             >
-              <Copy size={18} /> Clonar proposta
-            </button>
-          )}
-          {!actionsCollapsed && canSeeCost && (
-            <button type="button" disabled={documentPending} onClick={onPreviewProposal}>
-              <Eye size={18} /> Pré-visualizar <kbd>Ctrl+P</kbd>
+              <Copy size={18} /> Clonar
             </button>
           )}
           {/* Item mais importante da seção: fica visível mesmo com "Ações" recolhida. */}
@@ -240,9 +236,10 @@ export function ProposalSummaryPanel({
             type="button"
             disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
             onClick={onExportProposal}
+            title="Gerar os arquivos oficiais em PDF e Word (Ctrl+G)"
             style={canSend ? undefined : { display: 'none' }}
           >
-            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'} <kbd>Ctrl+G</kbd>
+            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'}
           </button>
           {!actionsCollapsed && canSend && onShareProposal && (
             <button
@@ -251,8 +248,9 @@ export function ProposalSummaryPanel({
               disabled={documentPending}
               onClick={onShareProposal}
               title="Compartilhar proposta via WhatsApp ou E-mail"
+              aria-label="Compartilhar proposta"
             >
-              <Share2 size={18} /> Compartilhar proposta
+              <Share2 size={18} /> Compartilhar
             </button>
           )}
           {!actionsCollapsed && (
@@ -270,14 +268,13 @@ export function ProposalSummaryPanel({
               className="danger-action-btn"
               disabled={mutationPending || ((proposal.status === 'approved' || proposal.hasApprovedRevision) && !isAdminNow())}
               onClick={() => setDeleteModalOpen(true)}
-              title="Excluir este orçamento definitivamente"
+              title="Excluir este orçamento definitivamente" aria-label="Excluir orçamento"
             >
-              <Trash2 size={16} /> Excluir orçamento
+              <Trash2 size={16} /> Excluir
             </button>
           )}
         </div>
         <div className="panel-footnote">
-          <p className="demo-data-note">Base inicial demonstrativa · salva localmente</p>
           <p className="last-change">
             Última alteração: {formattedUpdatedAt}
             <br />
