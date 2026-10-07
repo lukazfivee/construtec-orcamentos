@@ -1,6 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import type { ProposalDetail } from '../../shared/contracts';
 import { getProposalFinancials } from '../../shared/proposalFinancials';
+import { bodyFingerprintSource } from '../../shared/proposalBody';
 
 // Erro de negocio do link do cliente: o roteador traduz codigo e status sem tocar no tratador global.
 export class ClientLinkError extends Error {
@@ -48,11 +49,14 @@ export const PUBLIC_DOCUMENT_DAYS = 30;
 export const closedWindowOpen = (row: { closed_at: string | null }, now = new Date()) =>
   !row.closed_at || now.getTime() - new Date(row.closed_at).getTime() <= PUBLIC_DOCUMENT_DAYS * 24 * 60 * 60 * 1000;
 
-// Impressao digital do que o cliente viu: valor final e itens de venda (JSON canonico). Nunca guarda custo nem BDI.
+// Impressao digital do que o cliente viu: valor final, itens de venda e, se a proposta tem corpo montado, os textos
+// dos blocos ligados (JSON canonico). Sem corpo montado o hash e o mesmo de sempre. Nunca guarda custo nem BDI.
 export const contentFingerprint = (proposal: ProposalDetail) => {
   const finalValue = getProposalFinancials(proposal).finalValue;
   const items = proposal.items.map((item) => [item.code, item.description, item.unit, item.quantity, item.unitSale, item.totalSale]);
-  return { finalValue, hash: createHash('sha256').update(JSON.stringify({ items, finalValue })).digest('hex') };
+  const body = proposal.bodyBlocks ? bodyFingerprintSource(proposal.bodyBlocks) : null;
+  const seen = body ? { items, finalValue, body } : { items, finalValue };
+  return { finalValue, hash: createHash('sha256').update(JSON.stringify(seen)).digest('hex') };
 };
 
 // Texto digitado pelo cliente: sem caracteres de controle e de formatacao (inclui U+202E e zero-width).

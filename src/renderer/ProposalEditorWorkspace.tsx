@@ -20,7 +20,7 @@ import { useProposalMutations } from './useProposalMutations';
 
 const sectionTabs = [
   { label: 'Itens', enabled: true }, { label: 'Mão de obra', enabled: true },
-  { label: 'Kits', enabled: true }, { label: 'Condições', enabled: true }, { label: 'Histórico', enabled: true },
+  { label: 'Kits', enabled: true }, { label: 'Corpo e condições', enabled: true }, { label: 'Histórico', enabled: true },
 ] as const;
 type ActiveSection = typeof sectionTabs[number]['label'];
 
@@ -260,12 +260,13 @@ export function ProposalEditorWorkspace({
             onError={setError}
             onNotice={showNotice}
           />
-        ) : activeSection === 'Condições' ? (
+        ) : activeSection === 'Corpo e condições' ? (
           <ProposalCommercialConditionsPanel
             proposal={proposal}
             editable={isEditable}
             mutationPending={mutationPending}
             onUpdateProposal={onProposalUpdate}
+            onOpenPdf={onOpenPdf}
             showNotice={showNotice}
             setError={setError}
             setMutationPending={setMutationPending}

@@ -1,4 +1,6 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
+import { resolveBodyParts } from '../shared/proposalBody';
+import { BODY_HTML_CSS, bodyTextPartHtml } from './proposalBodyHtml';
 import { documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
 import { proposalLogoBase64, proposalPresentation } from './proposalPresentation';
 
@@ -94,6 +96,52 @@ export const buildProposalHtml = (
     .map(([label, value]) => `<p class="term"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>`)
     .join('');
 
+  const pricingHtml = (title: string) => `
+  <h2>${escapeHtml(title)}</h2>
+  <table class="pricing">
+    <colgroup>
+      <col style="width: 7%">
+      <col style="width: 45%">
+      <col style="width: 8%">
+      <col style="width: 10%">
+      <col style="width: 15%">
+      <col style="width: 15%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="center">ITEM</th>
+        <th>DESCRIÇÃO</th>
+        <th class="center">UN.</th>
+        <th class="number">QTD.</th>
+        <th class="number">VALOR UNIT.</th>
+        <th class="number">VALOR TOTAL</th>
+      </tr>
+    </thead>
+    ${tableBody}
+  </table>
+
+  <table class="summary">
+    <tbody>${summary}</tbody>
+  </table>
+`;
+  const conditionsHtml = (title: string) => `
+  <section class="commercial-box">
+    <h2>${escapeHtml(title)}</h2>
+    ${terms}
+    <p>Valores expressos em moeda corrente nacional (BRL).</p>
+  </section>`;
+  const legacyMain = `<p class="lead">Prezados Senhores,<br>Apresentamos nossa proposta técnica e comercial para fornecimento de equipamentos, materiais e execução dos serviços descritos a seguir.</p>
+
+  <h2>Apresentação — ${escapeHtml(content.brand)}</h2>
+  <p>${escapeHtml(content.presentation)}</p>
+
+${pricingHtml('1. Composição e Precificação')}
+${conditionsHtml('2. Condições Comerciais')}
+`;
+  const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  const bodyMain = (bodyParts ?? []).map((part) => (part.kind === 'itens' ? pricingHtml(part.title) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part))).join('\n');
+  const main = bodyParts ? bodyMain : legacyMain;
+
   const todayFormatted = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date());
 
   return `<!doctype html>
@@ -166,7 +214,7 @@ export const buildProposalHtml = (
     @media print {
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .document-footer { display: none; }
-    }
+    }${bodyParts ? BODY_HTML_CSS : ''}
   </style>
 </head>
 <body>
@@ -198,48 +246,12 @@ export const buildProposalHtml = (
         <td><b>Local / Obra:</b> ${escapeHtml(proposal.workName || '—')}</td>
         <td><b>Referência:</b> ${escapeHtml(proposal.number)} | Rev. ${String(proposal.revision).padStart(2, '0')}</td>
       </tr>
-      ${content.conditions.scope ? `<tr><td colspan="2"><b>Escopo:</b> ${escapeHtml(content.conditions.scope)}</td></tr>` : ''}
+      ${content.conditions.scope && !bodyParts ? `<tr><td colspan="2"><b>Escopo:</b> ${escapeHtml(content.conditions.scope)}</td></tr>` : ''}
     </table>
   </div>
 
   <h1>PROPOSTA TÉCNICA COMERCIAL</h1>
-  <p class="lead">Prezados Senhores,<br>Apresentamos nossa proposta técnica e comercial para fornecimento de equipamentos, materiais e execução dos serviços descritos a seguir.</p>
-
-  <h2>Apresentação — ${escapeHtml(content.brand)}</h2>
-  <p>${escapeHtml(content.presentation)}</p>
-
-  <h2>1. Composição e Precificação</h2>
-  <table class="pricing">
-    <colgroup>
-      <col style="width: 7%">
-      <col style="width: 45%">
-      <col style="width: 8%">
-      <col style="width: 10%">
-      <col style="width: 15%">
-      <col style="width: 15%">
-    </colgroup>
-    <thead>
-      <tr>
-        <th class="center">ITEM</th>
-        <th>DESCRIÇÃO</th>
-        <th class="center">UN.</th>
-        <th class="number">QTD.</th>
-        <th class="number">VALOR UNIT.</th>
-        <th class="number">VALOR TOTAL</th>
-      </tr>
-    </thead>
-    ${tableBody}
-  </table>
-
-  <table class="summary">
-    <tbody>${summary}</tbody>
-  </table>
-
-  <section class="commercial-box">
-    <h2>2. Condições Comerciais</h2>
-    ${terms}
-    <p>Valores expressos em moeda corrente nacional (BRL).</p>
-  </section>
+${main}
 
   <p class="closing">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Check, EyeOff, Info, Minus, Plus, ShieldCheck } from 'lucide-react';
 import type { AppSettings } from '../shared/contracts';
 import { settingsApi } from './api';
+import { CompanyDefaultBody } from './CompanyDefaultBody';
 import { Seg } from './orcDeskUi';
 import { useSuitePermission } from './SuitePermissions';
 import { setUnsavedChanges } from './unsavedChanges';
@@ -102,5 +103,6 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
       <button type="button" className="od-btn s" disabled={!dirty || off} onClick={() => setDraft(fromSettings(settings))}>Descartar</button>
       <button type="button" className="od-btn p" disabled={!dirty || off} onClick={() => void save()}><Check size={17} />{saving ? 'Salvando…' : 'Salvar padrões'}</button>
     </div>
+    <CompanyDefaultBody isAdmin={isAdmin} loading={loading} onNotice={onNotice} onError={onError} />
   </section>;
 }

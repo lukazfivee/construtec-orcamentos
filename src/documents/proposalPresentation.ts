@@ -1,5 +1,6 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
+import { DEFAULT_PRESENTATION } from '../shared/proposalBody';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import {
   commercialLaborTotal,
@@ -87,6 +88,6 @@ export const proposalPresentation = (
     phone,
     email,
     contact: contactParts.join(' • '),
-    presentation: 'A CONSTRUTEC atua no desenvolvimento de soluções de engenharia, projetos, automação, elétrica, combate a incêndio e infraestrutura tecnológica. Apresentamos nossa proposta técnica e comercial para atendimento ao escopo descrito a seguir.',
+    presentation: DEFAULT_PRESENTATION,
   };
 };

@@ -2,10 +2,12 @@
 // So leva precos de venda. Custo, BDI e margem nunca entram, com ou sem a permissao p10: o arquivo do cliente
 // vem do servidor (GET /api/proposals/:id/document), que tambem nao os envia.
 import type { AppSettings, ProposalDetail } from '../shared/contracts';
+import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
 import { commercialLaborTotal, escapeHtml, parseCommercialConditions } from '../documents/proposalDocumentCommon';
+import { bodyTextPagesHtml } from './proposalPdfBodyPages';
 
 export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean };
-export type PdfPage = { label: 'Capa' | 'Itens' | 'Condições'; html: string };
+export type PdfPage = { label: 'Capa' | 'Itens' | 'Condições' | 'Texto'; html: string };
 
 export const defaultPdfChoices = (): PdfChoices => ({ modelo: 'completo', capa: true, condicoes: true, validade: true });
 
@@ -104,28 +106,45 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
     if (choices.modelo === 'completo') list.forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
   });
   const completo = choices.modelo === 'completo';
-  const chunks = paginateRows(rows);
-  chunks.forEach((chunk, chunkIndex) => {
-    const last = chunkIndex === chunks.length - 1;
-    const body = chunk.map((row) => ('cat' in row
-      ? `<tr class="pg-cat"><td colspan="${completo ? 3 : 1}">${escapeHtml(row.cat)}</td><td>${completo ? '' : escapeHtml(brl.format(row.sum))}</td></tr>`
-      : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`)).join('');
-    pages.push({
-      label: 'Itens',
-      html: `${head(completo ? 'Itens da proposta' : 'Resumo por sistema')}<table class="pg-tab"><tbody>${body}</tbody></table>
-        ${last ? `<div class="pg-total"><small>Valor total da proposta · impostos inclusos</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
+  const pushItemPages = (title?: string) => {
+    const chunks = paginateRows(rows);
+    chunks.forEach((chunk, chunkIndex) => {
+      const last = chunkIndex === chunks.length - 1;
+      const body = chunk.map((row) => ('cat' in row
+        ? `<tr class="pg-cat"><td colspan="${completo ? 3 : 1}">${escapeHtml(row.cat)}</td><td>${completo ? '' : escapeHtml(brl.format(row.sum))}</td></tr>`
+        : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`)).join('');
+      pages.push({
+        label: 'Itens',
+        html: `${head(title ?? (completo ? 'Itens da proposta' : 'Resumo por sistema'))}<table class="pg-tab"><tbody>${body}</tbody></table>
+          ${last ? `<div class="pg-total"><small>Valor total da proposta · impostos inclusos</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
+      });
     });
-  });
-
-  if (choices.condicoes) {
-    const terms = parseCommercialConditions(proposal.scope);
-    pages.push({
-      label: 'Condições',
-      html: `${head('Condições comerciais')}
-        <dl class="pg-terms"><dt>Pagamento</dt><dd>${escapeHtml(terms.paymentTerms || 'Conforme combinado com o cliente')}</dd><dt>Prazo</dt><dd>${escapeHtml(terms.executionTerm || 'A combinar após o aceite')}</dd><dt>Garantia</dt><dd>${escapeHtml(terms.warranty || 'Conforme normas técnicas aplicáveis')}</dd></dl>
-        ${choices.validade ? `<p class="pg-note"><b>Validade:</b> esta proposta vale até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
-        ${showSignature ? `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` : ''}`,
-    });
+  };
+  const pushConditions = (title: string, sign: boolean) => {
+      const terms = parseCommercialConditions(proposal.scope);
+      pages.push({
+        label: 'Condições',
+        html: `${head(title)}
+          <dl class="pg-terms"><dt>Pagamento</dt><dd>${escapeHtml(terms.paymentTerms || 'Conforme combinado com o cliente')}</dd><dt>Prazo</dt><dd>${escapeHtml(terms.executionTerm || 'A combinar após o aceite')}</dd><dt>Garantia</dt><dd>${escapeHtml(terms.warranty || 'Conforme normas técnicas aplicáveis')}</dd></dl>
+          ${choices.validade ? `<p class="pg-note"><b>Validade:</b> esta proposta vale até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
+          ${sign && showSignature ? `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` : ''}`,
+      });
+  };
+  const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  if (!bodyParts) {
+    pushItemPages();
+    if (choices.condicoes) pushConditions('Condições comerciais', true);
+  } else {
+    // Corpo montado pelo usuario: a ordem dos blocos e a ordem das paginas.
+    let text: BodyPart[] = [];
+    const flush = () => { bodyTextPagesHtml(text).forEach((html) => pages.push({ label: 'Texto', html: `${head('Proposta comercial')}${html}` })); text = []; };
+    for (const part of bodyParts) {
+      if (part.kind === 'itens') { flush(); pushItemPages(part.title); }
+      else if (part.kind === 'condicoes') { flush(); if (choices.condicoes) pushConditions(part.title, false); }
+      else text.push(part);
+    }
+    flush();
+    if (showSignature && pages.length) pages[pages.length - 1].html += `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>`;
   }
   return pages.map((page, index) => ({ ...page, html: `<div class="pg">${page.html}${foot(index + 1)}</div>` }));
 };

@@ -26,6 +26,7 @@ import type {
   ClientLinkInfo,
   AuthorizedEmailRecord,
 } from '../shared/contracts';
+import type { BodyBlock, BodyTemplate } from '../shared/proposalBody';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string; centroCustosUrl: string }> | undefined;
 let authSessionToken = '';
@@ -198,6 +199,14 @@ export const proposalApi = {
   updateDetails: (proposalId: string, input: { scope?: string; validUntil?: string | null }) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/details`, { method: 'PATCH', body: JSON.stringify(input) },
   ),
+  // Corpo montado da proposta (blocos). blocks null volta ao documento no layout de sempre.
+  updateBody: (proposalId: string, blocks: BodyBlock[] | null) => request<{ proposal: ProposalDetail }>(
+    `/api/proposals/${proposalId}/body`, { method: 'PUT', body: JSON.stringify({ blocks }) },
+  ),
+  bodyTemplates: () => request<{ templates: BodyTemplate[] }>('/api/proposals/body-templates'),
+  addBodyTemplate: (input: Omit<BodyTemplate, 'id' | 'builtin'>) => request<{ templates: BodyTemplate[] }>(
+    '/api/proposals/body-templates', { method: 'POST', body: JSON.stringify(input) },
+  ),
   updateContext: (proposalId: string, clientId: string, workId: string) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/context`, { method: 'PATCH', body: JSON.stringify({ clientId, workId }) },
   ),
@@ -303,6 +312,10 @@ export const kitsApi = {
 };
 
 export const settingsApi = {
+  defaultBody: () => request<{ blocks: BodyBlock[] | null }>('/api/settings/default-body'),
+  saveDefaultBody: (blocks: BodyBlock[] | null) => request<{ blocks: BodyBlock[] | null }>('/api/settings/default-body', { method: 'PUT', body: JSON.stringify({ blocks }) }),
+  bodyTemplates: () => request<{ templates: BodyTemplate[] }>('/api/settings/body-templates'),
+  saveBodyTemplates: (templates: BodyTemplate[]) => request<{ templates: BodyTemplate[] }>('/api/settings/body-templates', { method: 'PUT', body: JSON.stringify({ templates }) }),
   get: () => request<{ settings: AppSettings }>('/api/settings'),
   update: (input: Partial<AppSettings>) => request<{ settings: AppSettings }>('/api/settings', {
     method: 'PATCH',

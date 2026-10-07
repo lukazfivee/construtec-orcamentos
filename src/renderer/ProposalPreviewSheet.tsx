@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { ProposalDetail, ProposalLine } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
+import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import {
   commercialLaborTotal,
@@ -56,57 +57,9 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
 
   let itemCounter = 0;
 
-  return (
-    <div className="paper-sheet authentic-timbrado">
-      {/* 1. Cabeçalho Timbrado Oficial */}
-      <header className="sheet-timbrado-header">
-        <div className="sheet-timbrado-left">
-          <img
-            src={`data:image/png;base64,${CONSTRUTEC_LOGO_BASE64}`}
-            alt="Construtec"
-            className="sheet-timbrado-logo"
-          />
-          <div className="sheet-timbrado-company">
-            <div className="sheet-timbrado-company-name">LAC CONSTRUTEC CONSTRUTORA EIRELI</div>
-            <div>CNPJ: 32.992.946/0001-78</div>
-            <div>Sede: Rua Metodio Coelho, 62, Ed. Cidadella Center I, Sala 112, Salvador/BA</div>
-            <div>Contato: (71) 99294-1099 • supervisao@rcconstrutec.com.br</div>
-          </div>
-        </div>
-        <div className="sheet-timbrado-right">
-          <div className="sheet-timbrado-badge">PROPOSTA COMERCIAL</div>
-          <div className="sheet-timbrado-doc-ref">{proposal.number}</div>
-          <div className="sheet-timbrado-rev">Revisão {String(proposal.revision).padStart(2, '0')}</div>
-          <div className="sheet-timbrado-date">{formattedDate}</div>
-        </div>
-      </header>
-
-      {/* 2. Quadro de Identificação */}
-      <div className="sheet-identity-box">
-        <table className="sheet-identity-table">
-          <tbody>
-            <tr>
-              <td style={{ width: '60%' }}>
-                <b>Cliente:</b> {proposal.clientName}
-              </td>
-              <td style={{ width: '40%' }}>
-                <b>A/C:</b> {proposal.responsibleName || '-'}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b>Local / Obra:</b> {proposal.workName || '-'}
-              </td>
-              <td>
-                <b>Referência:</b> {proposal.number} | Rev. {String(proposal.revision).padStart(2, '0')}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* 3. Título e Preâmbulo */}
-      <div className="sheet-h1">PROPOSTA TÉCNICA COMERCIAL</div>
+  const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  const introNode = (
+    <>
       <p className="sheet-lead">
         Prezados Senhores,
         <br />
@@ -123,9 +76,12 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
 
       <div className="sheet-h2">1. Objetivo</div>
       <p className="sheet-copy">{conditions.scope || proposal.scope || 'Fornecimento e montagem de infraestrutura.'}</p>
-
+    </>
+  );
+  const pricingNode = (title: string) => (
+    <>
       {/* 5. Precificação */}
-      <div className="sheet-h2">2. Precificação</div>
+      <div className="sheet-h2">{title}</div>
       <table className="sheet-pricing-table">
         <thead>
           <tr>
@@ -233,11 +189,14 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
           </tr>
         </tbody>
       </table>
-
+    </>
+  );
+  const conditionsNode = (title: string) => (
+    <>
       {/* 7. Condições Comerciais */}
       {includeCommercialTerms && (
         <div className="sheet-commercial-box">
-          <div className="sheet-h2">3. Condições Comerciais</div>
+          <div className="sheet-h2">{title}</div>
           <p className="sheet-term"><b>Forma de pagamento:</b> {conditions.paymentTerms || 'A definir'}</p>
           <p className="sheet-term"><b>Validade da proposta:</b> {validUntilFormatted}</p>
           <p className="sheet-term"><b>Prazo de execução:</b> {conditions.executionTerm || 'A definir'}</p>
@@ -252,6 +211,74 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
           <div className="sheet-h2">Observações Técnicas e Complementares</div>
           <p className="sheet-notes-text">{combinedNotes}</p>
         </div>
+      )}
+    </>
+  );
+  const bodyNode = (part: BodyPart, index: number) => {
+    if (part.kind === 'itens') return <React.Fragment key={index}>{pricingNode(part.title)}</React.Fragment>;
+    if (part.kind === 'condicoes') return <React.Fragment key={index}>{conditionsNode(part.title)}</React.Fragment>;
+    if (part.kind === 'heading') return <div key={index} className="sheet-h2">{part.text}</div>;
+    if (part.kind === 'paragraph') return <p key={index} className="sheet-copy" style={{ whiteSpace: 'pre-line' }}>{part.lines.join('\n')}</p>;
+    return <ul key={index} className="sheet-copy">{part.items.map((item, at) => <li key={at}>{item}</li>)}</ul>;
+  };
+
+  return (
+    <div className="paper-sheet authentic-timbrado">
+      {/* 1. Cabeçalho Timbrado Oficial */}
+      <header className="sheet-timbrado-header">
+        <div className="sheet-timbrado-left">
+          <img
+            src={`data:image/png;base64,${CONSTRUTEC_LOGO_BASE64}`}
+            alt="Construtec"
+            className="sheet-timbrado-logo"
+          />
+          <div className="sheet-timbrado-company">
+            <div className="sheet-timbrado-company-name">LAC CONSTRUTEC CONSTRUTORA EIRELI</div>
+            <div>CNPJ: 32.992.946/0001-78</div>
+            <div>Sede: Rua Metodio Coelho, 62, Ed. Cidadella Center I, Sala 112, Salvador/BA</div>
+            <div>Contato: (71) 99294-1099 • supervisao@rcconstrutec.com.br</div>
+          </div>
+        </div>
+        <div className="sheet-timbrado-right">
+          <div className="sheet-timbrado-badge">PROPOSTA COMERCIAL</div>
+          <div className="sheet-timbrado-doc-ref">{proposal.number}</div>
+          <div className="sheet-timbrado-rev">Revisão {String(proposal.revision).padStart(2, '0')}</div>
+          <div className="sheet-timbrado-date">{formattedDate}</div>
+        </div>
+      </header>
+
+      {/* 2. Quadro de Identificação */}
+      <div className="sheet-identity-box">
+        <table className="sheet-identity-table">
+          <tbody>
+            <tr>
+              <td style={{ width: '60%' }}>
+                <b>Cliente:</b> {proposal.clientName}
+              </td>
+              <td style={{ width: '40%' }}>
+                <b>A/C:</b> {proposal.responsibleName || '-'}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Local / Obra:</b> {proposal.workName || '-'}
+              </td>
+              <td>
+                <b>Referência:</b> {proposal.number} | Rev. {String(proposal.revision).padStart(2, '0')}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* 3. Título e Preâmbulo */}
+      <div className="sheet-h1">PROPOSTA TÉCNICA COMERCIAL</div>
+      {bodyParts ? bodyParts.map(bodyNode) : (
+        <>
+          {introNode}
+          {pricingNode('2. Precificação')}
+          {conditionsNode('3. Condições Comerciais')}
+        </>
       )}
 
       <p className="sheet-closing">

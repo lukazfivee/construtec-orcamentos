@@ -13,7 +13,9 @@ import {
   WidthType,
 } from 'docx';
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
+import { resolveBodyParts } from '../shared/proposalBody';
 import { getProposalFinancials } from '../shared/proposalFinancials';
+import { bodyTextParagraphs } from './proposalDocxBody';
 import {
   BLUE,
   commercialLaborTotal,
@@ -187,6 +189,56 @@ export const createProposalDocument = (
       : []),
   ];
 
+  const itemsSection = (title: string) => [
+  new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: title }),
+  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: [700, 4638, 650, 850, 1350, 1450], rows: docRows }),
+  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: laborTotal > 0 ? [4819, 4819] : [CONTENT_WIDTH], rows: summaryRows }),
+  new Table({
+    width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: CONTENT_WIDTH, type: WidthType.DXA },
+            shading: { fill: BLUE, type: ShadingType.CLEAR },
+            margins: { top: 120, bottom: 120, left: 160, right: 160 },
+            borders: { top: borderLine, bottom: borderLine, left: borderLine, right: borderLine },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                children: [
+                  new TextRun({ text: 'VALOR TOTAL DA PROPOSTA:   ', bold: true, color: WHITE, size: 21, font: 'Arial' }),
+                  new TextRun({ text: money.format(total), bold: true, color: WHITE, size: 25, font: 'Arial' }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  }),
+  ];
+  const conditionsSection = (title: string) => (includeTerms
+    ? [
+        new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: title }),
+        conditionParagraph('Validade da proposta', validUntil),
+        conditionParagraph('Prazo de execução', conditions.executionTerm || 'A combinar'),
+        conditionParagraph('Forma de pagamento', conditions.paymentTerms || 'A combinar'),
+        conditionParagraph('Garantia', conditions.warranty || 'Conforme normas técnicas vigentes'),
+        conditionParagraph('Moeda', 'Valores expressos em reais (BRL).'),
+        ...(includeNotes && combinedNotes ? [conditionParagraph('Observações', combinedNotes)] : []),
+      ]
+    : includeNotes && combinedNotes
+    ? [
+        new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Observações' }),
+        conditionParagraph('Observações', combinedNotes),
+      ]
+    : []);
+  const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  const mainChildren = bodyParts
+    ? bodyParts.flatMap((part) => (part.kind === 'itens' ? itemsSection(part.title) : part.kind === 'condicoes' ? conditionsSection(part.title) : bodyTextParagraphs(part)))
+    : [...itemsSection('Composição da proposta'), ...conditionsSection('Condições comerciais')];
+
   return new Document({
     styles: {
       default: { document: { run: { font: 'Arial', size: 20, color: INK }, paragraph: { spacing: { after: 100, line: 260 } } } },
@@ -203,58 +255,16 @@ export const createProposalDocument = (
         children: [
           buildFirstPageHeader(proposal, settings),
           new Paragraph({ style: 'ProposalTitle', text: 'Proposta Técnica-Comercial' }),
-          new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: 'Apresentamos nossa composição comercial para o escopo descrito a seguir.', color: MUTED, size: 18 })] }),
+          ...(bodyParts ? [] : [new Paragraph({ spacing: { after: 100 }, children: [new TextRun({ text: 'Apresentamos nossa composição comercial para o escopo descrito a seguir.', color: MUTED, size: 18 })] })]),
           new Table({
             width: { size: CONTENT_WIDTH, type: WidthType.DXA },
             columnWidths: [4819, 4819],
             rows: [
               new TableRow({ children: [cell(`CLIENTE\n${proposal.clientName}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`OBRA / LOCAL\n${proposal.workName || '—'}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] }),
-              new TableRow({ children: [cell(`ESCOPO\n${conditions.scope || 'A definir'}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`RESPONSÁVEL\n${proposal.responsibleName || '—'}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] }),
+              new TableRow({ children: [bodyParts ? cell(`REFERÊNCIA\n${proposal.number} | Rev. ${String(proposal.revision).padStart(2, '0')}`, 4819, { fill: LIGHT_BLUE, isMeta: true }) : cell(`ESCOPO\n${conditions.scope || 'A definir'}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`RESPONSÁVEL\n${proposal.responsibleName || '—'}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] }),
             ],
           }),
-          new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Composição da proposta' }),
-          new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: [700, 4638, 650, 850, 1350, 1450], rows: docRows }),
-          new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: laborTotal > 0 ? [4819, 4819] : [CONTENT_WIDTH], rows: summaryRows }),
-          new Table({
-            width: { size: CONTENT_WIDTH, type: WidthType.DXA },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    width: { size: CONTENT_WIDTH, type: WidthType.DXA },
-                    shading: { fill: BLUE, type: ShadingType.CLEAR },
-                    margins: { top: 120, bottom: 120, left: 160, right: 160 },
-                    borders: { top: borderLine, bottom: borderLine, left: borderLine, right: borderLine },
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.RIGHT,
-                        children: [
-                          new TextRun({ text: 'VALOR TOTAL DA PROPOSTA:   ', bold: true, color: WHITE, size: 21, font: 'Arial' }),
-                          new TextRun({ text: money.format(total), bold: true, color: WHITE, size: 25, font: 'Arial' }),
-                        ],
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-            ],
-          }),
-          ...(includeTerms
-            ? [
-                new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Condições comerciais' }),
-                conditionParagraph('Validade da proposta', validUntil),
-                conditionParagraph('Prazo de execução', conditions.executionTerm || 'A combinar'),
-                conditionParagraph('Forma de pagamento', conditions.paymentTerms || 'A combinar'),
-                conditionParagraph('Garantia', conditions.warranty || 'Conforme normas técnicas vigentes'),
-                conditionParagraph('Moeda', 'Valores expressos em reais (BRL).'),
-                ...(includeNotes && combinedNotes ? [conditionParagraph('Observações', combinedNotes)] : []),
-              ]
-            : includeNotes && combinedNotes
-            ? [
-                new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: 'Observações' }),
-                conditionParagraph('Observações', combinedNotes),
-              ]
-            : []),
+          ...mainChildren,
           ...((settings?.pdfShowSignature ?? true)
             ? [
                 new Paragraph({
