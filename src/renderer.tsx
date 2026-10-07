@@ -37,6 +37,7 @@ import './impeccable-audit.css';
 import './auth.css';
 import './exsat-feedback.css';
 import './suite-bolder.css';
+import './kit-itens.css';
 import './desktop-polish.css';
 import './mobile-responsive.css';
 import './mobile-suite.css';
@@ -47,6 +48,10 @@ import './paginas-centro.css';
 import './telas-centro.css';
 import './editor-centro.css';
 import './config-centro.css';
+import './editor-itens-centro.css';
+import './editor-paineis-centro.css';
+import './telas-internas-centro.css';
+import './dialogos-centro.css';
 import './updater.css';
 
 const rootElement = document.getElementById('root');

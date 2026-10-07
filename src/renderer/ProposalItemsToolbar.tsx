@@ -111,11 +111,11 @@ export function ProposalItemsToolbar({
         <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.duplicateSelectedItem(selectedItemIds)}>
           <Copy size={16} /> Duplicar
         </button>
-        <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
-          <ChevronUp size={14} /> Mover
+        <button className="bulk-only" type="button" aria-label="Subir item selecionado" title="Mover o item selecionado para cima" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'up')}>
+          <ChevronUp size={14} /> Subir
         </button>
-        <button className="bulk-only" type="button" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
-          <ChevronDown size={14} /> Mover
+        <button className="bulk-only" type="button" aria-label="Descer item selecionado" title="Mover o item selecionado para baixo" disabled={!isEditable || !singleItemSelected || mutationPending} onClick={() => void actions.moveSelectedItem(selectedItemIds, 'down')}>
+          <ChevronDown size={14} /> Descer
         </button>
         <button
           type="button"

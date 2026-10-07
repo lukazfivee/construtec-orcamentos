@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, Building2, MapPin, Pencil, Plus, Save, Search, Users } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Pencil, Plus, Save, Search } from 'lucide-react';
 import type { ClientRecord, WorkRecord } from '../shared/contracts';
 import { clientsApi } from './api';
 
@@ -156,9 +156,9 @@ export function ClientsRegistry({ onBack, onNotice, onError }: ClientsRegistryPr
 
   return (
     <main className="management-workspace">
-      <header className="management-header">
-        <div><Users size={20} /><span><h1>Clientes e obras</h1><p>Cadastros locais usados na criação dos orçamentos.</p></span></div>
-        <span className="management-header-actions">{onBack && <button type="button" onClick={onBack}><ArrowLeft size={17} /> Voltar aos clientes</button>}<button className="primary" type="button" onClick={beginClient}><Plus size={17} /> Novo cliente</button></span>
+      <header className="management-header cab">
+        <div className="tit"><span className="eyebrow">Cadastros</span><h1>Clientes e obras</h1><p className="sub">Cadastros locais usados na criação dos orçamentos.</p></div>
+        <div className="acoes management-header-actions">{onBack && <button type="button" onClick={onBack}><ArrowLeft size={17} /> Voltar aos clientes</button>}<button className="primary" type="button" onClick={beginClient}><Plus size={17} /> Novo cliente</button></div>
       </header>
 
       <div className="management-body">

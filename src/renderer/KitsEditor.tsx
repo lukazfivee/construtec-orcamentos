@@ -269,20 +269,18 @@ export function KitsEditor({
 
   return (
     <main className="management-workspace kits-workspace">
-      <header className="management-header">
-        <div>
-          <Layers3 size={25} />
-          <span>
-            <h1>Kits e Composições</h1>
-            <p>Agrupamentos de materiais e serviços para inserção rápida em propostas.</p>
-          </span>
+      <header className="management-header cab">
+        <div className="tit">
+          <span className="eyebrow">Cadastros</span>
+          <h1>Kits e Composições</h1>
+          <p className="sub">Agrupamentos de materiais e serviços para inserção rápida em propostas.</p>
         </div>
-        <span className="management-header-actions">
+        <div className="acoes management-header-actions">
           {onBack && <button type="button" onClick={onBack}><ArrowLeft size={17} /> Voltar aos kits</button>}
           <button type="button" className="primary" onClick={beginCreate}>
             <PackagePlus size={17} /> Novo kit
           </button>
-        </span>
+        </div>
       </header>
 
       <div className="management-body">

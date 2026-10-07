@@ -1,0 +1,27 @@
+/* Tabela de itens do editor de kits (antes com estilos em linha). Base valida em todas as larguras; no desktop o Centro
+   (telas-internas-centro.css) ajusta fontes, linhas e campos. */
+.kit-items-section { margin-top: 24px; }
+.kit-items-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.kit-items-head h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.kit-add-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; font-size: 11px; color: var(--tx-cool-28-3); background: var(--status-review-bg); border: 1px solid var(--bd-cool-87); border-radius: 5px; cursor: pointer; }
+.kit-table-wrapper { overflow-x: auto; overflow-y: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, .03); }
+.kit-table-wrapper table { width: 100%; min-width: 700px; table-layout: fixed; border-collapse: collapse; font-size: 11.5px; }
+.kit-table-wrapper thead { background: var(--bg-cool-98); }
+.kit-table-wrapper th { padding: 8px 10px; text-align: left; }
+.kit-table-wrapper td { padding: 6px 10px; border-top: 1px solid var(--line); }
+.kit-table-wrapper .kc-code { width: 16%; }
+.kit-table-wrapper .kc-desc { width: 34%; }
+.kit-table-wrapper .kc-unit { width: 7%; }
+.kit-table-wrapper .kc-cost { width: 13%; }
+.kit-table-wrapper .kc-qty { width: 11%; }
+.kit-table-wrapper .kc-total { width: 12%; }
+.kit-table-wrapper .kc-act { width: 7%; }
+.kit-table-wrapper .kit-c { text-align: center; }
+.kit-table-wrapper .kit-n { text-align: right; }
+.kit-table-wrapper .kit-strong { font-weight: 600; }
+.kit-table-wrapper .kit-clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kit-table-wrapper .kit-sticky { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 6px -2px rgba(0, 0, 0, .06); }
+.kit-table-wrapper th.kit-sticky { z-index: 2; background: var(--bg-cool-98); }
+.kit-table-wrapper input { width: 65px; height: 26px; padding: 0 6px; text-align: right; border: 1px solid var(--line-strong); border-radius: 4px; }
+.kit-item-remove-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: var(--tx-red-51); background: var(--bg-red-97); border: 1px solid var(--bd-red-82); border-radius: 5px; cursor: pointer; transition: all 120ms ease; }
+.kit-empty { padding: 12px 0; color: var(--muted); font-size: 11px; font-style: italic; }
