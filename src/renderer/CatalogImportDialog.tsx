@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AlertTriangle, Copy, FileImage, FileSpreadsheet, Loader2, Plus, X } from 'lucide-react';
 import type { CatalogImportItem, CatalogProduct, ExsatBatchPreview, ExsatPageFailure, ExsatSyncInfo } from '../shared/contracts';
 import { catalogApi } from './api';
+import { importInChunks } from './catalogImportChunks';
 import { CatalogImportExsat } from './CatalogImportExsat';
+import { ignoredText } from './ExsatAccountCard';
+import { useExsatServer, type ExsatServerResults } from './useExsatServer';
 import { CatalogImportTable } from './CatalogImportTable';
 import { exsatErrorMessage, isImportableRow, type ImportMode } from './catalogImportDialogModel';
 import { moneyValue, newRow, parseCatalogText, type Row } from './catalogImportHelpers';
@@ -51,6 +54,14 @@ export function CatalogImportDialog({ open, onClose, onImported, onError, onOpen
   const app = hasDesktopApp() ? window.construtec : undefined;
   const canPick = !!app?.selectCatalogImport;
   const canExsat = !!app?.previewExsatAuto;
+  // No site o servidor varre a Exsat com a conta guardada; as alteracoes caem na mesma tabela de conferencia do aplicativo.
+  const applyServerResults = (result: ExsatServerResults) => {
+    setRows(result.items.map((item) => ({ ...newRow(item), status: 'confirmed' as const })));
+    setSourceName('Exsat · conta conectada no servidor'); setExsatFailures([]);
+    setBatchInfo([result.withoutPrice > 0 ? ignoredText(result.withoutPrice) : '', `${result.unchanged.toLocaleString('pt-BR')} sem alteração`].filter(Boolean).join(' · '));
+    if (result.items.length === 0) onError(result.withoutPrice > 0 ? `Nenhum preço novo ou alterado. ${ignoredText(result.withoutPrice)}.` : 'Nenhum preço novo ou alterado. O catálogo já está igual à Exsat.');
+  };
+  const server = useExsatServer(open && mode === 'exsat' && !canExsat, applyServerResults);
   const importableRows = useMemo(() => rows.filter((row) => isImportableRow(mode, row)), [mode, rows]);
   const exsatSummary = useMemo(() => ({
     confirmed: rows.filter((row) => row.status === 'confirmed').length,
@@ -193,7 +204,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError, onOpen
         finalRows = cleanRows.filter((item) => allowedCodes.has(item.code.toLowerCase()));
       }
       if (finalRows.length === 0) { onError('Nenhum item precisa ser atualizado.'); return; }
-      const result = await catalogApi.importBulk(finalRows);
+      const result = await importInChunks(finalRows);
       if (mode === 'exsat' && app?.recordExsatSync) setSyncInfo(await app.recordExsatSync({ created: result.created, updated: result.updated }));
       onImported(result.products, `${result.created} itens cadastrados, ${result.updated} atualizados${result.ignored ? ` e ${result.ignored} ignorados` : ''}.`);
       setRows([]); setBatchInfo(''); setExsatFailures([]); onClose();
@@ -238,7 +249,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError, onOpen
       </WebOnly>;
   };
 
-  const footerHint = mode === 'exsat' ? 'Entram só os itens confirmados na página do produto e os que você editar.' : 'Use o valor total do item; parcelas e condições de pagamento são ignoradas.';
+  const footerHint = mode === 'exsat' ? (canExsat ? 'Entram só os itens confirmados na página do produto e os que você editar.' : 'Entram só itens com preço lido com a sua conta da Exsat e os que você editar.') : 'Use o valor total do item; parcelas e condições de pagamento são ignoradas.';
   const count = importableRows.length;
   return <div className="cid-overlay" role="presentation" onClick={(event) => { if (event.target === event.currentTarget && !loading) onClose(); }}>
     <section className="cid" role="dialog" aria-modal="true" aria-labelledby="cid-title">
@@ -263,7 +274,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError, onOpen
         {(mode === 'file' || mode === 'image') && picker(mode)}
         {mode === 'exsat' && <CatalogImportExsat desktop={canExsat} connected={exsatConnected} busy={loading} progress={progressText} info={syncInfo} urls={exsatUrls}
           onUrls={setExsatUrls} onLogin={() => void loginExsat()} onLogout={() => void logoutExsat()} onAuto={() => void loadExsat(true)} onManual={() => void loadExsat(false)}
-          onOpenExsat={onOpenExsat ? () => { onClose(); onOpenExsat(); } : undefined} onUseSheet={() => switchMode('file')} />}
+          onOpenExsat={onOpenExsat ? () => { onClose(); onOpenExsat(); } : undefined} onUseSheet={() => switchMode('file')} server={server} />}
         {mode === 'exsat' && rows.length > 0 && <div className="cid-chips" aria-label="Resultado da validação">
           <span className="od-chip ok">{exsatSummary.confirmed} confirmados</span>
           {exsatSummary.divergent > 0 && <span className="od-chip warn">{exsatSummary.divergent} divergentes</span>}

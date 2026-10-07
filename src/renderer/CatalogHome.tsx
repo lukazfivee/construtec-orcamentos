@@ -28,7 +28,7 @@ export const exsatCardPill = (sync: ExsatSync): { text: string; tone: 'ok' | 'wa
 };
 
 export const syncDisabledReason = (sync: ExsatSync, canWrite: boolean): string => {
-  if (!sync.desktop) return 'A varredura do EXSAT usa a conta conectada no aplicativo do computador. No site, o catálogo e os avisos de preço continuam disponíveis.';
+  if (!sync.desktop) return 'No site, a varredura da Exsat roda em Importar itens em lote, aba Exsat. Aqui o catálogo e os avisos de preço continuam disponíveis.';
   if (!canWrite) return 'Seu papel não permite alterar o catálogo, que carrega o custo.';
   if (!sync.connected) return 'Entre na conta do EXSAT em Integração EXSAT para sincronizar.';
   return '';

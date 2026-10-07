@@ -1,6 +1,8 @@
-import { CheckCircle2, ExternalLink, FileSpreadsheet, Globe2, Loader2, LogIn, LogOut, RefreshCw, WifiOff } from 'lucide-react';
+import { CheckCircle2, Loader2, LogIn, LogOut, RefreshCw, WifiOff } from 'lucide-react';
 import type { ExsatSyncInfo } from '../shared/contracts';
 import { formatSyncDate } from './catalogImportHelpers';
+import { ExsatAccountCard } from './ExsatAccountCard';
+import type { ExsatServer } from './useExsatServer';
 
 type Props = {
   desktop: boolean;
@@ -16,30 +18,15 @@ type Props = {
   onManual: () => void;
   onOpenExsat?: () => void;
   onUseSheet: () => void;
+  /** No site: conta e varredura no servidor. */
+  server?: ExsatServer;
 };
 
 const MODE_LABEL = { full: 'Completa', incremental: 'Incremental', manual: 'Manual' } as const;
 
-// Sem o aplicativo do computador nao ha como entrar na Exsat nem varrer o catalogo: o site nao guarda a sua conta.
-function WebCard({ onOpenExsat, onUseSheet }: Pick<Props, 'onOpenExsat' | 'onUseSheet'>) {
-  return <section className="cid-card" aria-label="Exsat no site">
-    <div className="cid-status">
-      <span className="cid-ico"><Globe2 size={20} aria-hidden="true" /></span>
-      <span className="cid-grow"><b>Sincronização com a Exsat</b>
-        <span>Entra na sua conta da Exsat e lê os preços de revendedor. Isso roda só no aplicativo do computador; o site não guarda a sua senha.</span></span>
-      <span className="od-chip info">Só no aplicativo</span>
-    </div>
-    <div className="cid-actions">
-      {onOpenExsat && <button type="button" className="od-btn p" onClick={onOpenExsat}><ExternalLink size={16} />Ver integração Exsat</button>}
-      <button type="button" className="od-btn s" onClick={onUseSheet}><FileSpreadsheet size={16} />Importar por planilha</button>
-      <small>O que o aplicativo sincroniza já aparece no catálogo e na integração Exsat.</small>
-    </div>
-  </section>;
-}
-
 export function CatalogImportExsat(props: Props) {
   const { desktop, connected, busy, progress, info, urls } = props;
-  if (!desktop) return <WebCard onOpenExsat={props.onOpenExsat} onUseSheet={props.onUseSheet} />;
+  if (!desktop) return props.server ? <ExsatAccountCard server={props.server} onUseSheet={props.onUseSheet} onOpenExsat={props.onOpenExsat} /> : null;
   return <div className="cid-stack">
     <section className="cid-card" aria-label="Conta da Exsat">
       <div className="cid-status">

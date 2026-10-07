@@ -1,5 +1,5 @@
 // Importar catalogo no celular (prototipo, Rodada 22: telas 22b e 22g a 22v).
-// Planilha XLSX, CSV, TSV ou TXT lida aqui no aparelho; tambem aceita uma pagina publica do EXSAT (endpoint existente).
+// Planilha XLSX, CSV, TSV ou TXT lida aqui no aparelho. Preco da EXSAT so entra com a conta conectada (aplicativo do computador ou site de computador).
 // Foto, PDF e OCR ficam na versao completa (o reconhecimento de imagem roda so no aplicativo do computador).
 // Passos: 1 arquivo, 2 colunas, 3 revisar, 4 importar. Linhas com erro nao entram: corrige-se na hora ou ficam de fora.
 (function (OC) {
@@ -269,7 +269,7 @@
     const S = S0 = {
       phase: 'file', step: 1, file: null, forn: '', head: true, table: { header: [], rows: [] }, map: {}, mapUser: {}, conf: {}, err: '',
       fix: {}, out: {}, tab: 'novos', shown: { novos: PAGE, atu: PAGE, err: 50 }, units: [], prev: new Map(), previewFail: '',
-      load: null, token: 0, result: null, exsat: false, exsatCategory: '', exsatUrl: '', failMsg: '', runDone: 0, runTotal: 0, fileMsg: '',
+      load: null, token: 0, result: null, exsat: false, exsatCategory: '', failMsg: '', runDone: 0, runTotal: 0, fileMsg: '',
     };
     const el = OC.render(`<div class="top"><button class="back" type="button" data-back aria-label="Voltar">${icon('caret-left', 22)}</button><h1>Importar catálogo</h1><span class="grow"></span>
         <button class="suite-pill" type="button" data-suite aria-label="Suíte">${icon('stack', 18)}<span class="sp-t">Suíte</span>${icon('caret-down', 14)}</button></div>
@@ -318,19 +318,11 @@
         ${S.fileMsg ? `<p class="alert">${icon('warning-circle', 16)}<span>${esc(S.fileMsg)}</span></p>` : ''}
         <button class="btn" type="button" id="i-choose">${icon('plus', 18)}Escolher arquivo</button>
         <input id="i-file" type="file" accept=".xlsx,.xlsm,.csv,.tsv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
-        <div class="imp-or"><span>ou</span></div>
-        <div class="card imp-ex"><b>${icon('arrow-square-out', 18)}Página do EXSAT</b>
-          <small>Cole o endereço público de uma categoria ou busca do exsat.com.br. Só entram itens com preço na página; a varredura com a conta conectada fica no computador.</small>
-          <label class="field"><input id="i-url" type="url" inputmode="url" placeholder="https://exsat.com.br/..." value="${esc(S.exsatUrl)}" autocomplete="off" aria-label="Endereço da página do EXSAT"></label>
-          <button class="btn2" type="button" id="i-url-go">Ler página</button></div>
         <p class="hint">Foto da lista impressa e PDF ficam na versão completa: o reconhecimento de imagem roda só no aplicativo do computador.</p>`,
       bind(b) {
         OC.$('#i-forn', b).addEventListener('input', (e) => { S.forn = e.target.value.trim(); });
         OC.$('#i-choose', b).addEventListener('click', () => OC.$('#i-file', b).click());
         OC.$('#i-file', b).addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) { openFile(f); e.target.value = ''; } });
-        OC.$('#i-url', b).addEventListener('input', (e) => { S.exsatUrl = e.target.value.trim(); });
-        OC.$('#i-url-go', b).addEventListener('click', () => openExsat(S.exsatUrl));
-        OC.$('#i-url', b).addEventListener('keydown', (e) => { if (e.key === 'Enter') openExsat(S.exsatUrl); });
       },
     };
 
@@ -406,28 +398,6 @@
       S.fix = {}; S.out = {}; S.prev = new Map();
     }
 
-    async function openExsat(url) {
-      if (!/^https:\/\/(www\.)?exsat\.com\.br\//i.test(url || '')) { set({ fileMsg: 'Use um endereço https do site exsat.com.br.' }); return; }
-      const reading = beginLoad('Lendo a página do EXSAT', (p) => `Consultando a página · ${p}%`, [['Conectando ao EXSAT', 25], ['Lendo os itens da página', 70], ['Separando preços', 95]]);
-      S.file = { name: 'Página do EXSAT', size: 0 }; S.failTitle = '';
-      set({ phase: 'read', step: 1, load: { title: 'Lendo a página do EXSAT', sub: 'Consultando a página · 5%', steps: [['Conectando ao EXSAT', 25], ['Lendo os itens da página', 70], ['Separando preços', 95]], pct: 5 } });
-      try {
-        reading.tick(25);
-        const data = await OC.api('/catalog/import/exsat', { method: 'POST', body: { url } });
-        if (!reading.alive()) return;
-        reading.tick(80);
-        const items = data.items || [];
-        if (!items.length) { set({ phase: 'vazio', step: 1 }); return; }
-        const header = ['Código', 'Descrição', 'Unidade', 'Custo', 'Categoria'];
-        const rows = items.slice(0, MAX_ROWS).map((it, i) => ({ ln: i + 1, cells: [it.code, it.description, it.unit || 'un', it.currentCost > 0 ? brNumber(it.currentCost) : '', it.category || ''] }));
-        S.table = { header, rows }; S.map = { cod: 0, desc: 1, un: 2, custo: 3, cat: 4 }; S.conf = {}; S.mapUser = {}; S.fix = {}; S.out = {}; S.prev = new Map();
-        S.exsat = true; S.exsatCategory = 'Exsat';
-        await goReview(reading);
-      } catch (error) {
-        if (!reading.alive()) return;
-        set({ phase: 'erro', step: 1, failMsg: `${error.message} Confira o endereço e tente de novo; se o EXSAT pedir login, use o aplicativo do computador.` });
-      }
-    }
 
     // --- passo 2: colunas ---
     const vMap = {

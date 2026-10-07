@@ -94,6 +94,16 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run(user('financeiro'), 'POST', '/api/catalog/import/preview').status, 403);
   assert.equal(run(user('tecnico'), 'POST', '/api/catalog/import/exsat').status, 403);
   assert.equal(run(user('comercial'), 'POST', '/api/catalog/import/preview').status, 200);
+  // Conta e varredura da Exsat: p10 para tudo; cadastrar, trocar e remover a conta so o administrador (papel local).
+  const admin = { ...user('admin'), role: 'admin' as const };
+  assert.equal(run(user('financeiro'), 'GET', '/api/exsat/status').status, 403);
+  assert.equal(run(user('tecnico'), 'POST', '/api/exsat/sync').status, 403);
+  assert.equal(run(user('comercial'), 'GET', '/api/exsat/status').status, 200);
+  assert.equal(run(user('comercial'), 'POST', '/api/exsat/sync').status, 200);
+  assert.equal(run(user('comercial'), 'PUT', '/api/exsat/credential', { username: 'a@b.com', password: 'x' }).status, 403, 'p10 sem ser administrador');
+  assert.equal(run(user('comercial'), 'DELETE', '/api/exsat/credential').status, 403);
+  assert.equal(run(admin, 'PUT', '/api/exsat/credential', { username: 'a@b.com', password: 'x' }).status, 200);
+  assert.equal(run(admin, 'DELETE', '/api/exsat/credential').status, 200);
   // Aviso de preco novo: liberado sem p10 (o servidor so devolve o valor final); atualizar tambem.
   assert.equal(run(user('tecnico'), 'GET', '/api/proposals/price-drift').status, 200);
   assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/price-drift/apply').status, 200);

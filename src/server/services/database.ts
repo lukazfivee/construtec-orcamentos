@@ -14,6 +14,7 @@ import { discardedProposalsMigration } from '../migrations/015-discarded-proposa
 import { outboxCenterDiscardedMigration } from '../migrations/016-outbox-center-discarded';
 import { outboxClaimMigration } from '../migrations/019-outbox-claim';
 import { proposalBodyBlocksMigration } from '../migrations/020-proposal-body-blocks';
+import { exsatServerSyncMigration } from '../migrations/021-exsat-server-sync';
 import { clientLinksMigration } from '../migrations/017-client-links';
 import { clientLinksHardeningMigration } from '../migrations/018-client-links-hardening';
 import { proposalTaxMigration } from '../migrations/010-proposal-tax';
@@ -171,6 +172,7 @@ const migrateDatabase = async (database: DatabaseQueries) => {
     [18, clientLinksHardeningMigration],
     [19, outboxClaimMigration],
     [20, proposalBodyBlocksMigration],
+    [21, exsatServerSyncMigration],
   ] as const;
 
   for (const [version, sql] of migrations) {

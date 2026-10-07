@@ -186,7 +186,7 @@ export const importCatalogProducts = async (database: LocalDatabase, items: Cata
   });
 };
 
-const decodeHtml = (value: string) => value
+export const decodeHtml = (value: string) => value
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
   .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
   .replace(/<[^>]+>/g, ' ')
@@ -304,5 +304,5 @@ export const parseExsatProductsHtml = (html: string, includeMissingPrice = false
     }
   }
   if (items.size === 0) throw new Error('EXSAT_NO_PRODUCTS');
-  return [...items.values()].slice(0, 500);
+  return [...items.values()];
 };

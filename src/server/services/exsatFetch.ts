@@ -1,6 +1,3 @@
-import type { CatalogImportItem } from '../../shared/contracts';
-import { parseExsatProductsHtml } from './catalog';
-
 export const validateExsatUrl = (rawUrl: string) => {
   const url = new URL(rawUrl);
   if (url.protocol !== 'https:' || !['exsat.com.br', 'www.exsat.com.br'].includes(url.hostname.toLowerCase())) {
@@ -53,14 +50,4 @@ export const decodeExsatBody = (contentType: string | null | undefined, body: Ui
   const label = (declared ?? 'utf-8').toLowerCase();
   const latin = /^(?:iso-?8859-?1|latin-?1|windows-?1252|cp1252|l1)$/.test(label);
   try { return new TextDecoder(latin ? 'windows-1252' : label).decode(body); } catch { return new TextDecoder('utf-8').decode(body); }
-};
-
-export const previewExsatProducts = async (rawUrl: string): Promise<CatalogImportItem[]> => {
-  const { response, body } = await fetchExsatBody(rawUrl, (url) => fetch(url, {
-    redirect: 'manual',
-    signal: AbortSignal.timeout(20_000),
-    headers: { 'User-Agent': 'Construtec-Orcamentos/1.0 (+catalog-import)' },
-  }));
-  if (!response.ok) throw new Error('EXSAT_UNAVAILABLE');
-  return parseExsatProductsHtml(decodeExsatBody(response.headers.get('content-type'), body));
 };
