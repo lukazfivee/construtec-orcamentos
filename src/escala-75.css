@@ -1,0 +1,15 @@
+/* Escala natural do desktop: a interface ja sai no tamanho de 75% de zoom do navegador, sem mexer na lupa.
+   So em janela larga (>= 1200 px); celular e telas estreitas seguem no tamanho normal. Com "zoom" na raiz as
+   unidades vh/vw contam o tamanho da janela antes da reducao, entao o que depende delas divide por 0,75. */
+@media screen and (min-width: 1200px) {
+  html { zoom: .75; height: calc(100% / .75); }
+  .modal-dialog { max-width: calc((100vw - 48px) / .75); max-height: calc((100vh - 48px) / .75); }
+  .modal-card { width: min(520px, calc((100vw - 48px) / .75)); max-height: calc((100vh - 48px) / .75); }
+  .help-modal-dialog { width: min(720px, calc(92vw / .75)); max-height: calc(88vh / .75); }
+  .proposal-import-dialog { width: min(840px, calc(94vw / .75)); max-height: calc(88vh / .75); }
+  .proposal-diff-dialog { width: min(1280px, calc(96vw / .75)); height: min(860px, calc(92vh / .75)); }
+  .proposal-export-dialog { width: min(1200px, calc(96vw / .75)); height: min(860px, calc(92vh / .75)); }
+  .proposal-share-dialog { width: min(680px, calc(90vw / .75)); max-height: calc(90vh / .75); }
+  .catalog-popover { top: calc(12vh / .75); max-height: calc(76vh / .75); }
+  .app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh / .75 - 330px), 940px); }
+}

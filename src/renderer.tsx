@@ -53,6 +53,7 @@ import './editor-layout-centro.css';
 import './telas-internas-centro.css';
 import './dialogos-centro.css';
 import './updater.css';
+import './escala-75.css';
 
 const rootElement = document.getElementById('root');
 
