@@ -49,8 +49,8 @@ export const proposalPresentation = (
 
   const summary: Array<[string, string]> = labor > 0
     ? [
-        ['Valor dos materiais e equipamentos', money.format(materials)],
-        ['Valor dos serviços técnicos', money.format(labor)],
+        ['Total de Materiais', money.format(materials)],
+        ['Total de Mão de Obra', money.format(labor)],
         ['Valor total da proposta', money.format(total)],
       ]
     : [['Valor total da proposta', money.format(total)]];

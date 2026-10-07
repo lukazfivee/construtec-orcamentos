@@ -42,6 +42,8 @@ import {
 } from './proposalDocxHeaderFooter';
 import { watermarkEnabled } from './proposalPresentation';
 
+const SUMMARY_VALUE_WIDTH = 1450;
+const SUMMARY_LABEL_WIDTH = CONTENT_WIDTH - SUMMARY_VALUE_WIDTH;
 const borderLine = { style: BorderStyle.SINGLE, size: 1, color: LINE };
 const cellBorders = { top: borderLine, bottom: borderLine, left: borderLine, right: borderLine };
 
@@ -187,17 +189,24 @@ export const createProposalDocument = (
     }),
   ];
 
-  const summaryRows: TableRow[] = [
-    laborTotal > 0
-      ? new TableRow({ children: [cell(`Total de Materiais\n${money.format(materialsTotal)}`, 4819, { fill: LIGHT_BLUE, isMeta: true }), cell(`Total de Mão de Obra\n${money.format(laborTotal)}`, 4819, { fill: LIGHT_BLUE, isMeta: true })] })
-      : new TableRow({ children: [cell(`Subtotal de Itens e Serviços\n${money.format(materialsTotal)}`, CONTENT_WIDTH, { fill: LIGHT_BLUE, isMeta: true })] }),
-  ];
+  // Totais sob a planilha, como no PDF: rotulo a direita e valor na coluna VALOR TOTAL.
+  const totalRow = (label: string, value: number) => new TableRow({
+    cantSplit: true,
+    children: [
+      cell(label, SUMMARY_LABEL_WIDTH, { bold: true, align: AlignmentType.RIGHT, fill: LIGHT_BLUE, color: MUTED }),
+      cell(money.format(value), SUMMARY_VALUE_WIDTH, { align: AlignmentType.RIGHT, fill: LIGHT_BLUE }),
+    ],
+  });
+  const summaryRows: TableRow[] = laborTotal > 0
+    ? [totalRow('Total de Materiais', materialsTotal), totalRow('Total de Mão de Obra', laborTotal)]
+    : [totalRow('Subtotal de Itens e Serviços', materialsTotal)];
+
 
   const itemsSection = (title: string, caption = '') => [
   new Paragraph({ style: 'ProposalHeading', heading: HeadingLevel.HEADING_1, text: title }),
   ...(caption ? [captionParagraph(caption)] : []),
   new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: [700, 4638, 650, 850, 1350, 1450], rows: docRows }),
-  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: laborTotal > 0 ? [4819, 4819] : [CONTENT_WIDTH], rows: summaryRows }),
+  new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, layout: TableLayoutType.FIXED, columnWidths: [SUMMARY_LABEL_WIDTH, SUMMARY_VALUE_WIDTH], rows: summaryRows }),
   new Table({
     width: { size: CONTENT_WIDTH, type: WidthType.DXA },
     layout: TableLayoutType.FIXED,
