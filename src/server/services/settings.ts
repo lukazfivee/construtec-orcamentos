@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { DEFAULT_LETTER_PLACE } from '../../shared/proposalBody';
 import type { AppSettings } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 
@@ -21,6 +22,8 @@ const defaultSettings: AppSettings = {
   defaultTaxPercentage: 0,
   pdfShowLogo: true,
   pdfShowSignature: true,
+  letterPlace: DEFAULT_LETTER_PLACE,
+  pdfWatermark: false,
 };
 
 const ensureSettingsStorage = async (database: Pick<LocalDatabase, 'query' | 'exec'>): Promise<void> => {
@@ -62,6 +65,8 @@ export const getAppSettings = async (database: Pick<LocalDatabase, 'query' | 'ex
       defaultTaxPercentage: typeof val.defaultTaxPercentage === 'number' && val.defaultTaxPercentage >= 0 && val.defaultTaxPercentage <= 100 ? val.defaultTaxPercentage : defaultSettings.defaultTaxPercentage,
       pdfShowLogo: typeof val.pdfShowLogo === 'boolean' ? val.pdfShowLogo : defaultSettings.pdfShowLogo,
       pdfShowSignature: typeof val.pdfShowSignature === 'boolean' ? val.pdfShowSignature : defaultSettings.pdfShowSignature,
+      letterPlace: val.letterPlace?.trim() || defaultSettings.letterPlace,
+      pdfWatermark: typeof val.pdfWatermark === 'boolean' ? val.pdfWatermark : defaultSettings.pdfWatermark,
     };
 
     if (isOldPlaceholder) {
@@ -92,6 +97,8 @@ export const updateAppSettings = async (
     defaultTaxPercentage: typeof input.defaultTaxPercentage === 'number' && input.defaultTaxPercentage >= 0 && input.defaultTaxPercentage <= 100 ? input.defaultTaxPercentage : current.defaultTaxPercentage,
     pdfShowLogo: typeof input.pdfShowLogo === 'boolean' ? input.pdfShowLogo : current.pdfShowLogo,
     pdfShowSignature: typeof input.pdfShowSignature === 'boolean' ? input.pdfShowSignature : current.pdfShowSignature,
+    letterPlace: input.letterPlace?.trim() || current.letterPlace,
+    pdfWatermark: typeof input.pdfWatermark === 'boolean' ? input.pdfWatermark : current.pdfWatermark,
   };
 
   await database.query(`

@@ -67,6 +67,7 @@ export function ProposalExportDialog({
   const [includeCommercialTerms, setIncludeCommercialTerms] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
   const [customNotes, setCustomNotes] = useState('');
+  const [watermark, setWatermark] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
 
@@ -79,6 +80,12 @@ export function ProposalExportDialog({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, isExporting, onClose]);
 
+  // A marca d'agua comeca no padrao da empresa; quem exporta pode ligar ou desligar so desta vez.
+  useEffect(() => {
+    if (!open) return;
+    void loadSettings().then((settings) => { if (settings) setWatermark(settings.pdfWatermark === true); });
+  }, [open]);
+
   if (!open || !proposal) return null;
 
   const exportOptions: ProposalExportOptions = {
@@ -89,6 +96,7 @@ export function ProposalExportDialog({
     includeCommercialTerms,
     includeNotes,
     customNotes: customNotes.trim(),
+    watermark,
   };
 
   const handlePreview = async () => {
@@ -244,6 +252,11 @@ export function ProposalExportDialog({
                   onChange={(e) => setShowProductCodes(e.target.checked)}
                 />
                 <span>Exibir códigos técnicos de catálogo abaixo da descrição</span>
+              </label>
+
+              <label className="checkbox-row">
+                <input type="checkbox" checked={watermark} onChange={(e) => setWatermark(e.target.checked)} />
+                <span>Marca d'água com a logo ao fundo das páginas</span>
               </label>
 
               {laborTotal > 0 && (

@@ -40,6 +40,7 @@ import {
   buildRunningHeader,
   CONTENT_WIDTH,
 } from './proposalDocxHeaderFooter';
+import { watermarkEnabled } from './proposalPresentation';
 
 const borderLine = { style: BorderStyle.SINGLE, size: 1, color: LINE };
 const cellBorders = { top: borderLine, bottom: borderLine, left: borderLine, right: borderLine };
@@ -243,6 +244,7 @@ export const createProposalDocument = (
   const hasLetter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
   const hasClosing = Boolean(bodyParts?.some((part) => part.kind === 'fechamento'));
   const showSignature = settings?.pdfShowSignature ?? true;
+  const watermark = watermarkEnabled(settings, options);
   const textContext = { showSignature, company: settings?.companyName?.trim() || 'LAC CONSTRUTEC CONSTRUTORA EIRELI', brand: settings?.tradeName?.trim() || 'CONSTRUTEC', letter: hasLetter };
   const mainChildren = bodyParts
     ? bodyParts.flatMap((part) => (part.kind === 'itens' ? itemsSection(part.title, part.caption) : part.kind === 'condicoes' ? conditionsSection(part.title) : bodyTextParagraphs(part, textContext)))
@@ -260,7 +262,7 @@ export const createProposalDocument = (
     sections: [
       {
         properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: hasLetter ? 1900 : 1134, right: 1134, bottom: hasLetter ? 1400 : 1134, left: 1134, header: 500, footer: 500 } } },
-        headers: { default: hasLetter ? buildRunningHeader(proposal, settings) : buildContinuationHeader(proposal, settings) },
+        headers: { default: hasLetter ? buildRunningHeader(proposal, settings, watermark) : buildContinuationHeader(proposal, settings, watermark) },
         footers: { default: buildDocFooter(settings, hasLetter) },
         children: [
           ...(hasLetter ? [] : [buildFirstPageHeader(proposal, settings), new Paragraph({ style: 'ProposalTitle', text: 'Proposta Técnica-Comercial' })]),

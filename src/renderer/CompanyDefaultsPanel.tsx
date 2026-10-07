@@ -7,7 +7,7 @@ import { Seg } from './orcDeskUi';
 import { useSuitePermission } from './SuitePermissions';
 import { setUnsavedChanges } from './unsavedChanges';
 
-type Draft = Pick<AppSettings, 'defaultBdi' | 'defaultTaxPercentage' | 'defaultValidityDays' | 'pdfShowLogo' | 'pdfShowSignature'>;
+type Draft = Pick<AppSettings, 'defaultBdi' | 'defaultTaxPercentage' | 'defaultValidityDays' | 'pdfShowLogo' | 'pdfShowSignature' | 'pdfWatermark' | 'letterPlace'>;
 
 type Props = {
   settings: AppSettings;
@@ -22,7 +22,7 @@ const VALIDITY = [15, 30, 45, 60];
 const round2 = (value: number) => Math.round(value * 100) / 100;
 const fromSettings = (s: AppSettings): Draft => ({
   defaultBdi: s.defaultBdi, defaultTaxPercentage: s.defaultTaxPercentage, defaultValidityDays: s.defaultValidityDays,
-  pdfShowLogo: s.pdfShowLogo, pdfShowSignature: s.pdfShowSignature,
+  pdfShowLogo: s.pdfShowLogo, pdfShowSignature: s.pdfShowSignature, pdfWatermark: s.pdfWatermark, letterPlace: s.letterPlace,
 });
 
 function Stepper({ label, value, text, step, min, max, disabled, onChange }: {
@@ -56,7 +56,8 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
     try {
       const input: Partial<AppSettings> = {
         defaultTaxPercentage: draft.defaultTaxPercentage, defaultValidityDays: draft.defaultValidityDays,
-        pdfShowLogo: draft.pdfShowLogo, pdfShowSignature: draft.pdfShowSignature,
+        pdfShowLogo: draft.pdfShowLogo, pdfShowSignature: draft.pdfShowSignature, pdfWatermark: draft.pdfWatermark,
+        ...(draft.letterPlace.trim() ? { letterPlace: draft.letterPlace.trim() } : {}),
         ...(seesBdi ? { defaultBdi: draft.defaultBdi } : {}),
       };
       const result = await settingsApi.update(input);
@@ -67,7 +68,7 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
     } finally { setSaving(false); }
   };
 
-  const toggle = (key: 'pdfShowLogo' | 'pdfShowSignature', title: string, sub: string) => <button type="button" role="switch" aria-checked={draft[key]} disabled={off} className="od-switch" onClick={() => set(key, !draft[key])}>
+  const toggle = (key: 'pdfShowLogo' | 'pdfShowSignature' | 'pdfWatermark', title: string, sub: string) => <button type="button" role="switch" aria-checked={draft[key]} disabled={off} className="od-switch" onClick={() => set(key, !draft[key])}>
     <span><b>{title}</b><small>{sub}</small></span><span className="od-knob" />
   </button>;
 
@@ -95,6 +96,11 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
         <span className="od-grow"><b>PDF da proposta</b><span>O que sai em todo PDF enviado ao cliente</span></span>
         {toggle('pdfShowLogo', 'Logo da Construtec na capa', 'Versão branca sobre o azul-marinho')}
         {toggle('pdfShowSignature', 'Assinatura de quem envia', 'Nome e cargo no fim das condições')}
+        {toggle('pdfWatermark', "Marca d'água com a logo", 'Logo clara ao fundo de todas as páginas; cada PDF pode desligar')}
+        <label className="od-fld"><span>Local da carta de abertura</span>
+          <input className="od-inp" maxLength={80} value={draft.letterPlace} disabled={off} onChange={(event) => set('letterPlace', event.target.value)} />
+          <small>Cada proposta pode escolher outro local na carta. Padrão: Salvador / BA.</small>
+        </label>
         <div className="od-note"><Info size={17} /><span>Custo, BDI e margem nunca entram no PDF, qualquer que seja o padrão.</span></div>
       </div>
     </div>

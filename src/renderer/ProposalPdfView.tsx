@@ -10,7 +10,7 @@ import { openExternalUrl, printDocument } from './proposalPdfActions';
 import { ProposalClientLinkDrawer } from './ProposalClientLinkDrawer';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
 import {
-  PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel,
+  PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel, watermarkOverlayHtml,
   type PdfBranding, type PdfChoices,
 } from './proposalPdfPages';
 import { useCanEdit, useSuitePermission } from './SuitePermissions';
@@ -36,7 +36,7 @@ type Load = { state: 'loading' } | { state: 'error'; offline: boolean; message: 
 // PDF da proposta no computador (Rodada 23, telas 23m a 23p): miniaturas, pagina grande com zoom e as opcoes.
 // Custo, BDI e margem nunca entram no PDF; "Enviar ao cliente" so com a permissao de envio (p11).
 /** Página do PDF num iframe isolado (sem scripts, sem acesso à janela do app). */
-function PdfPageFrame({ html, scale, className }: { html: string; scale: number; className?: string }) {
+function PdfPageFrame({ html, scale, className, watermark }: { html: string; scale: number; className?: string; watermark?: boolean }) {
   return (
     <iframe
       title="Página do PDF"
@@ -44,7 +44,7 @@ function PdfPageFrame({ html, scale, className }: { html: string; scale: number;
       sandbox=""
       tabIndex={-1}
       scrolling="no"
-      srcDoc={`<!doctype html><meta charset="utf-8"><meta name="color-scheme" content="light"><style>${pdfPageCss}</style>${html}`}
+      srcDoc={`<!doctype html><meta charset="utf-8"><meta name="color-scheme" content="light"><style>${pdfPageCss}</style>${watermark ? watermarkOverlayHtml() : ''}${html}`}
       style={{ width: PDF_PAGE_WIDTH, height: PDF_PAGE_HEIGHT, border: 0, display: 'block', background: '#fff', transform: `scale(${scale})`, transformOrigin: '0 0', position: 'absolute', top: 0, left: 0 }}
     />
   );
@@ -54,7 +54,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
   const canEdit = useCanEdit();
   const p10 = useSuitePermission('p10');
   const p11 = useSuitePermission('p11');
-  const [branding, setBranding] = useState<PdfBranding>({ pdfShowLogo: true, pdfShowSignature: true });
+  const [branding, setBranding] = useState<PdfBranding>({ pdfShowLogo: true, pdfShowSignature: true, pdfWatermark: false });
   const [load, setLoad] = useState<Load>({ state: 'loading' });
   const [choices, setChoices] = useState<PdfChoices>(() => savedChoices.get(proposalId) ?? defaultPdfChoices());
   const hadSaved = useRef(savedChoices.has(proposalId));
@@ -84,7 +84,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
 
   useEffect(() => {
     let active = true;
-    void settingsApi.get().then((result) => { if (active) setBranding({ pdfShowLogo: result.settings.pdfShowLogo, pdfShowSignature: result.settings.pdfShowSignature }); }).catch(() => undefined);
+    void settingsApi.get().then((result) => { if (active) setBranding({ pdfShowLogo: result.settings.pdfShowLogo, pdfShowSignature: result.settings.pdfShowSignature, pdfWatermark: result.settings.pdfWatermark }); }).catch(() => undefined);
     return () => { active = false; };
   }, []);
 
@@ -111,6 +111,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
 
   const proposal = load.state === 'ready' ? load.proposal : null;
   const pages = useMemo(() => (proposal ? buildPdfPages(proposal, choices, branding) : []), [proposal, choices, branding]);
+  const watermarkOn = choices.marca ?? branding.pdfWatermark ?? false;
   const safeIndex = Math.min(pageIndex, Math.max(0, pages.length - 1));
 
   const fetchDocument = useCallback(async () => {
@@ -250,7 +251,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
               onClick={() => setPageIndex(index)}
             >
               <span className="pdf-thumb-box" style={{ width: THUMB_WIDTH, height: Math.round(PDF_PAGE_HEIGHT * (THUMB_WIDTH / PDF_PAGE_WIDTH)) }}>
-                <PdfPageFrame html={page.html} scale={THUMB_WIDTH / PDF_PAGE_WIDTH} />
+                <PdfPageFrame html={page.html} scale={THUMB_WIDTH / PDF_PAGE_WIDTH} watermark={watermarkOn} />
               </span>
               <small>{index + 1} · {page.label}</small>
             </button>
@@ -270,7 +271,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
           <div className="pdf-stage" ref={stageRef}>
             {current && (
               <div className="pdf-page-wrap" style={{ width: Math.round(PDF_PAGE_WIDTH * scale), height: Math.round(PDF_PAGE_HEIGHT * scale) }}>
-                <PdfPageFrame html={current.html} scale={scale} className="pdf-page-scale" />
+                <PdfPageFrame html={current.html} scale={scale} className="pdf-page-scale" watermark={watermarkOn} />
               </div>
             )}
           </div>
@@ -298,6 +299,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
                 <span><b>{title}</b><small>{text}</small></span><i className="switch" />
               </button>
             ))}
+            <button type="button" role="switch" aria-checked={watermarkOn} onClick={() => setChoice('marca', !watermarkOn)}><span><b>Marca d'água</b><small>Logo clara ao fundo das páginas</small></span><i className="switch" /></button>
           </fieldset>
           {p10 && (
             <div className="pdf-team">

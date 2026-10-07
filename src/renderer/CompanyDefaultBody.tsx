@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, FileText, Trash2 } from 'lucide-react';
 import { BUILTIN_BODY_TEMPLATES, emptyBodyBlock, legacyBodyBlocks, type BodyBlock, type BodyTemplate } from '../shared/proposalBody';
 import { BODY_MODELS, findBodyModel, modelBodyBlocks } from '../shared/proposalBodyModels';
+import { CompanyBodyModelsList } from './CompanyBodyModelsList';
+import { useCompanyBodyModels } from './useCompanyBodyModels';
 import { settingsApi } from './api';
 import { InsertRow } from './ProposalBodyBuilder';
 import { ProposalBodyCard } from './ProposalBodyCard';
@@ -19,6 +21,7 @@ export function CompanyDefaultBody({ isAdmin, loading, onNotice, onError }: Prop
   const [draft, setDraft] = useState<BodyBlock[] | null>(null);
   const [templates, setTemplates] = useState<BodyTemplate[]>(BUILTIN_BODY_TEMPLATES);
   const [openAt, setOpenAt] = useState<number | null>(null);
+  const company = useCompanyBodyModels();
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const errorRef = useRef(onError);
@@ -67,7 +70,7 @@ export function CompanyDefaultBody({ isAdmin, loading, onNotice, onError }: Prop
   const row = (at: number) => draft && (
     <InsertRow
       at={at} open={openAt === at} full={!canAddBlock(draft)} templates={templates} blocks={draft}
-      onToggle={() => setOpenAt(openAt === at ? null : at)} onAdd={(type) => add(emptyBodyBlock(type), at)} onTemplate={(id) => addTemplate(id, at)}
+      onToggle={() => setOpenAt(openAt === at ? null : at)} onAdd={(type) => add(emptyBodyBlock(type, undefined, company.place), at)} onTemplate={(id) => addTemplate(id, at)}
     />
   );
 
@@ -79,9 +82,10 @@ export function CompanyDefaultBody({ isAdmin, loading, onNotice, onError }: Prop
           <p className="body-note">Sem corpo padrão: as propostas novas usam o documento no formato padrão.</p>
           <div className="body-defaults-start">
             <button type="button" className="od-btn s" disabled={off} onClick={() => setDraft(legacyBodyBlocks(''))}><FileText size={17} />Definir corpo padrão</button>
-            <select className="body-model-select" aria-label="Começar de um modelo de proposta" value="" disabled={off} onChange={(event) => { const model = findBodyModel(event.currentTarget.value); if (model) setDraft(modelBodyBlocks(model)); }}>
+            <select className="body-model-select" aria-label="Começar de um modelo de proposta" value="" disabled={off} onChange={(event) => { const model = findBodyModel(event.currentTarget.value, company.models); if (model) setDraft(modelBodyBlocks(model, undefined, company.place)); }}>
               <option value="">Começar de um modelo…</option>
               {BODY_MODELS.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
+              {company.models.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
             </select>
           </div>
         </>
@@ -112,6 +116,7 @@ export function CompanyDefaultBody({ isAdmin, loading, onNotice, onError }: Prop
         <button type="button" className="od-btn s" disabled={!dirty || off} onClick={() => setDraft(saved)}>Descartar</button>
         <button type="button" className="od-btn p" disabled={!dirty || off} onClick={() => void save()}><Check size={17} />{busy ? 'Salvando…' : 'Salvar corpo padrão'}</button>
       </div>
+      <CompanyBodyModelsList models={company.models} disabled={off} onChange={company.setModels} onNotice={onNotice} onError={onError} />
       <span className="od-lbl plain">Modelos de texto da empresa</span>
       <ul className="body-templates">
         {templates.map((template) => (

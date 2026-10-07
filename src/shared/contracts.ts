@@ -104,6 +104,8 @@ export type ProposalDetail = {
   number: string;
   revision: number;
   clientName: string;
+  /** Contato cadastrado no cliente; preenche a carta pelas variaveis {{contato}} e afins. */
+  clientContact?: ClientContact;
   workName: string;
   scope: string;
   /** Corpo montado pelo usuario; null ou ausente = documento no layout fixo de sempre. */
@@ -200,7 +202,9 @@ export type CatalogOverview = {
 };
 
 export type WorkRecord = { id: string; clientId: string; name: string; address: string | null; active: boolean; updatedAt: string };
-export type ClientRecord = { id: string; legalName: string; tradeName: string | null; document: string | null; updatedAt: string; works: WorkRecord[] };
+/** Contato da pessoa que recebe a proposta (linha A/C da carta). Tudo opcional. */
+export type ClientContact = { name: string; role: string; department: string; email: string; phone: string };
+export type ClientRecord = { id: string; legalName: string; tradeName: string | null; document: string | null; updatedAt: string; works: WorkRecord[]; contact: ClientContact };
 export type ProposalRevisionSummary = { id: string; number: string; revision: number; status: ProposalDetail['status']; itemCount: number; totalSale: number; responsibleName: string; updatedAt: string; isLatest: boolean };
 export type ProposalSummary = { id: string; number: string; revision: number; clientName: string; workName: string; status: ProposalDetail['status']; itemCount: number; totalSale: number; updatedAt: string; validUntil?: string | null; isLatest?: boolean; hasApprovedRevision?: boolean; syncStatus?: 'pending' | 'delivered' | 'failed' | 'center_discarded' | null };
 export type ApiErrorPayload = { error: string; details?: unknown };
@@ -265,6 +269,10 @@ export type AppSettings = {
   /** Padroes do PDF enviado ao cliente (Rodada 24). */
   pdfShowLogo: boolean;
   pdfShowSignature: boolean;
+  /** Local que abre a carta da proposta (ex.: Salvador / BA); cada proposta pode trocar. */
+  letterPlace: string;
+  /** Marca d'agua com a logo no PDF e no Word (opcional; cada proposta pode ligar ou desligar). */
+  pdfWatermark: boolean;
 };
 
 export type CommercialPipelineStage = {
@@ -324,6 +332,8 @@ export type ProposalExportOptions = {
   includeCommercialTerms?: boolean;
   includeNotes?: boolean;
   customNotes?: string;
+  /** Marca d'agua com a logo; sem valor vale o padrao da empresa (Configuracoes). */
+  watermark?: boolean;
 };
 
 

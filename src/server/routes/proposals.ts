@@ -59,7 +59,7 @@ const createProposalSchema = z.object({
   clientId: z.string().uuid(),
   workId: z.string().uuid(),
   scope: z.string().trim().min(3).max(1200),
-  validUntil: z.iso.date().nullable().optional(), bodyModel: z.enum(['servico', 'fornecimento']).optional(),
+  validUntil: z.iso.date().nullable().optional(), bodyModel: z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).optional(),
 });
 const laborSchema = z.object({
   description: z.string().trim().min(2).max(160),

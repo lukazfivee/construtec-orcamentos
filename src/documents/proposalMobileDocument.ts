@@ -11,6 +11,8 @@ export type MobileDocumentChoices = {
   cover: boolean;
   terms: boolean;
   validity: boolean;
+  /** Sem valor, vale o padrao da empresa. */
+  watermark?: boolean;
 };
 
 const flag = (value: unknown, fallback: boolean) => {
@@ -23,6 +25,7 @@ export const parseMobileDocumentChoices = (query: Record<string, unknown>): Mobi
   cover: flag(query.capa, true),
   terms: flag(query.condicoes, true),
   validity: flag(query.validade, true),
+  ...(query.marca === undefined || query.marca === '' ? {} : { watermark: flag(query.marca, false) }),
 });
 
 export const mobileExportOptions = (choices: MobileDocumentChoices): ProposalExportOptions => ({
@@ -32,6 +35,7 @@ export const mobileExportOptions = (choices: MobileDocumentChoices): ProposalExp
   includeLabor: true,
   includeCommercialTerms: choices.terms,
   includeNotes: choices.model === 'completo',
+  ...(choices.watermark === undefined ? {} : { watermark: choices.watermark }),
 });
 
 const formatDate = (iso?: string | null) => (iso ? date.format(new Date(`${iso.slice(0, 10)}T00:00:00Z`)) : '');
