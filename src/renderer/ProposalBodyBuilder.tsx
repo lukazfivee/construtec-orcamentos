@@ -9,6 +9,8 @@ import { ProposalBodyCard } from './ProposalBodyCard';
 import {
   blockFromTemplate, canAddBlock, duplicateBlockAt, hasBlockType, insertBlockAt, moveBlock, removeBlockAt, templateFromBlock, updateBlockAt,
 } from './proposalBodyEdit';
+import { SaveBodyModel } from './SaveBodyModel';
+import { useCompanyBodyModels } from './useCompanyBodyModels';
 import { useProposalBody } from './useProposalBody';
 import './ProposalBodyBuilder.css';
 
@@ -63,6 +65,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
   const [dropAt, setDropAt] = useState<number | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [pendingModel, setPendingModel] = useState<string | null>(null);
+  const company = useCompanyBodyModels();
   const undoTimer = useRef<number | undefined>(undefined);
   const full = !canAddBlock(draft);
 
@@ -113,9 +116,14 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
   };
   const preview = async () => { if (await flush()) onPreview(); };
   const applyModel = () => {
-    const model = findBodyModel(pendingModel);
+    const model = findBodyModel(pendingModel, company.models);
     setPendingModel(null);
-    if (model) { setDraft(modelBodyBlocks(model)); showNotice(`Modelo aplicado: ${model.name}. Preencha o que está entre colchetes.`); }
+    if (model) { setDraft(modelBodyBlocks(model, undefined, company.place)); showNotice(`Modelo aplicado: ${model.name}. Preencha o que está entre colchetes.`); }
+  };
+  const saveModel = async (name: string): Promise<boolean> => {
+    if (!(await flush())) return false;
+    try { company.setModels((await proposalApi.saveBodyModel(name, draft)).models); showNotice('Corpo salvo como modelo da empresa.'); return true; }
+    catch (error) { setError(error instanceof Error ? error.message : 'Não foi possível salvar o modelo.'); return false; }
   };
   const reset = async () => { setConfirmReset(false); if (await resetToDefault()) showNotice('O documento voltou ao formato padrão.'); };
 
@@ -136,8 +144,10 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
             <select className="body-model-select" aria-label="Aplicar modelo de proposta" value="" onChange={(event) => { if (event.currentTarget.value) setPendingModel(event.currentTarget.value); }}>
               <option value="">Aplicar modelo…</option>
               {BODY_MODELS.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
+              {company.models.length > 0 && <optgroup label="Modelos da empresa">{company.models.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}</optgroup>}
             </select>
           )}
+          {editable && <SaveBodyModel existing={company.models.map((model) => model.name)} disabled={state === 'saving'} onSave={saveModel} />}
           <button type="button" onClick={() => void preview()}><Eye size={16} />Ver como ficará</button>
         </div>
       </div>
@@ -147,7 +157,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
       )}
       {pendingModel && (
         <div className="body-banner body-confirm" role="alertdialog" aria-label="Aplicar modelo">
-          <p><LayoutTemplate size={16} /> Aplicar o modelo <b>{findBodyModel(pendingModel)?.name}</b>? Todos os blocos atuais do corpo serão trocados pelos do modelo. {findBodyModel(pendingModel)?.description}</p>
+          <p><LayoutTemplate size={16} /> Aplicar o modelo <b>{findBodyModel(pendingModel, company.models)?.name}</b>? Todos os blocos atuais do corpo serão trocados pelos do modelo. {findBodyModel(pendingModel, company.models)?.description}</p>
           <span><button type="button" className="body-btn primary" onClick={applyModel}>Trocar o corpo pelo modelo</button><button type="button" className="body-btn" onClick={() => setPendingModel(null)}>Cancelar</button></span>
         </div>
       )}
@@ -155,7 +165,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
 
       <div className="body-layout">
         <section className="body-list" aria-label="Blocos do corpo da proposta">
-          {editable && <InsertRow at={0} open={openAt === 0} full={full} templates={templates} blocks={draft} onToggle={() => setOpenAt(openAt === 0 ? null : 0)} onAdd={(type) => addBlock(emptyBodyBlock(type), 0)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), 0); }} />}
+          {editable && <InsertRow at={0} open={openAt === 0} full={full} templates={templates} blocks={draft} onToggle={() => setOpenAt(openAt === 0 ? null : 0)} onAdd={(type) => addBlock(emptyBodyBlock(type, undefined, company.place), 0)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), 0); }} />}
           {draft.map((block, index) => (
             <div key={block.id} className="body-slot">
               <ProposalBodyCard
@@ -168,7 +178,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
                 onSaveTemplate={(name) => saveTemplate(index, name)}
                 onDragStart={() => setDragFrom(index)} onDragOver={() => setDropAt(index)} onDrop={() => dropTo(index)} onDragEnd={() => { setDragFrom(null); setDropAt(null); }}
               />
-              {editable && <InsertRow at={index + 1} open={openAt === index + 1} full={full} templates={templates} blocks={draft} onToggle={() => setOpenAt(openAt === index + 1 ? null : index + 1)} onAdd={(type) => addBlock(emptyBodyBlock(type), index + 1)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), index + 1); }} />}
+              {editable && <InsertRow at={index + 1} open={openAt === index + 1} full={full} templates={templates} blocks={draft} onToggle={() => setOpenAt(openAt === index + 1 ? null : index + 1)} onAdd={(type) => addBlock(emptyBodyBlock(type, undefined, company.place), index + 1)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), index + 1); }} />}
             </div>
           ))}
           {full && <p className="body-note">O corpo chegou ao limite de {BODY_LIMITS.blocks} blocos.</p>}

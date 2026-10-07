@@ -1,10 +1,19 @@
 import { randomUUID } from 'node:crypto';
-import type { ClientRecord, WorkRecord } from '../../shared/contracts';
+import type { ClientContact, ClientRecord, WorkRecord } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
 
 type ClientRow = {
   id: string; legal_name: string; trade_name: string | null; document: string | null; updated_at: string;
+  contact_name: string | null; contact_role: string | null; contact_department: string | null; contact_email: string | null; contact_phone: string | null;
 };
+
+export const CONTACT_COLUMNS = 'contact_name, contact_role, contact_department, contact_email, contact_phone';
+export const EMPTY_CONTACT: ClientContact = { name: '', role: '', department: '', email: '', phone: '' };
+export const mapContact = (row: Partial<ClientRow>): ClientContact => ({
+  name: row.contact_name ?? '', role: row.contact_role ?? '', department: row.contact_department ?? '', email: row.contact_email ?? '', phone: row.contact_phone ?? '',
+});
+const contactValues = (contact: Partial<ClientContact> | undefined) => [contact?.name, contact?.role, contact?.department, contact?.email, contact?.phone].map((value) => value?.trim() || null);
+type ClientInput = { legalName: string; tradeName?: string | null; document?: string | null; contact?: Partial<ClientContact> };
 
 type WorkRow = {
   id: string; client_id: string; name: string; address: string | null; active: boolean; updated_at: string;
@@ -22,7 +31,7 @@ const mapWork = (work: WorkRow): WorkRecord => ({
 export const listClients = async (database: LocalDatabase, query = ''): Promise<ClientRecord[]> => {
   const pattern = `%${query.trim()}%`;
   const clients = await database.query<ClientRow>(`
-    SELECT id, legal_name, trade_name, document, updated_at::text
+    SELECT id, legal_name, trade_name, document, updated_at::text, ${CONTACT_COLUMNS}
     FROM clients
     WHERE $1 = '%%'
       OR legal_name ILIKE $1
@@ -46,20 +55,18 @@ export const listClients = async (database: LocalDatabase, query = ''): Promise<
     legalName: client.legal_name,
     tradeName: client.trade_name,
     document: client.document,
+    contact: mapContact(client),
     updatedAt: client.updated_at,
     works: works.rows.filter((work) => work.client_id === client.id).map(mapWork),
   }));
 };
 
-export const createClient = async (
-  database: LocalDatabase,
-  input: { legalName: string; tradeName?: string | null; document?: string | null },
-) => {
+export const createClient = async (database: LocalDatabase, input: ClientInput) => {
   const clientId = randomUUID();
   await database.transaction(async (transaction) => {
     await transaction.query(
-      'INSERT INTO clients (id, legal_name, trade_name, document) VALUES ($1, $2, $3, $4)',
-      [clientId, input.legalName.trim(), input.tradeName?.trim() || null, input.document?.trim() || null],
+      `INSERT INTO clients (id, legal_name, trade_name, document, ${CONTACT_COLUMNS}) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [clientId, input.legalName.trim(), input.tradeName?.trim() || null, input.document?.trim() || null, ...contactValues(input.contact)],
     );
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
@@ -69,22 +76,19 @@ export const createClient = async (
   return clientId;
 };
 
-export const updateClient = async (
-  database: LocalDatabase,
-  clientId: string,
-  input: { legalName: string; tradeName?: string | null; document?: string | null },
-) => {
+export const updateClient = async (database: LocalDatabase, clientId: string, input: ClientInput) => {
   await database.transaction(async (transaction) => {
     const before = await transaction.query<ClientRow>(
-      'SELECT id, legal_name, trade_name, document, updated_at::text FROM clients WHERE id = $1 FOR UPDATE',
+      `SELECT id, legal_name, trade_name, document, updated_at::text, ${CONTACT_COLUMNS} FROM clients WHERE id = $1 FOR UPDATE`,
       [clientId],
     );
     if (!before.rows[0]) throw new Error('CLIENT_NOT_FOUND');
     await transaction.query(`
       UPDATE clients
-      SET legal_name = $2, trade_name = $3, document = $4, revision = revision + 1, updated_at = now()
+      SET legal_name = $2, trade_name = $3, document = $4, contact_name = $5, contact_role = $6, contact_department = $7,
+        contact_email = $8, contact_phone = $9, revision = revision + 1, updated_at = now()
       WHERE id = $1
-    `, [clientId, input.legalName.trim(), input.tradeName?.trim() || null, input.document?.trim() || null]);
+    `, [clientId, input.legalName.trim(), input.tradeName?.trim() || null, input.document?.trim() || null, ...contactValues(input.contact)]);
     await transaction.query(`
       INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data)
       VALUES ($1, 'client', $2, 'updated', $3::jsonb, $4::jsonb)

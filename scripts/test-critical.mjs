@@ -39,6 +39,7 @@ const entryPoints = [
   'src/documents/proposalLetter.test.ts',
   'src/server/services/proposal-model.test.ts',
   'src/server/services/proposal-custom-items.test.ts',
+  'src/server/services/proposal-company-extras.test.ts',
   'src/server/services/identity-self-heal.test.ts',
   'src/server/outbox-cron.test.ts',
   'src/renderer/proposal-deep-link.test.ts',

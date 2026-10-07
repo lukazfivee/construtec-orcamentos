@@ -7,6 +7,9 @@ import {
   addBodyTemplate, bodyBlocksSchema, bodyInputSchema, getBodyTemplates, getDefaultBody, newTemplateSchema,
   saveBodyTemplates, saveDefaultBody, templateListSchema, updateProposalBody,
 } from '../services/proposalBody';
+import {
+  deleteCompanyBodyModel, getCompanyBodyModels, newBodyModelSchema, renameBodyModelSchema, renameCompanyBodyModel, saveCompanyBodyModel,
+} from '../services/proposalBodyModelStore';
 import { getProposalById } from '../services/proposals';
 
 const idSchema = z.string().uuid();
@@ -26,6 +29,22 @@ export const createProposalBodyRouter = (database: LocalDatabase) => {
       try { response.status(201).json({ templates: await addBodyTemplate(database, input) }); }
       catch (error) {
         if (error instanceof Error && error.message === 'BODY_TEMPLATES_FULL') { response.status(422).json({ error: 'A biblioteca já tem o máximo de modelos. Remova algum em Configurações.' }); return; }
+        throw error;
+      }
+    } catch (error) { next(error); }
+  });
+
+  router.get('/body-models', async (_request, response, next) => {
+    try { response.json({ models: await getCompanyBodyModels(database) }); } catch (error) { next(error); }
+  });
+
+  // Salvar o corpo atual como modelo da empresa e aberto a quem edita propostas; renomear e excluir ficam em /api/settings.
+  router.post('/body-models', async (request, response, next) => {
+    try {
+      const input = newBodyModelSchema.parse(request.body);
+      try { response.status(201).json({ models: await saveCompanyBodyModel(database, input.name, input.blocks) }); }
+      catch (error) {
+        if (error instanceof Error && error.message === 'BODY_MODELS_FULL') { response.status(422).json({ error: 'A empresa já tem o máximo de modelos de proposta. Exclua algum em Configurações.' }); return; }
         throw error;
       }
     } catch (error) { next(error); }
@@ -53,6 +72,24 @@ export const createBodySettingsRouter = (database: LocalDatabase) => {
   });
   router.put('/body-templates', async (request, response, next) => {
     try { response.json({ templates: await saveBodyTemplates(database, templateListSchema.parse(request.body).templates) }); } catch (error) { next(error); }
+  });
+  router.get('/body-models', async (_request, response, next) => {
+    try { response.json({ models: await getCompanyBodyModels(database) }); } catch (error) { next(error); }
+  });
+  router.patch('/body-models/:modelId', async (request, response, next) => {
+    try {
+      const id = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).parse(request.params.modelId);
+      try { response.json({ models: await renameCompanyBodyModel(database, id, renameBodyModelSchema.parse(request.body).name) }); }
+      catch (error) {
+        const code = error instanceof Error ? error.message : '';
+        if (code === 'BODY_MODEL_NOT_FOUND') { response.status(404).json({ error: 'Modelo não encontrado.' }); return; }
+        if (code === 'BODY_MODEL_NAME_TAKEN') { response.status(422).json({ error: 'Já existe um modelo com esse nome.' }); return; }
+        throw error;
+      }
+    } catch (error) { next(error); }
+  });
+  router.delete('/body-models/:modelId', async (request, response, next) => {
+    try { response.json({ models: await deleteCompanyBodyModel(database, z.string().regex(/^[A-Za-z0-9_-]{1,40}$/).parse(request.params.modelId)) }); } catch (error) { next(error); }
   });
   router.get('/default-body', async (_request, response, next) => {
     try { response.json({ blocks: await getDefaultBody(database) }); } catch (error) { next(error); }

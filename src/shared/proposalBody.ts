@@ -25,9 +25,14 @@ export const BODY_VARIABLES = [
   { key: 'cliente', label: 'Cliente' }, { key: 'obra', label: 'Obra' }, { key: 'numero', label: 'Número da proposta' },
   { key: 'revisao', label: 'Revisão' }, { key: 'valor_total', label: 'Valor total' }, { key: 'validade', label: 'Validade' },
   { key: 'responsavel', label: 'Responsável' }, { key: 'escopo', label: 'Descrição do serviço (escopo da proposta)' },
+  { key: 'contato', label: 'Contato do cliente (nome e cargo)' }, { key: 'setor_contato', label: 'Setor do contato do cliente' },
+  { key: 'email_contato', label: 'E-mail do contato do cliente' }, { key: 'telefone_contato', label: 'Telefone do contato do cliente' },
 ] as const;
 export type BodyVariableKey = typeof BODY_VARIABLES[number]['key'];
 export type BodyVariables = Record<BodyVariableKey, string>;
+
+// Local que abre a carta quando ninguem escolheu outro (sede da Construtec); a empresa muda em Configuracoes.
+export const DEFAULT_LETTER_PLACE = 'Salvador / BA';
 
 export const DEFAULT_LEAD = 'Prezados Senhores,\nApresentamos nossa proposta técnica e comercial para fornecimento de equipamentos, materiais e execução dos serviços descritos a seguir.';
 export const DEFAULT_PRESENTATION = 'A CONSTRUTEC atua no desenvolvimento de soluções de engenharia, projetos, automação, elétrica, combate a incêndio e infraestrutura tecnológica. Apresentamos nossa proposta técnica e comercial para atendimento ao escopo descrito a seguir.';
@@ -88,6 +93,9 @@ const scopeText = (raw: string): string => {
   return text && text.toLowerCase() !== 'a definir' ? text : '';
 };
 
+// "Nome - Cargo" do contato cadastrado no cliente; sem contato, vazio (a linha A/C da carta some).
+const contactLine = (contact: ProposalDetail['clientContact']): string => [contact?.name, contact?.role].map((part) => part?.trim()).filter(Boolean).join(' - ');
+
 // valor_total e o preco de venda final (com impostos); nenhuma variavel le custo, BDI ou margem.
 export const bodyVariables = (proposal: ProposalDetail): BodyVariables => ({
   cliente: proposal.clientName || '',
@@ -98,6 +106,10 @@ export const bodyVariables = (proposal: ProposalDetail): BodyVariables => ({
   validade: proposal.validUntil ? dateFmt.format(new Date(`${proposal.validUntil.slice(0, 10)}T00:00:00Z`)) : 'a definir',
   responsavel: proposal.responsibleName || '',
   escopo: scopeText(proposal.scope) || 'a definir',
+  contato: contactLine(proposal.clientContact),
+  setor_contato: proposal.clientContact?.department?.trim() ?? '',
+  email_contato: proposal.clientContact?.email?.trim() ?? '',
+  telefone_contato: proposal.clientContact?.phone?.trim() ?? '',
 });
 
 // Uma passada so: o valor de uma variavel nunca e reinterpretado como outra variavel.
@@ -205,16 +217,16 @@ export const bodyFingerprintSource = (blocks: BodyBlock[]) =>
   });
 
 const BLANK_FIELDS: Partial<Record<BodyBlockType, BodyFields>> = {
-  carta: { place: '', recipient: '{{cliente}}', attention: '', department: '', reference: 'Proposta nº {{numero}} - {{escopo}} - {{obra}}', greeting: 'Prezados Senhores:', intro: 'Atendendo à vossa solicitação, segue nossa proposta técnica-comercial, conforme detalhamento abaixo:' },
+  carta: { place: '', recipient: '{{cliente}}', attention: '{{contato}}', department: '{{setor_contato}}', reference: 'Proposta nº {{numero}} - {{escopo}} - {{obra}}', greeting: 'Prezados Senhores:', intro: 'Atendendo à vossa solicitação, segue nossa proposta técnica-comercial, conforme detalhamento abaixo:' },
   fechamento: { signer: '{{responsavel}}', role: '' },
 };
-export const emptyBodyBlock = (type: BodyBlockType, today = todayIso()): BodyBlock => {
+export const emptyBodyBlock = (type: BodyBlockType, today = todayIso(), place = DEFAULT_LETTER_PLACE): BodyBlock => {
   const fields = BLANK_FIELDS[type];
   return {
     id: newBodyId(), type, enabled: true,
     ...(type === 'titulo' ? { title: '' } : type === 'paragrafo' || type === 'lista' || type === 'fechamento' ? { text: '' } : {}),
     ...(type === 'carta' ? { title: LETTER_TITLE_DEFAULT } : {}),
-    ...(fields ? { fields: type === 'carta' ? { ...fields, date: today } : { ...fields } } : {}),
+    ...(fields ? { fields: type === 'carta' ? { ...fields, place, date: today } : { ...fields } } : {}),
   };
 };
 

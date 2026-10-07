@@ -1,5 +1,6 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
+import { CONSTRUTEC_WATERMARK_BASE64 } from '../assets/watermarkBase64';
 import { DEFAULT_PRESENTATION } from '../shared/proposalBody';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import {
@@ -11,6 +12,17 @@ import {
 } from './proposalDocumentCommon';
 
 export const proposalLogoBase64 = (): string => CONSTRUTEC_LOGO_BASE64;
+export const proposalWatermarkBase64 = (): string => CONSTRUTEC_WATERMARK_BASE64;
+// A escolha de cada exportacao vale; sem ela, o padrao da empresa.
+export const watermarkEnabled = (settings?: AppSettings, options?: ProposalExportOptions): boolean => options?.watermark ?? settings?.pdfWatermark ?? false;
+const decodeBase64 = (value: string): Uint8Array => {
+  if (typeof Buffer !== 'undefined') return Buffer.from(value, 'base64');
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+};
+export const proposalWatermark = (): Uint8Array => decodeBase64(CONSTRUTEC_WATERMARK_BASE64);
 export const proposalLogo = (): Uint8Array => {
   if (typeof Buffer !== 'undefined') {
     return Buffer.from(CONSTRUTEC_LOGO_BASE64, 'base64');

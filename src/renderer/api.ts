@@ -8,6 +8,7 @@ import type {
   CatalogImportPreview,
   CatalogOverview,
   CatalogProduct,
+  ClientContact,
   ClientRecord,
   DashboardMetrics,
   DirectSyncResult,
@@ -27,6 +28,7 @@ import type {
   AuthorizedEmailRecord,
 } from '../shared/contracts';
 import type { BodyBlock, BodyTemplate } from '../shared/proposalBody';
+import type { CompanyBodyModel } from '../shared/proposalBodyModels';
 
 let runtimePromise: Promise<{ apiUrl: string; apiToken: string; centroCustosUrl: string }> | undefined;
 let authSessionToken = '';
@@ -129,7 +131,7 @@ export type DiscardedProposalRecord = {
 export const proposalApi = {
   list: () => request<{ proposals: ProposalSummary[] }>('/api/proposals'),
   current: () => request<{ proposal: ProposalDetail }>('/api/proposals/current'),
-  create: (input: { clientId: string; workId: string; scope: string; validUntil: string | null; bodyModel?: 'servico' | 'fornecimento' }) => request<{ proposal: ProposalDetail }>(
+  create: (input: { clientId: string; workId: string; scope: string; validUntil: string | null; bodyModel?: string }) => request<{ proposal: ProposalDetail }>(
     '/api/proposals', { method: 'POST', body: JSON.stringify(input) },
   ),
   byId: (proposalId: string) => request<{ proposal: ProposalDetail }>(`/api/proposals/${proposalId}`),
@@ -204,6 +206,10 @@ export const proposalApi = {
     `/api/proposals/${proposalId}/body`, { method: 'PUT', body: JSON.stringify({ blocks }) },
   ),
   bodyTemplates: () => request<{ templates: BodyTemplate[] }>('/api/proposals/body-templates'),
+  bodyModels: () => request<{ models: CompanyBodyModel[] }>('/api/proposals/body-models'),
+  saveBodyModel: (name: string, blocks: BodyBlock[]) => request<{ models: CompanyBodyModel[] }>(
+    '/api/proposals/body-models', { method: 'POST', body: JSON.stringify({ name, blocks }) },
+  ),
   addBodyTemplate: (input: Omit<BodyTemplate, 'id' | 'builtin'>) => request<{ templates: BodyTemplate[] }>(
     '/api/proposals/body-templates', { method: 'POST', body: JSON.stringify(input) },
   ),
@@ -253,10 +259,10 @@ export const priceDriftApi = {
 
 export const clientsApi = {
   list: (query = '') => request<{ clients: ClientRecord[] }>(`/api/clients?q=${encodeURIComponent(query)}`),
-  create: (input: { legalName: string; tradeName: string | null; document: string | null }) => request<{ clientId: string; clients: ClientRecord[] }>(
+  create: (input: { legalName: string; tradeName: string | null; document: string | null; contact?: ClientContact }) => request<{ clientId: string; clients: ClientRecord[] }>(
     '/api/clients', { method: 'POST', body: JSON.stringify(input) },
   ),
-  update: (clientId: string, input: { legalName: string; tradeName: string | null; document: string | null }) => request<{ clients: ClientRecord[] }>(
+  update: (clientId: string, input: { legalName: string; tradeName: string | null; document: string | null; contact?: ClientContact }) => request<{ clients: ClientRecord[] }>(
     `/api/clients/${clientId}`, { method: 'PATCH', body: JSON.stringify(input) },
   ),
   createWork: (clientId: string, input: { name: string; address: string | null }) => request<{ workId: string; clients: ClientRecord[] }>(
@@ -311,6 +317,9 @@ export const kitsApi = {
 export const settingsApi = {
   defaultBody: () => request<{ blocks: BodyBlock[] | null }>('/api/settings/default-body'),
   saveDefaultBody: (blocks: BodyBlock[] | null) => request<{ blocks: BodyBlock[] | null }>('/api/settings/default-body', { method: 'PUT', body: JSON.stringify({ blocks }) }),
+  bodyModels: () => request<{ models: CompanyBodyModel[] }>('/api/settings/body-models'),
+  renameBodyModel: (id: string, name: string) => request<{ models: CompanyBodyModel[] }>(`/api/settings/body-models/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
+  deleteBodyModel: (id: string) => request<{ models: CompanyBodyModel[] }>(`/api/settings/body-models/${id}`, { method: 'DELETE' }),
   bodyTemplates: () => request<{ templates: BodyTemplate[] }>('/api/settings/body-templates'),
   saveBodyTemplates: (templates: BodyTemplate[]) => request<{ templates: BodyTemplate[] }>('/api/settings/body-templates', { method: 'PUT', body: JSON.stringify({ templates }) }),
   get: () => request<{ settings: AppSettings }>('/api/settings'),

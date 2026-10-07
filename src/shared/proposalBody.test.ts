@@ -23,7 +23,7 @@ test('variaveis: cliente, obra, numero, revisao, valor total de venda, validade 
 
 test('variaveis nunca leem custo, BDI ou margem e o valor nao e reinterpretado', () => {
   const variables = bodyVariables(proposal);
-  assert.equal(Object.keys(variables).sort().join(','), 'cliente,escopo,numero,obra,responsavel,revisao,validade,valor_total');
+  assert.equal(Object.keys(variables).sort().join(','), 'cliente,contato,email_contato,escopo,numero,obra,responsavel,revisao,setor_contato,telefone_contato,validade,valor_total');
   assert.doesNotMatch(JSON.stringify(variables), /1,25|30,00|40/);
   assert.equal(resolveBodyText('{{cliente}}', { ...variables, cliente: '{{obra}}' }), '{{obra}}');
   assert.match(bodyVariables({ ...proposal, validUntil: null }).validade, /a definir/);

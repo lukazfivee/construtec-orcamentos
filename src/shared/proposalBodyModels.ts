@@ -1,11 +1,11 @@
 // Modelos de proposta completos (corpo inteiro, na ordem de uma proposta tecnica-comercial da Construtec).
 // Texto-padrao editavel: o que esta entre [colchetes] e para o usuario preencher; {{variaveis}} vem da proposta.
 // Nunca leva custo, BDI ou margem. Aplicar um modelo troca o corpo inteiro; propostas existentes nao mudam sozinhas.
-import { LETTER_TITLE_DEFAULT, newBodyId, todayIso, type BodyBlock } from './proposalBody';
+import { DEFAULT_LETTER_PLACE, LETTER_TITLE_DEFAULT, newBodyId, todayIso, type BodyBlock } from './proposalBody';
 
 export type BodyModelId = 'servico' | 'fornecimento';
 type ModelBlock = Omit<BodyBlock, 'id'>;
-export type BodyModel = { id: BodyModelId; name: string; description: string; blocks: ModelBlock[] };
+export type BodyModel = { id: string; name: string; description: string; blocks: ModelBlock[] };
 
 const para = (title: string, text: string, extra: Partial<ModelBlock> = {}): ModelBlock => ({ type: 'paragrafo', title, text, enabled: true, ...extra });
 const list = (text: string, title?: string, extra: Partial<ModelBlock> = {}): ModelBlock => ({ type: 'lista', ...(title ? { title } : {}), text, enabled: true, ...extra });
@@ -13,7 +13,7 @@ const list = (text: string, title?: string, extra: Partial<ModelBlock> = {}): Mo
 const LETTER: ModelBlock = {
   type: 'carta', title: LETTER_TITLE_DEFAULT, enabled: true, numbered: true,
   fields: {
-    place: 'Salvador / BA', recipient: '{{cliente}}', attention: '', department: '',
+    place: DEFAULT_LETTER_PLACE, recipient: '{{cliente}}', attention: '{{contato}}', department: '{{setor_contato}}',
     reference: 'Proposta nº {{numero}} - {{escopo}} - Obra: {{obra}}',
     greeting: 'Prezados Senhores:',
     intro: 'Atendendo à vossa solicitação, segue nossa Proposta Técnica-Comercial para o fornecimento em referência, conforme detalhamento abaixo:',
@@ -77,13 +77,19 @@ export const BODY_MODELS: BodyModel[] = [
   },
 ];
 
-export const findBodyModel = (id: string | null | undefined): BodyModel | undefined => BODY_MODELS.find((model) => model.id === id);
+// Modelo salvo pela empresa a partir do corpo de uma proposta (blocos sem id; os ids saem novos ao aplicar).
+export type CompanyBodyModel = { id: string; name: string; blocks: ModelBlock[] };
+
+// Modelos de fabrica primeiro; com a lista da empresa, tambem os salvos por ela.
+export const findBodyModel = (id: string | null | undefined, company: CompanyBodyModel[] = []): BodyModel | undefined =>
+  BODY_MODELS.find((model) => model.id === id)
+  ?? company.filter((model) => model.id === id).map((model): BodyModel => ({ id: model.id, name: model.name, description: 'Modelo salvo pela empresa.', blocks: model.blocks }))[0];
 
 // Blocos novos (ids novos) do modelo; a data da carta e a de hoje.
-export const modelBodyBlocks = (model: BodyModel, today = todayIso()): BodyBlock[] =>
+export const modelBodyBlocks = (model: BodyModel, today = todayIso(), place = DEFAULT_LETTER_PLACE): BodyBlock[] =>
   model.blocks.map((block) => ({
     ...block, id: newBodyId(),
-    ...(block.fields ? { fields: block.type === 'carta' ? { ...block.fields, date: today } : { ...block.fields } } : {}),
+    ...(block.fields ? { fields: block.type === 'carta' ? { ...block.fields, place, date: today } : { ...block.fields } } : {}),
   }));
 
 // Trechos [entre colchetes] que o usuario ainda precisa preencher.

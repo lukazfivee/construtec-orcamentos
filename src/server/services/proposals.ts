@@ -2,6 +2,7 @@ import { multiplyDecimal, sumDecimal } from '../../shared/decimal';
 import { calculateProposalTotals } from '../../shared/proposalFinancials';
 import type { ProposalDetail, ProposalLine, ProposalSummary } from '../../shared/contracts';
 import type { BodyBlock } from '../../shared/proposalBody';
+import { mapContact } from './clients';
 import { baseCostSql, finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
 import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
@@ -21,6 +22,7 @@ type ProposalRow = {
   bdi_multiplier: string; tax_percentage?: string | null; valid_until: string | null; responsible_name: string;
   updated_at: string; is_latest: boolean; has_approved_revision: boolean;
   cost_center_id: number | null; contract_id: string | null; center_url: string | null;
+  contact_name: string | null; contact_role: string | null; contact_department: string | null; contact_email: string | null; contact_phone: string | null;
 };
 
 export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
@@ -41,6 +43,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.body_blocks, p.status, p.bdi_multiplier::text,
       COALESCE(p.tax_percentage, 0)::text AS tax_percentage,
+      c.contact_name, c.contact_role, c.contact_department, c.contact_email, c.contact_phone,
       p.valid_until::text, u.name AS responsible_name, p.updated_at::text,
       NOT EXISTS (
         SELECT 1 FROM proposals newer
@@ -108,6 +111,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     number: proposal.proposal_number,
     revision: proposal.revision,
     clientName: proposal.client_name,
+    clientContact: mapContact(proposal),
     workName: proposal.work_name,
     scope: proposal.scope,
     bodyBlocks: proposal.body_blocks ?? null,

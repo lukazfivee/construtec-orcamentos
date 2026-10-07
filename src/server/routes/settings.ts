@@ -17,6 +17,8 @@ const settingsUpdateSchema = z.object({
   defaultTaxPercentage: z.number().min(0).max(100).optional(),
   pdfShowLogo: z.boolean().optional(),
   pdfShowSignature: z.boolean().optional(),
+  letterPlace: z.string().trim().min(1).max(80).optional(),
+  pdfWatermark: z.boolean().optional(),
 });
 
 export const createSettingsRouter = (database: LocalDatabase) => {

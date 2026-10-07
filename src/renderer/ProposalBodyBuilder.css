@@ -142,3 +142,7 @@
 .body-pending { color: var(--c-warn); font-weight: 600; }
 .body-defaults-start { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 @media (max-width: 767px) { .body-fields { grid-template-columns: minmax(0, 1fr); } }
+.body-save-model { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.body-save-model input { height: 36px; min-width: 200px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; }
+.body-model-row { display: flex; align-items: center; gap: 8px; }
+.body-model-row input { flex: 1 1 auto; min-width: 0; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; }
