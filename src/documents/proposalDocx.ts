@@ -54,7 +54,7 @@ const cell = (
     const isLabel = options.isMeta && idx === 0 && lines.length > 1;
     return new Paragraph({
       alignment: options.align,
-      spacing: { before: idx > 0 ? 30 : 0, after: 0 },
+      spacing: { before: idx > 0 ? 30 : 0, after: 0, line: 276 },
       children: [
         new TextRun({
           text: lineText,
@@ -250,7 +250,7 @@ export const createProposalDocument = (
 
   return new Document({
     styles: {
-      default: { document: { run: { font: 'Arial', size: 20, color: INK }, paragraph: { spacing: { after: 100, line: 260 } } } },
+      default: { document: { run: { font: 'Arial', size: 20, color: INK }, paragraph: { spacing: { after: 100, line: 360 } } } },
       paragraphStyles: [
         { id: 'ProposalTitle', name: 'Proposal Title', basedOn: 'Normal', run: { font: 'Arial', size: 30, bold: true, color: '163D69', allCaps: true }, paragraph: { spacing: { before: 140, after: 50 } } },
         { id: 'ProposalSubheading', name: 'Proposal Subheading', basedOn: 'Normal', next: 'Normal', quickFormat: true, run: { font: 'Arial', size: 20, bold: true, color: '163D69' }, paragraph: { spacing: { before: 160, after: 60 }, keepNext: true } },
