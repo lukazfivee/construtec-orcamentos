@@ -27,7 +27,7 @@
         <div class="pg-total"><small>Valor total</small><b>${esc(OC.money(total))}</b></div></div>` });
     }
     const rows = [];
-    const laborLine = { description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
+    const laborLine = { description: 'Mão de obra', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
     if (c.modelo === 'completo') {
       // Planilha item a item, na ordem da proposta, sem separar por sistema.
       [...p.items, ...(labor > 0 ? [laborLine] : [])].forEach((it) => rows.push({ it }));

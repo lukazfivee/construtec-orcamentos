@@ -128,3 +128,25 @@ test('paginateRows: descricao longa conta varias linhas e a ultima pagina guarda
   assert.equal(pages.flat().length, rows.length);
   assert.equal(rowWeight('x'.repeat(100)), 3);
 });
+
+test('PDF: a planilha orcamentaria que cabe numa pagina nao e cortada entre paginas e a mao de obra e so "Mao de obra"', () => {
+  const items = Array.from({ length: 9 }, (_, index) => line(`I${index}`, `Item numero ${index + 1}`, 'CFTV', 1, 10, 20));
+  const labor = { id: 'l', description: 'Equipe' } as NonNullable<ProposalDetail['laborItems']>[number];
+  const body = (filler: number): ProposalDetail => proposal({
+    items, laborItems: [labor], totals: { ...proposal().totals, labor: 100, finalValue: 5000 },
+    bodyBlocks: [
+      { id: 't', type: 'paragrafo', text: Array.from({ length: filler }, (_, i) => `Linha de texto ${i} para encher a pagina com bastante conteudo comercial.`).join('\n\n'), enabled: true },
+      { id: 'itens', type: 'itens', title: 'Planilha orçamentária', enabled: true },
+      { id: 'cond', type: 'condicoes', enabled: true },
+    ],
+  });
+  for (const filler of [3, 8, 14, 20, 26]) {
+    const pages = buildPdfPages(body(filler), { ...defaultPdfChoices(), capa: false });
+    const withRows = pages.filter((page) => /<tr>/.test(page.html));
+    assert.equal(withRows.length, 1, `com ${filler} paragrafos de texto a planilha ficou em ${withRows.length} paginas`);
+    assert.equal((withRows[0].html.match(/<tr>/g) ?? []).length, 10, 'nove itens e a mao de obra juntos');
+    assert.match(withRows[0].html, /Planilha orçamentária/);
+  }
+  const html = buildPdfPages(body(3), { ...defaultPdfChoices(), capa: false }).map((page) => page.html).join('');
+  assert.ok(html.includes('>Mão de obra<') && !html.includes('Serviços técnicos e operacionais'));
+});

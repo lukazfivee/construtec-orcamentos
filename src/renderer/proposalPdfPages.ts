@@ -107,7 +107,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   }
 
   const rows: Row[] = [];
-  const laborLine = { description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
+  const laborLine = { description: 'Mão de obra', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
   if (choices.modelo === 'completo') {
     // Planilha item a item, na ordem da proposta, sem separar por sistema; a mao de obra e a ultima linha.
     [...proposal.items, ...(labor > 0 ? [laborLine] : [])].forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
@@ -120,7 +120,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   }
   const completo = choices.modelo === 'completo';
   const heading = (title: string, label: PdfPage['label']): FlowAtom => ({ kind: 'h', label, html: `<h4 class="pg-h">${escapeHtml(title)}</h4>` });
-  const itemAtoms = (title: string, caption = ''): FlowAtom[] => [
+  const itemAtoms = (title: string, caption = ''): FlowAtom[] => ([
     heading(title, 'Itens'),
     ...(caption ? [{ kind: 'p' as const, label: 'Itens' as const, html: `<p class="pg-caption">${escapeHtml(caption)}</p>` }] : []),
     ...rows.map((row): FlowAtom => ({
@@ -130,7 +130,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
         : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`,
     })),
     { kind: 'block', label: 'Itens', html: `<div class="pg-total"><small>Valor total da proposta</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` },
-  ];
+  ] as FlowAtom[]).map((atom) => ({ ...atom, group: 'planilha' }));
   const conditionAtoms = (title: string): FlowAtom[] => {
     const terms = parseCommercialConditions(proposal.scope);
     return [
