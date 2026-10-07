@@ -152,8 +152,3 @@
   .toast { left: 50%; right: auto; bottom: 24px; z-index: 70; transform: translateX(-50%); max-width: calc(100vw - 64px); display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 0; border-radius: 12px; background: #031f29; color: #fefefe; font-size: 13.5px; line-height: 1.5; box-shadow: 0 14px 34px rgba(3, 31, 41, .3); pointer-events: none; animation: cc-toast-in .28s cubic-bezier(.2, .8, .2, 1) both; }
   @keyframes cc-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(12px) } to { opacity: 1; transform: translateX(-50%) } }
 }
-
-/* Mesmo ponto de quebra do Centro (cobrancas.css/inicio.css): abaixo de 1380px os KPIs de quatro colunas viram duas. */
-@media (min-width: 768px) and (max-width: 1379px) {
-  .app-shell.cc .home-workspace:not(.proposals-list-workspace) .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
