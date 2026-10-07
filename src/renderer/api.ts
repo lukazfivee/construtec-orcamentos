@@ -281,9 +281,6 @@ export const catalogApi = {
   importBulk: (items: CatalogImportItem[]) => request<{ created: number; updated: number; ignored: number; products: CatalogProduct[] }>(
     '/api/catalog/import/bulk', { method: 'POST', body: JSON.stringify({ items }) },
   ),
-  previewExsat: (url: string) => request<{ items: CatalogImportItem[] }>(
-    '/api/catalog/import/exsat', { method: 'POST', body: JSON.stringify({ url }) },
-  ),
   units: () => request<{ units: Array<{ unit: string; total: number }> }>('/api/catalog/units'),
   overview: () => request<{ overview: CatalogOverview }>('/api/catalog/overview'),
   delete: (productId: string) => request<{ products: CatalogProduct[] }>(
@@ -353,3 +350,6 @@ export const systemApi = {
 export const dashboardApi = {
   get: () => request<{ summary: DashboardMetrics }>('/api/dashboard'),
 };
+
+// Para telas que falam com a API sem engordar este arquivo (limite de 350 linhas).
+export { request as apiRequest };

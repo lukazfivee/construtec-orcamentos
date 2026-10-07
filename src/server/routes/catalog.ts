@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import { createCatalogProduct, importCatalogProducts, listCatalogProducts, listCatalogUnits, previewCatalogImport, updateCatalogProduct } from '../services/catalog';
-import { previewExsatProducts } from '../services/exsatFetch';
 import { attributeAuditEvent, attributeCatalogBatchAudit } from '../services/auditAttribution';
 import type { LocalDatabase } from '../services/database';
 import { getCatalogOverview } from '../services/catalogOverview';
@@ -26,7 +25,6 @@ const productSchema = z.object({
   active: z.boolean().default(true),
 });
 const importSchema = z.object({ items: z.array(productSchema).min(1).max(500) });
-const exsatSchema = z.object({ url: z.url().max(2000) });
 
 const actor = (response: { locals: { authUser?: AuthUser } }) => {
   const user = response.locals.authUser;
@@ -114,13 +112,6 @@ export const createCatalogRouter = (database: LocalDatabase) => {
       const codes = input.items.filter(isValidImportedItem).map((item) => item.code);
       await attributeCatalogBatchAudit(database, actor(response).id, codes, result);
       response.status(201).json({ ...result, products: await listCatalogProducts(database) });
-    } catch (error) { next(error); }
-  });
-
-  router.post('/import/exsat', async (request, response, next) => {
-    try {
-      const input = exsatSchema.parse(request.body);
-      response.json({ items: await previewExsatProducts(input.url) });
     } catch (error) { next(error); }
   });
 

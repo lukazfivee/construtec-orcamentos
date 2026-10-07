@@ -13,6 +13,8 @@ const STATUS_LABEL: Record<CatalogImportStatus, string> = {
   new: 'Novo', updated: 'Atualizar', unchanged: 'Sem alteração', no_price: 'Sem preço',
   confirmed: 'Confirmado', divergent: 'Divergente', unavailable: 'Indisponível', error: 'Erro',
 };
+// A varredura do catalogo inteiro pode trazer milhares de linhas; a tabela edita as primeiras, a importacao leva todas.
+const SHOW_MAX = 300;
 const EMPTY: Record<ImportMode, string> = {
   manual: 'Cole as linhas na caixa acima e use Interpretar linhas. Os itens aparecem aqui para conferência.',
   file: 'Escolha uma planilha para ver os itens aqui antes de salvar.',
@@ -49,6 +51,7 @@ export function CatalogImportTable({ mode, rows, importable, sourceName, busy, o
       {onExport && <button type="button" className="od-btn sm s" disabled={busy} onClick={onExport}><Download size={14} />Exportar planilha</button>}
       <button type="button" className="od-btn sm s" onClick={onAdd}><Plus size={14} />Linha</button>
     </div>
+    {rows.length > SHOW_MAX && <p className="cid-note cid-more">Mostrando as primeiras {SHOW_MAX} de {rows.length.toLocaleString('pt-BR')} linhas. Todas entram na importação; para ajustar uma linha, use a planilha exportada.</p>}
     <div className="cid-table-wrap">
       <table className="od-tbl cid-table">
         <thead><tr>
@@ -56,7 +59,7 @@ export function CatalogImportTable({ mode, rows, importable, sourceName, busy, o
           {COLUMNS.map((column) => <th key={column.key} className={column.className}>{column.key === 'currentCost' ? costLabel : column.label}</th>)}
           <th className="c-act"><span className="cid-sr">Excluir</span></th>
         </tr></thead>
-        <tbody>{rows.map((row) => {
+        <tbody>{rows.slice(0, SHOW_MAX).map((row) => {
           const invalid = !row.code || !row.description || row.status === 'no_price' || row.status === 'unavailable' || row.status === 'error';
           const tone = row.status ? statusTone[row.status] : '';
           return <tr key={row.key} className={invalid ? 'invalid' : ''}>

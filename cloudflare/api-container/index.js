@@ -35,6 +35,8 @@ export class OrcamentosApi extends Container {
     CENTRO_CUSTOS_API_URL: env.CENTRO_CUSTOS_API_URL,
     CONSTRUTEC_IDENTITY_KEY: env.CONSTRUTEC_IDENTITY_KEY,
     CENTRO_CUSTOS_IDENTITY_URL: env.CENTRO_CUSTOS_IDENTITY_URL,
+    // Chave que criptografa a senha da conta Exsat guardada no banco. Sem ela o servidor nao grava nem le a conta (falha fechado).
+    EXSAT_CREDENTIAL_KEY: env.EXSAT_CREDENTIAL_KEY,
     NODE_EXTRA_CA_CERTS: INTERCEPT_CA,
   });
 }
