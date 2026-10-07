@@ -1,0 +1,36 @@
+/* Transicao entre telas, igual a do Centro de Custos (public/d/css/transicao.css): a tela nova entra
+   com esmaecer e subida curta, e os blocos da pagina vem em sequencia (cabecalho primeiro).
+   Cada tela do desktop e montada de novo ao trocar de menu ou de modo (lista, editor, PDF, comparativo),
+   entao a animacao roda na montagem; re-desenhos da mesma tela nao a repetem. So "from": o estado final
+   e o natural, sem transform sobrando. Editor e Centro de Custos so esmaecem (sao telas largas e densas). */
+:root { --t-tela: .26s; --t-curva: cubic-bezier(.22, .61, .36, 1); }
+
+@keyframes tela-entra { from { opacity: 0; transform: translateY(10px); } }
+@keyframes tela-fade { from { opacity: 0; } }
+
+.app-shell.cc > :is(.management-workspace, .home-workspace, .od-page, .workspace-page, .workspace, .centro-custos-workspace) {
+  animation: tela-fade .18s ease-out backwards;
+}
+
+.app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > *,
+.app-shell.cc > .od-page > .od-stack > * {
+  animation: tela-entra var(--t-tela) var(--t-curva) backwards;
+}
+.app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > :nth-child(2),
+.app-shell.cc > .od-page > .od-stack > :nth-child(2) { animation-delay: 40ms; }
+.app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > :nth-child(3),
+.app-shell.cc > .od-page > .od-stack > :nth-child(3) { animation-delay: 80ms; }
+.app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > :nth-child(4),
+.app-shell.cc > .od-page > .od-stack > :nth-child(4) { animation-delay: 120ms; }
+.app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > :nth-child(5),
+.app-shell.cc > .od-page > .od-stack > :nth-child(5) { animation-delay: 150ms; }
+.app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > :nth-child(n+6),
+.app-shell.cc > .od-page > .od-stack > :nth-child(n+6) { animation-delay: 180ms; }
+
+/* Quem pede menos movimento fica so com o esmaecer, sem deslocamento. O index.css zera a duracao de toda
+   animacao nesse modo (!important); aqui ela volta, so como esmaecer curto, como a tela de abertura. */
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.cc > :is(.management-workspace, .home-workspace, .od-page, .workspace-page, .workspace, .centro-custos-workspace),
+  .app-shell.cc > :is(.management-workspace, .home-workspace, .workspace-page) > *,
+  .app-shell.cc > .od-page > .od-stack > * { animation-name: tela-fade; animation-duration: .18s !important; animation-timing-function: ease-out; }
+}
