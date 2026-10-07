@@ -80,9 +80,11 @@ test('documento do cliente (celular e pagina publica) leva o corpo e nunca custo
 
 test('paginas do PDF do desktop seguem a ordem dos blocos e paginam o texto longo', () => {
   const pages = buildPdfPages(make(blocks), defaultPdfChoices());
-  assert.deepEqual(pages.map((page) => page.label), ['Capa', 'Texto', 'Itens', 'Texto', 'Condições', 'Texto']);
+  // Conteudo em fluxo continuo: pagina nova so quando a anterior enche; a capa vem primeiro e o resto segue a ordem dos blocos.
+  assert.equal(pages[0].label, 'Capa');
   inOrder(pages.map((page) => page.html).join('\n'), ORDER);
-  assert.match(pages[3].html, /<ul class="pg-ul"><li>BETA item um<\/li><li>GAMA item dois<\/li><\/ul>/);
+  assert.ok(pages.some((page) => /<ul class="pg-ul"><li>BETA item um<\/li><li>GAMA item dois<\/li><\/ul>/.test(page.html)));
+  assert.ok(pages.some((page) => page.label === 'Itens'));
   assert.match(pages[pages.length - 1].html, /pg-sign/);
   const joined = pages.map((page) => page.html).join('');
   assert.doesNotMatch(joined, /<script>|DESLIGADO/);
@@ -93,7 +95,8 @@ test('paginas do PDF do desktop seguem a ordem dos blocos e paginam o texto long
   assert.equal((paged.map((page) => page.html).join('').match(/palavra/g) ?? []).length, 600);
 
   const legacy = buildPdfPages(make(null), defaultPdfChoices()).map((page) => page.label);
-  assert.deepEqual(legacy, ['Capa', 'Itens', 'Condições']);
+  assert.equal(legacy[0], 'Capa');
+  assert.ok(legacy.includes('Itens'));
 });
 
 test('condicoes desligadas somem do documento e das paginas', () => {

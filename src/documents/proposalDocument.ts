@@ -63,7 +63,8 @@ export const buildProposalHtml = (
     <td class="number bold">${money.format(item.totalSale)}</td>
   </tr>`;
 
-  const groupByCategory = options?.groupByCategory ?? true;
+  // Planilha item a item, sem agrupar por sistema (quem quiser agrupar liga na exportacao).
+  const groupByCategory = options?.groupByCategory ?? false;
   const groups = groupByCategory
     ? groupItemsByCategory(proposal)
         .map(([category, items]) => {
@@ -77,7 +78,7 @@ export const buildProposalHtml = (
 
   const labor =
     content.labor > 0
-      ? `<tbody><tr class="category"><td colspan="6">Mão de Obra e Serviços Técnicos</td></tr>
+      ? `<tbody>${groupByCategory ? '<tr class="category"><td colspan="6">Mão de Obra e Serviços Técnicos</td></tr>' : ''}
     <tr>
       <td class="center">${++index}</td>
       <td><span class="item-desc">Serviços técnicos e operacionais conforme escopo da proposta.</span></td>

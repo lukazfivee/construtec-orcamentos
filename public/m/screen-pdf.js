@@ -27,12 +27,16 @@
         <div class="pg-total"><small>Valor total</small><b>${esc(OC.money(total))}</b></div></div>` });
     }
     const rows = [];
-    systems.forEach((s) => {
-      const isLabor = labor > 0 && s === systems[systems.length - 1];
-      const list = isLabor ? [{ description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor }] : p.items.filter((it) => (it.category || 'Itens') === s);
-      rows.push({ cat: s, sum: list.reduce((a, it) => a + (it.totalSale || 0), 0) });
-      if (c.modelo === 'completo') list.forEach((it) => rows.push({ it }));
-    });
+    const laborLine = { description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
+    if (c.modelo === 'completo') {
+      // Planilha item a item, na ordem da proposta, sem separar por sistema.
+      [...p.items, ...(labor > 0 ? [laborLine] : [])].forEach((it) => rows.push({ it }));
+    } else {
+      systems.forEach((s) => {
+        const list = labor > 0 && s === systems[systems.length - 1] ? [laborLine] : p.items.filter((it) => (it.category || 'Itens') === s);
+        rows.push({ cat: s, sum: list.reduce((a, it) => a + (it.totalSale || 0), 0) });
+      });
+    }
     for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
       const chunk = rows.slice(i, i + ROWS_PER_PAGE);
       const last = i + ROWS_PER_PAGE >= rows.length;

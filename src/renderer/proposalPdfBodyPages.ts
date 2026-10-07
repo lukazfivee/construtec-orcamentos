@@ -1,10 +1,11 @@
-// Paginas de texto do corpo montado da proposta na pre-visualizacao do PDF: titulos, paragrafos e listas fluem em
-// paginas pelo peso (linhas visuais estimadas). A tabela de itens e as condicoes tem as proprias paginas.
+// Texto do corpo montado da proposta na pre-visualizacao do PDF, quebrado em pedacos (a quebra em paginas e do fluxo).
 import type { BodyPart } from '../shared/proposalBody';
 import { escapeHtml } from '../documents/proposalDocumentCommon';
+import type { FlowAtom } from './proposalPdfFlow';
 
 export const TEXT_CHARS_PER_LINE = 60;
-export const TEXT_LINES_PER_PAGE = 26;
+// Pedacos de ate ~8 linhas: um paragrafo longo continua na pagina seguinte em vez de deixar um vazio no fim da anterior.
+export const TEXT_CHUNK_LINES = 8;
 
 type Atom = { kind: 'h' | 'p' | 'li'; weight: number; html: string };
 
@@ -12,7 +13,7 @@ const lineWeight = (text: string) => Math.max(1, Math.ceil(text.length / TEXT_CH
 
 // Pedaco de texto que nunca passa de uma pagina inteira: quebra em palavras quando uma linha e enorme.
 const fitPieces = (text: string): string[] => {
-  const limit = (TEXT_LINES_PER_PAGE - 3) * TEXT_CHARS_PER_LINE;
+  const limit = TEXT_CHUNK_LINES * TEXT_CHARS_PER_LINE;
   if (text.length <= limit) return [text];
   const pieces: string[] = [];
   let rest = text;
@@ -47,41 +48,13 @@ const atomsOf = (part: BodyPart, showSignature: boolean): Atom[] => {
   let used = 0;
   for (const line of lines) {
     const weight = lineWeight(line);
-    if (used + weight > TEXT_LINES_PER_PAGE - 3 && chunks[chunks.length - 1].length) { chunks.push([]); used = 0; }
+    if (used + weight > TEXT_CHUNK_LINES && chunks[chunks.length - 1].length) { chunks.push([]); used = 0; }
     chunks[chunks.length - 1].push(line);
     used += weight;
   }
-  return chunks.map((chunk) => ({ kind: 'p' as const, weight: chunk.reduce((sum, line) => sum + lineWeight(line), 0) + 0.5, html: `<p class="pg-p">${escapeHtml(chunk.join('\n'))}</p>` }));
+  return chunks.map((chunk, index) => ({ kind: 'p' as const, weight: chunk.reduce((sum, line) => sum + lineWeight(line), 0) + 0.5, html: `<p class="pg-p${index > 0 ? ' pg-cont' : ''}">${escapeHtml(chunk.join('\n'))}</p>` }));
 };
 
-const paginate = (atoms: Atom[]): Atom[][] => {
-  const pages: Atom[][] = [];
-  let current: Atom[] = [];
-  let used = 0;
-  for (const atom of atoms) {
-    if (current.length && used + atom.weight > TEXT_LINES_PER_PAGE) {
-      // Titulo nunca fica sozinho no fim da pagina.
-      const orphan = current[current.length - 1].kind === 'h' ? current.pop() : undefined;
-      pages.push(current);
-      current = orphan ? [orphan] : [];
-      used = current.reduce((sum, item) => sum + item.weight, 0);
-    }
-    current.push(atom);
-    used += atom.weight;
-  }
-  if (current.length) pages.push(current);
-  return pages;
-};
-
-const renderAtoms = (atoms: Atom[]) => {
-  let html = '';
-  let open = false;
-  for (const atom of atoms) {
-    if (atom.kind === 'li' && !open) { html += '<ul class="pg-ul">'; open = true; }
-    if (atom.kind !== 'li' && open) { html += '</ul>'; open = false; }
-    html += atom.html;
-  }
-  return open ? `${html}</ul>` : html;
-};
-
-export const bodyTextPagesHtml = (parts: BodyPart[], showSignature = true): string[] => paginate(parts.flatMap((part) => atomsOf(part, showSignature))).map(renderAtoms);
+// Pedacos do texto do corpo para o fluxo continuo das paginas (titulo, paragrafo, item de lista, carta e fechamento).
+export const bodyTextAtoms = (parts: BodyPart[], showSignature = true): FlowAtom[] =>
+  parts.flatMap((part) => atomsOf(part, showSignature)).map((atom) => ({ kind: atom.kind, label: 'Texto' as const, html: atom.html }));

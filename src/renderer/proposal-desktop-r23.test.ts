@@ -67,8 +67,11 @@ test('PDF: paginas so com preco de venda, nunca custo, BDI ou margem', () => {
 test('PDF: capa, itens e condicoes seguem as escolhas; resumido tem so o total por sistema', () => {
   const p = proposal();
   const labels = (choices: Parameters<typeof buildPdfPages>[1]) => buildPdfPages(p, choices).map((page) => page.label);
-  assert.deepEqual(labels(defaultPdfChoices()), ['Capa', 'Itens', 'Condições']);
+  // Itens e condicoes seguem em fluxo: dividem a pagina quando cabem, sem pagina pela metade.
+  assert.deepEqual(labels(defaultPdfChoices()), ['Capa', 'Itens']);
   assert.deepEqual(labels({ ...defaultPdfChoices(), capa: false, condicoes: false }), ['Itens']);
+  const flowHtml = buildPdfPages(p, defaultPdfChoices()).map((page) => page.html).join('\n');
+  assert.ok(flowHtml.includes('Condições comerciais') && flowHtml.includes('Pagamento'));
   const resumido = buildPdfPages(p, { ...defaultPdfChoices(), modelo: 'resumido' }).map((page) => page.html).join('\n');
   assert.ok(resumido.includes('Resumo por sistema') && !resumido.includes('Camera dome'));
   assert.equal(pdfQuery(defaultPdfChoices()), 'modelo=completo&capa=1&condicoes=1&validade=1');
