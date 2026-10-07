@@ -72,10 +72,12 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   if (!proposal) return null;
 
   const isDraftOrReview = proposal.status === 'draft' || proposal.status === 'review';
+  const taxFactor = 1 + Number(proposal.tax_percentage ?? 0) / 100;
   const items: ProposalLine[] = itemResult.rows.map((item) => {
     const quantity = Number(item.quantity);
     const unitCost = Number(item.snapshot_unit_cost);
-    const unitSale = Number(item.sale_unit_price);
+    // Preco de venda final: o imposto da proposta ja vem dentro do valor unitario e do total da linha.
+    const unitSale = roundMoney(Number(item.sale_unit_price) * taxFactor);
     const catalogCurrentCost = isDraftOrReview && item.catalog_cost ? Number(item.catalog_cost) : null;
     return {
       id: item.id,
@@ -87,7 +89,7 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       unitCost,
       totalCost: multiplyDecimal([item.quantity, item.snapshot_unit_cost]),
       unitSale,
-      totalSale: multiplyDecimal([item.quantity, item.sale_unit_price]),
+      totalSale: roundMoney(quantity * unitSale),
       catalogCurrentCost,
       inCatalog: item.in_catalog !== false,
     };

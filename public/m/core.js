@@ -42,13 +42,13 @@
   OC.firstName = (name) => String(name || '').trim().split(/\s+/)[0] || '';
   OC.rev = (n) => `REV ${String(n || 0).padStart(2, '0')}`;
   // Mao de obra no documento do cliente: uma linha de venda (custo x BDI, como no PDF do servidor). Sem p10 o servidor
-  // zera custo e BDI; ai vale o que sobra do valor final sem impostos depois dos itens.
+  // zera custo e BDI; ai vale o que sobra do valor final depois dos itens.
   OC.laborSale = (p) => {
     if (!(p.laborItems || []).length) return 0;
     const t = p.totals || {};
     if (t.labor > 0 && p.bdiMultiplier > 0) return OC.cents(t.labor * p.bdiMultiplier);
     const itemsSale = (p.items || []).reduce((s, it) => s + (it.totalSale || 0), 0);
-    return Math.max(0, OC.cents((t.finalValue || 0) / (1 + (p.taxPercentage || 0) / 100) - itemsSale));
+    return Math.max(0, OC.cents((t.finalValue || 0) - itemsSale));
   };
 
   // Status da proposta: rotulo e classe da etiqueta (cores do prototipo).

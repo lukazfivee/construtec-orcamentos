@@ -43,28 +43,17 @@ export const proposalPresentation = (
   const conditions = parseCommercialConditions(proposal.scope);
   const financials = getProposalFinancials(proposal);
   const total = financials.finalValue;
-  const taxPercentage = proposal.taxPercentage ?? 0;
-  const taxAmount = financials.taxAmount ?? 0;
-  const subtotalBeforeTax = Math.round((total - taxAmount + Number.EPSILON) * 100) / 100;
   const includeLabor = options?.includeLabor ?? true;
   const labor = includeLabor ? commercialLaborTotal(proposal) : 0;
-  const materials = labor > 0 ? roundMoney(subtotalBeforeTax - labor) : subtotalBeforeTax;
-  const taxEntry: [string, string] | null = taxAmount > 0
-    ? [`Impostos (${String(taxPercentage).replace('.', ',')}%)`, money.format(taxAmount)]
-    : null;
+  const materials = labor > 0 ? roundMoney(total - labor) : total;
 
   const summary: Array<[string, string]> = labor > 0
     ? [
         ['Valor dos materiais e equipamentos', money.format(materials)],
         ['Valor dos serviços técnicos', money.format(labor)],
-        ...(taxEntry ? [taxEntry] : []),
         ['Valor total da proposta', money.format(total)],
       ]
-    : [
-        ['Subtotal dos itens e serviços', money.format(subtotalBeforeTax)],
-        ...(taxEntry ? [taxEntry] : []),
-        ['Valor total da proposta', money.format(total)],
-      ];
+    : [['Valor total da proposta', money.format(total)]];
 
   const includeTerms = options?.includeCommercialTerms ?? true;
   const includeNotes = options?.includeNotes ?? true;

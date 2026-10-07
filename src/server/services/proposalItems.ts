@@ -147,7 +147,9 @@ export const updateProposalItem = async (
   input: ProposalItemUpdateInput,
 ) => {
   await database.transaction(async (transaction) => {
-    await getEditableProposal(transaction, proposalId);
+    const proposal = await getEditableProposal(transaction, proposalId);
+    const taxFactor = 1 + Number(proposal.tax_percentage ?? 0) / 100;
+    const bdi = Number(proposal.bdi_multiplier);
 
     const itemResult = await transaction.query<ItemRow>(`
       SELECT id, snapshot_code, snapshot_description, snapshot_category, quantity::text,
@@ -165,8 +167,15 @@ export const updateProposalItem = async (
       quantity: input.quantity ?? Number(item.quantity),
       unit: input.unit?.trim() ?? item.snapshot_unit,
       unitCost: input.unitCost ?? Number(item.snapshot_unit_cost),
-      unitSale: input.unitSale ?? Number(item.sale_unit_price),
+      unitSale: Number(item.sale_unit_price),
     };
+    if (input.unitSale !== undefined) {
+      // O que se digita em "Venda unit." ja e o preco final (com imposto); guarda-se o valor sem imposto.
+      next.unitSale = roundMoney(input.unitSale / taxFactor);
+    } else if (input.unitCost !== undefined && Math.abs(Number(item.sale_unit_price) - roundMoney(Number(item.snapshot_unit_cost) * bdi)) < 0.011) {
+      // Venda ainda automatica (custo x BDI): acompanha o custo novo. Venda digitada a mao nao muda.
+      next.unitSale = roundMoney(input.unitCost * bdi);
+    }
 
     await transaction.query(`
       UPDATE proposal_items

@@ -36,13 +36,10 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
   const conditions = useMemo(() => parseCommercialConditions(proposal.scope), [proposal.scope]);
   const financials = useMemo(() => getProposalFinancials(proposal), [proposal]);
   const total = financials.finalValue;
-  const taxPercentage = proposal.taxPercentage ?? 0;
-  const taxAmount = financials.taxAmount ?? 0;
-  const subtotalBeforeTax = Math.round((total - taxAmount + Number.EPSILON) * 100) / 100;
   const laborTotal = useMemo(() => (includeLabor ? commercialLaborTotal(proposal) : 0), [includeLabor, proposal]);
   const materialsTotal = useMemo(
-    () => (laborTotal > 0 ? roundMoney(subtotalBeforeTax - laborTotal) : subtotalBeforeTax),
-    [subtotalBeforeTax, laborTotal]
+    () => (laborTotal > 0 ? roundMoney(total - laborTotal) : total),
+    [total, laborTotal]
   );
   const groupedItems = useMemo(() => groupItemsByCategory(proposal), [proposal]);
 
@@ -175,13 +172,7 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
           ) : (
             <tr>
               <th>Subtotal dos itens e serviços</th>
-              <td className="number">{money.format(subtotalBeforeTax)}</td>
-            </tr>
-          )}
-          {taxAmount > 0 && (
-            <tr>
-              <th>Impostos ({String(taxPercentage).replace('.', ',')}%)</th>
-              <td className="number">{money.format(taxAmount)}</td>
+              <td className="number">{money.format(total)}</td>
             </tr>
           )}
           <tr className="sheet-grand-total">

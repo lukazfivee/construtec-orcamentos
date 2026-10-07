@@ -82,7 +82,8 @@ export const commercialMaterialsTotal = (proposal: ProposalDetail) =>
 
 export const commercialLaborTotal = (proposal: ProposalDetail) => {
   const laborCost = proposal.totals.labor ?? 0;
-  return laborCost > 0 ? roundMoney(laborCost * proposal.bdiMultiplier) : 0;
+  // Preco final da mao de obra: custo x BDI x (1 + imposto); nenhuma dessas palavras aparece no documento.
+  return laborCost > 0 ? roundMoney(laborCost * proposal.bdiMultiplier * (1 + (proposal.taxPercentage ?? 0) / 100)) : 0;
 };
 
 export const proposalFileBaseName = (proposal: ProposalDetail) =>

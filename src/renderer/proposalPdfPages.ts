@@ -35,14 +35,14 @@ export const formatIsoDate = (iso: string | null | undefined) => (iso ? dateFmt.
 export const revLabel = (revision: number) => `REV ${String(revision || 0).padStart(2, '0')}`;
 
 // Venda da mao de obra como uma linha so (como no PDF do servidor). Sem p10 o servidor zera custo e BDI;
-// ai vale o que sobra do valor final sem impostos depois dos itens.
+// ai vale o que sobra do valor final depois dos itens.
 export const laborSale = (proposal: ProposalDetail) => {
   if (!(proposal.laborItems ?? []).length) return 0;
   const direct = commercialLaborTotal(proposal);
   if (direct > 0) return direct;
   const itemsSale = proposal.items.reduce((sum, item) => sum + (item.totalSale || 0), 0);
   const final = proposal.totals.finalValue ?? 0;
-  return Math.max(0, cents(final / (1 + (proposal.taxPercentage ?? 0) / 100) - itemsSale));
+  return Math.max(0, cents(final - itemsSale));
 };
 
 export const hasPdfContent = (proposal: ProposalDetail) => proposal.items.length > 0 || laborSale(proposal) > 0;
@@ -124,7 +124,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
       pages.push({
         label: 'Itens',
         html: `${head(title ?? (completo ? 'Itens da proposta' : 'Resumo por sistema'))}${caption ? `<p class="pg-caption">${escapeHtml(caption)}</p>` : ''}<table class="pg-tab"><tbody>${body}</tbody></table>
-          ${last ? `<div class="pg-total"><small>Valor total da proposta · impostos inclusos</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
+          ${last ? `<div class="pg-total"><small>Valor total da proposta</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
       });
     });
   };
