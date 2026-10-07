@@ -122,10 +122,11 @@ test('paginas do PDF do desktop com carta: carta e fechamento nas paginas, assin
   assert.doesNotMatch(noSign, /pg-sign/);
 });
 
-test('PDF com fechamento: ele fica numa pagina propria alinhada ao fim e o aviso de validade do celular entra junto', async () => {
+test('PDF com fechamento: segue o texto, inteiro na mesma pagina, sem pagina forcada, e o aviso de validade do celular entra junto', async () => {
   const { buildMobileProposalHtml } = await import('./proposalMobileDocument');
   const html = buildProposalHtml(make(letterBlocks()), settings);
-  assert.match(html, /@media print \{\s*\.closing-end \{ break-before: page; min-height: 234mm;[^}]*justify-content: flex-end/);
+  assert.match(html, /\.closing-end \{ break-inside: avoid; page-break-inside: avoid; \}/);
+  assert.doesNotMatch(html, /closing-end \{[^}]*(break-before|min-height)/, 'sem pagina forcada para o fechamento');
   assert.equal((html.match(/class="closing-end"/g) ?? []).length, 1);
   inOrder(html, ['class="closing-end"', 'No aguardo de breve pronunciamento', 'class="signature"', '<!--closing-end-->', '</div>', '</body>']);
   const mobile = buildMobileProposalHtml(make(letterBlocks()), settings, { model: 'completo', cover: false, terms: true, validity: true });
