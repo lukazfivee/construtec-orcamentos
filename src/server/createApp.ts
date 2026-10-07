@@ -17,6 +17,7 @@ import { createPublicClientLinkRouter } from './routes/publicClientLink';
 import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
 import { createBodySettingsRouter, createProposalBodyRouter } from './routes/proposalBody';
+import { requestTiming, withQueryTiming } from './requestTiming';
 import { createProposalCustomItemsRouter } from './routes/proposalCustomItems';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
@@ -78,11 +79,13 @@ const errorReference = (error: Error) => {
   return typeof code === 'string' && /^[A-Z0-9_]{2,40}$/.test(code) ? ` (código ${code})` : '';
 };
 
-export const createApp = (database: LocalDatabase, apiToken: string) => {
+export const createApp = (rawDatabase: LocalDatabase, apiToken: string) => {
+  const database = withQueryTiming(rawDatabase);
   const api = express();
   const cloud = getCloudSecurity();
 
   api.disable('x-powered-by');
+  api.use(requestTiming);
   api.use((request, response, next) => {
     const origin = request.headers.origin;
     if (cloud) {

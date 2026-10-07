@@ -7,7 +7,7 @@ import { initialMigration } from '../migrations/001-initial';
 import { sharedIdentityMigration } from '../migrations/012-shared-identity';
 import { createApp } from '../createApp';
 import { createCriticalTestDatabase } from './criticalTestDatabase';
-import { consumeHandoff, expireSessionCacheForTests as forgetSessionCacheOnlyForTest, forgetCachedSessions, loginUser, verifyUserSession } from './auth';
+import { ageSessionCacheForTests, consumeHandoff, expireSessionCacheForTests as forgetSessionCacheOnlyForTest, settleSessionRefreshForTests, forgetCachedSessions, loginUser, verifyUserSession } from './auth';
 import { createUser, deleteUser, listUsers, updateUser } from './users';
 
 type StubUser = { id: string; name: string; email: string; role: 'admin' | 'gestor' | 'supervisor'; active: boolean; password: string };
@@ -213,6 +213,26 @@ test('identidade delegada ao Centro de Custos', async context => {
     assert.equal(user?.id, troca.user.id);
     const live = (await database.query("SELECT id FROM users WHERE email = 'novo.email@rcconstrutec.com.br' AND deleted_at IS NULL")).rows;
     assert.equal(live.length, 1);
+  });
+
+  await context.test('passados os 60s a resposta sai na hora com a sessao confirmada e o Centro e consultado em segundo plano', async () => {
+    const session = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
+    const sessionCalls = () => stub.seen.filter(entry => entry.path === '/v1/auth/session').length;
+    const before = sessionCalls();
+    assert.equal((await verifyUserSession(database, session.token))?.email, 'gestor@rcconstrutec.com.br');
+    assert.equal(sessionCalls(), before, 'dentro dos 60s nao consulta o Centro');
+    ageSessionCacheForTests();
+    assert.equal((await verifyUserSession(database, session.token))?.email, 'gestor@rcconstrutec.com.br', 'responde com a sessao ja confirmada');
+    await settleSessionRefreshForTests();
+    assert.equal(sessionCalls(), before + 1, 'uma consulta em segundo plano');
+    // Sessao cancelada no Centro: a resposta rapida ainda sai uma vez, a consulta derruba e o pedido seguinte e recusado.
+    stub.users.push({ id: 'c-saiu', name: 'Saiu', email: 'saiu@rcconstrutec.com.br', role: 'supervisor', active: true, password: 'senha-sai1' });
+    const gone = await loginUser(database, 'saiu@rcconstrutec.com.br', 'senha-sai1');
+    stubUser('c-saiu').active = false;
+    ageSessionCacheForTests();
+    assert.ok(await verifyUserSession(database, gone.token));
+    await settleSessionRefreshForTests();
+    assert.equal(await verifyUserSession(database, gone.token), null);
   });
 
   await context.test('codigo do app vira sessao uma unica vez', async () => {
