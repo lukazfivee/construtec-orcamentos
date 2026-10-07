@@ -81,7 +81,7 @@ export const buildProposalHtml = (
       ? `<tbody>${groupByCategory ? '<tr class="category"><td colspan="6">Mão de Obra e Serviços Técnicos</td></tr>' : ''}
     <tr>
       <td class="center">${++index}</td>
-      <td><span class="item-desc">Serviços técnicos e operacionais conforme escopo da proposta.</span></td>
+      <td><span class="item-desc">Mão de obra</span></td>
       <td class="center">vb</td>
       <td class="number">1</td>
       <td class="number">${money.format(content.labor)}</td>
@@ -196,6 +196,7 @@ Contato: ${content.phone} • ${content.email}`;
     table.pricing { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 1.5mm; }
     thead { display: table-header-group; break-after: avoid; }
     table { line-height: 1.35; }
+    table.pricing { break-inside: avoid; page-break-inside: avoid; }
     th, td { padding: 1.8mm 1.5mm; border-bottom: 1px solid #d4e2e7; vertical-align: top; font-size: 8pt; overflow-wrap: anywhere; }
     thead th { background: #163d69; color: #fff; font-size: 7.5pt; text-align: left; font-weight: bold; border-bottom: 2px solid #12A9D1; }
     tr { break-inside: avoid; page-break-inside: avoid; }

@@ -3,7 +3,8 @@
 // cada pedaco e medida de verdade num quadro escondido com o mesmo CSS; fora dele (testes) vale uma estimativa.
 import type { PdfPage } from './proposalPdfPages';
 
-export type FlowAtom = { kind: 'h' | 'p' | 'li' | 'tr' | 'block'; label: PdfPage['label']; html: string };
+// group: pedacos do mesmo grupo (ex.: a planilha inteira) ficam na mesma pagina quando cabem; se nao cabem, fluem normalmente.
+export type FlowAtom = { kind: 'h' | 'p' | 'li' | 'tr' | 'block'; label: PdfPage['label']; html: string; group?: string };
 
 export const FLOW_PAGE_HEIGHT = 560;
 const PAGE_PAD_TOP = 22;
@@ -89,7 +90,21 @@ export const flowPages = (atoms: FlowAtom[], headHtml: string): Array<{ label: P
   const pages: FlowAtom[][] = [];
   let current: FlowAtom[] = [];
   let used = 0;
-  atoms.forEach((atom, index) => {
+  let index = 0;
+  while (index < atoms.length) {
+    const atom = atoms[index];
+    if (atom.group) {
+      let end = index;
+      while (end + 1 < atoms.length && atoms[end + 1].group === atom.group) end += 1;
+      const size = heights.slice(index, end + 1).reduce((sum, value) => sum + value, 0);
+      if (size <= capacity) {
+        if (current.length && used + size > capacity) { pages.push(current); current = []; used = 0; }
+        current.push(...atoms.slice(index, end + 1));
+        used += size;
+        index = end + 1;
+        continue;
+      }
+    }
     if (current.length && used + heights[index] > capacity) {
       const orphan = current[current.length - 1].kind === 'h' ? current.pop() : undefined;
       pages.push(current);
@@ -98,7 +113,8 @@ export const flowPages = (atoms: FlowAtom[], headHtml: string): Array<{ label: P
     }
     current.push(atom);
     used += heights[index];
-  });
+    index += 1;
+  }
   if (current.length) pages.push(current);
   // Rotulo da pagina: Itens se tem a tabela, senao Condicoes se tem as condicoes, senao o do primeiro pedaco.
   const labelOf = (page: FlowAtom[]): PdfPage['label'] => (page.some((atom) => atom.kind === 'tr') ? 'Itens' : page.some((atom) => atom.label === 'Condições') ? 'Condições' : page[0].label);
