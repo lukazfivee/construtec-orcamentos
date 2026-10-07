@@ -72,6 +72,8 @@ export type ProposalLine = {
   unitSale: number;
   totalSale: number;
   catalogCurrentCost?: number | null;
+  /** false = linha avulsa (fora do catalogo); pode ir para o catalogo depois. */
+  inCatalog?: boolean;
 };
 
 export type ProposalLaborItem = {

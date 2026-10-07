@@ -118,3 +118,10 @@
   .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table td.col-sale { width: 96px; }
   .app-shell.cc .proposal-items-table th.col-total-sale, .app-shell.cc .proposal-items-table td.col-total-sale { width: 104px; }
 }
+
+/* Linha em branco (item fora do catalogo) e etiqueta "avulso" com o atalho para o catalogo. */
+.app-shell.cc .proposal-items-panel .add-line-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 28px; }
+.app-shell.cc .proposal-items-panel .add-line-row .add-line + .add-line { margin-left: 0; }
+.custom-line-tag { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300, var(--muted)); }
+.custom-line-tag button { padding: 0; font: inherit; letter-spacing: 0; text-transform: none; color: var(--color-accent-300, var(--tx-cool-30)); background: transparent; border: 0; cursor: pointer; text-decoration: underline; }
+.custom-line-tag button:disabled { opacity: .5; cursor: default; }

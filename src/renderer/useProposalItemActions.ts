@@ -1,5 +1,5 @@
 import type { CatalogProduct, ProposalDetail } from '../shared/contracts';
-import { proposalApi } from './api';
+import { apiRequest, proposalApi } from './api';
 
 const parseDecimal = (value: string) => Number(value.trim().replace(',', '.'));
 const formatDecimal = (value: number) => String(value).replace('.', ',');
@@ -40,6 +40,39 @@ export function useProposalItemActions({
       showNotice(`${product.description} adicionado com preço congelado.`);
     } catch (mutationError) {
       setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível adicionar o item.');
+    } finally {
+      setMutationPending(false);
+    }
+  };
+
+  // Linha em branco: item fora do catalogo, preenchido na propria tabela; o foco vai para a descricao da linha nova.
+  const addBlankItem = async () => {
+    if (!isEditable || mutationPending) return;
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await apiRequest<{ proposal: ProposalDetail }>(`/api/proposals/${proposal.id}/items/blank`, { method: 'POST', body: '{}' });
+      onUpdateProposal(result.proposal);
+      const created = result.proposal.items[result.proposal.items.length - 1];
+      if (created) window.setTimeout(() => { const field = document.getElementById(`item-desc-${created.id}`) as HTMLInputElement | null; field?.focus(); field?.select(); }, 60);
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível inserir a linha.');
+    } finally {
+      setMutationPending(false);
+    }
+  };
+
+  const addItemToCatalog = async (itemId: string, code: string, category: string): Promise<boolean> => {
+    setMutationPending(true);
+    setError('');
+    try {
+      const result = await apiRequest<{ proposal: ProposalDetail }>(`/api/proposals/${proposal.id}/items/${itemId}/to-catalog`, { method: 'POST', body: JSON.stringify({ code, ...(category ? { category } : {}) }) });
+      onUpdateProposal(result.proposal);
+      showNotice('Item adicionado ao catálogo.');
+      return true;
+    } catch (mutationError) {
+      setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível adicionar ao catálogo.');
+      return false;
     } finally {
       setMutationPending(false);
     }
@@ -162,6 +195,8 @@ export function useProposalItemActions({
 
   return {
     addCatalogItem,
+    addBlankItem,
+    addItemToCatalog,
     removeSelectedItems,
     updateQuantity,
     updateItemText,

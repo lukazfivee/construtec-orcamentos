@@ -19,6 +19,7 @@ type Props = {
   onQuantityDraftBlur: (id: string, value: string) => void;
   onUpdateText: (id: string, field: 'description' | 'unit', value: string) => void;
   onUpdateMoney: (id: string, field: 'unitCost' | 'unitSale', value: string) => void;
+  onAddToCatalog: (item: Item) => void;
 };
 
 export function ProposalItemsTableRow({
@@ -34,6 +35,7 @@ export function ProposalItemsTableRow({
   onQuantityDraftBlur,
   onUpdateText,
   onUpdateMoney,
+  onAddToCatalog,
 }: Props) {
   return (
     <tr>
@@ -47,10 +49,21 @@ export function ProposalItemsTableRow({
         />
       </td>
       <td className="col-index">{index + 1}</td>
-      {columns.code && <td className="code col-code">{item.code}</td>}
+      {columns.code && (
+        <td className="code col-code">
+          {item.code}
+          {item.inCatalog === false && (
+            <span className="custom-line-tag">
+              avulso
+              {isEditable && <button type="button" disabled={mutationPending} title="Adicionar este item ao catálogo" onClick={() => onAddToCatalog(item)}>+ catálogo</button>}
+            </span>
+          )}
+        </td>
+      )}
       <td className="editable-cell col-description">
         <input
           key={`${item.id}-description-${item.description}`}
+          id={`item-desc-${item.id}`}
           className="line-input"
           type="text"
           defaultValue={item.description}

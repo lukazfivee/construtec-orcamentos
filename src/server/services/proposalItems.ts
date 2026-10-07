@@ -13,6 +13,7 @@ export type ItemRow = {
   snapshot_unit: string;
   snapshot_unit_cost: string;
   sale_unit_price: string;
+  in_catalog?: boolean;
 };
 
 export type ProposalItemUpdateInput = Partial<

@@ -14,6 +14,7 @@ type Props = {
   onToggleFab: () => void;
   onCloseFab: () => void;
   onOpenCatalog: () => void;
+  onAddBlank: () => void;
   onOpenFilterBar: () => void;
   onOpenImport: () => void;
   onOpenColumns: () => void;
@@ -26,6 +27,7 @@ export function ProposalItemsFabMenu({
   onToggleFab,
   onCloseFab,
   onOpenCatalog,
+  onAddBlank,
   onOpenFilterBar,
   onOpenImport,
   onOpenColumns,
@@ -45,6 +47,14 @@ export function ProposalItemsFabMenu({
             onClick={() => { onOpenCatalog(); onCloseFab(); }}
           >
             <Search size={16} /> Inserir do catálogo
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!isEditable || mutationPending}
+            onClick={() => { onAddBlank(); onCloseFab(); }}
+          >
+            <Plus size={16} /> Linha em branco
           </button>
           <button
             type="button"

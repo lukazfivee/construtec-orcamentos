@@ -9,6 +9,7 @@ import {
   ProposalColumnsPopover,
   type ProposalColumnsVisibility,
 } from './ProposalColumnsPopover';
+import { AddToCatalogDialog } from './AddToCatalogDialog';
 import { ProposalItemsFabMenu } from './ProposalItemsFabMenu';
 import { ProposalItemsFilterBar } from './ProposalItemsFilterBar';
 import { ProposalItemsQuickSearch, ProposalItemsToolbar } from './ProposalItemsToolbar';
@@ -67,6 +68,7 @@ export function ProposalItemsPanel({
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [peekedCardId, setPeekedCardId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [catalogTarget, setCatalogTarget] = useState<ProposalDetail['items'][number] | null>(null);
   const [fabMenuOpen, setFabMenuOpen] = useState(false);
 
   const actions = useProposalItemActions({
@@ -200,6 +202,7 @@ export function ProposalItemsPanel({
                 onQuantityDraftBlur={(id, val) => void actions.updateQuantity(id, val)}
                 onUpdateText={(id, field, val) => void actions.updateItemText(id, field, val)}
                 onUpdateMoney={(id, field, val) => void actions.updateItemMoney(id, field, val)}
+                onAddToCatalog={setCatalogTarget}
               />
             ))}
             {!loading && proposal.items.length > 0 && filteredItems.length === 0 && (
@@ -287,6 +290,7 @@ export function ProposalItemsPanel({
         onToggleFab={() => setFabMenuOpen((v) => !v)}
         onCloseFab={() => setFabMenuOpen(false)}
         onOpenCatalog={() => setCatalogOpen(true)}
+        onAddBlank={() => void actions.addBlankItem()}
         onOpenFilterBar={() => setFilterBarOpen(true)}
         onOpenImport={() => setImportDialogOpen(true)}
         onOpenColumns={() => setColumnsPopoverOpen(true)}
@@ -306,9 +310,20 @@ export function ProposalItemsPanel({
         />
       )}
 
-      <button className="add-line" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen(true)}>
-        <Plus size={16} /> Adicionar linha <kbd>Ctrl+I</kbd>
-      </button>
+      <div className="add-line-row">
+        <button className="add-line" type="button" disabled={!isEditable || mutationPending} onClick={() => setCatalogOpen(true)}>
+          <Plus size={16} /> Adicionar linha <kbd>Ctrl+I</kbd>
+        </button>
+        <button className="add-line" type="button" disabled={!isEditable || mutationPending} onClick={() => void actions.addBlankItem()}>
+          <Plus size={16} /> Linha em branco
+        </button>
+      </div>
+      {catalogTarget && (
+        <AddToCatalogDialog
+          item={catalogTarget} busy={mutationPending} onCancel={() => setCatalogTarget(null)}
+          onConfirm={(code, category) => void actions.addItemToCatalog(catalogTarget.id, code, category).then((done) => { if (done) setCatalogTarget(null); })}
+        />
+      )}
 
       {catalogOpen && (
         <ProposalCatalogPopover
