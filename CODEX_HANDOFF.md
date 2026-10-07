@@ -1,5 +1,15 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-10-07 BRT - Proposta completa como a feita a mão: carta, modelos e formato de carta (Claude Code)
+
+- Base: `origin/main` em `3ab8fb8` (montador do corpo, PR #142), branch `feat/modelo-proposta-servico`, worktree `C:\orc-modelo`. Pedido do Lucas: montar a proposta inteira dentro do app, como o `.docx` de exemplo, e exportar PDF e Word com cara de proposta de verdade.
+- Blocos novos: `carta` (local, data, destinatário, A/C, setor, REF., título, saudação, frase de abertura, numerar títulos) e `fechamento` (parágrafo final e assinatura). `sub` marca subtítulo (1.1.), `text` da tabela de itens é o título da planilha, `{{escopo}}` entra como variável. `src/shared/proposalBody.ts` (partes `carta`, `fechamento`, numeração), `src/shared/proposalBodyModels.ts` (modelos "Proposta de serviço (mão de obra)" e "Proposta de fornecimento (materiais)").
+- Documento: com carta, `proposalBodyHtml.ts` (`letterHtmlCss`) usa cabeçalho e rodapé do `@page` em todas as páginas e o Word usa `buildRunningHeader`; tabelas do Word agora têm layout fixo (colunas respeitam a largura) e cabeçalho/rodapé sem bordas de tabela. Pré-visualização (`ProposalPreviewLetter.tsx`) e páginas do PDF do desktop acompanham.
+- Tela: aba Corpo e condições (cartões da carta e do fechamento em `ProposalBodyFields.tsx`, subtítulo, título da planilha, "Aplicar modelo", aviso de trechos entre colchetes), Nova proposta (campo "Modelo do documento"), Configurações > corpo padrão ("Começar de um modelo").
+- Validação: `npm run verify` verde (228 testes, 1 ignorado); testes novos `proposalBodyModels.test.ts`, `proposalLetter.test.ts`, `proposal-model.test.ts` em `scripts/test-critical.mjs`. PDF gerado com o Electron do projeto (`printToPDF`) e Word aberto no Word e convertido em PDF, comparados com o exemplo.
+- Limites: sem marca d'água (o exemplo tem); coluna da tabela segue a ordem do app; o celular (`public/m/`) ainda não escolhe modelo na criação. Nada publicado.
+- Próximo passo: PR, CI, revisão do Lucas e deploy pela pasta principal.
+
 ## 2026-10-02 BRT - Desktop Orçamentos: catálogo, importação, EXSAT e cadastros (Rodada 24) (Claude Code)
 
 - Base: `main` em `01900d6`, branch `feat/desktop-orc-catalogo`. Protótipo em `docs/suite-desktop/prototipo-orcamentos/Rodada24.dc.html`.

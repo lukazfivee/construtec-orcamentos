@@ -57,6 +57,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
   const [branding, setBranding] = useState<PdfBranding>({ pdfShowLogo: true, pdfShowSignature: true });
   const [load, setLoad] = useState<Load>({ state: 'loading' });
   const [choices, setChoices] = useState<PdfChoices>(() => savedChoices.get(proposalId) ?? defaultPdfChoices());
+  const hadSaved = useRef(savedChoices.has(proposalId));
   const [pageIndex, setPageIndex] = useState(0);
   const [zoomIndex, setZoomIndex] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
@@ -72,7 +73,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
     let active = true;
     setLoad({ state: 'loading' });
     void proposalApi.byId(proposalId)
-      .then((result) => { if (active) setLoad({ state: 'ready', proposal: result.proposal }); })
+      .then((result) => { if (active) { if (!hadSaved.current) setChoices(defaultPdfChoices(result.proposal)); setLoad({ state: 'ready', proposal: result.proposal }); } })
       .catch((error: unknown) => {
         if (!active) return;
         const message = error instanceof Error ? error.message : 'Não foi possível montar o PDF agora.';

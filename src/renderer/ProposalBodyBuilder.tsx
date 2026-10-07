@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AlignLeft, Check, CircleAlert, Eye, FileText, Heading, List, Loader2, Plus, RotateCcw, Undo2 } from 'lucide-react';
+import { AlignLeft, Check, CircleAlert, Eye, FileText, Heading, LayoutTemplate, List, Loader2, Mail, PenLine, Plus, RotateCcw, Undo2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { getProposalFinancials } from '../shared/proposalFinancials';
-import { BODY_LIMITS, BUILTIN_BODY_TEMPLATES, emptyBodyBlock, resolveBodyParts, type BodyBlock, type BodyTemplate } from '../shared/proposalBody';
+import { BODY_LIMITS, BUILTIN_BODY_TEMPLATES, emptyBodyBlock, resolveBodyParts, type BodyBlock, type BodyBlockType, type BodyTemplate } from '../shared/proposalBody';
+import { BODY_MODELS, findBodyModel, modelBodyBlocks, pendingPlaceholders } from '../shared/proposalBodyModels';
 import { proposalApi } from './api';
 import { ProposalBodyCard } from './ProposalBodyCard';
 import {
-  blockFromTemplate, canAddBlock, duplicateBlockAt, insertBlockAt, moveBlock, removeBlockAt, templateFromBlock, updateBlockAt,
+  blockFromTemplate, canAddBlock, duplicateBlockAt, hasBlockType, insertBlockAt, moveBlock, removeBlockAt, templateFromBlock, updateBlockAt,
 } from './proposalBodyEdit';
 import { useProposalBody } from './useProposalBody';
 import './ProposalBodyBuilder.css';
@@ -25,9 +26,9 @@ const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' 
 const UNDO_MS = 10000;
 
 // Linha entre dois blocos para inserir paragrafo, titulo, lista ou modelo exatamente ali.
-export function InsertRow({ at, open, full, templates, onToggle, onAdd, onTemplate }: {
-  at: number; open: boolean; full: boolean; templates: BodyTemplate[];
-  onToggle: () => void; onAdd: (type: 'titulo' | 'paragrafo' | 'lista') => void; onTemplate: (id: string) => void;
+export function InsertRow({ at, open, full, templates, blocks, onToggle, onAdd, onTemplate }: {
+  at: number; open: boolean; full: boolean; templates: BodyTemplate[]; blocks: BodyBlock[];
+  onToggle: () => void; onAdd: (type: BodyBlockType) => void; onTemplate: (id: string) => void;
 }) {
   return (
     <div className={`body-insert${open ? ' is-open' : ''}`}>
@@ -39,6 +40,8 @@ export function InsertRow({ at, open, full, templates, onToggle, onAdd, onTempla
           <button type="button" className="body-btn" onClick={() => onAdd('paragrafo')}><AlignLeft size={16} />Parágrafo</button>
           <button type="button" className="body-btn" onClick={() => onAdd('titulo')}><Heading size={16} />Título de seção</button>
           <button type="button" className="body-btn" onClick={() => onAdd('lista')}><List size={16} />Lista</button>
+          {!hasBlockType(blocks, 'carta') && <button type="button" className="body-btn" onClick={() => onAdd('carta')}><Mail size={16} />Carta de abertura</button>}
+          {!hasBlockType(blocks, 'fechamento') && <button type="button" className="body-btn" onClick={() => onAdd('fechamento')}><PenLine size={16} />Fechamento e assinatura</button>}
           <select aria-label="Inserir modelo" value="" onChange={(event) => { if (event.currentTarget.value) onTemplate(event.currentTarget.value); }}>
             <option value="">Inserir modelo…</option>
             {templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
@@ -59,6 +62,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [pendingModel, setPendingModel] = useState<string | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
   const full = !canAddBlock(draft);
 
@@ -108,10 +112,16 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
     setDropAt(null);
   };
   const preview = async () => { if (await flush()) onPreview(); };
+  const applyModel = () => {
+    const model = findBodyModel(pendingModel);
+    setPendingModel(null);
+    if (model) { setDraft(modelBodyBlocks(model)); showNotice(`Modelo aplicado: ${model.name}. Preencha o que está entre colchetes.`); }
+  };
   const reset = async () => { setConfirmReset(false); if (await resetToDefault()) showNotice('O documento voltou ao formato padrão.'); };
 
   const itemsSummary = `${proposal.items.length.toLocaleString('pt-BR')} ${proposal.items.length === 1 ? 'item' : 'itens'} · total ${brl.format(getProposalFinancials(proposal).finalValue)}. Itens e preços se editam na aba Itens; aqui você escolhe só onde a tabela aparece.`;
   const outline = useMemo(() => resolveBodyParts(proposal, draft), [proposal, draft]);
+  const pending = useMemo(() => pendingPlaceholders(draft), [draft]);
   const status = state === 'saving' ? 'Salvando…' : state === 'error' ? 'Não foi possível salvar' : dirty ? 'Alterações não salvas' : proposal.bodyBlocks ? 'Salvo' : 'Formato padrão do documento';
   const StatusIcon = state === 'saving' ? Loader2 : state === 'error' ? CircleAlert : Check;
 
@@ -122,6 +132,12 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
         <div className="body-head-actions">
           <span className={`body-status ${state === 'error' ? 'is-error' : dirty || state === 'saving' ? 'is-dirty' : ''}`} role="status"><StatusIcon size={15} className={state === 'saving' ? 'spin' : undefined} />{status}</span>
           {dirty && state !== 'saving' && <button type="button" onClick={() => void flush()}>Salvar agora</button>}
+          {editable && (
+            <select className="body-model-select" aria-label="Aplicar modelo de proposta" value="" onChange={(event) => { if (event.currentTarget.value) setPendingModel(event.currentTarget.value); }}>
+              <option value="">Aplicar modelo…</option>
+              {BODY_MODELS.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
+            </select>
+          )}
           <button type="button" onClick={() => void preview()}><Eye size={16} />Ver como ficará</button>
         </div>
       </div>
@@ -129,11 +145,17 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
       {!proposal.bodyBlocks && editable && (
         <p className="body-banner">Esta proposta usa o documento no formato padrão. Os blocos abaixo mostram o que ele traz hoje; ao editar qualquer um, o corpo passa a ser o que você montar aqui.</p>
       )}
+      {pendingModel && (
+        <div className="body-banner body-confirm" role="alertdialog" aria-label="Aplicar modelo">
+          <p><LayoutTemplate size={16} /> Aplicar o modelo <b>{findBodyModel(pendingModel)?.name}</b>? Todos os blocos atuais do corpo serão trocados pelos do modelo. {findBodyModel(pendingModel)?.description}</p>
+          <span><button type="button" className="body-btn primary" onClick={applyModel}>Trocar o corpo pelo modelo</button><button type="button" className="body-btn" onClick={() => setPendingModel(null)}>Cancelar</button></span>
+        </div>
+      )}
       {!editable && <p className="body-banner">Esta revisão está fechada para edição. Crie uma revisão para alterar o corpo.</p>}
 
       <div className="body-layout">
         <section className="body-list" aria-label="Blocos do corpo da proposta">
-          {editable && <InsertRow at={0} open={openAt === 0} full={full} templates={templates} onToggle={() => setOpenAt(openAt === 0 ? null : 0)} onAdd={(type) => addBlock(emptyBodyBlock(type), 0)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), 0); }} />}
+          {editable && <InsertRow at={0} open={openAt === 0} full={full} templates={templates} blocks={draft} onToggle={() => setOpenAt(openAt === 0 ? null : 0)} onAdd={(type) => addBlock(emptyBodyBlock(type), 0)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), 0); }} />}
           {draft.map((block, index) => (
             <div key={block.id} className="body-slot">
               <ProposalBodyCard
@@ -146,7 +168,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
                 onSaveTemplate={(name) => saveTemplate(index, name)}
                 onDragStart={() => setDragFrom(index)} onDragOver={() => setDropAt(index)} onDrop={() => dropTo(index)} onDragEnd={() => { setDragFrom(null); setDropAt(null); }}
               />
-              {editable && <InsertRow at={index + 1} open={openAt === index + 1} full={full} templates={templates} onToggle={() => setOpenAt(openAt === index + 1 ? null : index + 1)} onAdd={(type) => addBlock(emptyBodyBlock(type), index + 1)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), index + 1); }} />}
+              {editable && <InsertRow at={index + 1} open={openAt === index + 1} full={full} templates={templates} blocks={draft} onToggle={() => setOpenAt(openAt === index + 1 ? null : index + 1)} onAdd={(type) => addBlock(emptyBodyBlock(type), index + 1)} onTemplate={(id) => { const t = templates.find((x) => x.id === id); if (t) addBlock(blockFromTemplate(t), index + 1); }} />}
             </div>
           ))}
           {full && <p className="body-note">O corpo chegou ao limite de {BODY_LIMITS.blocks} blocos.</p>}
@@ -162,9 +184,12 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
                 {part.kind === 'paragraph' && <span>{part.lines[0]}</span>}
                 {part.kind === 'list' && <span>{part.items.length} {part.items.length === 1 ? 'tópico' : 'tópicos'}: {part.items[0]}</span>}
                 {(part.kind === 'itens' || part.kind === 'condicoes') && <b>{part.title} <em>{part.kind === 'itens' ? 'tabela de itens' : 'condições'}</em></b>}
+                {part.kind === 'carta' && <b>{part.title} <em>carta de abertura</em></b>}
+                {part.kind === 'fechamento' && <b>Fechamento <em>{part.signer ? `assinatura de ${part.signer}` : 'assinatura'}</em></b>}
               </li>
             ))}
           </ol>
+          {pending > 0 && <p className="body-note body-pending">{pending} {pending === 1 ? 'trecho entre [colchetes] ainda precisa ser preenchido' : 'trechos entre [colchetes] ainda precisam ser preenchidos'}.</p>}
           {proposal.bodyBlocks && editable && (confirmReset
             ? <p className="body-reset">O documento volta ao layout fixo e os blocos montados são descartados.
               <span><button type="button" className="body-btn danger" onClick={() => void reset()}>Descartar blocos</button><button type="button" className="body-btn" onClick={() => setConfirmReset(false)}>Cancelar</button></span></p>

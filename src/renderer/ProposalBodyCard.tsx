@@ -1,11 +1,12 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  AlignLeft, Bookmark, ChevronDown, ChevronUp, Copy, GripVertical, Heading, List, ReceiptText, Table2, Trash2, type LucideIcon,
+  AlignLeft, Bookmark, ChevronDown, ChevronUp, Copy, GripVertical, Heading, List, Mail, PenLine, ReceiptText, Table2, Trash2, type LucideIcon,
 } from 'lucide-react';
-import { BODY_LIMITS, BODY_VARIABLES, CONDITIONS_DEFAULT_TITLE, ITEMS_DEFAULT_TITLE, type BodyBlock } from '../shared/proposalBody';
-import { BLOCK_LABELS, canDisableBlock, canRemoveBlock } from './proposalBodyEdit';
+import { BODY_LIMITS, BODY_VARIABLES, CONDITIONS_DEFAULT_TITLE, ITEMS_DEFAULT_TITLE, LETTER_TITLE_DEFAULT, type BodyBlock } from '../shared/proposalBody';
+import { ProposalBodyFields } from './ProposalBodyFields';
+import { BLOCK_LABELS, canDisableBlock, canDuplicateBlock, canRemoveBlock } from './proposalBodyEdit';
 
-const ICONS: Record<BodyBlock['type'], LucideIcon> = { titulo: Heading, paragrafo: AlignLeft, lista: List, itens: Table2, condicoes: ReceiptText };
+const ICONS: Record<BodyBlock['type'], LucideIcon> = { titulo: Heading, paragrafo: AlignLeft, lista: List, itens: Table2, condicoes: ReceiptText, carta: Mail, fechamento: PenLine };
 
 export type ProposalBodyCardProps = {
   block: BodyBlock;
@@ -44,7 +45,8 @@ function GrowingText({ id, value, disabled, placeholder, onChange }: {
 export function ProposalBodyCard(props: ProposalBodyCardProps) {
   const { block, index, total, editable, dragging, dropTarget, itemsSummary, conditionsSlot, onChange } = props;
   const Icon = ICONS[block.type];
-  const isText = block.type === 'paragrafo' || block.type === 'lista';
+  const isText = block.type === 'paragrafo' || block.type === 'lista' || block.type === 'fechamento';
+  const canSub = block.type === 'titulo' || block.type === 'paragrafo' || block.type === 'lista';
   const textId = `body-text-${block.id}`;
   const length = (block.text ?? '').length;
   const [naming, setNaming] = useState(false);
@@ -70,8 +72,8 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
     if (saved) { setNaming(false); setTemplateName(''); }
   };
 
-  const titleLabel = block.type === 'titulo' ? 'Texto do título' : 'Título da seção (opcional)';
-  const titlePlaceholder = block.type === 'itens' ? ITEMS_DEFAULT_TITLE : block.type === 'condicoes' ? CONDITIONS_DEFAULT_TITLE : 'Ex.: Escopo dos serviços';
+  const titleLabel = block.type === 'titulo' ? 'Texto do título' : block.type === 'carta' ? 'Título do documento' : 'Título da seção (opcional)';
+  const titlePlaceholder = block.type === 'itens' ? ITEMS_DEFAULT_TITLE : block.type === 'condicoes' ? CONDITIONS_DEFAULT_TITLE : block.type === 'carta' ? LETTER_TITLE_DEFAULT : 'Ex.: Escopo dos serviços';
 
   return (
     <article
@@ -97,10 +99,8 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
           )}
           <button type="button" className="body-icon" aria-label="Subir bloco" title="Subir" disabled={!editable || index === 0} onClick={() => props.onMove(-1)}><ChevronUp size={16} /></button>
           <button type="button" className="body-icon" aria-label="Descer bloco" title="Descer" disabled={!editable || index === total - 1} onClick={() => props.onMove(1)}><ChevronDown size={16} /></button>
-          {canRemoveBlock(block) && <>
-            <button type="button" className="body-icon" aria-label="Duplicar bloco" title="Duplicar" disabled={!editable} onClick={props.onDuplicate}><Copy size={16} /></button>
-            <button type="button" className="body-icon danger" aria-label="Remover bloco" title="Remover" disabled={!editable} onClick={props.onRemove}><Trash2 size={16} /></button>
-          </>}
+          {canDuplicateBlock(block) && <button type="button" className="body-icon" aria-label="Duplicar bloco" title="Duplicar" disabled={!editable} onClick={props.onDuplicate}><Copy size={16} /></button>}
+          {canRemoveBlock(block) && <button type="button" className="body-icon danger" aria-label="Remover bloco" title="Remover" disabled={!editable} onClick={props.onRemove}><Trash2 size={16} /></button>}
         </span>
       </header>
 
@@ -108,10 +108,22 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
         <label className="body-field">{titleLabel}
           <input id={`body-title-${block.id}`} type="text" value={block.title ?? ''} maxLength={BODY_LIMITS.title} placeholder={titlePlaceholder} disabled={!editable} onChange={(event) => onChange({ title: event.currentTarget.value })} />
         </label>
+        {canSub && (
+          <label className="body-check">
+            <input type="checkbox" checked={Boolean(block.sub)} disabled={!editable} onChange={(event) => onChange({ sub: event.currentTarget.checked })} />
+            Subtítulo (nível abaixo do título da seção anterior)
+          </label>
+        )}
+        {block.type === 'itens' && (
+          <label className="body-field">Título da planilha (opcional)
+            <input type="text" value={block.text ?? ''} maxLength={BODY_LIMITS.caption} placeholder="Ex.: Planilha de mão de obra - {{obra}}" disabled={!editable} onChange={(event) => onChange({ text: event.currentTarget.value })} />
+          </label>
+        )}
+        <ProposalBodyFields block={block} editable={editable} onChange={onChange} />
 
         {isText && (
           <>
-            <label className="body-field" htmlFor={textId}>{block.type === 'lista' ? 'Itens da lista (um por linha, pode começar com -)' : 'Texto'}</label>
+            <label className="body-field" htmlFor={textId}>{block.type === 'lista' ? 'Itens da lista (um por linha, pode começar com -)' : block.type === 'fechamento' ? 'Texto de fechamento' : 'Texto'}</label>
             <GrowingText
               id={textId} value={block.text ?? ''} disabled={!editable}
               placeholder={block.type === 'lista' ? '- Primeiro item\n- Segundo item' : 'Escreva o parágrafo. Linha em branco separa parágrafos.'}
@@ -125,7 +137,7 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
                     <option value="">Inserir variável</option>
                     {BODY_VARIABLES.map((variable) => <option key={variable.key} value={variable.key}>{variable.label} · {`{{${variable.key}}}`}</option>)}
                   </select>
-                  <button type="button" className="body-link" disabled={!(block.text ?? '').trim()} onClick={() => setNaming((value) => !value)}><Bookmark size={15} />Salvar como modelo</button>
+                  {block.type !== 'fechamento' && <button type="button" className="body-link" disabled={!(block.text ?? '').trim()} onClick={() => setNaming((value) => !value)}><Bookmark size={15} />Salvar como modelo</button>}
                 </span>
               )}
             </div>

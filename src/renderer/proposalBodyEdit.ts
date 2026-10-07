@@ -24,10 +24,11 @@ export const moveBlock = (blocks: BodyBlock[], from: number, to: number): BodyBl
 export const removeBlockAt = (blocks: BodyBlock[], index: number): BodyBlock[] =>
   blocks[index] && canRemoveBlock(blocks[index]) ? blocks.filter((_, at) => at !== index) : blocks;
 
-// So paragrafo, titulo e lista se duplicam: a tabela de itens e as condicoes existem uma vez so.
+// So paragrafo, titulo e lista se duplicam: tabela de itens, condicoes, carta e fechamento existem uma vez so.
+export const canDuplicateBlock = (block: BodyBlock) => block.type === 'titulo' || block.type === 'paragrafo' || block.type === 'lista';
 export const duplicateBlockAt = (blocks: BodyBlock[], index: number): BodyBlock[] => {
   const block = blocks[index];
-  if (!block || !canRemoveBlock(block)) return blocks;
+  if (!block || !canDuplicateBlock(block)) return blocks;
   return insertBlockAt(blocks, index + 1, { ...block, id: newBodyId() });
 };
 
@@ -48,4 +49,8 @@ export const templateFromBlock = (block: BodyBlock, name: string): Omit<BodyTemp
 
 export const BLOCK_LABELS: Record<BodyBlock['type'], string> = {
   titulo: 'Título de seção', paragrafo: 'Parágrafo', lista: 'Lista', itens: 'Tabela de itens', condicoes: 'Condições comerciais',
+  carta: 'Carta de abertura', fechamento: 'Fechamento e assinatura',
 };
+
+// Singletons que o menu "Adicionar" so oferece quando ainda nao estao no corpo.
+export const hasBlockType = (blocks: BodyBlock[], type: BodyBlock['type']) => blocks.some((block) => block.type === type);

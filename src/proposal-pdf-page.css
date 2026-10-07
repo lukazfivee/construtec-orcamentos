@@ -24,3 +24,9 @@ html, body { margin: 0; overflow: hidden; }
 .pg-p { margin: 0 0 6px; white-space: pre-line; overflow-wrap: anywhere; }
 .pg-ul { margin: 0 0 6px; padding-left: 14px; }
 .pg-ul li { margin: 0 0 2px; overflow-wrap: anywhere; }
+.pg-h2 { margin: 6px 0 3px; font-size: 10px; font-weight: 700; color: #163d69; }
+.pg-caption { margin: 0 0 4px; padding: 3px 4px; background: #eaf3f6; color: #163d69; font-weight: 700; text-align: center; }
+.pg-letter p { margin: 0 0 4px; white-space: pre-line; }
+.pg-letter .pg-to { font-weight: 700; text-transform: uppercase; }
+.pg-letter .pg-ref { font-weight: 700; }
+.pg-letter-title { margin: 10px 0 8px; text-align: center; font-size: 13px; font-weight: 700; color: #163d69; text-decoration: underline; text-transform: uppercase; }

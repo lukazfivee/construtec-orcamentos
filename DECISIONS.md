@@ -19,3 +19,17 @@ custo, BDI ou margem) e ordem e `src/shared/proposalBody.ts`. O hash do aceite d
 (sem corpo o hash e o mesmo de antes). O campo "Escopo comercial" deixou de existir na tela: vira o bloco "Escopo" do corpo, e
 `proposals.scope` segue guardado (lista, Centro, clonagem). Modelos de texto e corpo padrao ficam em `app_settings`
 (`body_templates`, `default_body_blocks`).
+
+## Proposta completa montada pelo usuario: carta, modelos e formato de carta (outubro/2026)
+
+Dois blocos novos no corpo (`carta` e `fechamento`, no maximo um de cada), sem migracao nova: tudo cabe em `body_blocks`.
+A `carta` guarda local, data, destinatario, A/C, setor, REF., saudacao e frase de abertura (campos em `fields`, com variaveis), o
+titulo do documento (no `title`) e a opcao `numbered`, que numera os titulos (1., 2. ... e 1.1. nos blocos marcados `sub`). O `fechamento` guarda o
+paragrafo final (`text`) e a assinatura (`fields.signer` e `role`). Na tabela de itens, `text` e o titulo da planilha. A variavel `{{escopo}}`
+traz o escopo digitado na criacao. Corpos antigos nao mudam: os campos novos so entram no hash do aceite quando existem.
+
+Com a carta, o documento muda para formato de carta: sem quadro de identificacao e sem o titulo fixo, texto de 10 pt justificado, e
+cabecalho com logo e rodape com pagina em todas as paginas pelas caixas de margem do `@page` (Chromium 131 ou mais novo: Electron 43 e
+Chrome/Edge atuais). Em navegador sem esse recurso o cabecalho so aparece na tela. A assinatura e o fecho fixos so somem quando o corpo tem
+`fechamento`. Modelos completos ("Proposta de servico" e "Proposta de fornecimento") ficam em `src/shared/proposalBodyModels.ts`; escolher um na
+criacao da proposta (`bodyModel`) vale no lugar do corpo padrao da empresa. Texto entre [colchetes] e pendencia do usuario.

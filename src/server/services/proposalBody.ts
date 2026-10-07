@@ -3,12 +3,14 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  BODY_BLOCK_TYPES, BODY_LIMITS, BUILTIN_BODY_TEMPLATES, bodyBlocksError, cleanBodyText, normalizeBodyBlocks,
+  BODY_BLOCK_TYPES, BODY_LIMITS, BUILTIN_BODY_TEMPLATES, LETTER_FIELDS, SIGNATURE_FIELDS, bodyBlocksError, cleanBodyText, normalizeBodyBlocks,
   type BodyBlock, type BodyTemplate,
 } from '../../shared/proposalBody';
 import type { DatabaseQueries, LocalDatabase } from './database';
 import { logEvent } from './logger';
 import { getEditableProposal } from './proposalCommon';
+
+const fieldsSchema = z.strictObject(Object.fromEntries([...LETTER_FIELDS, ...SIGNATURE_FIELDS].map((key) => [key, z.string().max(BODY_LIMITS.field).optional()])));
 
 const blockSchema = z.strictObject({
   id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
@@ -16,6 +18,9 @@ const blockSchema = z.strictObject({
   title: z.string().max(BODY_LIMITS.title).optional(),
   text: z.string().max(BODY_LIMITS.text).optional(),
   enabled: z.boolean(),
+  sub: z.boolean().optional(),
+  numbered: z.boolean().optional(),
+  fields: fieldsSchema.optional(),
 });
 
 export const bodyBlocksSchema = z.array(blockSchema).max(BODY_LIMITS.blocks)

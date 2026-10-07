@@ -9,7 +9,10 @@ import { bodyTextPagesHtml } from './proposalPdfBodyPages';
 export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean };
 export type PdfPage = { label: 'Capa' | 'Itens' | 'Condições' | 'Texto'; html: string };
 
-export const defaultPdfChoices = (): PdfChoices => ({ modelo: 'completo', capa: true, condicoes: true, validade: true });
+// Proposta com carta de abertura ja comeca no texto da carta: a capa fica desligada ate a pessoa ligar.
+export const defaultPdfChoices = (proposal?: ProposalDetail): PdfChoices => ({
+  modelo: 'completo', capa: !proposal?.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled), condicoes: true, validade: true,
+});
 
 export const PDF_PAGE_WIDTH = 396;
 export const PDF_PAGE_HEIGHT = 560;
@@ -106,7 +109,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
     if (choices.modelo === 'completo') list.forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
   });
   const completo = choices.modelo === 'completo';
-  const pushItemPages = (title?: string) => {
+  const pushItemPages = (title?: string, caption = '') => {
     const chunks = paginateRows(rows);
     chunks.forEach((chunk, chunkIndex) => {
       const last = chunkIndex === chunks.length - 1;
@@ -115,7 +118,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
         : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`)).join('');
       pages.push({
         label: 'Itens',
-        html: `${head(title ?? (completo ? 'Itens da proposta' : 'Resumo por sistema'))}<table class="pg-tab"><tbody>${body}</tbody></table>
+        html: `${head(title ?? (completo ? 'Itens da proposta' : 'Resumo por sistema'))}${caption ? `<p class="pg-caption">${escapeHtml(caption)}</p>` : ''}<table class="pg-tab"><tbody>${body}</tbody></table>
           ${last ? `<div class="pg-total"><small>Valor total da proposta · impostos inclusos</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
       });
     });
@@ -137,14 +140,14 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   } else {
     // Corpo montado pelo usuario: a ordem dos blocos e a ordem das paginas.
     let text: BodyPart[] = [];
-    const flush = () => { bodyTextPagesHtml(text).forEach((html) => pages.push({ label: 'Texto', html: `${head('Proposta comercial')}${html}` })); text = []; };
+    const flush = () => { bodyTextPagesHtml(text, showSignature).forEach((html) => pages.push({ label: 'Texto', html: `${head('Proposta comercial')}${html}` })); text = []; };
     for (const part of bodyParts) {
-      if (part.kind === 'itens') { flush(); pushItemPages(part.title); }
+      if (part.kind === 'itens') { flush(); pushItemPages(part.title, part.caption); }
       else if (part.kind === 'condicoes') { flush(); if (choices.condicoes) pushConditions(part.title, false); }
       else text.push(part);
     }
     flush();
-    if (showSignature && pages.length) pages[pages.length - 1].html += `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>`;
+    if (showSignature && pages.length && !bodyParts.some((part) => part.kind === 'fechamento')) pages[pages.length - 1].html += `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>`;
   }
   return pages.map((page, index) => ({ ...page, html: `<div class="pg">${page.html}${foot(index + 1)}</div>` }));
 };

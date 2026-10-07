@@ -1,11 +1,13 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
 import { resolveBodyParts } from '../shared/proposalBody';
-import { BODY_HTML_CSS, bodyTextPartHtml } from './proposalBodyHtml';
+import { BODY_HTML_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
 import { documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
 import { proposalLogoBase64, proposalPresentation } from './proposalPresentation';
 
 export { proposalFileBaseName } from './proposalDocumentCommon';
 export { buildProposalDocx, buildProposalDocxBlob } from './proposalDocx';
+
+const hasLetterBody = (proposal: ProposalDetail) => Boolean(proposal.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled));
 
 export const proposalPdfOptions = (
   proposal: ProposalDetail,
@@ -18,7 +20,8 @@ export const proposalPdfOptions = (
     printBackground: true,
     preferCSSPageSize: true,
     margins: { top: 12 / 25.4, bottom: 18 / 25.4, left: 14 / 25.4, right: 14 / 25.4 },
-    displayHeaderFooter: true,
+    // Com carta de abertura, cabecalho e rodape saem pelo CSS do documento (caixas de margem do @page).
+    displayHeaderFooter: !hasLetterBody(proposal),
     headerTemplate: '<div></div>',
     footerTemplate: `<div style="width:100%;box-sizing:border-box;margin:0;padding:0 14mm;font-size:7pt;font-family:Arial,Helvetica,sans-serif;color:#1e293b;line-height:1.4;-webkit-print-color-adjust:exact;">
       <div style="width:100%;height:2px;background:#12A9D1;margin-bottom:3px;-webkit-print-color-adjust:exact;"></div>
@@ -96,8 +99,9 @@ export const buildProposalHtml = (
     .map(([label, value]) => `<p class="term"><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>`)
     .join('');
 
-  const pricingHtml = (title: string) => `
+  const pricingHtml = (title: string, caption = '') => `
   <h2>${escapeHtml(title)}</h2>
+  ${caption ? `<div class="pricing-caption">${escapeHtml(caption)}</div>` : ''}
   <table class="pricing">
     <colgroup>
       <col style="width: 7%">
@@ -139,8 +143,20 @@ ${pricingHtml('1. Composição e Precificação')}
 ${conditionsHtml('2. Condições Comerciais')}
 `;
   const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
-  const bodyMain = (bodyParts ?? []).map((part) => (part.kind === 'itens' ? pricingHtml(part.title) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part))).join('\n');
+  const hasLetter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
+  const hasClosing = Boolean(bodyParts?.some((part) => part.kind === 'fechamento'));
+  const textContext = { showSignature, company: content.company, brand: content.brand };
+  const bodyMain = (bodyParts ?? []).map((part) => (part.kind === 'itens' ? pricingHtml(part.title, part.caption) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part, textContext))).join('\n');
   const main = bodyParts ? bodyMain : legacyMain;
+  // Carta de abertura: cabecalho com logo em todas as paginas no lugar do timbrado e do quadro de identificacao.
+  const runReference = `${proposal.number} • Revisão ${String(proposal.revision).padStart(2, '0')}`;
+  const runFooter = `${content.company} • CNPJ: ${content.cnpj}
+Sede: ${content.address}
+Contato: ${content.phone} • ${content.email}`;
+  const runHeader = `<header class="run-header">
+    ${showLogo ? `<div class="run-logo" role="img" aria-label="${escapeHtml(content.brand)}"></div>` : `<span class="run-brand">${escapeHtml(content.brand)}</span>`}
+    <div class="run-ref">${escapeHtml(runReference)}</div>
+  </header>`;
 
   const todayFormatted = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date());
 
@@ -214,11 +230,11 @@ ${conditionsHtml('2. Condições Comerciais')}
     @media print {
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .document-footer { display: none; }
-    }${bodyParts ? BODY_HTML_CSS : ''}
+    }${bodyParts ? BODY_HTML_CSS : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null, brand: content.brand, reference: runReference, footer: runFooter }) : ''}
   </style>
 </head>
 <body>
-  <header class="timbrado-header">
+  ${hasLetter ? runHeader : `<header class="timbrado-header">
     <div class="timbrado-left">
       ${showLogo ? `<img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">` : ''}
       <div class="timbrado-company">
@@ -234,9 +250,9 @@ ${conditionsHtml('2. Condições Comerciais')}
       <div>Revisão ${String(proposal.revision).padStart(2, '0')}</div>
       <div>${todayFormatted}</div>
     </div>
-  </header>
+  </header>`}
 
-  <div class="identity">
+  ${hasLetter ? '' : `<div class="identity">
     <table class="identity-table">
       <tr>
         <td style="width: 60%"><b>Cliente:</b> ${escapeHtml(proposal.clientName)}</td>
@@ -250,12 +266,12 @@ ${conditionsHtml('2. Condições Comerciais')}
     </table>
   </div>
 
-  <h1>PROPOSTA TÉCNICA COMERCIAL</h1>
+  <h1>PROPOSTA TÉCNICA COMERCIAL</h1>`}
 ${main}
 
-  <p class="closing">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>
+  ${hasClosing ? '' : `<p class="closing">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>`}
 
-  ${showSignature ? `<div class="signature"><div class="signature-line"></div><b>${escapeHtml(proposal.responsibleName || content.brand)}</b><span>${escapeHtml(content.company)}</span></div>` : ''}
+  ${showSignature && !hasClosing ? `<div class="signature"><div class="signature-line"></div><b>${escapeHtml(proposal.responsibleName || content.brand)}</b><span>${escapeHtml(content.company)}</span></div>` : ''}
 
   <footer class="document-footer">
     <div class="footer-line"></div>

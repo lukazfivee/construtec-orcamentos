@@ -26,8 +26,18 @@ const fitPieces = (text: string): string[] => {
   return pieces;
 };
 
-const atomsOf = (part: BodyPart): Atom[] => {
-  if (part.kind === 'heading') return [{ kind: 'h', weight: 2, html: `<h4 class="pg-h">${escapeHtml(part.text)}</h4>` }];
+const atomsOf = (part: BodyPart, showSignature: boolean): Atom[] => {
+  if (part.kind === 'heading') return [{ kind: 'h', weight: 2, html: `<h4 class="${part.sub ? 'pg-h2' : 'pg-h'}">${escapeHtml(part.text)}</h4>` }];
+  if (part.kind === 'carta') {
+    const att = [part.attention, part.department].filter(Boolean);
+    const html = `<div class="pg-letter">${part.dateLine ? `<p>${escapeHtml(part.dateLine)}</p>` : ''}${part.recipient ? `<p class="pg-to">${escapeHtml(part.recipient)}</p>` : ''}${att.length ? `<p><b>At.:</b> ${att.map(escapeHtml).join(' / ')}</p>` : ''}${part.reference ? `<p class="pg-ref">REF.: ${escapeHtml(part.reference)}</p>` : ''}<div class="pg-letter-title">${escapeHtml(part.title)}</div>${part.greeting ? `<p>${escapeHtml(part.greeting)}</p>` : ''}${part.intro ? `<p>${escapeHtml(part.intro)}</p>` : ''}</div>`;
+    return [{ kind: 'p', weight: 7 + lineWeight(part.reference) + lineWeight(part.intro), html }];
+  }
+  if (part.kind === 'fechamento') {
+    const text = part.paragraphs.map((lines) => `<p class="pg-p">${escapeHtml(lines.join('\n'))}</p>`).join('');
+    const sign = showSignature ? `<p class="pg-sign">${escapeHtml(part.signer)}${part.role ? `<br>${escapeHtml(part.role)}` : ''}</p>` : '';
+    return [{ kind: 'p', weight: part.paragraphs.reduce((sum, lines) => sum + lineWeight(lines.join(' ')), 0) + (showSignature ? 5 : 1), html: text + sign }];
+  }
   if (part.kind === 'list') {
     return part.items.flatMap(fitPieces).map((item) => ({ kind: 'li' as const, weight: lineWeight(item), html: `<li>${escapeHtml(item)}</li>` }));
   }
@@ -74,4 +84,4 @@ const renderAtoms = (atoms: Atom[]) => {
   return open ? `${html}</ul>` : html;
 };
 
-export const bodyTextPagesHtml = (parts: BodyPart[]): string[] => paginate(parts.flatMap(atomsOf)).map(renderAtoms);
+export const bodyTextPagesHtml = (parts: BodyPart[], showSignature = true): string[] => paginate(parts.flatMap((part) => atomsOf(part, showSignature))).map(renderAtoms);
