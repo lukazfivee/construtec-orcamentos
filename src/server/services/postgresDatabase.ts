@@ -24,7 +24,9 @@ export const createPostgresDatabase = (connectionString: string): LocalDatabase 
     ssl: local ? false : { rejectUnauthorized: process.env.DB_SSL_VERIFY !== 'false' },
     max: 5,
     connectionTimeoutMillis: 10_000,
-    idleTimeoutMillis: 30_000,
+    // Conexao nova ao Neon custa TCP + TLS + login (centenas de ms): fica aberta 4 min em vez de 30 s.
+    idleTimeoutMillis: 240_000,
+    keepAlive: true,
     statement_timeout: 30_000,
     idle_in_transaction_session_timeout: 30_000,
     // PGlite exposes SQL DATE as YYYY-MM-DD; pg defaults to a timezone-sensitive Date.

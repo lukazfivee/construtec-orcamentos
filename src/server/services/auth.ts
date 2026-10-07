@@ -10,8 +10,14 @@ import { resolveSuiteAccess } from './suiteAccess';
 // tenha efeito rapido nos dois produtos. O papel e resolvido aqui.
 
 const SESSION_CACHE_MS = 60 * 1000;
+// Depois dos 60s a sessao confirmada ainda vale ate este limite enquanto o diretorio e consultado em segundo plano:
+// quem esta usando o app nao espera o Centro (0,5 s com ele acordado, ate 5 s dormindo) a cada minuto.
+// Excluir ou desativar um login tem efeito na proxima consulta; sessao parada alem do limite revalida antes de responder.
+const SESSION_STALE_MS = 10 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 1000;
-const sessionCache = new Map<string, { user: AuthUser; until: number }>();
+const sessionCache = new Map<string, { user: AuthUser; until: number; staleUntil: number }>();
+const refreshing = new Map<string, Promise<AuthUser | null>>();
+const cacheEntry = (user: AuthUser) => ({ user, until: Date.now() + SESSION_CACHE_MS, staleUntil: Date.now() + SESSION_STALE_MS });
 // Incrementado a cada mudanca de papel: verificacoes iniciadas antes nao
 // repovoam o cache com o papel antigo.
 let cacheGeneration = 0;
@@ -22,9 +28,10 @@ const lastConfirmed = new Map<string, { user: AuthUser; at: number }>();
 
 type MirrorRow = {
   id: string; name: string; email: string; role: AuthRole; active: boolean;
-  centro_user_id: string | null; centro_admin: boolean; local_role: AuthRole | null;
+  centro_user_id: string | null; centro_admin: boolean; local_role: AuthRole | null; no_password?: boolean;
 };
 const MIRROR_COLUMNS = 'id, name, email, role, active, centro_user_id, centro_admin, local_role';
+const MIRROR_SELECT = `${MIRROR_COLUMNS}, (password_hash IS NULL) AS no_password`;
 type Queryable = Pick<LocalDatabase, 'query'>;
 
 const toAuthUser = (row: Pick<MirrorRow, 'id' | 'name' | 'email' | 'role'>, access: Pick<AuthUser, 'suiteRole' | 'apps' | 'permissions'> = {}): AuthUser => ({
@@ -61,13 +68,13 @@ export const mirrorCentroUser = async (database: Queryable, remote: CentroUser, 
 const mirrorOnce = async (database: Queryable, remote: CentroUser, initialRole?: AuthRole): Promise<MirrorRow> => {
   const email = remote.email.trim().toLowerCase();
   const byId = await database.query<MirrorRow>(
-    `SELECT ${MIRROR_COLUMNS} FROM users WHERE centro_user_id = $1 AND deleted_at IS NULL LIMIT 1`,
+    `SELECT ${MIRROR_SELECT} FROM users WHERE centro_user_id = $1 AND deleted_at IS NULL LIMIT 1`,
     [remote.id],
   );
   let existing: MirrorRow | undefined = byId.rows[0];
   if (!existing) {
     const byEmail = await database.query<MirrorRow>(
-      `SELECT ${MIRROR_COLUMNS} FROM users WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1`,
+      `SELECT ${MIRROR_SELECT} FROM users WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1`,
       [email],
     );
     existing = byEmail.rows[0];
@@ -89,6 +96,10 @@ const mirrorOnce = async (database: Queryable, remote: CentroUser, initialRole?:
         [email, existing.id],
       );
     }
+    const nextRole = centroAdmin ? 'admin' : (localRole ?? 'viewer');
+    // Nada mudou desde a ultima consulta: sem gravar (a cada minuto de uso isso seria uma escrita no banco por pedido).
+    if (existing.no_password && existing.name === remote.name && existing.email === email && existing.active === (remote.active !== false)
+      && existing.centro_user_id === remote.id && existing.role === nextRole && existing.centro_admin === centroAdmin && existing.local_role === localRole) return existing;
     const updated = await database.query<MirrorRow>(`
       UPDATE users SET name = $2, email = $3, active = $4, centro_user_id = $5,
         role = $6, centro_admin = $7, local_role = $8, password_hash = NULL, updated_at = now()
@@ -123,7 +134,7 @@ export const loginUser = async (
   const row = await mirrorCentroUser(database, remote.user);
   if (!row.active) throw new Error('AUTH_INVALID_CREDENTIALS');
   const user = toAuthUser(row, await resolveSuiteAccess(remote.user, remote.sessionToken));
-  sessionCache.set(remote.sessionToken, { user, until: Date.now() + SESSION_CACHE_MS });
+  sessionCache.set(remote.sessionToken, cacheEntry(user));
   lastConfirmed.set(remote.sessionToken, { user, at: Date.now() });
   return { token: remote.sessionToken, user };
 };
@@ -140,24 +151,21 @@ export const consumeHandoff = async (database: LocalDatabase, code: string): Pro
   const row = await mirrorCentroUser(database, remote.user);
   if (!row.active) throw new Error('AUTH_INVALID_CREDENTIALS');
   const user = toAuthUser(row, await resolveSuiteAccess(remote.user, remote.sessionToken));
-  sessionCache.set(remote.sessionToken, { user, until: Date.now() + SESSION_CACHE_MS });
+  sessionCache.set(remote.sessionToken, cacheEntry(user));
   lastConfirmed.set(remote.sessionToken, { user, at: Date.now() });
   return { token: remote.sessionToken, user };
 };
 
-export const verifyUserSession = async (database: LocalDatabase, token: string): Promise<AuthUser | null> => {
-  if (!token) return null;
-  const cached = sessionCache.get(token);
-  if (cached && cached.until > Date.now()) return cached.user;
+const revalidateSession = async (database: LocalDatabase, token: string): Promise<AuthUser | null> => {
   const generation = cacheGeneration;
   try {
     const remote = await centroSession(token);
     const row = await mirrorCentroUser(database, remote.user);
-    if (!row.active) return null;
+    if (!row.active) { sessionCache.delete(token); lastConfirmed.delete(token); return null; }
     const user = toAuthUser(row, await resolveSuiteAccess(remote.user, token));
     if (generation === cacheGeneration) {
       if (sessionCache.size >= MAX_CACHE_ENTRIES) sessionCache.clear();
-      sessionCache.set(token, { user, until: Date.now() + SESSION_CACHE_MS });
+      sessionCache.set(token, cacheEntry(user));
       if (lastConfirmed.size >= MAX_CACHE_ENTRIES) lastConfirmed.clear();
       lastConfirmed.set(token, { user, at: Date.now() });
     }
@@ -175,6 +183,27 @@ export const verifyUserSession = async (database: LocalDatabase, token: string):
   }
 };
 
+// Uma revalidacao por token de cada vez (chamadas simultaneas dividem a mesma consulta).
+const revalidateOnce = (database: LocalDatabase, token: string): Promise<AuthUser | null> => {
+  const running = refreshing.get(token);
+  if (running) return running;
+  const task = revalidateSession(database, token).finally(() => { refreshing.delete(token); });
+  refreshing.set(token, task);
+  return task;
+};
+
+export const verifyUserSession = async (database: LocalDatabase, token: string): Promise<AuthUser | null> => {
+  if (!token) return null;
+  const cached = sessionCache.get(token);
+  if (cached && cached.until > Date.now()) return cached.user;
+  if (cached && cached.staleUntil > Date.now()) {
+    // Responde na hora com a sessao ja confirmada e atualiza em segundo plano; se o diretorio recusar, o proximo pedido cai fora.
+    void revalidateOnce(database, token).catch(() => undefined);
+    return cached.user;
+  }
+  return revalidateOnce(database, token);
+};
+
 export const logoutUser = async (token: string) => {
   sessionCache.delete(token);
   lastConfirmed.delete(token);
@@ -190,3 +219,6 @@ export const forgetCachedSessions = () => {
 
 // Testes: expira o cache de 60s sem descartar as sessoes ja confirmadas.
 export const expireSessionCacheForTests = () => sessionCache.clear();
+// Testes: passa dos 60s mas ainda dentro do limite de revalidacao em segundo plano.
+export const ageSessionCacheForTests = () => { for (const entry of sessionCache.values()) entry.until = Date.now() - 1; };
+export const settleSessionRefreshForTests = () => Promise.allSettled([...refreshing.values()]);
