@@ -6,6 +6,7 @@ import type { ProposalDetail } from '../shared/contracts';
 // eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
 import pdfPageCss from '../proposal-pdf-page.css?raw';
 import { isCloudRuntime, proposalApi, settingsApi } from './api';
+import { setPdfFlowCss } from './proposalPdfFlow';
 import { openExternalUrl, printDocument } from './proposalPdfActions';
 import { ProposalClientLinkDrawer } from './ProposalClientLinkDrawer';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
@@ -20,6 +21,7 @@ const ZOOMS = [100, 125, 150, 175, 200];
 const THUMB_WIDTH = 84;
 
 // Escolhas por proposta: sobrevivem ao erro de rede e ao "Tentar de novo".
+setPdfFlowCss(pdfPageCss);
 const savedChoices = new Map<string, PdfChoices>();
 
 type Props = {

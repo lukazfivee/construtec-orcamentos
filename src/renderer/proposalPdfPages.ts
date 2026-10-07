@@ -4,8 +4,9 @@
 import type { AppSettings, ProposalDetail } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
 import { commercialLaborTotal, escapeHtml, parseCommercialConditions } from '../documents/proposalDocumentCommon';
-import { proposalWatermarkBase64 } from '../documents/proposalPresentation';
-import { bodyTextPagesHtml } from './proposalPdfBodyPages';
+import { CONSTRUTEC_LOGO_SMALL_BASE64, CONSTRUTEC_WATERMARK_SMALL_BASE64 } from '../assets/previewImagesBase64';
+import { bodyTextAtoms } from './proposalPdfBodyPages';
+import { flowPages, type FlowAtom } from './proposalPdfFlow';
 
 // marca: marca d'agua deste PDF; null vale o padrao da empresa (Configuracoes).
 export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean; marca: boolean | null };
@@ -17,7 +18,7 @@ export const defaultPdfChoices = (proposal?: ProposalDetail): PdfChoices => ({
 });
 
 // Logo esmaecida ao fundo da pagina de pre-visualizacao (o PDF real usa .watermark do documento do servidor).
-export const watermarkOverlayHtml = () => `<div style="position:absolute;inset:0;z-index:0;pointer-events:none;background:url(data:image/png;base64,${proposalWatermarkBase64()}) center / 78% auto no-repeat"></div>`;
+export const watermarkOverlayHtml = () => `<div style="position:absolute;inset:0;z-index:0;pointer-events:none;background:url(data:image/png;base64,${CONSTRUTEC_WATERMARK_SMALL_BASE64}) center / 78% auto no-repeat"></div>`;
 
 export const PDF_PAGE_WIDTH = 396;
 export const PDF_PAGE_HEIGHT = 560;
@@ -86,7 +87,8 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   const total = proposal.totals.finalValue ?? 0;
   const number = `${proposal.number} · ${revLabel(proposal.revision)}`;
   const validUntil = formatIsoDate(proposal.validUntil);
-  const head = (title: string) => `<div class="pg-head"><b>CONSTRUTEC</b><span>${escapeHtml(number)}</span></div><div class="pg-title">${escapeHtml(title)}</div>`;
+  const brand = showLogo ? `<img class="pg-head-logo" alt="CONSTRUTEC" src="data:image/png;base64,${CONSTRUTEC_LOGO_SMALL_BASE64}">` : '<b>CONSTRUTEC</b>';
+  const head = (title: string) => `<div class="pg-head">${brand}<span>${escapeHtml(number)}</span></div><div class="pg-title">${escapeHtml(title)}</div>`;
   const foot = (n: number) => `<div class="pg-foot"><span>Construtec Engenharia · Sistemas especiais</span><span>Página ${n}</span></div>`;
   const labor = laborSale(proposal);
   const systems = [...new Set(proposal.items.map((item) => item.category || 'Itens'))];
@@ -105,55 +107,58 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   }
 
   const rows: Row[] = [];
-  systems.forEach((system, index) => {
-    const isLabor = labor > 0 && index === systems.length - 1;
-    const list = isLabor
-      ? [{ description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor }]
-      : proposal.items.filter((item) => (item.category || 'Itens') === system);
-    rows.push({ weight: 1, cat: system, sum: list.reduce((sum, item) => sum + (item.totalSale || 0), 0) });
-    if (choices.modelo === 'completo') list.forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
-  });
-  const completo = choices.modelo === 'completo';
-  const pushItemPages = (title?: string, caption = '') => {
-    const chunks = paginateRows(rows);
-    chunks.forEach((chunk, chunkIndex) => {
-      const last = chunkIndex === chunks.length - 1;
-      const body = chunk.map((row) => ('cat' in row
-        ? `<tr class="pg-cat"><td colspan="${completo ? 3 : 1}">${escapeHtml(row.cat)}</td><td>${completo ? '' : escapeHtml(brl.format(row.sum))}</td></tr>`
-        : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`)).join('');
-      pages.push({
-        label: 'Itens',
-        html: `${head(title ?? (completo ? 'Itens da proposta' : 'Resumo por sistema'))}${caption ? `<p class="pg-caption">${escapeHtml(caption)}</p>` : ''}<table class="pg-tab"><tbody>${body}</tbody></table>
-          ${last ? `<div class="pg-total"><small>Valor total da proposta</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` : ''}`,
-      });
-    });
-  };
-  const pushConditions = (title: string, sign: boolean) => {
-      const terms = parseCommercialConditions(proposal.scope);
-      pages.push({
-        label: 'Condições',
-        html: `${head(title)}
-          <dl class="pg-terms"><dt>Pagamento</dt><dd>${escapeHtml(terms.paymentTerms || 'Conforme combinado com o cliente')}</dd><dt>Prazo</dt><dd>${escapeHtml(terms.executionTerm || 'A combinar após o aceite')}</dd><dt>Garantia</dt><dd>${escapeHtml(terms.warranty || 'Conforme normas técnicas aplicáveis')}</dd></dl>
-          ${choices.validade ? `<p class="pg-note"><b>Validade:</b> esta proposta vale até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
-          ${sign && showSignature ? `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` : ''}`,
-      });
-  };
-  const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
-  if (!bodyParts) {
-    pushItemPages();
-    if (choices.condicoes) pushConditions('Condições comerciais', true);
+  const laborLine = { description: 'Serviços técnicos e operacionais conforme escopo da proposta.', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
+  if (choices.modelo === 'completo') {
+    // Planilha item a item, na ordem da proposta, sem separar por sistema; a mao de obra e a ultima linha.
+    [...proposal.items, ...(labor > 0 ? [laborLine] : [])].forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
   } else {
-    // Corpo montado pelo usuario: a ordem dos blocos e a ordem das paginas.
-    let text: BodyPart[] = [];
-    const flush = () => { bodyTextPagesHtml(text, showSignature).forEach((html) => pages.push({ label: 'Texto', html: `${head('Proposta comercial')}${html}` })); text = []; };
+    // Resumido: so o total de cada sistema.
+    systems.forEach((system, index) => {
+      const list = labor > 0 && index === systems.length - 1 ? [laborLine] : proposal.items.filter((item) => (item.category || 'Itens') === system);
+      rows.push({ weight: 1, cat: system, sum: list.reduce((sum, item) => sum + (item.totalSale || 0), 0) });
+    });
+  }
+  const completo = choices.modelo === 'completo';
+  const heading = (title: string, label: PdfPage['label']): FlowAtom => ({ kind: 'h', label, html: `<h4 class="pg-h">${escapeHtml(title)}</h4>` });
+  const itemAtoms = (title: string, caption = ''): FlowAtom[] => [
+    heading(title, 'Itens'),
+    ...(caption ? [{ kind: 'p' as const, label: 'Itens' as const, html: `<p class="pg-caption">${escapeHtml(caption)}</p>` }] : []),
+    ...rows.map((row): FlowAtom => ({
+      kind: 'tr', label: 'Itens',
+      html: 'cat' in row
+        ? `<tr class="pg-cat"><td colspan="${completo ? 3 : 1}">${escapeHtml(row.cat)}</td><td>${completo ? '' : escapeHtml(brl.format(row.sum))}</td></tr>`
+        : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`,
+    })),
+    { kind: 'block', label: 'Itens', html: `<div class="pg-total"><small>Valor total da proposta</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` },
+  ];
+  const conditionAtoms = (title: string): FlowAtom[] => {
+    const terms = parseCommercialConditions(proposal.scope);
+    return [
+      heading(title, 'Condições'),
+      { kind: 'block', label: 'Condições', html: `<dl class="pg-terms"><dt>Pagamento</dt><dd>${escapeHtml(terms.paymentTerms || 'Conforme combinado com o cliente')}</dd><dt>Prazo</dt><dd>${escapeHtml(terms.executionTerm || 'A combinar após o aceite')}</dd><dt>Garantia</dt><dd>${escapeHtml(terms.warranty || 'Conforme normas técnicas aplicáveis')}</dd></dl>` },
+      ...(choices.validade ? [{ kind: 'block' as const, label: 'Condições' as const, html: `<p class="pg-note"><b>Validade:</b> esta proposta vale até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>` }] : []),
+    ];
+  };
+  // Corpo montado pelo usuario: a ordem dos blocos e a ordem do conteudo; sem corpo, o layout fixo (itens e condicoes).
+  const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  const flow: FlowAtom[] = [];
+  let text: BodyPart[] = [];
+  const flushText = () => { flow.push(...bodyTextAtoms(text, showSignature)); text = []; };
+  if (!bodyParts) {
+    flow.push(...itemAtoms(completo ? 'Itens da proposta' : 'Resumo por sistema'));
+    if (choices.condicoes) flow.push(...conditionAtoms('Condições comerciais'));
+  } else {
     for (const part of bodyParts) {
-      if (part.kind === 'itens') { flush(); pushItemPages(part.title, part.caption); }
-      else if (part.kind === 'condicoes') { flush(); if (choices.condicoes) pushConditions(part.title, false); }
+      if (part.kind === 'itens') { flushText(); flow.push(...itemAtoms(part.title, part.caption)); }
+      else if (part.kind === 'condicoes') { flushText(); if (choices.condicoes) flow.push(...conditionAtoms(part.title)); }
       else text.push(part);
     }
-    flush();
-    if (showSignature && pages.length && !bodyParts.some((part) => part.kind === 'fechamento')) pages[pages.length - 1].html += `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>`;
+    flushText();
   }
+  if (showSignature && (!bodyParts || !bodyParts.some((part) => part.kind === 'fechamento')) && flow.length) {
+    flow.push({ kind: 'block', label: flow[flow.length - 1].label, html: `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` });
+  }
+  pages.push(...flowPages(flow, head('Proposta comercial')));
   return pages.map((page, index) => ({ ...page, html: `<div class="pg">${page.html}${foot(index + 1)}</div>` }));
 };
 

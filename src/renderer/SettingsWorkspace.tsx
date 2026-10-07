@@ -37,7 +37,7 @@ const initialSettings: AppSettings = {
   pdfShowLogo: true,
   pdfShowSignature: true,
   letterPlace: 'Salvador / BA',
-  pdfWatermark: false,
+  pdfWatermark: true,
 };
 
 

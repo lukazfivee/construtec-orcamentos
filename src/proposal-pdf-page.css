@@ -30,3 +30,6 @@ html, body { margin: 0; overflow: hidden; }
 .pg-letter .pg-to { font-weight: 700; text-transform: uppercase; }
 .pg-letter .pg-ref { font-weight: 700; }
 .pg-letter-title { margin: 10px 0 8px; text-align: center; font-size: 13px; font-weight: 700; color: #163d69; text-decoration: underline; text-transform: uppercase; }
+.pg-p.pg-cont { margin-top: -6px; }
+.pg-head { align-items: flex-end; }
+.pg-head-logo { display: block; height: 17px; width: auto; }

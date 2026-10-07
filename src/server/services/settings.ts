@@ -23,7 +23,7 @@ const defaultSettings: AppSettings = {
   pdfShowLogo: true,
   pdfShowSignature: true,
   letterPlace: DEFAULT_LETTER_PLACE,
-  pdfWatermark: false,
+  pdfWatermark: true,
 };
 
 const ensureSettingsStorage = async (database: Pick<LocalDatabase, 'query' | 'exec'>): Promise<void> => {
