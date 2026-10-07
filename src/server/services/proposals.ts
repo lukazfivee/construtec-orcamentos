@@ -24,7 +24,19 @@ type ProposalRow = {
 };
 
 export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
-  const proposalResult = await database.query<ProposalRow>(`
+  // Itens, mao de obra e horas so dependem do id: lidos junto com a proposta (uma ida ao banco em vez de quatro em fila).
+  const [itemResult, laborItems, standardMonthlyHours, proposalResult] = await Promise.all([
+    database.query<ItemRow & { catalog_cost?: string | null }>(`
+    SELECT pi.id, pi.snapshot_code, pi.snapshot_description, pi.snapshot_category, pi.quantity::text,
+      pi.snapshot_unit, pi.snapshot_unit_cost::text, pi.sale_unit_price::text, pr.current_cost::text AS catalog_cost
+    FROM proposal_items pi
+    LEFT JOIN products pr ON pr.code = pi.snapshot_code AND pr.active = true
+    WHERE pi.proposal_id = $1
+    ORDER BY pi.position
+  `, [proposalId]),
+    listProposalLaborItems(database, proposalId),
+    getProposalStandardMonthlyHours(database, proposalId),
+    database.query<ProposalRow>(`
     SELECT p.id, p.series_id::text AS series_id, p.client_id, p.work_id, p.proposal_number, p.revision,
       COALESCE(p.snapshot_client_name, c.trade_name, c.legal_name) AS client_name,
       COALESCE(p.snapshot_work_name, p.work_name) AS work_name, p.scope, p.body_blocks, p.status, p.bdi_multiplier::text,
@@ -51,20 +63,12 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
     JOIN clients c ON c.id = p.client_id
     JOIN users u ON u.id = p.created_by
     WHERE p.id = $1
-  `, [proposalId]);
+  `, [proposalId]),
+  ]);
   const proposal = proposalResult.rows[0];
   if (!proposal) return null;
 
   const isDraftOrReview = proposal.status === 'draft' || proposal.status === 'review';
-  const itemResult = await database.query<ItemRow & { catalog_cost?: string | null }>(`
-    SELECT pi.id, pi.snapshot_code, pi.snapshot_description, pi.snapshot_category, pi.quantity::text,
-      pi.snapshot_unit, pi.snapshot_unit_cost::text, pi.sale_unit_price::text, pr.current_cost::text AS catalog_cost
-    FROM proposal_items pi
-    LEFT JOIN products pr ON pr.code = pi.snapshot_code AND pr.active = true
-    WHERE pi.proposal_id = $1
-    ORDER BY pi.position
-  `, [proposal.id]);
-
   const items: ProposalLine[] = itemResult.rows.map((item) => {
     const quantity = Number(item.quantity);
     const unitCost = Number(item.snapshot_unit_cost);
@@ -87,8 +91,6 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
 
   const bdiMultiplier = Number(proposal.bdi_multiplier);
   const taxPercentage = Number(proposal.tax_percentage ?? 0);
-  const laborItems = await listProposalLaborItems(database, proposal.id);
-  const standardMonthlyHours = await getProposalStandardMonthlyHours(database, proposal.id);
   const materials = sumDecimal(items.map(item => item.totalCost));
   const labor = sumDecimal(laborItems.map(item => item.totalCost));
   const totals = calculateProposalTotals(materials, labor, bdiMultiplier, taxPercentage);

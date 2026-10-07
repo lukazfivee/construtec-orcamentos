@@ -156,3 +156,14 @@ small.current-tag { color: var(--tx-green-24); }
 .settings-card button.primary { min-height: 32px; }
 .settings-card button[class*="danger"], .settings-card button[style*="b91c1c"], .settings-card button[style*="dc2626"] { color: var(--tx-red-42); }
 @media screen and (min-width: 768px) and (max-width: 1350px) { .sidebar nav button span { font-size: 11px; } }
+
+/* PDF da proposta: a pagina inteira cabe na area de visualizacao sem cortar. A altura do visor segue a janela
+   (o preview se encaixa nela); as opcoes ficam na coluna ao lado e a pagina rola so se for maior que a janela. */
+.app-shell .pdf-page { gap: 10px; }
+.app-shell .pdf-page .page-eyebrow { display: none; }
+.app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh - 330px), 940px); align-items: start; min-height: 0; }
+.app-shell .pdf-layout .pdf-stage { flex: none; height: var(--pdf-stage-h); }
+.app-shell .pdf-layout .pdf-thumbs { max-height: calc(var(--pdf-stage-h) + 50px); }
+@media screen and (max-width: 1180px) {
+  .app-shell .pdf-layout { grid-template-rows: none; }
+}

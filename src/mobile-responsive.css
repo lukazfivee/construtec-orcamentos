@@ -457,7 +457,7 @@
     min-width: 0; width: 100%; max-width: 100%; max-height: calc(100dvh - 24px); overflow: auto;
   }
   .modal-footer, .new-proposal-dialog form > footer { flex-wrap: wrap; }
-  .catalog-popover { position: fixed; left: 12px; right: 12px; bottom: 12px; width: auto; max-height: 80dvh; overflow: auto; z-index: 70; }
+  .catalog-popover { position: fixed; top: auto; left: 12px; right: 12px; bottom: 12px; width: auto; max-height: 80dvh; overflow: auto; z-index: 70; }
   .suite-dropdown-menu, .user-profile-popover, .notifications-popover { position: fixed; top: 104px; left: 12px; right: 12px; width: auto; max-height: calc(100dvh - 120px); overflow: auto; }
   .auth-shell { height: auto; min-height: 100dvh; padding: 16px; }
   .toast { max-width: calc(100vw - 24px); left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }

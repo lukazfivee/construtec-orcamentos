@@ -1,10 +1,10 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; overflow: hidden; }
-.pg { position: relative; width: 396px; height: 560px; padding: 22px 22px 40px; background: #fff; color: #17252d; font: 10px/1.4 Arial, Helvetica, sans-serif; overflow: hidden; }
+.pg { position: relative; width: 396px; height: 560px; padding: 22px 22px 40px; background: #fff; color: #17252d; font: 10px/1.5 Arial, Helvetica, sans-serif; overflow: hidden; }
 .pg-head { display: flex; justify-content: space-between; border-bottom: 2px solid #12a9d1; padding-bottom: 6px; color: #52616b; }
 .pg-head b { color: #163d69; letter-spacing: .08em; }
 .pg-title { margin: 10px 0 6px; font-weight: 700; color: #163d69; text-transform: uppercase; font-size: 11px; }
-.pg-tab { width: 100%; border-collapse: collapse; }
+.pg-tab { width: 100%; border-collapse: collapse; line-height: 1.35; }
 .pg-tab td { padding: 4px 3px; border-bottom: 1px solid #e1edf2; vertical-align: top; }
 .pg-tab td:not(:first-child) { text-align: right; white-space: nowrap; }
 .pg-cat td { background: #eaf3f6; color: #163d69; font-weight: 700; }

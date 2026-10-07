@@ -65,10 +65,12 @@ export const addProductToProposal = async (
   proposalId: string,
   productId: string,
   quantity: number,
+  userId?: string,
 ) => {
   await database.transaction(async (transaction) => {
     const proposal = await getEditableProposal(transaction, proposalId);
 
+    // Produto e proxima posicao na mesma ida ao banco.
     const productResult = await transaction.query<{
       id: string;
       code: string;
@@ -78,14 +80,13 @@ export const addProductToProposal = async (
       category: string;
       unit: string;
       current_cost: string;
-    }>('SELECT id, code, manufacturer, model, description, category, unit, current_cost::text FROM products WHERE id = $1', [productId]);
+      next_position: number;
+    }>(`SELECT id, code, manufacturer, model, description, category, unit, current_cost::text,
+      (SELECT COALESCE(max(position), 0) + 1 FROM proposal_items WHERE proposal_id = $2) AS next_position
+      FROM products WHERE id = $1`, [productId, proposalId]);
     const product = productResult.rows[0];
     if (!product) throw new Error('PRODUCT_NOT_FOUND');
 
-    const positionResult = await transaction.query<{ next_position: number }>(
-      'SELECT COALESCE(max(position), 0) + 1 AS next_position FROM proposal_items WHERE proposal_id = $1',
-      [proposalId],
-    );
     const unitCost = Number(product.current_cost);
     const salePrice = roundMoney(unitCost * Number(proposal.bdi_multiplier));
     const itemId = randomUUID();
@@ -99,7 +100,7 @@ export const addProductToProposal = async (
       itemId,
       proposalId,
       product.id,
-      positionResult.rows[0]?.next_position ?? 1,
+      Number(product.next_position) || 1,
       product.code,
       product.manufacturer,
       product.model,
@@ -111,11 +112,12 @@ export const addProductToProposal = async (
       salePrice,
     ]);
 
-    await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
+    // Atualiza a proposta e grava a auditoria (ja com o autor, quando conhecido) numa ida so.
     await transaction.query(`
-      INSERT INTO audit_events (id, entity_type, entity_id, action, after_data)
-      VALUES ($1, 'proposal_item', $2, 'created', $3::jsonb)
-    `, [randomUUID(), itemId, JSON.stringify({ productId, snapshotUnitCost: unitCost, quantity, salePrice })]);
+      WITH touched AS (UPDATE proposals SET updated_at = now() WHERE id = $1)
+      INSERT INTO audit_events (id, user_id, entity_type, entity_id, action, after_data)
+      VALUES ($4, $5, 'proposal_item', $2, 'created', $3::jsonb)
+    `, [proposalId, itemId, JSON.stringify({ productId, snapshotUnitCost: unitCost, quantity, salePrice }), randomUUID(), userId ?? null]);
     logEvent('info', 'proposal.item_added', { proposalId, itemId, quantity });
   });
 };

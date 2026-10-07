@@ -169,7 +169,7 @@ Contato: ${content.phone} • ${content.email}`;
     @page { size: A4; margin: 12mm 14mm 18mm; }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #fff; color: #17252d; }
-    body { font: 9.5pt Arial, Helvetica, sans-serif; line-height: 1.35; -webkit-font-smoothing: antialiased; }
+    body { font: 9.5pt Arial, Helvetica, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
     
     .timbrado-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid #12A9D1; padding-bottom: 3.5mm; margin-bottom: 4mm; break-inside: avoid; page-break-inside: avoid; }
     .timbrado-left { display: flex; align-items: center; gap: 4mm; }
@@ -193,6 +193,7 @@ Contato: ${content.phone} • ${content.email}`;
     
     table.pricing { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 1.5mm; }
     thead { display: table-header-group; break-after: avoid; }
+    table { line-height: 1.35; }
     th, td { padding: 1.8mm 1.5mm; border-bottom: 1px solid #d4e2e7; vertical-align: top; font-size: 8pt; overflow-wrap: anywhere; }
     thead th { background: #163d69; color: #fff; font-size: 7.5pt; text-align: left; font-weight: bold; border-bottom: 2px solid #12A9D1; }
     tr { break-inside: avoid; page-break-inside: avoid; }
