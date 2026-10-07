@@ -105,7 +105,7 @@ test('Configuracoes: abas de pagina mantem o formulario montado (paineis hidden,
 });
 
 test('dialogos: raio 14, sombra de popover e botoes de 40 px', () => {
-  has(dialogos, '.import-dialog, .modal-card', 'border-radius: 14px', 'box-shadow: var(--shadow-pop)');
+  has(dialogos, '.modal-card', 'border-radius: 14px', 'box-shadow: var(--shadow-pop)');
   has(dialogos, '.modal-card .modal-footer button', 'height: 40px', 'border-radius: 10px');
 });
 

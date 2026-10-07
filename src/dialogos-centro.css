@@ -1,45 +1,10 @@
-/* Dialogos do Orçamentos com o padrao do Centro de Custos (.dialogo e .drawer): raio 14, sombra de popover, cabecalho de 18/20 com
+/* Dialogos do Orçamentos com o padrao do Centro de Custos (.dialogo e .drawer; o de importar em lote tem catalogImportDialog.css): raio 14, sombra de popover, cabecalho de 18/20 com
    titulo 17/600, apoio 12.5, corpo de 13.5, botoes e campos de 40 px, tabela com cabecalho 11/600 em caixa alta. So no desktop. */
 @media (min-width: 768px) {
-  .import-overlay, .modal-overlay { background: rgba(3, 31, 41, .45); backdrop-filter: none; }
-
-  /* Importar itens em lote */
-  .import-dialog, .modal-card { border: 0; border-radius: 14px; box-shadow: var(--shadow-pop); background: var(--color-surface); }
-  .import-dialog > header { min-height: 0; padding: 18px 20px; border-bottom: 1px solid var(--color-divider); }
-  .import-dialog > header > span { gap: 12px; }
-  .import-dialog > header svg { stroke-width: 1.5; color: var(--color-accent-300); }
-  .import-dialog h2 { font-size: 17px; font-weight: 600; line-height: 1.5; }
-  .import-dialog header p { font-size: 12.5px; color: var(--color-neutral-300); }
-  .import-dialog header > button, .modal-card .modal-header button { width: 36px; height: 36px; border: 0; border-radius: 9px; background: transparent; color: var(--color-neutral-300); }
-  .import-dialog header > button:hover { background: var(--color-accent-900); color: var(--color-accent-300); }
-  .import-dialog > nav { gap: 8px; padding: 12px 20px; background: var(--color-surface); border-bottom: 1px solid var(--color-divider); }
-  .import-dialog > nav button, .import-picker button, .exsat-source button, .import-source > button, .import-summary button, .import-dialog > footer button {
-    height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider);
-    font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
-  }
-  .import-dialog > nav button:hover, .import-picker button:hover, .import-dialog > footer button:hover:not(:disabled) { background: var(--color-accent-900); }
-  .import-dialog > nav button.active { background: var(--color-accent-900); color: var(--color-accent-300); box-shadow: inset 0 0 0 2px var(--color-accent-500); }
-  .import-dialog > nav button svg, .import-picker button svg { stroke-width: 1.5; }
-  .import-source { padding: 16px 20px; border-bottom: 1px solid var(--color-divider); }
-  .import-source textarea { width: calc(100% - 160px); height: 88px; padding: 10px 12px; border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--color-field); background: var(--color-surface); color: var(--color-text); font: 12.5px/1.5 ui-monospace, "Cascadia Mono", monospace; }
-  .import-source textarea:focus { box-shadow: inset 0 0 0 2px var(--color-focus); outline: none; }
-  .import-source > button { margin-left: 12px; width: 148px; }
-  .import-source > button.ocr-copy { width: auto; }
-  .import-picker, .exsat-source { border: 0; border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
-  .import-picker small, .exsat-source small { font-size: 12px; color: var(--color-neutral-300); }
-  .import-summary { min-height: 48px; padding: 0 20px; background: var(--color-bg); border-bottom: 1px solid var(--color-divider); font-size: 13px; color: var(--color-neutral-300); }
-  .import-summary button { height: 32px; padding: 0 12px; }
-  .import-table table { font-size: 13px; }
-  .import-table th { height: 40px; padding: 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--color-neutral-300); background: var(--color-surface); border-right: 0; border-bottom: 1px solid var(--color-divider); }
-  .import-table td { height: 48px; padding: 4px 6px; border-right: 0; border-bottom: 1px solid var(--color-divider); font-size: 13px; color: var(--color-text); }
-  .import-table td input { height: 36px; padding: 0 8px; border-radius: 8px; font: 13px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-text); }
-  .import-table tr.invalid td { background: var(--c-warn-soft); }
-  .import-table > p { font-size: 13.5px; color: var(--color-neutral-300); }
-  .import-dialog > footer { min-height: 0; padding: 14px 20px; gap: 10px; background: var(--color-surface); border-top: 1px solid var(--color-divider); font-size: 12.5px; color: var(--color-neutral-300); }
-  .import-dialog > footer button.primary { background: var(--color-brand) !important; color: #fefefe !important; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
-  .import-dialog > footer button:disabled { opacity: .55; }
+  .modal-overlay { background: rgba(3, 31, 41, .45); backdrop-filter: none; }
 
   /* Modais de confirmacao (exclusao, descarte) */
+  .modal-card { border: 0; border-radius: 14px; box-shadow: var(--shadow-pop); background: var(--color-surface); }
   .modal-card .modal-header { min-height: 0; padding: 18px 20px; border-bottom: 1px solid var(--color-divider); }
   .modal-card .modal-header h3 { font-size: 17px; font-weight: 600; line-height: 1.5; }
   .modal-card .modal-header p { font-size: 12.5px; color: var(--color-neutral-300); }

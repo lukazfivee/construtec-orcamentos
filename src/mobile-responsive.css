@@ -453,7 +453,7 @@
   .app-shell button, .dialog-backdrop button, .modal-overlay button { min-height: 44px; }
   .app-shell .icon-button, .dialog-close, .table-action-btn { min-width: 44px; min-height: 44px; }
   .dialog-backdrop, .modal-overlay { padding: 12px; overflow-y: auto; }
-  .new-proposal-dialog, .modal-card, .import-dialog, .proposal-import-dialog {
+  .new-proposal-dialog, .modal-card, .proposal-import-dialog {
     min-width: 0; width: 100%; max-width: 100%; max-height: calc(100dvh - 24px); overflow: auto;
   }
   .modal-footer, .new-proposal-dialog form > footer { flex-wrap: wrap; }

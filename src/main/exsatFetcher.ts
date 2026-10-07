@@ -1,6 +1,7 @@
 import { BrowserWindow, session } from 'electron';
 import type { CatalogImportItem, ExsatPageFailure, ExsatValidationStatus } from '../shared/contracts';
-import { fetchExsatBody, parseExsatProductsHtml, validateExsatUrl } from '../server/services/catalog';
+import { parseExsatProductsHtml } from '../server/services/catalog';
+import { decodeExsatBody, fetchExsatBody, validateExsatUrl } from '../server/services/exsatFetch';
 
 export const PARTITION = 'persist:construtec-exsat';
 
@@ -112,8 +113,7 @@ export const responseHtml = async (url: string) => {
     if (!response.ok) {
       throw new ExsatPageLoadError('http', `EXSAT_HTTP_${response.status}`, `HTTP ${response.status} ${response.statusText}`.trim());
     }
-    const charset = response.headers.get('content-type')?.match(/charset\s*=\s*["']?([^;"'\s]+)/i)?.[1]?.toLowerCase();
-    const html = new TextDecoder(charset === 'iso-8859-1' ? 'windows-1252' : 'utf-8').decode(body);
+    const html = decodeExsatBody(response.headers.get('content-type'), body);
     return { html, finalUrl };
   } catch (error) {
     if (error instanceof ExsatPageLoadError) throw error;
