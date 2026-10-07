@@ -134,7 +134,7 @@ test('corpo da proposta: banco, revisao, clonagem, corpo padrao e aceite do clie
       assert.equal((await put([{ id: 'itens', type: 'itens', enabled: true, extra: 1 }, { id: 'c', type: 'condicoes', enabled: true }])).status, 400, 'campo desconhecido');
       assert.equal((await call(`/proposals/${id}/body`, 'tok-admin', 'PUT', { blocks: body(), outro: true })).status, 400, 'envelope estrito');
       assert.equal((await put([{ id: 'c', type: 'condicoes', enabled: true }])).status, 400, 'sem tabela de itens');
-      assert.equal((await put(body({ id: 'x', type: 'imagem', enabled: true }))).status, 400, 'tipo invalido');
+      assert.equal((await put(body({ id: 'x', type: 'imagem', enabled: true } as unknown as BodyBlock))).status, 400, 'tipo invalido');
       assert.equal((await put(body(paragraph('t', 'a'.repeat(5001))))).status, 400, 'texto acima de 5000');
       assert.equal((await put(body(paragraph('t', 'a'.repeat(5000))))).status, 200, 'texto de 5000 passa');
       assert.equal((await put([...Array.from({ length: 59 }, (_, i) => paragraph(`p${i}`, 'x')), ...body()])).status, 400, 'mais de 60 blocos');
