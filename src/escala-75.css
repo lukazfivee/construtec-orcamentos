@@ -1,8 +1,10 @@
 /* Escala natural do desktop: a interface ja sai no tamanho de 75% de zoom do navegador, sem mexer na lupa.
    So em janela larga (>= 1200 px); celular e telas estreitas seguem no tamanho normal. Com "zoom" na raiz as
-   unidades vh/vw contam o tamanho da janela antes da reducao, entao o que depende delas divide por 0,75. */
+   unidades vh/vw contam o tamanho da janela antes da reducao, entao o que depende delas divide por 0,75.
+   A altura do html usa vh e nao porcentagem: no Chrome atual a porcentagem ja vale a janela inteira, e dividir
+   por 0,75 deixava a pagina 33% mais alta que a janela (login descia e o fim das telas era cortado). */
 @media screen and (min-width: 1200px) {
-  html { zoom: .75; height: calc(100% / .75); }
+  html { zoom: .75; height: calc(100vh / .75); }
   .modal-dialog { max-width: calc((100vw - 48px) / .75); max-height: calc((100vh - 48px) / .75); }
   .modal-card { width: min(520px, calc((100vw - 48px) / .75)); max-height: calc((100vh - 48px) / .75); }
   .help-modal-dialog { width: min(720px, calc(92vw / .75)); max-height: calc(88vh / .75); }
