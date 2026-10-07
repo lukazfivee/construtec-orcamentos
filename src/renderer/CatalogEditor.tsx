@@ -5,7 +5,7 @@ import { costText, seesCost } from './SuitePermissions';
 import { catalogApi } from './api';
 import { CatalogImportDialog } from './CatalogImportDialog';
 
-type Props = { onNotice: (message: string) => void; onError: (message: string) => void; onBack?: () => void };
+type Props = { onNotice: (message: string) => void; onError: (message: string) => void; onBack?: () => void; onOpenWizard?: () => void; onOpenExsat?: () => void };
 type Draft = { code: string; manufacturer: string; model: string; description: string; category: string; unit: string; currentCost: string; source: string; active: boolean };
 const emptyDraft: Draft = { code: '', manufacturer: '', model: '', description: '', category: '', unit: 'un', currentCost: '0,00', source: 'CONSTRUTEC', active: true };
 
@@ -14,7 +14,7 @@ const toDraft = (product: CatalogProduct): Draft => ({
   category: product.category, unit: product.unit, currentCost: product.currentCost.toFixed(2).replace('.', ','), source: product.source, active: product.active,
 });
 
-export function CatalogEditor({ onNotice, onError, onBack }: Props) {
+export function CatalogEditor({ onNotice, onError, onBack, onOpenWizard, onOpenExsat }: Props) {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -94,6 +94,6 @@ export function CatalogEditor({ onNotice, onError, onBack }: Props) {
         <label className="work-active"><input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} /><span>Item ativo e disponível para novas propostas</span></label>
       </div></form> : <div className="editor-empty"><Box size={34} /><h2>Selecione um item</h2><p>Consulte ou altere os dados comerciais do catálogo.</p></div>}</section>
     </div>
-    <CatalogImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} onImported={(next, message) => { applyProducts(next); onNotice(message); }} />
+    <CatalogImportDialog open={importOpen} onClose={() => setImportOpen(false)} onError={onError} onOpenWizard={onOpenWizard} onOpenExsat={onOpenExsat} onImported={(next, message) => { applyProducts(next); onNotice(message); }} />
   </main>;
 }

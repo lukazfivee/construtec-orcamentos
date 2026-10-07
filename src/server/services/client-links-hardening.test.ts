@@ -11,7 +11,7 @@ import { ClientLinkError, cleanPublicText } from './clientLinkCommon';
 import { confirmClientApproval, createClientLink, getClientLink } from './clientLinks';
 import { adjustPublicLink, approvePublicLink, openPublicLink, publicDocumentHtml } from './clientLinksPublic';
 import { deleteProposal, getProposalById, updateProposalStatus } from './proposals';
-import { fetchExsatBody } from './catalog';
+import { fetchExsatBody } from './exsatFetch';
 
 const SECRET = 'segredo-de-teste-com-mais-de-32-caracteres!!';
 const ctx = { secret: SECRET, ip: '203.0.113.9', userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17) Safari/604.1' };

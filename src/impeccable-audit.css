@@ -433,39 +433,14 @@ button:not(:disabled):active {
   font-variant-numeric: tabular-nums;
 }
 
-/* Import dialog */
-.import-dialog,
+/* Dialogs */
 .new-proposal-dialog,
 .modal-card {
   border-radius: var(--radius-panel);
 }
 
-.import-dialog > nav button,
-.import-picker button,
-.exsat-source button,
-.import-dialog > footer button {
-  border-radius: var(--radius-control);
-}
-
-.import-dialog > nav button:hover,
-.import-picker button:hover,
-.exsat-source button:hover,
-.import-dialog > footer button:hover {
-  background: var(--bg-cool-98-2);
-  border-color: var(--bd-cool-63);
-}
-
-.import-table tbody tr:hover td {
-  background: var(--surface-subtle);
-}
-
-.import-table tr.invalid:hover td {
-  background: var(--bg-amber-93);
-}
-
 /* Dialogs / destructive actions */
 .dialog-backdrop,
-.import-overlay,
 .modal-overlay {
   background: rgba(12, 23, 40, .58);
 }
@@ -490,8 +465,7 @@ button:not(:disabled):active {
 
 /* Empty, loading and feedback states */
 .management-empty,
-.editor-empty p,
-.import-table > p {
+.editor-empty p {
   line-height: 1.5;
 }
 

@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron';
 import type { CatalogImportItem, ExsatBatchPreview, ExsatPageFailure, ExsatValidationSummary } from '../shared/contracts';
-import { validateExsatUrl } from '../server/services/catalog';
+import { validateExsatUrl } from '../server/services/exsatFetch';
 import {
   discoverCatalogLinks,
   ExsatPageLoadError,

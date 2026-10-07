@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
-import { createCatalogProduct, importCatalogProducts, listCatalogProducts, listCatalogUnits, previewCatalogImport, previewExsatProducts, updateCatalogProduct } from '../services/catalog';
+import { createCatalogProduct, importCatalogProducts, listCatalogProducts, listCatalogUnits, previewCatalogImport, updateCatalogProduct } from '../services/catalog';
+import { previewExsatProducts } from '../services/exsatFetch';
 import { attributeAuditEvent, attributeCatalogBatchAudit } from '../services/auditAttribution';
 import type { LocalDatabase } from '../services/database';
 import { getCatalogOverview } from '../services/catalogOverview';

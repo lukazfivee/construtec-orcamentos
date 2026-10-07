@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CatalogImportItem, ExsatSyncInfo } from '../shared/contracts';
 import { catalogApi } from './api';
 import { CHUNK } from './catalogImportFlow';
+import { exsatErrorMessage } from './catalogImportDialogModel';
 import { hasDesktopApp } from './orcDeskUi';
 
 export type SyncResult = {
@@ -23,7 +24,7 @@ export const classifyError = (error: unknown): SyncError => {
     return { kind: 'offline', message: 'Sem internet.' };
   }
   if (/timeout|timed out|ETIMEDOUT/i.test(message)) return { kind: 'timeout', message: 'A conexão passou de 30 segundos sem resposta.' };
-  return { kind: 'other', message: message || 'Não foi possível consultar a Exsat.' };
+  return { kind: 'other', message: exsatErrorMessage(error, 'Não foi possível consultar a Exsat.') };
 };
 
 export function useExsatSync(onFinished: () => void) {
