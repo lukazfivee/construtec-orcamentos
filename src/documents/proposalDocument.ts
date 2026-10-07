@@ -91,17 +91,13 @@ export const buildProposalHtml = (
       : '';
 
   const tableBody = groups + labor || '<tbody><tr><td colspan="6" class="center muted">Nenhum item incluído nesta revisão.</td></tr></tbody>';
-  // Materiais e servicos lado a lado (como no Word); impostos e total ocupam a linha toda.
-  const summaryCell = ([label, value]: [string, string]) => `<th>${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td>`;
-  const summaryWide = ([label, value]: [string, string], className = '') =>
-    `<tr${className ? ` class="${className}"` : ''}><th colspan="3">${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td></tr>`;
+  // Totais como no Word: linhas de total sob a planilha (rotulo a direita) e a faixa azul com o valor final.
   const grandTotal = content.summary[content.summary.length - 1];
-  const rest = content.summary.slice(0, -1);
-  const pair = content.labor > 0 && rest.length >= 2 ? rest.slice(0, 2) : [];
   const summary = [
-    pair.length ? `<tr>${pair.map((entry) => summaryCell(entry as [string, string])).join('')}</tr>` : '',
-    ...rest.slice(pair.length).map((entry) => summaryWide(entry)),
-    summaryWide(grandTotal, 'grand-total'),
+    ...content.summary.slice(0, -1).map(
+      ([label, value]) => `<tr class="sum-row"><th colspan="5">${escapeHtml(label)}</th><td class="number">${escapeHtml(value)}</td></tr>`
+    ),
+    `<tr class="grand-total"><td colspan="6">${escapeHtml(grandTotal[0])}: <span class="gt-value">${escapeHtml(grandTotal[1])}</span></td></tr>`,
   ].join('');
 
   const terms = content.terms
@@ -135,7 +131,7 @@ export const buildProposalHtml = (
   </table>
 
   <table class="summary">
-    <colgroup><col style="width: 35%"><col style="width: 15%"><col style="width: 35%"><col style="width: 15%"></colgroup>
+    <colgroup><col style="width: 7%"><col style="width: 45%"><col style="width: 8%"><col style="width: 10%"><col style="width: 15%"><col style="width: 15%"></colgroup>
     <tbody>${summary}</tbody>
   </table>
   </div>
@@ -224,10 +220,11 @@ Contato: ${content.phone} • ${content.email}`;
     .item-code { display: block; color: #60717a; font-size: 6.8pt; margin-top: 0.5mm; }
     .muted { color: #5D7480; }
     
-    .summary { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 2.5mm; break-inside: avoid; page-break-inside: avoid; }
-    .summary th { text-align: left; font-weight: normal; padding: 1.5mm 2mm; font-size: 8.5pt; border-bottom: 1px solid #e1edf2; }
-    .summary td { padding: 1.5mm 2mm; font-size: 8.5pt; border-bottom: 1px solid #e1edf2; }
-    .grand-total th, .grand-total td { background: #d9edf3; font-size: 9pt; font-weight: bold; color: #163d69; border-top: 1.5px solid #12A9D1; border-bottom: 2px solid #163d69; }
+    .summary { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 0; break-inside: avoid; page-break-inside: avoid; }
+    .summary .sum-row th { text-align: right; font-weight: bold; font-size: 7.5pt; color: #52616b; background: #eef7fa; padding: 1.8mm 2mm; border-bottom: 1px solid #d4e2e7; }
+    .summary .sum-row td { font-size: 9pt; background: #eef7fa; padding: 1.8mm 2mm; border-bottom: 1px solid #d4e2e7; }
+    .grand-total td { background: #12A9D1; color: #fff; text-align: right; text-transform: uppercase; letter-spacing: 0.3px; font-size: 9pt; font-weight: bold; padding: 2.2mm 3mm; border: 0; }
+    .gt-value { font-size: 11.5pt; margin-left: 3mm; }
     
     .commercial-box { margin-top: 3.5mm; break-inside: avoid; page-break-inside: avoid; }
     .term { margin-bottom: 1.2mm; font-size: 8.5pt; }
