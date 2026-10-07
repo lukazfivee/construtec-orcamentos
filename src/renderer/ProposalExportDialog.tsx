@@ -62,7 +62,7 @@ export function ProposalExportDialog({
 }: Props) {
   const [format, setFormat] = useState<'both' | 'pdf' | 'docx'>('both');
   const [groupByCategory, setGroupByCategory] = useState(false);
-  const [showProductCodes, setShowProductCodes] = useState(true);
+  const [showProductCodes, setShowProductCodes] = useState(false);
   const [includeLabor, setIncludeLabor] = useState(true);
   const [includeCommercialTerms, setIncludeCommercialTerms] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
