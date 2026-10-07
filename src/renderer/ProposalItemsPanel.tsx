@@ -176,12 +176,12 @@ export function ProposalItemsPanel({
               <th className="col-index">#</th>
               {columns.code && <th className="col-code">Código</th>}
               <th className="col-description">Descrição</th>
-              <th className="col-quantity">Quantidade</th>
+              <th className="col-quantity" title="Quantidade">Qtd.</th>
               {columns.unit && <th className="col-unit">Unid.</th>}
-              {columns.unitCost && <th className="col-cost">Custo unit. (R$)</th>}
-              {columns.totalCost && <th className="col-total-cost">Custo total (R$)</th>}
-              {columns.unitSale && <th className="col-sale">Venda unit. (R$)</th>}
-              {columns.totalSale && <th className="col-total-sale">Venda total (R$)</th>}
+              {columns.unitCost && <th className="col-cost" title="Custo unitário (R$)">Custo unit.</th>}
+              {columns.totalCost && <th className="col-total-cost" title="Custo total (R$)">Custo total</th>}
+              {columns.unitSale && <th className="col-sale" title="Venda unitária (R$)">Venda unit.</th>}
+              {columns.totalSale && <th className="col-total-sale" title="Venda total (R$)">Venda total</th>}
             </tr>
           </thead>
           <tbody>

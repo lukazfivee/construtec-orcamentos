@@ -36,6 +36,7 @@ const entryPoints = [
   'src/renderer/no-emoji.test.ts',
   'src/renderer/theme.test.ts',
   'src/renderer/centro-parity.test.ts',
+  'src/renderer/telas-internas-parity.test.ts',
   'src/renderer/proposal-nav-list.test.ts',
   'src/server/services/integration/center-tracking.test.ts',
 ];

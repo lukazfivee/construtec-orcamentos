@@ -93,35 +93,23 @@ export function ProposalKitsPanel({
   };
 
   return (
-    <div className="proposal-kits-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 320px) minmax(0, 1fr)', height: '100%', minHeight: 0, background: 'var(--surface)', overflow: 'hidden' }}>
-      {/* Kits List */}
-      <div style={{ borderRight: '1px solid var(--line)', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
-        <div style={{ padding: '12px', borderBottom: '1px solid var(--line)', flexShrink: 0 }}>
-          <label className="management-search" style={{ margin: 0, height: '32px' }}>
-            <Search size={14} />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar kits por nome…"
-              style={{ fontSize: '11px' }}
-            />
+    <div className="proposal-kits-panel">
+      <div className="kp-list-pane">
+        <div className="kp-search">
+          <label className="management-search">
+            <Search size={15} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar kits por nome…" aria-label="Buscar kits por nome" />
           </label>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, scrollbarWidth: 'thin' }} className="client-list product-list" aria-busy={loading}>
+        <div className="client-list product-list kp-list" aria-busy={loading}>
           {kits.map((kit) => (
-            <button
-              key={kit.id}
-              type="button"
-              className={kit.id === selectedKitId ? 'selected' : ''}
-              onClick={() => setSelectedKitId(kit.id)}
-              style={{ minHeight: '52px', padding: '6px 12px' }}
-            >
-              <Layers3 size={15} />
+            <button key={kit.id} type="button" className={kit.id === selectedKitId ? 'selected' : ''} onClick={() => setSelectedKitId(kit.id)}>
+              <Layers3 size={17} />
               <span>
-                <b style={{ fontSize: '11px' }}>{kit.name}</b>
-                <small style={{ fontSize: '9px' }}>{kit.itemCount} itens • {kit.category}</small>
+                <b>{kit.name}</b>
+                <small>{kit.itemCount} itens • {kit.category}</small>
               </span>
-              <em style={{ fontSize: '10px' }}>{costText(money.format(kit.totalEstimatedCost))}</em>
+              <em>{costText(money.format(kit.totalEstimatedCost))}</em>
             </button>
           ))}
           {!loading && kits.length === 0 && (
@@ -130,82 +118,64 @@ export function ProposalKitsPanel({
         </div>
       </div>
 
-      {/* Kit Detail & Apply Action */}
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, padding: '20px', overflowY: 'auto' }}>
+      <div className="kp-detail">
         {selectedKitDetail ? (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid var(--bd-cool-95-3)', paddingBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--tx-cool-9-2)', overflowWrap: 'anywhere' }}>
-                  {selectedKitDetail.name}
-                </h2>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--muted)', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+          <div className="kp-card">
+            <div className="kp-head">
+              <div className="kp-title">
+                <h2>{selectedKitDetail.name}</h2>
+                <p>
                   Categoria: <b>{selectedKitDetail.category}</b>
                   {selectedKitDetail.description ? ` • ${selectedKitDetail.description}` : ''}
                 </p>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px 16px', minWidth: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <div style={{ textAlign: 'right', minWidth: '120px' }}>
-                  <span style={{ display: 'block', fontSize: '10px', color: 'var(--muted)' }}>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
-                  <strong style={{ fontSize: '16px', color: 'var(--blue-ink)' }}>{costText(money.format(estimatedSaleTotal))}</strong>
+              <div className="kp-apply">
+                <div className="kp-price">
+                  <span>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
+                  <strong>{costText(money.format(estimatedSaleTotal))}</strong>
                 </div>
                 <button
                   type="button"
                   className="primary"
                   onClick={() => void handleApply()}
                   disabled={!editable || applying || selectedKitDetail.items.length === 0}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '7px',
-                    height: '36px',
-                    padding: '0 16px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                  }}
                 >
-                  <Send size={15} />
-                  {applying ? 'Inserindo…' : 'Inserir Kit nesta proposta'}
+                  <Send size={16} />
+                  {applying ? 'Inserindo…' : 'Inserir kit nesta proposta'}
                 </button>
               </div>
             </div>
 
-            <h3 style={{ margin: '0 0 10px', fontSize: '12px', fontWeight: 600 }}>
-              Itens incluídos no Kit ({selectedKitDetail.items.length})
-            </h3>
+            <h3 className="kp-sub">Itens incluídos no kit ({selectedKitDetail.items.length})</h3>
 
-            <div style={{ border: '1px solid var(--line)', borderRadius: '6px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', minWidth: '560px', borderCollapse: 'collapse', fontSize: '11px' }}>
-                <thead style={{ background: 'var(--bg-cool-98)' }}>
+            <div className="kp-table">
+              <table>
+                <thead>
                   <tr>
-                    <th style={{ padding: '8px 10px', textAlign: 'left', width: '90px' }}>Código</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'left' }}>Descrição</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'center', width: '50px' }}>Un.</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right', width: '90px' }}>Qtd.</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right', width: '100px' }}>Custo un.</th>
-                    <th style={{ padding: '8px 10px', textAlign: 'right', width: '110px' }}>Custo total</th>
+                    <th>Código</th>
+                    <th>Descrição</th>
+                    <th className="kp-c">Un.</th>
+                    <th className="kp-n">Qtd.</th>
+                    <th className="kp-n">Custo un.</th>
+                    <th className="kp-n">Custo total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedKitDetail.items.map((item) => (
-                    <tr key={item.id} style={{ borderTop: '1px solid var(--line)' }}>
-                      <td style={{ padding: '6px 10px' }}><b>{item.code}</b></td>
-                      <td style={{ padding: '6px 10px' }}>{item.description}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'center' }}>{item.unit}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>{item.quantity}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'right' }}>{costText(money.format(item.currentCost))}</td>
-                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600 }}>
-                        {costText(money.format(item.totalCost))}
-                      </td>
+                    <tr key={item.id}>
+                      <td><b>{item.code}</b></td>
+                      <td>{item.description}</td>
+                      <td className="kp-c">{item.unit}</td>
+                      <td className="kp-n">{item.quantity}</td>
+                      <td className="kp-n">{costText(money.format(item.currentCost))}</td>
+                      <td className="kp-n"><b>{costText(money.format(item.totalCost))}</b></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <p style={{ marginTop: '12px', fontSize: '10px', color: 'var(--muted)' }}>
+            <p className="kp-note">
               Ao inserir o kit, cada produto será adicionado como uma linha independente na proposta com seu snapshot de custo atual.
             </p>
           </div>
