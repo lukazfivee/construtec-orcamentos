@@ -3,7 +3,7 @@
 // So leva precos de venda: custo, BDI e margem nunca entram, com ou sem a permissao p10.
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { getProposalFinancials } from '../shared/proposalFinancials';
-import { CLOSING_END_MARK } from './proposalClosingEnd';
+import { CLOSING_END_MARK, SHEET_END_MARK } from './proposalClosingEnd';
 import { buildProposalHtml } from './proposalDocument';
 import { date, escapeHtml, money } from './proposalDocumentCommon';
 
@@ -71,9 +71,9 @@ export const buildMobileProposalHtml = (proposal: ProposalDetail, settings: AppS
     .m-validity{margin:8mm 0 0;font-family:Arial,Helvetica,sans-serif;font-size:9pt;color:#334155}
   </style>`;
   // Com o fechamento ancorado no fim da ultima pagina, o aviso de validade fica junto dele (nao numa pagina so dele).
-  const anchored = html.includes(CLOSING_END_MARK);
+  const anchor = [CLOSING_END_MARK, SHEET_END_MARK].find((mark) => html.includes(mark));
   return html
     .replace('</head>', `${style}</head>`)
     .replace(/<body([^>]*)>/, `<body$1>${cover}`)
-    .replace(anchored ? CLOSING_END_MARK : '</body>', anchored ? validity : `${validity}</body>`);
+    .replace(anchor ?? '</body>', anchor ? validity : `${validity}</body>`);
 };

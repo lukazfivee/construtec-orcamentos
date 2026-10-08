@@ -7,7 +7,7 @@ import type { ProposalDetail } from '../shared/contracts';
 import pdfPageCss from '../proposal-pdf-page.css?raw';
 import { isCloudRuntime, proposalApi, settingsApi } from './api';
 import { setPdfFlowCss } from './proposalPdfFlow';
-import { openExternalUrl, printDocument } from './proposalPdfActions';
+import { openExternalUrl, savePdfDocument } from './proposalPdfActions';
 import { ProposalClientLinkDrawer } from './ProposalClientLinkDrawer';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
 import {
@@ -123,7 +123,12 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
 
   const download = async () => {
     setBusy(true);
-    try { printDocument(await fetchDocument()); showNotice('Escolha "Salvar como PDF" na janela de impressão.'); }
+    try {
+      if (!proposal) throw new Error('Proposta não carregada.');
+      const { saved } = await savePdfDocument(proposal, await fetchDocument());
+      if (saved) showNotice(`PDF salvo: ${saved}`);
+      else if (!window.construtec?.savePdf) showNotice('Escolha "Salvar como PDF" na janela de impressão.');
+    }
     catch (error) { showNotice(error instanceof Error ? error.message : 'Não foi possível montar o PDF agora.'); }
     finally { setBusy(false); }
   };

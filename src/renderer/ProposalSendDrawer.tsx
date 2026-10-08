@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FileText, Loader2, Send } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { proposalApi } from './api';
-import { openExternalUrl, printDocument } from './proposalPdfActions';
+import { openExternalUrl, savePdfDocument } from './proposalPdfActions';
 import { isValidEmail, sanitizeWhatsAppPhone } from './ProposalShareDialog';
 import { pdfDefaultMessage, pdfFileName, revLabel, type PdfChoices } from './proposalPdfPages';
 
@@ -39,7 +39,7 @@ export function ProposalSendDrawer({ proposal, choices, fetchDocument, onClose, 
     setProblem('');
     try {
       const html = await fetchDocument();
-      printDocument(html);
+      await savePdfDocument(proposal, html);
       if (cleanPhone) openExternalUrl(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`);
       if (email.trim()) {
         const subject = `Proposta ${proposal.number} · Construtec`;

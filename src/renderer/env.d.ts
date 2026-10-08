@@ -19,6 +19,7 @@ declare global {
       webmailLogout?: () => Promise<{ success: boolean }>;
       previewProposal: (proposal: ProposalDetail, options?: ProposalExportOptions) => Promise<{ opened: boolean }>;
       exportProposal: (proposal: ProposalDetail, options?: ProposalExportOptions) => Promise<{ canceled: boolean; files: string[] }>;
+      savePdf?: (proposal: ProposalDetail, html: string, suggestedName: string) => Promise<{ canceled: boolean; filePath?: string }>;
       saveBackup: (bytes: Uint8Array, suggestedName: string) => Promise<{ canceled: boolean; filePath?: string }>;
       restoreBackup: (sessionToken: string) => Promise<{ canceled: boolean; restarting: boolean; emergencyBackupPath?: string }>;
       selectCatalogImport: (kind: 'table' | 'image') => Promise<CatalogImportFile>;

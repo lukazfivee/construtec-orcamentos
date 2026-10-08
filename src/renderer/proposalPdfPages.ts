@@ -3,7 +3,7 @@
 // vem do servidor (GET /api/proposals/:id/document), que tambem nao os envia.
 import type { AppSettings, ProposalDetail } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
-import { commercialLaborTotal, escapeHtml, parseCommercialConditions } from '../documents/proposalDocumentCommon';
+import { commercialLaborTotal, escapeHtml, parseCommercialConditions, proposalFileBaseName } from '../documents/proposalDocumentCommon';
 import { CONSTRUTEC_LOGO_SMALL_BASE64, CONSTRUTEC_WATERMARK_SMALL_BASE64 } from '../assets/previewImagesBase64';
 import { bodyTextAtoms } from './proposalPdfBodyPages';
 import { flowPages, type FlowAtom } from './proposalPdfFlow';
@@ -54,7 +54,7 @@ export const effectiveChoices = (choices: PdfChoices, proposal: ProposalDetail):
 export const pdfQuery = (choices: PdfChoices) =>
   `modelo=${choices.modelo}&capa=${choices.capa ? 1 : 0}&condicoes=${choices.condicoes ? 1 : 0}&validade=${choices.validade ? 1 : 0}${choices.marca === null ? '' : `&marca=${choices.marca ? 1 : 0}`}`;
 
-export const pdfFileName = (proposal: ProposalDetail) => `${proposal.number}-${revLabel(proposal.revision).replace(' ', '-')}`;
+export const pdfFileName = (proposal: ProposalDetail) => proposalFileBaseName(proposal);
 
 type Row = { weight: number } & ({ cat: string; sum: number } | { item: { description: string; quantity: number; unit: string; unitSale: number; totalSale: number } });
 

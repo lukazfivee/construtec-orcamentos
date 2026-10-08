@@ -23,25 +23,27 @@ export const BODY_HTML_CSS = `
     table.summary { break-before: avoid; page-break-before: avoid; }
     .pricing-caption { margin: 1.5mm 0 0; padding: 1.6mm 2mm; background: #eaf3f6; border-left: 3px solid #12A9D1; color: #163d69; font-weight: bold; font-size: 8pt; text-align: center; break-after: avoid; page-break-after: avoid; }`;
 
-// Texto de uma propriedade `content` do CSS: aspas, barra e quebra de linha escapadas.
-const cssText = (value: string) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, '\\A ')}"`;
+export type LetterCssInput = { logoBase64: string | null };
 
-export type LetterCssInput = { logoBase64: string | null; brand: string; reference: string; footer: string };
-
-// Proposta com carta de abertura: formato de carta (texto maior, titulos sem filete). Cabecalho com logo e rodape com
-// pagina saem em todas as paginas pelas caixas de margem do @page; na tela o cabecalho fica no topo do documento.
+// Proposta com carta de abertura: formato de carta (texto maior, titulos sem filete). Cabecalho com logo e rodape ficam
+// numa tabela de verdade: o cabecalho repete em cada pagina pelo grupo de cabecalho; o rodape fica fixo no pe de cada pagina,
+// com um espaco reservado no grupo de rodape para o texto nunca passar por baixo dele. Nada disso depende das caixas de margem
+// do @page (que varios motores de impressao ignoram).
+// So o numero da pagina usa a caixa de margem; onde ela nao existe o numero fica de fora e o resto sai igual.
+// Na tela o cabecalho fica no topo do documento e o rodape nao aparece.
 export const letterHtmlCss = (input: LetterCssInput): string => {
   const rule = '2px solid #163d69';
-  const logo = input.logoBase64 ? 'var(--run-logo) no-repeat left bottom 2mm / auto 15mm' : 'none';
+  const logo = input.logoBase64 ? 'var(--run-logo) no-repeat left bottom / auto 15mm' : 'none';
   return `
     :root { ${input.logoBase64 ? `--run-logo: url(data:image/png;base64,${input.logoBase64});` : ''} }
     @page {
-      margin: 38mm 16mm 24mm;
-      @top-left { margin-bottom: 4mm; content: ${input.logoBase64 ? '""' : cssText(input.brand)}; width: 60%; background: ${logo}; border-bottom: ${rule}; font: bold 13pt Arial, sans-serif; color: #163d69; vertical-align: bottom; padding-bottom: 2mm; }
-      @top-right { margin-bottom: 4mm; content: ${cssText(input.reference)}; width: 40%; border-bottom: ${rule}; font: 7.5pt Arial, sans-serif; color: #52616b; text-align: right; vertical-align: bottom; padding-bottom: 2mm; }
-      @bottom-left { margin-top: 3mm; content: ${cssText(input.footer)}; width: 82%; border-top: 2px solid #12A9D1; font: 7pt/1.35 Arial, sans-serif; color: #334155; white-space: pre-line; vertical-align: top; padding-top: 1.5mm; }
-      @bottom-right { margin-top: 3mm; content: "Pág. " counter(page) " / " counter(pages); width: 18%; border-top: 2px solid #12A9D1; font: 7.5pt Arial, sans-serif; color: #334155; text-align: right; vertical-align: top; padding-top: 1.5mm; }
+      margin: 12mm 16mm 7mm;
+      @bottom-right { content: "Pág. " counter(page) " / " counter(pages); font: 7.5pt Arial, sans-serif; color: #334155; text-align: right; vertical-align: middle; }
     }
+    table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; line-height: inherit; }
+    table.sheet > thead, table.sheet > tbody, table.sheet > tfoot { break-after: auto; }
+    table.sheet > thead > tr, table.sheet > tbody > tr, table.sheet > tfoot > tr { break-inside: auto; page-break-inside: auto; }
+    table.sheet > thead > tr > td, table.sheet > tbody > tr > td, table.sheet > tfoot > tr > td { padding: 0; border: 0; font-size: inherit; vertical-align: top; overflow-wrap: normal; }
     body { font-size: 10pt; line-height: 1.5; }
     .run-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; border-bottom: ${rule}; padding-bottom: 2mm; margin: 0 0 7mm; }
     .run-logo { height: 15mm; width: 60mm; background: ${logo}; }
@@ -63,7 +65,10 @@ export const letterHtmlCss = (input: LetterCssInput): string => {
     .closing-block { margin-top: 4mm; break-inside: avoid; page-break-inside: avoid; }
     .closing-block .signature { margin-top: 14mm; font-size: 9pt; }
     .document-footer { margin-top: 10mm; }
-    @media print { .run-header { display: none; } }`;
+    .run-footer-space { height: 17mm; }
+    .run-footer { position: fixed; left: 0; right: 0; bottom: 0; height: 14mm; border-top: 2px solid #12A9D1; padding-top: 1.5mm; font: 7pt/1.35 Arial, sans-serif; color: #334155; white-space: pre-line; overflow: hidden; }
+    @media screen { table.sheet > tfoot, .run-footer { display: none; } }
+    @media print { .run-header { height: 22mm; margin: 0 0 4mm; } }`;
 };
 
 export type BodyHtmlContext = { showSignature: boolean; company: string; brand: string };

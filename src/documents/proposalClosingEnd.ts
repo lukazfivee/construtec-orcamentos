@@ -7,3 +7,7 @@ export const closingEndCss = `
 
 // Fim do bloco do fechamento: quem acrescenta texto no final do documento (aviso de validade do celular) o coloca aqui.
 export const CLOSING_END_MARK = '<!--closing-end-->';
+
+// Fim do corpo do documento com carta (dentro do grupo do meio da tabela de cabecalho e rodape): sem fechamento ancorado,
+// o aviso de validade do celular entra aqui, antes do rodape repetido.
+export const SHEET_END_MARK = '<!--sheet-end-->';
