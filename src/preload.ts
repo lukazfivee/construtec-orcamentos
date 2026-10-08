@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('construtec', {
+  titleBar: process.platform === 'win32',
+  setTitleBarColors: (color: string, symbolColor: string) => ipcRenderer.invoke('window:titlebar-colors', color, symbolColor),
   runtime: () => ipcRenderer.invoke('app:runtime'),
   openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
   openWebmail: (composeData?: unknown) => ipcRenderer.invoke('webmail:open', composeData),

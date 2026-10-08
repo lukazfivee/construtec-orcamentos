@@ -1,1 +1,1 @@
-PDF com a marca d água da logo no meio de cada página (bem clara), rodapé com empresa, CNPJ e número da página em todas as propostas, e nome do arquivo sem repetir cliente e obra.
+Barra de título própria na cor do app, com a logo e um efeito de luz que acompanha o mouse e corre pela borda; os botões do Windows seguem a cor do tema.
