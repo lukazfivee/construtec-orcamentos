@@ -1,1 +1,1 @@
-Atualização pelo próprio aplicativo: avisa quando há versão nova e instala sem precisar baixar o instalador. Tema escuro (Configurações > Aparência), correções visuais em toda a interface e mensagens sem emojis.
+PDF da proposta com o timbrado da Construtec em todas as páginas e nome do arquivo Proposta_Construtec_CLIENTE_Obra; o app salva o PDF direto, sem passar pela janela de impressão.
