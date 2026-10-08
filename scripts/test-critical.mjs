@@ -21,6 +21,7 @@ const entryPoints = [
   'src/server/services/exsatSync.test.ts',
   'src/server/routes/exsat.test.ts',
   'src/main/updater.test.ts',
+  'src/main/suite-bundle.test.ts',
   'src/server/services/integration/integration-key.test.ts',
   'src/server/services/centro-identity.test.ts',
   'src/server/suiteGuard.test.ts',
