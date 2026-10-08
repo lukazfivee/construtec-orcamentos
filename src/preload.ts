@@ -1,10 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('construtec', {
-  titleBar: process.platform === 'win32',
+  // No app Suíte (preload gerado com CONSTRUTEC_SUITE=1) a janela e a barra de título são do Centro.
+  titleBar: process.platform === 'win32' && process.env.CONSTRUTEC_SUITE !== '1',
   setTitleBarColors: (color: string, symbolColor: string) => ipcRenderer.invoke('window:titlebar-colors', color, symbolColor),
   runtime: () => ipcRenderer.invoke('app:runtime'),
   openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
+  // Só responde no app Suíte unificado; no app avulso o canal não existe e o menu abre o Centro no navegador.
+  suiteSwitch: (target: 'centro' | 'orcamentos', hash?: string) => ipcRenderer.invoke('suite:switch', target, hash),
   openWebmail: (composeData?: unknown) => ipcRenderer.invoke('webmail:open', composeData),
   webmailStatus: () => ipcRenderer.invoke('webmail:status'),
   webmailLogout: () => ipcRenderer.invoke('webmail:logout'),

@@ -25,9 +25,11 @@ const ICONS: Record<SuiteAppId, LucideIcon> = {
 export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, onClose }: SuiteSwitcherPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [centroUrl, setCentroUrl] = useState(CENTRO_CUSTOS_CLOUD_URL);
+  const [suiteApp, setSuiteApp] = useState(false);
 
   useEffect(() => {
     void getCentroCustosUrl().then(setCentroUrl);
+    void window.construtec?.runtime().then((runtime) => setSuiteApp(runtime.suite === true)).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -78,7 +80,13 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
       void window.construtec.openWebmail();
       onClose();
     } else if (entry.id === 'centro-custos') {
-      handleOpenUrl(centroUrl);
+      // No app Suíte o Centro é a outra tela da mesma janela; fora dele abre no navegador.
+      if (window.construtec?.suiteSwitch && suiteApp) {
+        void window.construtec.suiteSwitch('centro');
+        onClose();
+      } else {
+        handleOpenUrl(centroUrl);
+      }
     } else if (entry.id === 'orcamentos') {
       onSelectApp?.('orcamentos');
       onClose();
