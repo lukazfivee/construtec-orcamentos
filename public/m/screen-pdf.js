@@ -59,7 +59,7 @@
   // Nome do arquivo: Proposta_Construtec_CLIENTE_Obra (mesma regra do computador; REV so da segunda revisao em diante).
   function fileBase(p) {
     const seg = (v) => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+[-–—]+\s+/g, ' ').trim().replace(/\s+/g, '_').slice(0, 70).replace(/^[._]+|[._]+$/g, '');
-    const client = seg(p.clientName), work = seg(p.workName);
+    const client = seg(p.clientName), name = seg(p.workName), work = name.toLowerCase() === client.toLowerCase() ? '' : name;
     const rev = p.revision > 0 ? 'REV_' + String(p.revision).padStart(2, '0') : '';
     return ['Proposta', 'Construtec', client, work, client || work ? '' : seg(p.number), rev].filter(Boolean).join('_');
   }

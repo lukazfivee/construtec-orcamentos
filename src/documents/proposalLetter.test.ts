@@ -62,7 +62,8 @@ test('sem a carta o layout de sempre continua igual; a assinatura global some so
   assert.match(legacy, /class="identity"/);
   assert.match(legacy, /<h1>PROPOSTA TÉCNICA COMERCIAL<\/h1>/);
   assert.match(legacy, /Permanecemos à disposição/);
-  assert.doesNotMatch(legacy, /run-header|run-footer|class="sheet"/);
+  assert.doesNotMatch(legacy, /run-header/);
+  assert.match(legacy, /<table class="sheet"><tbody>[\s\S]*<tfoot>[\s\S]*<div class="run-footer">Construtec Teste Ltda • CNPJ:/, 'rodape do timbrado tambem no modelo sem carta');
   const noClosing = letterBlocks().filter((block) => block.type !== 'fechamento');
   const html = buildProposalHtml(make(noClosing), settings);
   assert.match(html, /Permanecemos à disposição/);
@@ -72,14 +73,12 @@ test('sem a carta o layout de sempre continua igual; a assinatura global some so
   assert.match(noSign, /No aguardo de breve pronunciamento/);
 });
 
-test('carta sem logo usa o nome da marca e opcoes do PDF seguem o cabecalho do CSS', () => {
+test('carta sem logo usa o nome da marca e opcoes do PDF nao acrescentam cabecalho', () => {
   const html = buildProposalHtml(make(letterBlocks()), { ...settings, pdfShowLogo: false });
   assert.match(html, /<span class="run-brand">CONSTRUTEC<\/span>/);
   assert.doesNotMatch(html, /--run-logo/);
-  assert.equal(proposalPdfOptions(make(letterBlocks()), settings).displayHeaderFooter, false);
-  assert.equal(proposalPdfOptions(make(null), settings).displayHeaderFooter, true);
-  const off = letterBlocks().map((block) => (block.type === 'carta' ? { ...block, enabled: false } : block));
-  assert.equal(proposalPdfOptions(make(off), settings).displayHeaderFooter, true);
+  // Cabecalho, rodape e pagina vem do proprio documento: o app nao acrescenta cabecalho/rodape por cima.
+  assert.equal(proposalPdfOptions().displayHeaderFooter, false);
 });
 
 test('documento do cliente com carta nunca leva custo, BDI ou margem', () => {
@@ -149,4 +148,23 @@ test('nome do arquivo do PDF: Proposta_Construtec_CLIENTE_Obra, acentos mantidos
   assert.equal(proposalFileBaseName({ ...named, revision: 2 } as ProposalDetail), 'Proposta_Construtec_HAERO_Instalação_Sistema_tel_IP_ANTI_ESTATICO_ELEVADORES_REV_02');
   assert.equal(proposalFileBaseName({ ...named, clientName: 'A/B: "C"?', workName: 'Obra - Fase 1 | *x*' } as ProposalDetail), 'Proposta_Construtec_A_B_C_Obra_Fase_1_x');
   assert.equal(proposalFileBaseName({ ...named, clientName: '', workName: '' } as ProposalDetail), 'Proposta_Construtec_PA-1042');
+});
+
+test('nome do arquivo: obra igual ao cliente nao se repete', async () => {
+  const { proposalFileBaseName } = await import('./proposalDocumentCommon');
+  const same = { ...make(null), clientName: 'Edifício Horizonte', workName: 'edifício horizonte' } as ProposalDetail;
+  assert.equal(proposalFileBaseName(same), 'Proposta_Construtec_Edifício_Horizonte');
+});
+
+test('marca d agua: logo colorida bem clara no meio de cada pagina, sem o fundo do body cobrindo, nos dois modelos', () => {
+  const on = { ...settings, pdfWatermark: true } as AppSettings;
+  for (const proposal of [make(null), make(letterBlocks())]) {
+    const html = buildProposalHtml(proposal, on);
+    assert.match(html, /<div class="watermark" aria-hidden="true"><\/div>/);
+    assert.match(html, /\.watermark \{ position: fixed;[^}]*opacity: 0\.1;[^}]*z-index: -1;/);
+    // o fundo branco fica so no html: um fundo no body taparia a marca (z-index negativo)
+    assert.match(html, /html \{ background: #fff; \}/);
+    assert.doesNotMatch(html, /html, body \{[^}]*background/);
+    assert.doesNotMatch(buildProposalHtml(proposal, { ...on, pdfWatermark: false } as AppSettings), /<div class="watermark"/);
+  }
 });

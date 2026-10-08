@@ -1,43 +1,20 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
 import { CLOSING_END_MARK, SHEET_END_MARK, closingEndCss } from './proposalClosingEnd';
-import { BODY_HTML_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
+import { BODY_HTML_CSS, SHEET_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
 import { escapeHtml, groupItemsByCategory, money, proposalFileBaseName, quantity } from './proposalDocumentCommon';
-import { proposalLogoBase64, proposalPresentation, proposalWatermarkBase64, watermarkEnabled } from './proposalPresentation';
+import { proposalLogoBase64, proposalPresentation, watermarkEnabled } from './proposalPresentation';
 
 export { proposalFileBaseName } from './proposalDocumentCommon';
 export { buildProposalDocx, buildProposalDocxBlob } from './proposalDocx';
 
-const hasLetterBody = (proposal: ProposalDetail) => Boolean(proposal.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled));
-
-export const proposalPdfOptions = (
-  proposal: ProposalDetail,
-  settings?: AppSettings,
-  options?: ProposalExportOptions
-): Record<string, unknown> => {
-  const content = proposalPresentation(proposal, settings, options);
-  return {
-    format: 'A4',
-    printBackground: true,
-    preferCSSPageSize: true,
-    margins: { top: 12 / 25.4, bottom: 18 / 25.4, left: 14 / 25.4, right: 14 / 25.4 },
-    // Com carta de abertura, cabecalho e rodape saem pelo CSS do documento (caixas de margem do @page).
-    displayHeaderFooter: !hasLetterBody(proposal),
-    headerTemplate: '<div></div>',
-    footerTemplate: `<div style="width:100%;box-sizing:border-box;margin:0;padding:0 14mm;font-size:7pt;font-family:Arial,Helvetica,sans-serif;color:#1e293b;line-height:1.4;-webkit-print-color-adjust:exact;">
-      <div style="width:100%;height:2px;background:#12A9D1;margin-bottom:3px;-webkit-print-color-adjust:exact;"></div>
-      <table style="width:100%;border-collapse:collapse;border:none;">
-        <tr>
-          <td style="font-weight:bold;color:#163d69;font-size:7.5pt;letter-spacing:0.2px;padding:0;">${escapeHtml(content.company)} • CNPJ: ${escapeHtml(content.cnpj)}</td>
-          <td style="text-align:right;color:#334155;font-size:7.5pt;padding:0;">Pág. <span class="pageNumber"></span> / <span class="totalPages"></span></td>
-        </tr>
-        <tr>
-          <td colspan="2" style="color:#52616b;font-size:6.8pt;padding-top:1px;">Sede: ${escapeHtml(content.address)} &bull; Contato: ${escapeHtml(content.phone)} &bull; ${escapeHtml(content.email)}</td>
-        </tr>
-      </table>
-    </div>`,
-  };
-};
+// Cabecalho, rodape e numero de pagina saem pelo proprio documento (tabela do timbrado e @page), igual no app e no navegador.
+export const proposalPdfOptions = (): Record<string, unknown> => ({
+  format: 'A4',
+  printBackground: true,
+  preferCSSPageSize: true,
+  displayHeaderFooter: false,
+});
 
 export const buildProposalHtml = (
   proposal: ProposalDetail,
@@ -180,7 +157,8 @@ Contato: ${content.phone} • ${content.email}`;
   <style>
     @page { size: A4; margin: 12mm 14mm 18mm; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #fff; color: #17252d; }
+    html, body { margin: 0; padding: 0; color: #17252d; }
+    html { background: #fff; }
     body { font: 9.5pt Arial, Helvetica, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
     
     .timbrado-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid #12A9D1; padding-bottom: 3.5mm; margin-bottom: 4mm; break-inside: avoid; page-break-inside: avoid; }
@@ -241,19 +219,20 @@ Contato: ${content.phone} • ${content.email}`;
     .footer-text { font-size: 6.8pt; color: #1e293b; line-height: 1.35; margin-bottom: 1px; }
     .footer-text b { font-weight: bold; color: #0f172a; }
     
-    .watermark { position: fixed; top: 50%; left: 50%; width: 150mm; height: 55mm; margin: -27.5mm 0 0 -75mm; background: url(data:image/png;base64,${proposalWatermarkBase64()}) center / contain no-repeat; z-index: -1; pointer-events: none; }
+    .watermark { position: fixed; top: 50%; left: 50%; width: 150mm; height: 55mm; margin: -27.5mm 0 0 -75mm; background: url(data:image/png;base64,${logo}) center / contain no-repeat; opacity: 0.1; z-index: -1; pointer-events: none; }
     @media screen {
       body { max-width: 210mm; margin: 15px auto; padding: 14mm; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.12); border-radius: 3px; }
     }
     @media print {
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .document-footer { display: none; }
-    }${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? closingEndCss : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null }) : ''}
+    }${SHEET_CSS}${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? closingEndCss : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null }) : ''}
   </style>
 </head>
 <body>
   ${watermark ? '<div class="watermark" aria-hidden="true"></div>' : ''}
-  ${hasLetter ? `<table class="sheet"><thead><tr><td>${runHeader}</td></tr></thead><tbody><tr><td>` : `<header class="timbrado-header">
+  <table class="sheet">${hasLetter ? `<thead><tr><td>${runHeader}</td></tr></thead>` : ''}<tbody><tr><td>
+  ${hasLetter ? '' : `<header class="timbrado-header">
     <div class="timbrado-left">
       ${showLogo ? `<img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">` : ''}
       <div class="timbrado-company">
@@ -300,9 +279,9 @@ ${main}
     <div class="footer-text"><b>Sede:</b> ${escapeHtml(content.address)} &bull; Contato: ${escapeHtml(content.phone)}</div>
     <div class="footer-text"><b>E-mail:</b> ${escapeHtml(content.email)}</div>
   </footer>
-  ${hasLetter ? `${SHEET_END_MARK}
+  ${SHEET_END_MARK}
   </td></tr></tbody><tfoot><tr><td><div class="run-footer-space"></div></td></tr></tfoot></table>
-  <div class="run-footer">${escapeHtml(runFooter)}</div>` : ''}
+  <div class="run-footer">${escapeHtml(runFooter)}</div>
 </body>
 </html>`;
 };

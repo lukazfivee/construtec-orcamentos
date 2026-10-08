@@ -148,7 +148,7 @@ app.whenReady().then(async () => {
     if (options?.format !== 'docx') {
       const pdfWindow = await loadDocumentWindow(proposal, false, settings, options);
       try {
-        const pdf = await pdfWindow.webContents.printToPDF(proposalPdfOptions(proposal, settings, options));
+        const pdf = await pdfWindow.webContents.printToPDF(proposalPdfOptions());
         await writeFile(pdfPath, pdf);
         exportedFiles.push(pdfPath);
       } finally {
@@ -172,7 +172,7 @@ app.whenReady().then(async () => {
     const pdfWindow = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
     try {
       await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
-      await writeFile(selection.filePath, await pdfWindow.webContents.printToPDF(proposalPdfOptions(proposal, settings)));
+      await writeFile(selection.filePath, await pdfWindow.webContents.printToPDF(proposalPdfOptions()));
     } finally {
       pdfWindow.destroy();
     }
