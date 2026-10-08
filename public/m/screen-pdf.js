@@ -56,6 +56,13 @@
     return out.map((pg, i) => ({ ...pg, html: `<div class="pg">${pg.html}${foot(i + 1)}</div>` }));
   }
 
+  // Nome do arquivo: Proposta_Construtec_CLIENTE_Obra (mesma regra do computador; REV so da segunda revisao em diante).
+  function fileBase(p) {
+    const seg = (v) => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+[-–—]+\s+/g, ' ').trim().replace(/\s+/g, '_').slice(0, 70).replace(/^[._]+|[._]+$/g, '');
+    const client = seg(p.clientName), work = seg(p.workName);
+    const rev = p.revision > 0 ? 'REV_' + String(p.revision).padStart(2, '0') : '';
+    return ['Proposta', 'Construtec', client, work, client || work ? '' : seg(p.number), rev].filter(Boolean).join('_');
+  }
   // Arquivo do cliente: HTML do PDF montado no servidor (com a sessao).
   async function fetchDocument(p, c) {
     let response;
@@ -63,16 +70,22 @@
       response = await fetch(`/api/proposals/${encodeURIComponent(p.id)}/document?${query(c)}`, { headers: { 'X-Construtec-Session': OC.session.token() }, cache: 'no-store' });
     } catch { throw new OC.ApiError(0, 'Sem internet. Confira a conexão e tente de novo.'); }
     if (!response.ok) throw new OC.ApiError(response.status, 'Não foi possível montar o PDF agora.');
-    const name = `${p.number}-${OC.rev(p.revision).replace(' ', '-')}.html`;
-    return { html: await response.text(), name };
+    const title = fileBase(p);
+    return { html: await response.text(), title, name: `${title}.html` };
   }
   // Abre a impressao do aparelho: "Salvar como PDF" gera o arquivo.
-  function printDocument(html) {
+  // O nome sugerido pelo aparelho vem do titulo da pagina: o do app e o do documento ficam com o nome do arquivo durante a impressao.
+  function printDocument(doc) {
     const frame = document.createElement('iframe');
     frame.style.cssText = 'position:fixed;width:0;height:0;border:0;opacity:0';
     document.body.appendChild(frame);
-    frame.srcdoc = html;
-    frame.onload = () => { try { frame.contentWindow.focus(); frame.contentWindow.print(); } finally { setTimeout(() => frame.remove(), 60000); } };
+    frame.srcdoc = doc.html;
+    frame.onload = () => {
+      const appTitle = document.title;
+      document.title = doc.title;
+      const restore = () => { document.title = appTitle; };
+      try { frame.contentWindow.addEventListener('afterprint', restore); frame.contentWindow.focus(); frame.contentWindow.print(); } finally { setTimeout(() => { restore(); frame.remove(); }, 60000); }
+    };
   }
   function download(doc) {
     const url = URL.createObjectURL(new Blob([doc.html], { type: 'text/html' }));
@@ -144,7 +157,7 @@
         } else if (kind === 'file') {
           await shareFile(await fetchDocument(p, c), message(p));
         } else {
-          printDocument((await fetchDocument(p, c)).html);
+          printDocument(await fetchDocument(p, c));
         }
         s.close();
       } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
@@ -266,7 +279,7 @@
     const printButton = OC.$('[data-print]', body);
     if (printButton) printButton.addEventListener('click', async () => {
       printButton.disabled = true;
-      try { printDocument((await fetchDocument(p, c)).html); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { printButton.disabled = false; }
+      try { printDocument(await fetchDocument(p, c)); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { printButton.disabled = false; }
     });
     const linkButton = OC.$('[data-link]', body);
     if (linkButton) linkButton.addEventListener('click', () => OC.open('link', { id: p.id }));

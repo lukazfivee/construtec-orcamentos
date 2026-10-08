@@ -158,6 +158,27 @@ app.whenReady().then(async () => {
     return { canceled: false, files: exportedFiles };
   });
 
+  // PDF da tela "PDF da proposta": o app mesmo gera o arquivo (mesmo caminho da exportacao), com o timbrado e o nome combinado.
+  ipcMain.handle('documents:save-pdf', async (event, proposal: ProposalDetail, html: string, suggestedName: string) => {
+    const safeName = path.basename(String(suggestedName || "Proposta_Construtec.pdf")).replace(/[<>:"/|?*]/g, "_");
+    const selection = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender) ?? undefined as never, {
+      title: 'Salvar o PDF da proposta',
+      defaultPath: path.join(app.getPath('documents'), safeName),
+      buttonLabel: 'Salvar PDF',
+      filters: [{ name: 'PDF', extensions: ['pdf'] }],
+    });
+    if (selection.canceled || !selection.filePath) return { canceled: true };
+    const settings = await fetchAppSettings();
+    const pdfWindow = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
+    try {
+      await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+      await writeFile(selection.filePath, await pdfWindow.webContents.printToPDF(proposalPdfOptions(proposal, settings)));
+    } finally {
+      pdfWindow.destroy();
+    }
+    return { canceled: false, filePath: selection.filePath };
+  });
+
   ipcMain.handle('backup:save', async (_event, bytes: Uint8Array, suggestedName: string) => {
     const safeName = path.basename(suggestedName || 'Construtec-Orcamentos-backup.tar.gz');
     const selection = await dialog.showSaveDialog({

@@ -86,8 +86,23 @@ export const commercialLaborTotal = (proposal: ProposalDetail) => {
   return laborCost > 0 ? roundMoney(laborCost * proposal.bdiMultiplier * (1 + (proposal.taxPercentage ?? 0) / 100)) : 0;
 };
 
-export const proposalFileBaseName = (proposal: ProposalDetail) =>
-  `Proposta-${documentTitle(proposal)}`.replace(/[^a-zA-Z0-9._-]/g, '-');
+// Trecho do nome do arquivo: sem caracteres proibidos no Windows, espacos viram "_" e os acentos ficam.
+const fileSegment = (value: string | null | undefined, max = 70) => (value ?? '')
+  .replace(/[\\/:*?"<>|]/g, ' ')
+  .replace(/\p{Cc}/gu, ' ')
+  .replace(/\s+[-–—]+\s+/g, ' ')
+  .trim()
+  .replace(/\s+/g, '_')
+  .slice(0, max)
+  .replace(/^[._]+|[._]+$/g, '');
+
+// Proposta_Construtec_CLIENTE_Obra; a revisao so aparece da segunda em diante (REV_01), para nao sobrescrever o arquivo anterior.
+export const proposalFileBaseName = (proposal: ProposalDetail) => {
+  const client = fileSegment(proposal.clientName);
+  const work = fileSegment(proposal.workName);
+  const revision = proposal.revision > 0 ? `REV_${String(proposal.revision).padStart(2, '0')}` : '';
+  return ['Proposta', 'Construtec', client, work, client || work ? '' : fileSegment(proposal.number), revision].filter(Boolean).join('_');
+};
 
 export const groupItemsByCategory = (proposal: ProposalDetail) => {
   const grouped = new Map<string, typeof proposal.items>();

@@ -16,7 +16,7 @@ interface Props {
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const printDocumentHtml = (html: string) => {
+const printDocumentHtml = (html: string, title: string) => {
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
   iframe.style.right = '0';
@@ -32,9 +32,13 @@ const printDocumentHtml = (html: string) => {
     doc.write(html);
     doc.close();
     setTimeout(() => {
+      const appTitle = document.title;
+      const restore = () => { document.title = appTitle; };
+      document.title = title;
+      iframe.contentWindow?.addEventListener('afterprint', restore);
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
-      setTimeout(() => iframe.remove(), 2500);
+      setTimeout(() => { restore(); iframe.remove(); }, 60000);
     }, 350);
   }
 };
@@ -144,7 +148,7 @@ export function ProposalExportDialog({
 
         if (format === 'pdf' || format === 'both') {
           const html = buildProposalHtml(proposal, await loadSettings(), exportOptions);
-          printDocumentHtml(html);
+          printDocumentHtml(html, baseName);
           files.push(`${baseName}.pdf`);
         }
 

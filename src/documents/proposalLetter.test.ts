@@ -41,10 +41,14 @@ test('PDF em HTML com carta: cabecalho e rodape pelo @page, sem quadro de identi
   inOrder(html, ['Vitória / ES, 06 de Agosto de 2026.', 'Cliente Teste', 'At.:', 'Sr. Fulano de Tal', 'REF.: Proposta nº PA-1042', '<h1>Proposta técnica-comercial</h1>', 'Prezados Senhores:',
     '1. Apresentação – CONSTRUTEC', '2. Objetivo', '12. Planilha orçamentária', 'Planilha de mão de obra - Obra Teste', 'Mão de obra especializada', '14.1. Responsabilidades da CONSTRUTEC', '14.2. Responsabilidades do CLIENTE',
     'Esta proposta é válida até 30/12/2026.', 'No aguardo de breve pronunciamento', 'Maria Responsavel']);
-  assert.match(html, /@top-left/);
+  // Timbrado em tabela: cabecalho no grupo que repete em cada pagina, rodape fixo no pe; nao depende das caixas de margem (@top-left etc.).
+  assert.doesNotMatch(html, /@top-left|@bottom-left/);
   assert.match(html, /@bottom-right \{[^}]*counter\(page\)[^}]*counter\(pages\)/);
   assert.match(html, /--run-logo: url\(data:image\/png;base64,/);
-  assert.match(html, /<header class="run-header">/);
+  assert.match(html, /<table class="sheet"><thead><tr><td><header class="run-header">/);
+  assert.match(html, /<tfoot><tr><td><div class="run-footer-space"><\/div><\/td><\/tr><\/tfoot><\/table>\s*<div class="run-footer">Construtec Teste Ltda • CNPJ:/);
+  assert.match(html, /\.run-footer \{ position: fixed;[^}]*bottom: 0;/);
+  assert.match(html, /<title>Proposta_Construtec_Cliente_Teste_Obra_Teste<\/title>/);
   assert.doesNotMatch(html, /class="identity"|timbrado-header">|PROPOSTA TÉCNICA COMERCIAL|Permanecemos à disposição/);
   assert.match(html, /<h3 class="sub">14\.1\. Responsabilidades da CONSTRUTEC<\/h3>/);
   assert.equal((html.match(/class="signature"/g) ?? []).length, 1);
@@ -58,7 +62,7 @@ test('sem a carta o layout de sempre continua igual; a assinatura global some so
   assert.match(legacy, /class="identity"/);
   assert.match(legacy, /<h1>PROPOSTA TÉCNICA COMERCIAL<\/h1>/);
   assert.match(legacy, /Permanecemos à disposição/);
-  assert.doesNotMatch(legacy, /run-header|@top-left/);
+  assert.doesNotMatch(legacy, /run-header|run-footer|class="sheet"/);
   const noClosing = letterBlocks().filter((block) => block.type !== 'fechamento');
   const html = buildProposalHtml(make(noClosing), settings);
   assert.match(html, /Permanecemos à disposição/);
@@ -135,4 +139,14 @@ test('PDF com fechamento: segue o texto, inteiro na mesma pagina, sem pagina for
   assert.equal(mobile.indexOf('<p class="m-validity">') > mobile.indexOf('class="closing-end"'), true);
   const legacy = buildProposalHtml(make(null), settings);
   assert.doesNotMatch(legacy, /closing-end/);
+});
+
+test('nome do arquivo do PDF: Proposta_Construtec_CLIENTE_Obra, acentos mantidos, sem caracteres proibidos e REV so da segunda revisao', async () => {
+  const { proposalFileBaseName } = await import('./proposalDocumentCommon');
+  const base = make(null);
+  const named = { ...base, clientName: 'HAERO', workName: 'Instalação Sistema tel IP ANTI ESTATICO ELEVADORES' } as ProposalDetail;
+  assert.equal(proposalFileBaseName(named), 'Proposta_Construtec_HAERO_Instalação_Sistema_tel_IP_ANTI_ESTATICO_ELEVADORES');
+  assert.equal(proposalFileBaseName({ ...named, revision: 2 } as ProposalDetail), 'Proposta_Construtec_HAERO_Instalação_Sistema_tel_IP_ANTI_ESTATICO_ELEVADORES_REV_02');
+  assert.equal(proposalFileBaseName({ ...named, clientName: 'A/B: "C"?', workName: 'Obra - Fase 1 | *x*' } as ProposalDetail), 'Proposta_Construtec_A_B_C_Obra_Fase_1_x');
+  assert.equal(proposalFileBaseName({ ...named, clientName: '', workName: '' } as ProposalDetail), 'Proposta_Construtec_PA-1042');
 });

@@ -1,8 +1,8 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
-import { CLOSING_END_MARK, closingEndCss } from './proposalClosingEnd';
+import { CLOSING_END_MARK, SHEET_END_MARK, closingEndCss } from './proposalClosingEnd';
 import { BODY_HTML_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
-import { documentTitle, escapeHtml, groupItemsByCategory, money, quantity } from './proposalDocumentCommon';
+import { escapeHtml, groupItemsByCategory, money, proposalFileBaseName, quantity } from './proposalDocumentCommon';
 import { proposalLogoBase64, proposalPresentation, proposalWatermarkBase64, watermarkEnabled } from './proposalPresentation';
 
 export { proposalFileBaseName } from './proposalDocumentCommon';
@@ -176,7 +176,7 @@ Contato: ${content.phone} • ${content.email}`;
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>${escapeHtml(documentTitle(proposal))}</title>
+  <title>${escapeHtml(proposalFileBaseName(proposal))}</title>
   <style>
     @page { size: A4; margin: 12mm 14mm 18mm; }
     * { box-sizing: border-box; }
@@ -248,12 +248,12 @@ Contato: ${content.phone} • ${content.email}`;
     @media print {
       * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .document-footer { display: none; }
-    }${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? closingEndCss : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null, brand: content.brand, reference: runReference, footer: runFooter }) : ''}
+    }${bodyParts ? BODY_HTML_CSS : ''}${closingLast ? closingEndCss : ''}${hasLetter ? letterHtmlCss({ logoBase64: showLogo ? logo : null }) : ''}
   </style>
 </head>
 <body>
   ${watermark ? '<div class="watermark" aria-hidden="true"></div>' : ''}
-  ${hasLetter ? runHeader : `<header class="timbrado-header">
+  ${hasLetter ? `<table class="sheet"><thead><tr><td>${runHeader}</td></tr></thead><tbody><tr><td>` : `<header class="timbrado-header">
     <div class="timbrado-left">
       ${showLogo ? `<img class="timbrado-logo" src="data:image/png;base64,${logo}" alt="${escapeHtml(content.brand)}">` : ''}
       <div class="timbrado-company">
@@ -300,6 +300,9 @@ ${main}
     <div class="footer-text"><b>Sede:</b> ${escapeHtml(content.address)} &bull; Contato: ${escapeHtml(content.phone)}</div>
     <div class="footer-text"><b>E-mail:</b> ${escapeHtml(content.email)}</div>
   </footer>
+  ${hasLetter ? `${SHEET_END_MARK}
+  </td></tr></tbody><tfoot><tr><td><div class="run-footer-space"></div></td></tr></tfoot></table>
+  <div class="run-footer">${escapeHtml(runFooter)}</div>` : ''}
 </body>
 </html>`;
 };
