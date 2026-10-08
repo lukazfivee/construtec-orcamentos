@@ -25,6 +25,8 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
   const [newUser, setNewUser] = useState<NewUserDraft>(emptyUser);
   const [newEmail, setNewEmail] = useState({ email: '', note: '' });
   const [pending, setPending] = useState(false);
+  // Computador sem ligacao com o Centro de Custos: as contas moram la, entao nao e erro, so um aviso quieto no proprio cartao.
+  const [semCentro, setSemCentro] = useState(false);
 
   const fail = (error: unknown, fallback: string) => onError(error instanceof Error ? error.message : fallback);
 
@@ -37,7 +39,9 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
         setUsers(usersResult.users);
         setEmails(emailsResult.emails);
       } catch (error) {
-        if (active) fail(error, 'Não foi possível carregar os usuários.');
+        if (!active) return;
+        if (error instanceof Error && /não configurada neste servidor/i.test(error.message)) setSemCentro(true);
+        else fail(error, 'Não foi possível carregar os usuários.');
       }
     })();
     return () => { active = false; };
@@ -102,6 +106,7 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
 
   return (
     <SettingsCard icon={Users} title="Usuários e Permissões" sub="As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.">
+      {semCentro && <p className="muted">Este computador não está ligado ao Centro de Custos, onde ficam as contas. A lista de usuários aparece aqui quando a ligação estiver configurada.</p>}
       <form onSubmit={createUser} className="st-new-user">
         <label className="od-fld"><span>Nome</span><input className="od-inp" required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>
         <label className="od-fld"><span>E-mail</span><input className="od-inp" required type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} /></label>

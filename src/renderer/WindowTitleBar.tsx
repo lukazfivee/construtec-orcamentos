@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import logoIcon from '../assets/logo-icon.png';
 
-// Barra de titulo propria do app no Windows: mesma cor do menu lateral, com a logo e o nome, uma luz que acompanha o mouse e um
+// Barra de titulo propria do app no Windows: mesma cor do menu lateral, com o nome do app, uma luz que acompanha o mouse e um
 // brilho que corre pela borda de baixo. Os botoes de minimizar, maximizar e fechar continuam sendo os do Windows (titleBarOverlay),
 // pintados na cor da barra. Arrastar a barra move a janela; clique duplo maximiza.
 const toHex = (rgb: string) => {
@@ -40,7 +39,6 @@ export function WindowTitleBar() {
 
   return (
     <div ref={barRef} className={`titlebar${active ? '' : ' inativa'}`} onMouseMove={follow} role="presentation">
-      <img className="titlebar-logo" src={logoIcon} alt="" draggable={false} />
       <span className="titlebar-title">Construtec Orçamentos</span>
       <i className="titlebar-shine" aria-hidden="true" />
     </div>
