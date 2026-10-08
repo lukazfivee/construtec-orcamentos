@@ -215,6 +215,14 @@ export const ProposalPreviewSheet: React.FC<ProposalPreviewSheetProps> = ({
     if (part.kind === 'fechamento') return <ClosingPreview key={index} part={part} company="LAC CONSTRUTEC CONSTRUTORA EIRELI" brand="CONSTRUTEC" showSignature />;
     if (part.kind === 'heading') return <div key={index} className={part.sub ? 'sheet-h3' : 'sheet-h2'}>{part.text}</div>;
     if (part.kind === 'paragraph') return <p key={index} className="sheet-copy" style={{ whiteSpace: 'pre-line' }}>{part.lines.join('\n')}</p>;
+    if (part.kind === 'planilha') {
+      return (
+        <table key={index} className="sheet-pricing-table">
+          {part.headers.some(Boolean) && <thead><tr>{part.headers.map((header, at) => <th key={at} className={part.align[at] === 'right' ? 'number' : undefined}>{header}</th>)}</tr></thead>}
+          <tbody>{part.rows.map((row, at) => <tr key={at}>{row.map((value, column) => <td key={column} className={part.align[column] === 'right' ? 'number' : undefined}>{value}</td>)}</tr>)}</tbody>
+        </table>
+      );
+    }
     return <ul key={index} className="sheet-copy">{part.items.map((item, at) => <li key={at}>{item}</li>)}</ul>;
   };
 

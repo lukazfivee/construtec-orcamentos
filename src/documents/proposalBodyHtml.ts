@@ -8,6 +8,13 @@ export const BODY_HTML_CSS = `
     table.summary + .body-p, table.summary + ul.body-list { margin-top: 3mm; }
     ul.body-list { margin: 0 0 2mm; padding-left: 5mm; font-size: 8.5pt; }
     ul.body-list li { margin: 0 0 0.8mm; overflow-wrap: anywhere; break-inside: avoid; page-break-inside: avoid; }
+    table.body-table { width: 100%; border-collapse: collapse; margin: 0 0 3mm; font-size: 8.3pt; line-height: 1.3; }
+    table.body-table th { background: #163d69; color: #fff; text-align: left; font-weight: bold; padding: 1.2mm 1.8mm; border: 1px solid #163d69; overflow-wrap: anywhere; }
+    table.body-table td { padding: 1.1mm 1.8mm; border: 1px solid #d4e7ee; vertical-align: top; overflow-wrap: anywhere; }
+    table.body-table tbody tr:nth-child(even) td { background: #f4f9fb; }
+    table.body-table tr { break-inside: avoid; page-break-inside: avoid; }
+    table.body-table thead { display: table-header-group; }
+    table.body-table .r { text-align: right; }
     h3.sub { margin: 3mm 0 1.5mm; font-size: 8.8pt; color: #163d69; break-after: avoid; page-break-after: avoid; }
     table.pricing { line-height: 1.25; }
     table.pricing th, table.pricing td { padding: 1mm 1.5mm; }
@@ -50,6 +57,7 @@ export const letterHtmlCss = (input: LetterCssInput): string => {
     h2 { font-size: 10.5pt; border-bottom: none; margin: 5mm 0 2mm; padding: 0; }
     h3.sub { font-size: 10pt; margin: 4mm 0 2mm; }
     .body-p { margin: 0 0 2.5mm; font-size: 10pt; text-align: justify; orphans: 3; widows: 3; }
+    table.body-table { font-size: 9pt; margin: 0 0 4mm; }
     ul.body-list { font-size: 10pt; padding-left: 6mm; margin: 0 0 3mm; }
     ul.body-list li { margin: 0 0 1.2mm; text-align: justify; }
     .closing-block { margin-top: 4mm; break-inside: avoid; page-break-inside: avoid; }
@@ -78,10 +86,18 @@ const closingHtml = (part: Extract<BodyPart, { kind: 'fechamento' }>, context: B
   ${context.showSignature ? `<div class="signature"><div class="signature-line"></div><b>${escapeHtml(part.signer || context.brand)}</b>${part.role ? `<span>${escapeHtml(part.role)}</span>` : ''}<span>${escapeHtml(context.company)}</span></div>` : ''}
 </div>`;
 
+const tableHtml = (part: Extract<BodyPart, { kind: 'planilha' }>): string => {
+  const cls = (column: number) => (part.align[column] === 'right' ? ' class="r"' : '');
+  const head = part.headers.some(Boolean) ? `<thead><tr>${part.headers.map((header, column) => `<th${cls(column)}>${escapeHtml(header)}</th>`).join('')}</tr></thead>` : '';
+  const body = part.rows.map((row) => `<tr>${row.map((value, column) => `<td${cls(column)}>${escapeHtml(value)}</td>`).join('')}</tr>`).join('');
+  return `<table class="body-table">${head}<tbody>${body}</tbody></table>`;
+};
+
 export const bodyTextPartHtml = (part: BodyPart, context: BodyHtmlContext): string => {
   if (part.kind === 'heading') return part.sub ? `<h3 class="sub">${escapeHtml(part.text)}</h3>` : `<h2>${escapeHtml(part.text)}</h2>`;
   if (part.kind === 'paragraph') return `<p class="copy body-p">${escapeHtml(part.lines.join('\n'))}</p>`;
   if (part.kind === 'list') return `<ul class="body-list">${part.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+  if (part.kind === 'planilha') return tableHtml(part);
   if (part.kind === 'carta') return letterHtml(part);
   if (part.kind === 'fechamento') return closingHtml(part, context);
   return '';

@@ -24,12 +24,12 @@ export const moveBlock = (blocks: BodyBlock[], from: number, to: number): BodyBl
 export const removeBlockAt = (blocks: BodyBlock[], index: number): BodyBlock[] =>
   blocks[index] && canRemoveBlock(blocks[index]) ? blocks.filter((_, at) => at !== index) : blocks;
 
-// So paragrafo, titulo e lista se duplicam: tabela de itens, condicoes, carta e fechamento existem uma vez so.
-export const canDuplicateBlock = (block: BodyBlock) => block.type === 'titulo' || block.type === 'paragrafo' || block.type === 'lista';
+// So paragrafo, titulo, lista e planilha se duplicam: tabela de itens, condicoes, carta e fechamento existem uma vez so.
+export const canDuplicateBlock = (block: BodyBlock) => block.type === 'titulo' || block.type === 'paragrafo' || block.type === 'lista' || block.type === 'planilha';
 export const duplicateBlockAt = (blocks: BodyBlock[], index: number): BodyBlock[] => {
   const block = blocks[index];
   if (!block || !canDuplicateBlock(block)) return blocks;
-  return insertBlockAt(blocks, index + 1, { ...block, id: newBodyId() });
+  return insertBlockAt(blocks, index + 1, { ...block, id: newBodyId(), ...(block.table ? { table: { headers: [...block.table.headers], rows: block.table.rows.map((row) => [...row]) } } : {}) });
 };
 
 export const updateBlockAt = (blocks: BodyBlock[], index: number, patch: Partial<Omit<BodyBlock, 'id' | 'type'>>): BodyBlock[] =>
@@ -48,7 +48,7 @@ export const templateFromBlock = (block: BodyBlock, name: string): Omit<BodyTemp
 };
 
 export const BLOCK_LABELS: Record<BodyBlock['type'], string> = {
-  titulo: 'Título de seção', paragrafo: 'Parágrafo', lista: 'Lista', itens: 'Tabela de itens', condicoes: 'Condições comerciais',
+  titulo: 'Título de seção', paragrafo: 'Parágrafo', lista: 'Lista', planilha: 'Planilha própria', itens: 'Tabela de itens', condicoes: 'Condições comerciais',
   carta: 'Carta de abertura', fechamento: 'Fechamento e assinatura',
 };
 

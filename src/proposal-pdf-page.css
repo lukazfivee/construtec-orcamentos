@@ -30,6 +30,10 @@ html, body { margin: 0; overflow: hidden; }
 .pg-letter .pg-to { font-weight: 700; text-transform: uppercase; }
 .pg-letter .pg-ref { font-weight: 700; }
 .pg-letter-title { margin: 10px 0 8px; text-align: center; font-size: 13px; font-weight: 700; color: #163d69; text-decoration: underline; text-transform: uppercase; }
+.pg-grid { width: 100%; border-collapse: collapse; margin: 0 0 4px; line-height: 1.25; table-layout: auto; }
+.pg-grid th { padding: 2px 3px; background: #163d69; color: #fff; text-align: left; font-weight: 700; border: 1px solid #163d69; overflow-wrap: anywhere; }
+.pg-grid td { padding: 2px 3px; border: 1px solid #d4e7ee; vertical-align: top; overflow-wrap: anywhere; }
+.pg-grid .r { text-align: right; }
 .pg-p.pg-cont { margin-top: -6px; }
 .pg-head { align-items: flex-end; }
 .pg-head-logo { display: block; height: 17px; width: auto; }
