@@ -55,10 +55,21 @@ import './dialogos-centro.css';
 import './updater.css';
 import './escala-75.css';
 import './transicao-telas.css';
+import './titlebar.css';
+import { WindowTitleBar } from './renderer/WindowTitleBar';
 
 const rootElement = document.getElementById('root');
 
 if (!rootElement) throw new Error('Elemento raiz do renderer não encontrado.');
+
+// App do Windows: barra de titulo propria acima de tudo (inclusive do login), fora do #root.
+if (window.construtec?.titleBar) {
+  document.documentElement.classList.add('com-barra');
+  const barRoot = document.createElement('div');
+  barRoot.style.display = 'contents';
+  rootElement.before(barRoot);
+  createRoot(barRoot).render(<WindowTitleBar />);
+}
 
 createRoot(rootElement).render(
   <StrictMode>

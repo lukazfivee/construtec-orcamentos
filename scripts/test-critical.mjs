@@ -32,6 +32,7 @@ const entryPoints = [
   'src/renderer/catalog-import-dialog.test.ts',
   'src/server/services/proposal-discard.test.ts',
   'src/documents/proposalDocx.test.ts',
+  'src/renderer/titlebar.test.ts',
   'src/documents/proposalBody.test.ts',
   'src/shared/proposalBody.test.ts',
   'src/documents/proposalOwnTable.test.ts',

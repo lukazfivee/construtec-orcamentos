@@ -6,6 +6,9 @@ export {};
 declare global {
   interface Window {
     construtec?: {
+      /** true no app do Windows: a janela usa a barra de titulo propria (WindowTitleBar). */
+      titleBar?: boolean;
+      setTitleBarColors?: (color: string, symbolColor: string) => Promise<void>;
       runtime: () => Promise<{
         apiUrl?: string;
         apiToken?: string;
