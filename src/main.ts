@@ -59,7 +59,7 @@ const createWindow = async () => {
     show: true,
     autoHideMenuBar: true,
     // Windows: barra de titulo propria (WindowTitleBar); os botoes do sistema ficam por cima, pintados na cor da barra.
-    ...(process.platform === 'win32' ? { titleBarStyle: 'hidden' as const, titleBarOverlay: { color: '#031f29', symbolColor: '#b9d4dd', height: 36 } } : {}),
+    ...(process.platform === 'win32' ? { titleBarStyle: 'hidden' as const, titleBarOverlay: { color: '#031f29', symbolColor: '#b9d4dd', height: 35 } } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -121,7 +121,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('window:titlebar-colors', (event, color: unknown, symbolColor: unknown) => {
     const hex = /^#[0-9a-fA-F]{6}$/;
     if (process.platform !== 'win32' || typeof color !== 'string' || typeof symbolColor !== 'string' || !hex.test(color) || !hex.test(symbolColor)) return;
-    BrowserWindow.fromWebContents(event.sender)?.setTitleBarOverlay({ color, symbolColor, height: 36 });
+    BrowserWindow.fromWebContents(event.sender)?.setTitleBarOverlay({ color, symbolColor, height: 35 });
   });
 
   ipcMain.handle('webmail:open', (_event, composeData?: Parameters<typeof openWebmailWindow>[0]) => openWebmailWindow(composeData));

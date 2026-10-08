@@ -1,1 +1,1 @@
-Barra de título própria na cor do app, com a logo e um efeito de luz que acompanha o mouse e corre pela borda; os botões do Windows seguem a cor do tema.
+Barra de título sem a logo repetida e com a linha de luz inteira sob os botões; o aviso de contas do Centro de Custos deixou de aparecer como erro em computadores sem ligação com o Centro.
