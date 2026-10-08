@@ -12,6 +12,12 @@ import { getEditableProposal } from './proposalCommon';
 
 const fieldsSchema = z.strictObject(Object.fromEntries([...LETTER_FIELDS, ...SIGNATURE_FIELDS].map((key) => [key, z.string().max(BODY_LIMITS.field).optional()])));
 
+const tableCell = z.string().max(BODY_LIMITS.tableCell);
+const tableSchema = z.strictObject({
+  headers: z.array(tableCell).min(1).max(BODY_LIMITS.tableCols),
+  rows: z.array(z.array(tableCell).max(BODY_LIMITS.tableCols)).max(BODY_LIMITS.tableRows),
+});
+
 const blockSchema = z.strictObject({
   id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
   type: z.enum(BODY_BLOCK_TYPES as unknown as [string, ...string[]]),
@@ -21,6 +27,7 @@ const blockSchema = z.strictObject({
   sub: z.boolean().optional(),
   numbered: z.boolean().optional(),
   fields: fieldsSchema.optional(),
+  table: tableSchema.optional(),
 });
 
 export const bodyBlocksSchema = z.array(blockSchema).max(BODY_LIMITS.blocks)

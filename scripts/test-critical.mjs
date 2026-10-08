@@ -34,6 +34,8 @@ const entryPoints = [
   'src/documents/proposalDocx.test.ts',
   'src/documents/proposalBody.test.ts',
   'src/shared/proposalBody.test.ts',
+  'src/documents/proposalOwnTable.test.ts',
+  'src/renderer/bodyGridOps.test.ts',
   'src/server/services/proposal-body.test.ts',
   'src/shared/proposalBodyModels.test.ts',
   'src/documents/proposalLetter.test.ts',

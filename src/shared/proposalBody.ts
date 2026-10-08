@@ -5,7 +5,7 @@
 import type { ProposalDetail } from './contracts';
 import { getProposalFinancials } from './proposalFinancials';
 
-export type BodyBlockType = 'titulo' | 'paragrafo' | 'lista' | 'itens' | 'condicoes' | 'carta' | 'fechamento';
+export type BodyBlockType = 'titulo' | 'paragrafo' | 'lista' | 'planilha' | 'itens' | 'condicoes' | 'carta' | 'fechamento';
 // Campos de uma linha da carta de abertura (carta) e da assinatura (fechamento); aceitam variaveis.
 export const LETTER_FIELDS = ['place', 'date', 'recipient', 'attention', 'department', 'reference', 'greeting', 'intro'] as const;
 export const SIGNATURE_FIELDS = ['signer', 'role'] as const;
@@ -13,11 +13,13 @@ export type BodyFieldKey = typeof LETTER_FIELDS[number] | typeof SIGNATURE_FIELD
 export type BodyFields = Partial<Record<BodyFieldKey, string>>;
 // sub: titulo de segundo nivel (1.1). numbered (so na carta): numera os titulos do documento. fields: carta e fechamento.
 // Em "itens", text e o titulo da planilha; em "fechamento", text e o paragrafo final.
-export type BodyBlock = { id: string; type: BodyBlockType; title?: string; text?: string; enabled: boolean; sub?: boolean; numbered?: boolean; fields?: BodyFields };
+// Planilha propria: colunas e linhas digitadas (ou coladas do Excel) pelo usuario; so texto, nao entra em nenhum total.
+export type BodyTable = { headers: string[]; rows: string[][] };
+export type BodyBlock = { id: string; type: BodyBlockType; title?: string; text?: string; enabled: boolean; sub?: boolean; numbered?: boolean; fields?: BodyFields; table?: BodyTable };
 export type BodyTemplate = { id: string; name: string; type: 'paragrafo' | 'lista'; title?: string; text: string; builtin?: boolean };
 
-export const BODY_LIMITS = { blocks: 60, text: 5000, title: 120, templateName: 80, templates: 40, field: 600, caption: 200 } as const;
-export const BODY_BLOCK_TYPES: readonly BodyBlockType[] = ['titulo', 'paragrafo', 'lista', 'itens', 'condicoes', 'carta', 'fechamento'];
+export const BODY_LIMITS = { blocks: 60, text: 5000, title: 120, templateName: 80, templates: 40, field: 600, caption: 200, tableCols: 8, tableRows: 120, tableCell: 300 } as const;
+export const BODY_BLOCK_TYPES: readonly BodyBlockType[] = ['titulo', 'paragrafo', 'lista', 'planilha', 'itens', 'condicoes', 'carta', 'fechamento'];
 export const ITEMS_DEFAULT_TITLE = 'Composição e precificação';
 export const CONDITIONS_DEFAULT_TITLE = 'Condições comerciais';
 
@@ -52,6 +54,17 @@ export const cleanBodyText = (value: string, multiline: boolean): string => {
 
 const FIELD_KEYS: Partial<Record<BodyBlockType, readonly BodyFieldKey[]>> = { carta: LETTER_FIELDS, fechamento: SIGNATURE_FIELDS };
 
+export const emptyBodyTable = (): BodyTable => ({ headers: ['Descrição', 'Quantidade', 'Valor'], rows: [['', '', ''], ['', '', '']] });
+
+// Cabecalho com 1 a 8 colunas; toda linha fica com o mesmo numero de colunas do cabecalho (sobra e cortada, falta e completada).
+export const normalizeBodyTable = (table: BodyTable | undefined): BodyTable => {
+  const clean = (value: unknown) => cleanBodyText(typeof value === 'string' ? value : '', false).slice(0, BODY_LIMITS.tableCell).trim();
+  const headers = (table?.headers ?? []).slice(0, BODY_LIMITS.tableCols).map(clean);
+  if (headers.length === 0) return emptyBodyTable();
+  const rows = (table?.rows ?? []).slice(0, BODY_LIMITS.tableRows).map((row) => headers.map((_, column) => clean(row?.[column])));
+  return { headers, rows };
+};
+
 export const normalizeBodyBlock = (block: BodyBlock): BodyBlock => {
   const title = cleanBodyText(block.title ?? '', false);
   const keepsText = block.type === 'paragrafo' || block.type === 'lista' || block.type === 'fechamento';
@@ -64,9 +77,10 @@ export const normalizeBodyBlock = (block: BodyBlock): BodyBlock => {
     ...(title ? { title } : {}),
     ...(keepsText ? { text: cleanBodyText(block.text ?? '', true) } : {}),
     ...(caption ? { text: caption } : {}),
-    ...(block.sub && ['titulo', 'paragrafo', 'lista'].includes(block.type) ? { sub: true } : {}),
+    ...(block.sub && ['titulo', 'paragrafo', 'lista', 'planilha'].includes(block.type) ? { sub: true } : {}),
     ...(block.numbered && block.type === 'carta' ? { numbered: true } : {}),
     ...(fieldKeys ? { fields } : {}),
+    ...(block.type === 'planilha' ? { table: normalizeBodyTable(block.table) } : {}),
   };
 };
 export const normalizeBodyBlocks = (blocks: BodyBlock[]): BodyBlock[] => blocks.map(normalizeBodyBlock);
@@ -116,10 +130,20 @@ export const bodyVariables = (proposal: ProposalDetail): BodyVariables => ({
 export const resolveBodyText = (text: string, variables: BodyVariables): string =>
   text.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (match, key: string) => variables[key.toLowerCase() as BodyVariableKey] ?? match);
 
+export type TableAlign = 'left' | 'right';
+const NUMERIC_CELL = /^[-+]?\s*(R\$\s*)?\d[\d.,\s]*\s*(%|[a-zA-Z²³]{1,4}\.?)?$/;
+// Coluna so de numeros e valores (R$ 1.200,00, 15%, 10 m): alinha a direita; qualquer texto deixa a coluna a esquerda.
+export const tableAligns = (headers: string[], rows: string[][]): TableAlign[] =>
+  headers.map((_, column) => {
+    const cells = rows.map((row) => (row[column] ?? '').trim()).filter(Boolean);
+    return cells.length > 0 && cells.every((cell) => NUMERIC_CELL.test(cell)) ? 'right' : 'left';
+  });
+
 export type BodyPart =
   | { kind: 'heading'; text: string; sub: boolean }
   | { kind: 'paragraph'; lines: string[] }
   | { kind: 'list'; items: string[] }
+  | { kind: 'planilha'; headers: string[]; rows: string[][]; align: TableAlign[] }
   | { kind: 'itens'; title: string; caption: string }
   | { kind: 'condicoes'; title: string }
   | { kind: 'carta'; dateLine: string; recipient: string; attention: string; department: string; reference: string; title: string; greeting: string; intro: string }
@@ -171,7 +195,14 @@ export const resolveBodyParts = (proposal: ProposalDetail, blocks: BodyBlock[]):
         department: field('department'), reference: field('reference'), title: title || LETTER_TITLE_DEFAULT, greeting: field('greeting'), intro: field('intro'),
       });
     } else if (block.type === 'fechamento') parts.push({ kind: 'fechamento', paragraphs: bodyParagraphs(fill(block.text)), signer: field('signer'), role: field('role') });
-    else if (block.type === 'titulo') { if (title) parts.push({ kind: 'heading', text: label(title, Boolean(block.sub)), sub: Boolean(block.sub) }); }
+    else if (block.type === 'planilha') {
+      const table = normalizeBodyTable(block.table);
+      const headers = table.headers.map(fill);
+      const rows = table.rows.map((row) => row.map(fill)).filter((row) => row.some(Boolean));
+      if (rows.length === 0) continue;
+      if (title) parts.push({ kind: 'heading', text: label(title, Boolean(block.sub)), sub: Boolean(block.sub) });
+      parts.push({ kind: 'planilha', headers, rows, align: tableAligns(headers, rows) });
+    } else if (block.type === 'titulo') { if (title) parts.push({ kind: 'heading', text: label(title, Boolean(block.sub)), sub: Boolean(block.sub) }); }
     else {
       if (title) parts.push({ kind: 'heading', text: label(title, Boolean(block.sub)), sub: Boolean(block.sub) });
       const text = fill(block.text);
@@ -211,7 +242,7 @@ export const seedBodyBlocks = (defaults: BodyBlock[] | null, scopeText: string):
 // numeracao, carta, assinatura) entram so quando existem, entao o hash de um corpo antigo nao muda.
 export const bodyFingerprintSource = (blocks: BodyBlock[]) =>
   normalizeBodyBlocks(blocks).filter((block) => block.enabled).map((block) => {
-    const extra = { ...(block.sub ? { sub: true } : {}), ...(block.numbered ? { numbered: true } : {}), ...(block.fields ? { fields: block.fields } : {}) };
+    const extra = { ...(block.sub ? { sub: true } : {}), ...(block.numbered ? { numbered: true } : {}), ...(block.fields ? { fields: block.fields } : {}), ...(block.table ? { table: block.table } : {}) };
     const base = [block.type, block.title ?? '', block.text ?? ''];
     return Object.keys(extra).length ? [...base, extra] : base;
   });
@@ -226,6 +257,7 @@ export const emptyBodyBlock = (type: BodyBlockType, today = todayIso(), place = 
     id: newBodyId(), type, enabled: true,
     ...(type === 'titulo' ? { title: '' } : type === 'paragrafo' || type === 'lista' || type === 'fechamento' ? { text: '' } : {}),
     ...(type === 'carta' ? { title: LETTER_TITLE_DEFAULT } : {}),
+    ...(type === 'planilha' ? { title: '', table: emptyBodyTable() } : {}),
     ...(fields ? { fields: type === 'carta' ? { ...fields, place, date: today } : { ...fields } } : {}),
   };
 };

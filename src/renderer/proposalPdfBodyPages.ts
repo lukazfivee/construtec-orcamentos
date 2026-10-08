@@ -27,7 +27,25 @@ const fitPieces = (text: string): string[] => {
   return pieces;
 };
 
+type GridPart = Extract<BodyPart, { kind: 'planilha' }>;
+// Linhas por pedaco da planilha propria: tabelas longas continuam na pagina seguinte; o cabecalho vai so no primeiro pedaco.
+export const GRID_CHUNK_ROWS = 5;
+
+const gridAtoms = (part: GridPart): Atom[] => {
+  const cell = (tag: 'th' | 'td', value: string, column: number) => `<${tag}${part.align[column] === 'right' ? ' class="r"' : ''}>${escapeHtml(value)}</${tag}>`;
+  const head = part.headers.some(Boolean) ? `<thead><tr>${part.headers.map((header, column) => cell('th', header, column)).join('')}</tr></thead>` : '';
+  const rows = part.rows.map((row) => ({ html: `<tr>${row.map((value, column) => cell('td', value, column)).join('')}</tr>`, weight: Math.max(...row.map(lineWeight), 1) }));
+  const chunks: Array<typeof rows> = [];
+  for (let at = 0; at < rows.length; at += GRID_CHUNK_ROWS) chunks.push(rows.slice(at, at + GRID_CHUNK_ROWS));
+  if (chunks.length === 0) chunks.push([]);
+  return chunks.map((chunk, index) => ({
+    kind: 'p' as const, weight: chunk.reduce((sum, row) => sum + row.weight, 0) + (index === 0 && head ? 1 : 0),
+    html: `<table class="pg-grid">${index === 0 ? head : ''}<tbody>${chunk.map((row) => row.html).join('')}</tbody></table>`,
+  }));
+};
+
 const atomsOf = (part: BodyPart, showSignature: boolean): Atom[] => {
+  if (part.kind === 'planilha') return gridAtoms(part);
   if (part.kind === 'heading') return [{ kind: 'h', weight: 2, html: `<h4 class="${part.sub ? 'pg-h2' : 'pg-h'}">${escapeHtml(part.text)}</h4>` }];
   if (part.kind === 'carta') {
     const att = [part.attention, part.department].filter(Boolean);

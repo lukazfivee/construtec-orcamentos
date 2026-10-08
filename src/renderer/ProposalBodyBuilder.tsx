@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AlignLeft, Check, CircleAlert, Eye, FileText, Heading, LayoutTemplate, List, Loader2, Mail, PenLine, Plus, RotateCcw, Undo2 } from 'lucide-react';
+import { AlignLeft, Check, CircleAlert, Eye, FileText, Heading, LayoutTemplate, List, Loader2, Mail, PenLine, Plus, RotateCcw, Sheet, Undo2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import { BODY_LIMITS, BUILTIN_BODY_TEMPLATES, emptyBodyBlock, resolveBodyParts, type BodyBlock, type BodyBlockType, type BodyTemplate } from '../shared/proposalBody';
@@ -42,6 +42,7 @@ export function InsertRow({ at, open, full, templates, blocks, onToggle, onAdd, 
           <button type="button" className="body-btn" onClick={() => onAdd('paragrafo')}><AlignLeft size={16} />Parágrafo</button>
           <button type="button" className="body-btn" onClick={() => onAdd('titulo')}><Heading size={16} />Título de seção</button>
           <button type="button" className="body-btn" onClick={() => onAdd('lista')}><List size={16} />Lista</button>
+          <button type="button" className="body-btn" onClick={() => onAdd('planilha')}><Sheet size={16} />Planilha própria</button>
           {!hasBlockType(blocks, 'carta') && <button type="button" className="body-btn" onClick={() => onAdd('carta')}><Mail size={16} />Carta de abertura</button>}
           {!hasBlockType(blocks, 'fechamento') && <button type="button" className="body-btn" onClick={() => onAdd('fechamento')}><PenLine size={16} />Fechamento e assinatura</button>}
           <select aria-label="Inserir modelo" value="" onChange={(event) => { if (event.currentTarget.value) onTemplate(event.currentTarget.value); }}>
@@ -192,6 +193,7 @@ export function ProposalBodyBuilder({ proposal, editable, conditionsSlot, onUpda
               <li key={index} className={`k-${part.kind}`}>
                 {part.kind === 'heading' && <b>{part.text}</b>}
                 {part.kind === 'paragraph' && <span>{part.lines[0]}</span>}
+                {part.kind === 'planilha' && <span>Planilha: {part.rows.length} {part.rows.length === 1 ? 'linha' : 'linhas'} × {part.headers.length} {part.headers.length === 1 ? 'coluna' : 'colunas'}</span>}
                 {part.kind === 'list' && <span>{part.items.length} {part.items.length === 1 ? 'tópico' : 'tópicos'}: {part.items[0]}</span>}
                 {(part.kind === 'itens' || part.kind === 'condicoes') && <b>{part.title} <em>{part.kind === 'itens' ? 'tabela de itens' : 'condições'}</em></b>}
                 {part.kind === 'carta' && <b>{part.title} <em>carta de abertura</em></b>}

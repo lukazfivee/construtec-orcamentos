@@ -1,12 +1,13 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  AlignLeft, Bookmark, ChevronDown, ChevronUp, Copy, GripVertical, Heading, List, Mail, PenLine, ReceiptText, Table2, Trash2, type LucideIcon,
+  AlignLeft, Bookmark, ChevronDown, ChevronUp, Copy, GripVertical, Heading, List, Mail, PenLine, ReceiptText, Sheet, Table2, Trash2, type LucideIcon,
 } from 'lucide-react';
 import { BODY_LIMITS, BODY_VARIABLES, CONDITIONS_DEFAULT_TITLE, ITEMS_DEFAULT_TITLE, LETTER_TITLE_DEFAULT, type BodyBlock } from '../shared/proposalBody';
 import { ProposalBodyFields } from './ProposalBodyFields';
+import { ProposalBodyGrid } from './ProposalBodyGrid';
 import { BLOCK_LABELS, canDisableBlock, canDuplicateBlock, canRemoveBlock } from './proposalBodyEdit';
 
-const ICONS: Record<BodyBlock['type'], LucideIcon> = { titulo: Heading, paragrafo: AlignLeft, lista: List, itens: Table2, condicoes: ReceiptText, carta: Mail, fechamento: PenLine };
+const ICONS: Record<BodyBlock['type'], LucideIcon> = { titulo: Heading, paragrafo: AlignLeft, lista: List, planilha: Sheet, itens: Table2, condicoes: ReceiptText, carta: Mail, fechamento: PenLine };
 
 export type ProposalBodyCardProps = {
   block: BodyBlock;
@@ -46,7 +47,7 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
   const { block, index, total, editable, dragging, dropTarget, itemsSummary, conditionsSlot, onChange } = props;
   const Icon = ICONS[block.type];
   const isText = block.type === 'paragrafo' || block.type === 'lista' || block.type === 'fechamento';
-  const canSub = block.type === 'titulo' || block.type === 'paragrafo' || block.type === 'lista';
+  const canSub = block.type === 'titulo' || block.type === 'paragrafo' || block.type === 'lista' || block.type === 'planilha';
   const textId = `body-text-${block.id}`;
   const length = (block.text ?? '').length;
   const [naming, setNaming] = useState(false);
@@ -120,6 +121,7 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
           </label>
         )}
         <ProposalBodyFields block={block} editable={editable} onChange={onChange} />
+        {block.type === 'planilha' && <ProposalBodyGrid id={block.id} table={block.table} editable={editable} onChange={(table) => onChange({ table })} />}
 
         {isText && (
           <>
