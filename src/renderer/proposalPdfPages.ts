@@ -4,7 +4,7 @@
 import type { AppSettings, ProposalDetail } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
 import { commercialLaborTotal, escapeHtml, parseCommercialConditions, proposalFileBaseName } from '../documents/proposalDocumentCommon';
-import { CONSTRUTEC_LOGO_SMALL_BASE64, CONSTRUTEC_WATERMARK_SMALL_BASE64 } from '../assets/previewImagesBase64';
+import { CONSTRUTEC_LOGO_SMALL_BASE64 } from '../assets/previewImagesBase64';
 import { bodyTextAtoms } from './proposalPdfBodyPages';
 import { flowPages, type FlowAtom } from './proposalPdfFlow';
 
@@ -18,7 +18,7 @@ export const defaultPdfChoices = (proposal?: ProposalDetail): PdfChoices => ({
 });
 
 // Logo esmaecida ao fundo da pagina de pre-visualizacao (o PDF real usa .watermark do documento do servidor).
-export const watermarkOverlayHtml = () => `<div style="position:absolute;inset:0;z-index:0;pointer-events:none;background:url(data:image/png;base64,${CONSTRUTEC_WATERMARK_SMALL_BASE64}) center / 78% auto no-repeat"></div>`;
+export const watermarkOverlayHtml = () => `<div style="position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.1;background:url(data:image/png;base64,${CONSTRUTEC_LOGO_SMALL_BASE64}) center / 78% auto no-repeat"></div>`;
 
 export const PDF_PAGE_WIDTH = 396;
 export const PDF_PAGE_HEIGHT = 560;

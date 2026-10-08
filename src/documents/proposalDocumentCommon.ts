@@ -99,7 +99,9 @@ const fileSegment = (value: string | null | undefined, max = 70) => (value ?? ''
 // Proposta_Construtec_CLIENTE_Obra; a revisao so aparece da segunda em diante (REV_01), para nao sobrescrever o arquivo anterior.
 export const proposalFileBaseName = (proposal: ProposalDetail) => {
   const client = fileSegment(proposal.clientName);
-  const work = fileSegment(proposal.workName);
+  const workSegment = fileSegment(proposal.workName);
+  // Obra com o mesmo nome do cliente nao repete no arquivo.
+  const work = workSegment.toLocaleLowerCase('pt-BR') === client.toLocaleLowerCase('pt-BR') ? '' : workSegment;
   const revision = proposal.revision > 0 ? `REV_${String(proposal.revision).padStart(2, '0')}` : '';
   return ['Proposta', 'Construtec', client, work, client || work ? '' : fileSegment(proposal.number), revision].filter(Boolean).join('_');
 };

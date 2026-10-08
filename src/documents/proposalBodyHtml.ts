@@ -23,27 +23,34 @@ export const BODY_HTML_CSS = `
     table.summary { break-before: avoid; page-break-before: avoid; }
     .pricing-caption { margin: 1.5mm 0 0; padding: 1.6mm 2mm; background: #eaf3f6; border-left: 3px solid #12A9D1; color: #163d69; font-weight: bold; font-size: 8pt; text-align: center; break-after: avoid; page-break-after: avoid; }`;
 
-export type LetterCssInput = { logoBase64: string | null };
-
-// Proposta com carta de abertura: formato de carta (texto maior, titulos sem filete). Cabecalho com logo e rodape ficam
-// numa tabela de verdade: o cabecalho repete em cada pagina pelo grupo de cabecalho; o rodape fica fixo no pe de cada pagina,
-// com um espaco reservado no grupo de rodape para o texto nunca passar por baixo dele. Nada disso depende das caixas de margem
-// do @page (que varios motores de impressao ignoram).
-// So o numero da pagina usa a caixa de margem; onde ela nao existe o numero fica de fora e o resto sai igual.
-// Na tela o cabecalho fica no topo do documento e o rodape nao aparece.
-export const letterHtmlCss = (input: LetterCssInput): string => {
-  const rule = '2px solid #163d69';
-  const logo = input.logoBase64 ? 'var(--run-logo) no-repeat left bottom / auto 15mm' : 'none';
-  return `
-    :root { ${input.logoBase64 ? `--run-logo: url(data:image/png;base64,${input.logoBase64});` : ''} }
+// Timbrado de toda proposta, com ou sem carta: o documento fica numa tabela de verdade. O rodape (empresa, CNPJ, sede, contato) fica
+// fixo no pe de cada pagina, com um espaco reservado no grupo de rodape para o texto nunca passar por baixo dele; quem tem cabecalho
+// repetido o coloca no grupo de cabecalho. Nada disso depende das caixas de margem do @page (que varios motores de impressao
+// ignoram): so o numero da pagina usa a caixa de margem e, onde ela nao existe, o numero fica de fora e o resto sai igual.
+// Na tela o rodape nao aparece.
+export const SHEET_CSS = `
     @page {
-      margin: 12mm 16mm 7mm;
+      margin: 12mm 14mm 7mm;
       @bottom-right { content: "Pág. " counter(page) " / " counter(pages); font: 7.5pt Arial, sans-serif; color: #334155; text-align: right; vertical-align: middle; }
     }
     table.sheet { width: 100%; border-collapse: collapse; table-layout: fixed; line-height: inherit; }
     table.sheet > thead, table.sheet > tbody, table.sheet > tfoot { break-after: auto; }
     table.sheet > thead > tr, table.sheet > tbody > tr, table.sheet > tfoot > tr { break-inside: auto; page-break-inside: auto; }
     table.sheet > thead > tr > td, table.sheet > tbody > tr > td, table.sheet > tfoot > tr > td { padding: 0; border: 0; font-size: inherit; vertical-align: top; overflow-wrap: normal; }
+    .run-footer-space { height: 17mm; }
+    .run-footer { position: fixed; left: 0; right: 0; bottom: 0; height: 14mm; border-top: 2px solid #12A9D1; padding-top: 1.5mm; font: 7pt/1.35 Arial, sans-serif; color: #334155; white-space: pre-line; overflow: hidden; }
+    @media screen { table.sheet > tfoot, .run-footer { display: none; } }`;
+
+export type LetterCssInput = { logoBase64: string | null };
+
+// Proposta com carta de abertura: formato de carta (texto maior, titulos sem filete). O cabecalho com logo repete em cada pagina
+// pelo grupo de cabecalho da tabela do timbrado (SHEET_CSS); na tela fica no topo do documento.
+export const letterHtmlCss = (input: LetterCssInput): string => {
+  const rule = '2px solid #163d69';
+  const logo = input.logoBase64 ? 'var(--run-logo) no-repeat left bottom / auto 15mm' : 'none';
+  return `
+    :root { ${input.logoBase64 ? `--run-logo: url(data:image/png;base64,${input.logoBase64});` : ''} }
+    @page { margin: 12mm 16mm 7mm; }
     body { font-size: 10pt; line-height: 1.5; }
     .run-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; border-bottom: ${rule}; padding-bottom: 2mm; margin: 0 0 7mm; }
     .run-logo { height: 15mm; width: 60mm; background: ${logo}; }
@@ -65,9 +72,6 @@ export const letterHtmlCss = (input: LetterCssInput): string => {
     .closing-block { margin-top: 4mm; break-inside: avoid; page-break-inside: avoid; }
     .closing-block .signature { margin-top: 14mm; font-size: 9pt; }
     .document-footer { margin-top: 10mm; }
-    .run-footer-space { height: 17mm; }
-    .run-footer { position: fixed; left: 0; right: 0; bottom: 0; height: 14mm; border-top: 2px solid #12A9D1; padding-top: 1.5mm; font: 7pt/1.35 Arial, sans-serif; color: #334155; white-space: pre-line; overflow: hidden; }
-    @media screen { table.sheet > tfoot, .run-footer { display: none; } }
     @media print { .run-header { height: 22mm; margin: 0 0 4mm; } }`;
 };
 
