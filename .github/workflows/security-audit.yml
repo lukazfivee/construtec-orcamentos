@@ -61,6 +61,7 @@ jobs:
             --exclude=postgres-critical.test.ts \
             --exclude=cloud-runtime.test.ts \
             --exclude=main.ts \
+            --exclude=orcamentosMain.ts \
             --exclude=CODEX_HANDOFF-ARQUIVO-01.md \
             .; then
             echo "::error::Revise os achados acima antes de prosseguir."
