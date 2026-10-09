@@ -1,1 +1,1 @@
-Barra de título sem a logo repetida e com a linha de luz inteira sob os botões; o aviso de contas do Centro de Custos deixou de aparecer como erro em computadores sem ligação com o Centro.
+Corrige a pré-visualização do PDF da proposta, que mostrava as páginas e as miniaturas em branco.
