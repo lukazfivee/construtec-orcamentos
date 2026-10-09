@@ -37,13 +37,15 @@ type Load = { state: 'loading' } | { state: 'error'; offline: boolean; message: 
 
 // PDF da proposta no computador (Rodada 23, telas 23m a 23p): miniaturas, pagina grande com zoom e as opcoes.
 // Custo, BDI e margem nunca entram no PDF; "Enviar ao cliente" so com a permissao de envio (p11).
-/** Página do PDF num iframe isolado (sem scripts, sem acesso à janela do app). */
+/** Página do PDF num iframe sem scripts (sandbox sem allow-scripts: nada executa, mesmo que o texto da proposta tentasse).
+ *  allow-same-origin é necessário de propósito: com sandbox vazio o Chromium roda cada página num processo à parte e, com o zoom
+ *  de 75% do app, a página e as miniaturas saem em branco (a 1.0.10 mostrava só a primeira miniatura). */
 function PdfPageFrame({ html, scale, className, watermark }: { html: string; scale: number; className?: string; watermark?: boolean }) {
   return (
     <iframe
       title="Página do PDF"
       className={className}
-      sandbox=""
+      sandbox="allow-same-origin"
       tabIndex={-1}
       scrolling="no"
       srcDoc={`<!doctype html><meta charset="utf-8"><meta name="color-scheme" content="light"><style>${pdfPageCss}</style>${watermark ? watermarkOverlayHtml() : ''}${html}`}
