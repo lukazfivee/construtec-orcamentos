@@ -1,9 +1,9 @@
-// Kits, Menu, Configuracoes, Catalogo e Clientes no celular (prototipo: sOrcKits, sKit, sOrcMenu, cfg, cat, cli).
+// Kits, Menu, Configuracoes e Catalogo no celular (prototipo: sOrcKits, sKit, sOrcMenu, cfg, cat). Clientes: screen-cli.js.
 (function (OC) {
   const { esc, icon } = OC;
-  const VERSION = '3';
+  const VERSION = '4';
   const inApp = () => /SuiteConstrutec\//.test(navigator.userAgent);
-  const initials = (name) => String(name || '?').split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
+  const initials = OC.initials = (name) => String(name || '?').split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 
   OC.screens.kits = async function (params) {
     const list = ((await OC.api('/kits')).kits || []).filter((k) => k.active !== false);
@@ -181,7 +181,7 @@
         ${inApp() ? item('m-seg', 'shield-check', 'Segurança', 'PIN, digital e bloqueio automático', 'suite://seguranca') : ''}
         ${inApp() ? item('m-tour', 'info', 'Rever o tour', 'Telas rápidas sobre os apps', 'suite://tour') : ''}
         <button class="menu-item" type="button" id="m-tema">${icon(dark ? 'sun' : 'moon', 22)}<span class="grow">${dark ? 'Modo claro' : 'Modo escuro'}</span></button>
-        ${item('m-full', 'desktop', 'Versão completa', 'PDF, comparativos e cadastros completos')}
+        ${item('m-full', 'desktop', 'Versão completa', 'Corpo da proposta, catálogo e usuários')}
       </div>
       <button class="btn2 danger-btn" type="button" id="m-sair">${icon('sign-out', 20)}Sair</button>
       <p class="hint" style="text-align:center">Construtec Orçamentos · celular ${VERSION}</p>`, false, params);
@@ -264,44 +264,5 @@
       const n = (d.proposals || []).length, t = OC.$('#c-ex-s', el);
       if (t) t.textContent = n ? `${n} ${n === 1 ? 'proposta com preço novo' : 'propostas com preço novo'}` : 'Nenhum preço novo nas propostas';
     }).catch(() => { const t = OC.$('#c-ex-s', el); if (t) t.textContent = 'Toque para ver preços e propostas'; });
-  };
-
-  // Clientes e obras: cartoes que abrem com as obras e o atalho para uma proposta nova.
-  OC.screens.cli = async function (params) {
-    const [clients, proposals] = await Promise.all([OC.api('/clients').then((d) => d.clients || []), OC.loadProposals().catch(() => [])]);
-    let open = '', query = '';
-    const count = (c) => proposals.filter((p) => p.clientName === (c.tradeName || c.legalName) || p.clientName === c.legalName);
-    const works = clients.reduce((n, c) => n + (c.works || []).length, 0);
-    const el = OC.render(`${OC.header('Clientes e obras', { back: true })}
-      <p class="sub" style="margin:-6px 0 0">${clients.length} clientes · ${proposals.length} propostas · ${works} obras</p>
-      <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" placeholder="Buscar cliente" autocomplete="off"></label>
-      <div class="kit-list" id="c-list"></div>
-      ${OC.canEdit() ? `<button class="btn2" type="button" id="c-new">${icon('plus', 18)}Novo cliente</button>` : ''}`, true, params);
-    const paint = () => {
-      const q = query.trim().toLowerCase();
-      const rows = clients.filter((c) => !q || `${c.legalName} ${c.tradeName || ''}`.toLowerCase().includes(q));
-      OC.$('#c-list', el).innerHTML = rows.map((c) => {
-        const ps = count(c), approved = ps.filter((p) => p.status === 'approved').reduce((n, p) => n + (p.totalSale || 0), 0);
-        const on = open === c.id;
-        return `<div class="card cli${on ? ' open' : ''}"><button class="cli-head" type="button" data-c="${esc(c.id)}" aria-expanded="${on}"><span class="avatar" style="--a:36px">${esc(initials(c.tradeName || c.legalName))}</span>
-          <span class="grow"><b>${esc(c.tradeName || c.legalName)}</b><small>${ps.length} ${ps.length === 1 ? 'proposta' : 'propostas'}${approved ? ` · aprovado ${esc(OC.mi(approved))}` : ''}${(c.works || []).length ? ` · ${c.works.length} ${c.works.length === 1 ? 'obra' : 'obras'}` : ''}</small></span>${icon(on ? 'caret-up' : 'caret-down', 18)}</button>
-          ${on ? `<div class="cli-body">${(c.works || []).map((w) => `<div class="kv"><span>${esc(w.name)}</span><b>${esc(w.address || '')}</b></div>`).join('') || '<small class="hint">Sem obras cadastradas.</small>'}
-            ${ps.map((p) => `<button class="prow" type="button" data-p="${esc(p.id)}"><span class="grow"><b>${esc(p.workName || p.number)}</b><small>${esc(p.number)} · ${esc(OC.rev(p.revision))}</small></span><span class="end">${OC.pill(p.status)}</span>${icon('caret-right', 18)}</button>`).join('')}
-            ${OC.canEdit() ? `<button class="chip-act" type="button" data-nova="${esc(c.id)}">${icon('plus', 16)}Nova proposta</button>` : ''}</div>` : ''}</div>`;
-      }).join('') || `<div class="empty">${icon('users', 28)}Nenhum cliente.</div>`;
-      OC.$$('[data-c]', el).forEach((b) => b.addEventListener('click', () => { open = open === b.dataset.c ? '' : b.dataset.c; paint(); }));
-      OC.$$('[data-p]', el).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.p })));
-      OC.$$('[data-nova]', el).forEach((b) => b.addEventListener('click', () => OC.open('nova', { client: b.dataset.nova })));
-    };
-    OC.$('#c-q', el).addEventListener('input', (event) => { query = event.target.value; paint(); });
-    const nc = OC.$('#c-new', el);
-    if (nc) nc.addEventListener('click', () => OC.ask('Novo cliente', 'Razão social ou nome', 'Ex.: Rede São Lucas Saúde', async (name) => {
-      const id = (await OC.api('/clients', { method: 'POST', body: { legalName: name } })).clientId;
-      clients.unshift({ id, legalName: name, tradeName: null, works: [] });
-      open = id;
-      paint();
-      OC.toast('Cliente cadastrado');
-    }));
-    paint();
   };
 })(window.OC = window.OC || {});
