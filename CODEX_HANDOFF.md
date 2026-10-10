@@ -1,5 +1,14 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-10-10 BRT - Celular (/m/): itens, importar, clonar, mão de obra, orçado × realizado e JSON (Claude Code)
+
+- Base: `origin/main` em `ba23f7f`, branch `feat/m-proposta-itens`, worktree `C:\orc-m-itens`. Só `public/m/*`, um teste novo (`src/renderer/mobile-prop-itens.test.ts`) e `scripts/test-critical.mjs`; nada no servidor nem no desktop.
+- Arquivos novos: `prop-itens.js` (duplicar, subir/descer, "+ catálogo" da linha avulsa só com p10, busca e filtro por categoria na aba Itens), `prop-import.js` (colar do Excel/CSV em `items/import-batch`, sem custo sem p10; copiar de outra proposta; aplicar kit), `prop-tracking.js` (clonar com `POST /:id/clone` trocando cliente, obra ou escopo e criando obra; orçado × realizado com `center-tracking`, só p10; JSON de integração, p11 e p10), `prop-itens.css`.
+- Ganchos mínimos em `prop-edit.js` (folha do item e folha Adicionar), `screen-prop.js` (aba Itens e Resumo), `screen-descarte.js` (menu de três pontos: Clonar e Exportar JSON) e `index.html`.
+- `screen-labor.js`: renomear função, horas mensais de cada função e padrão da proposta (`PATCH /labor-settings`); edita em edição ou revisão, como os itens.
+- Validação: `npm run verify` verde. Telas vistas em 375 px com servidor estático e `OC.api` falso (sem banco real).
+- Próximo passo: PR, revisão do Lucas e deploy. Nada publicado.
+
 ## 2026-10-10 02:45 BRT - Celular (/m/) faz o que o computador faz na proposta (Claude Code)
 
 - Base: `origin/main` em `dea8164`, branch `feat/m-paridade-propostas`, worktree `C:\orc-m-paridade`. Só `public/m/*`, um teste novo e `scripts/test-critical.mjs`; nada em `src/renderer`, `src/*.css` nem no servidor.
