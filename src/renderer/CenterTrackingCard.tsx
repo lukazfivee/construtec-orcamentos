@@ -56,10 +56,10 @@ export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
           <RefreshCw size={12} className={loading ? 'spinning' : undefined} /> Atualizar
         </button>
       </div>
-      {!summary && <p style={{ margin: 0, fontSize: '0.78rem' }}>Sem dados do Centro de Custos ainda. Tente atualizar com conexão.</p>}
-      {summary && !summary.hasBudget && <p style={{ margin: 0, fontSize: '0.78rem' }}>Obra {statusLabel[summary.costCenterStatus] ?? summary.costCenterStatus}, sem baseline vigente no Centro de Custos.</p>}
+      {!summary && <p style={{ margin: 0, fontSize: 'calc(0.78rem * var(--fs, 1))' }}>Sem dados do Centro de Custos ainda. Tente atualizar com conexão.</p>}
+      {summary && !summary.hasBudget && <p style={{ margin: 0, fontSize: 'calc(0.78rem * var(--fs, 1))' }}>Obra {statusLabel[summary.costCenterStatus] ?? summary.costCenterStatus}, sem baseline vigente no Centro de Custos.</p>}
       {summary?.hasBudget && summary.baseline && (
-        <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '6px 12px', margin: '4px 0 0', fontSize: '0.78rem' }}>
+        <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '6px 12px', margin: '4px 0 0', fontSize: 'calc(0.78rem * var(--fs, 1))' }}>
           <div><dt>Situação</dt><dd style={{ margin: 0 }}><strong>{statusLabel[summary.costCenterStatus] ?? summary.costCenterStatus}</strong></dd></div>
           <div><dt>Contrato (baseline v{summary.baseline.version})</dt><dd style={{ margin: 0 }}>{cents(summary.baseline.contractValueCents)}</dd></div>
           <div><dt>Custo orçado</dt><dd style={{ margin: 0 }}>{cents(summary.baseline.baseCostCents)}</dd></div>
@@ -67,9 +67,9 @@ export function CenterTrackingCard({ proposalId }: { proposalId: string }) {
           <div><dt>Saldo</dt><dd style={{ margin: 0 }}>{cents(summary.balanceCents)}</dd></div>
         </dl>
       )}
-      {summary?.overBudget && <p role="alert" style={{ margin: '6px 0 0', fontSize: '0.78rem', color: 'var(--danger)', display: 'flex', gap: '6px', alignItems: 'center' }}><AlertTriangle size={13} /> O realizado passou do custo orçado.</p>}
-      {Boolean(summary?.unlinkedExpenseCents) && <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--tx-amber-27)' }}>{cents(summary?.unlinkedExpenseCents)} em gastos ainda não vinculados a insumos do orçamento.</p>}
-      {tracking.fetchedAt && <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: 'var(--muted)' }}>{tracking.stale ? `Sem conexão com o Centro de Custos. Dados de ${formatDate(tracking.fetchedAt)}.` : `Atualizado em ${formatDate(tracking.fetchedAt)}.`}</p>}
+      {summary?.overBudget && <p role="alert" style={{ margin: '6px 0 0', fontSize: 'calc(0.78rem * var(--fs, 1))', color: 'var(--danger)', display: 'flex', gap: '6px', alignItems: 'center' }}><AlertTriangle size={13} /> O realizado passou do custo orçado.</p>}
+      {Boolean(summary?.unlinkedExpenseCents) && <p style={{ margin: '4px 0 0', fontSize: 'calc(0.75rem * var(--fs, 1))', color: 'var(--tx-amber-27)' }}>{cents(summary?.unlinkedExpenseCents)} em gastos ainda não vinculados a insumos do orçamento.</p>}
+      {tracking.fetchedAt && <p style={{ margin: '6px 0 0', fontSize: 'calc(0.72rem * var(--fs, 1))', color: 'var(--muted)' }}>{tracking.stale ? `Sem conexão com o Centro de Custos. Dados de ${formatDate(tracking.fetchedAt)}.` : `Atualizado em ${formatDate(tracking.fetchedAt)}.`}</p>}
     </section>
   );
 }

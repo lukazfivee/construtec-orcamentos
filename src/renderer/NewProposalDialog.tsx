@@ -221,7 +221,7 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
                       border: 'none',
                       color: 'var(--blue)',
                       cursor: 'pointer',
-                      fontSize: '11px',
+                      fontSize: 'calc(11px * var(--fs, 1))',
                       padding: 0,
                     }}
                     onClick={() => {

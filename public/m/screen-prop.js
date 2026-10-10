@@ -12,7 +12,10 @@
     const base = t.baseCost ?? (materials + labor);
     return { materials, labor, base, additions: t.additions ?? 0, tax: t.taxAmount ?? 0, final: t.finalValue ?? t.sale ?? 0, margin: t.marginPercent ?? 0 };
   };
-  const editable = (p) => p.status === 'draft' && p.isLatest && OC.canEdit();
+  // Mesma regra do computador (ProposalEditorWorkspace): itens e condicoes mudam em edicao ou revisao, so na revisao atual.
+  const editable = OC.propEditable = (p) => (p.status === 'draft' || p.status === 'review') && p.isLatest && OC.canEdit();
+  // Linha do cartao que vira botao quando ha acao (validade, cliente e obra).
+  const kvRow = (key, label, value, on) => (on ? `<button class="kv kv-btn" type="button" data-${key}><span>${label}</span><b>${value}${icon('pencil-simple', 14)}</b></button>` : `<div class="kv"><span>${label}</span><b>${value}</b></div>`);
 
   const { sheet, sheetHead, confirm: confirmSheet } = OC;
 
@@ -43,11 +46,8 @@
     }
     if (p.status === 'approved') return { hint: 'Obra em andamento no Centro de Custos', link: ['Abrir obra no Centro de Custos', 'arrow-square-out', OC.suite.centroLink(p.costCenterId)] };
     if (p.status === 'rejected') {
-      return { hint: 'Recusada: crie uma revisão para renegociar', prim: ['Criar nova revisão', 'copy', async () => {
-        const data = await OC.api(`/proposals/${p.id}/revisions`, { method: 'POST', body: {} });
-        OC.toast(`${OC.rev(data.proposal.revision)} criada`);
-        OC.go('prop', { id: data.proposal.id, tab: 'itens' }, { back: true });
-      }] };
+      if (!OC.can('p11')) return { hint: 'Recusada. Seu papel não permite criar revisão.' };
+      return { hint: 'Recusada: crie uma revisão para renegociar', prim: ['Criar nova revisão', 'copy', () => OC.createRevision(p)] };
     }
     return {};
   }
@@ -73,11 +73,12 @@
           <div class="kv"><span>+ Impostos ${esc(OC.dec2(p.taxPercentage || 0))}%</span><b>${esc(OC.money0(t.tax))}</b></div></div>
         <button class="card tile-card" type="button" data-pdf><span class="tile">${icon('file-text', 21)}</span><span class="grow"><b>PDF da proposta</b><small>${p.items.length ? 'Pré-visualizar, baixar e compartilhar' : 'Adicione itens para gerar o PDF'}</small></span>${icon('caret-right', 18)}</button>
         <div class="card">
-          <div class="kv"><span>Validade</span><b>${p.validUntil ? `${esc(OC.dateFull(p.validUntil))}${days !== null ? ` · ${days < 0 ? 'vencida' : `${days} ${days === 1 ? 'dia' : 'dias'}`}` : ''}` : 'Sem validade'}</b></div>
-          <div class="kv"><span>Cliente</span><b>${esc(p.clientName)}</b></div>
+          ${kvRow('val', 'Validade', p.validUntil ? `${esc(OC.dateFull(p.validUntil))}${days !== null ? ` · ${days < 0 ? 'vencida' : `${days} ${days === 1 ? 'dia' : 'dias'}`}` : ''}` : 'Sem validade', OC.canEdit() && p.isLatest)}
+          ${kvRow('ctx', 'Cliente', esc(p.clientName), editable(p))}
+          ${kvRow('ctx', 'Obra', esc(p.workName || '—'), editable(p))}
           <div class="kv"><span>Responsável</span><b>${esc(p.responsibleName || '')}</b></div>
           <div class="kv"><span>Itens</span><b>${p.items.length} ${p.items.length === 1 ? 'item' : 'itens'}</b></div></div>
-        ${p.scope ? `<div class="card scope"><small class="label">Escopo</small><p>${esc(p.scope)}</p></div>` : ''}
+        ${OC.condCard(p, editable(p))}
         ${next.hint ? `<p class="hint">${esc(next.hint)}</p>` : ''}${actions}`,
       bind(el) {
         OC.$('[data-pdf]', el).addEventListener('click', () => OC.open('pdf', { id: p.id }));
@@ -86,6 +87,9 @@
           try { await next.prim[2](); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { b.disabled = false; }
         });
         if (next.sec) OC.$('[data-sec]', el).addEventListener('click', () => next.sec[1]());
+        OC.$$('[data-val]', el).forEach((b) => b.addEventListener('click', () => OC.validitySheet(p, ctx)));
+        OC.$$('[data-ctx]', el).forEach((b) => b.addEventListener('click', () => OC.contextSheet(p, ctx)));
+        OC.$$('[data-cond]', el).forEach((b) => b.addEventListener('click', () => OC.conditionsSheet(p, ctx)));
       },
     };
   }
@@ -101,9 +105,10 @@
         <div class="items">${p.items.length ? p.items.map((it) => `<div class="item" data-item="${esc(it.id)}">
             <div class="item-top"><b>${esc(it.description)}</b><b class="val">${esc(OC.money0(it.totalSale))}</b></div>
             <small>${esc(it.code || it.category || '')} · ${esc(OC.money(it.unitSale))}/${esc(it.unit)}</small>
-            ${can ? `<div class="qty"><button class="qbtn" type="button" data-dec aria-label="Diminuir">${icon('minus', 18)}</button>
+            ${can ? `<div class="qty qty-del"><button class="qbtn" type="button" data-dec aria-label="Diminuir">${icon('minus', 18)}</button>
               <label class="qval"><input type="text" inputmode="decimal" value="${esc(OC.num(it.quantity))}" aria-label="Quantidade de ${esc(it.description)}"><span>${esc(it.unit)}</span>${icon('pencil-simple', 14)}</label>
-              <button class="qbtn" type="button" data-inc aria-label="Aumentar">${icon('plus', 18)}</button></div>`
+              <button class="qbtn" type="button" data-inc aria-label="Aumentar">${icon('plus', 18)}</button>
+              <button class="qbtn" type="button" data-edit aria-label="Editar ou remover ${esc(it.description)}">${icon('dots-three-vertical', 18)}</button></div>`
               : `<small class="qty-ro">${esc(OC.num(it.quantity))} ${esc(it.unit)}</small>`}</div>`).join('')
           : `<div class="empty">${icon('package', 28)}Nenhum item ainda.</div>`}</div>
         <div class="actions total-bar"><div class="tb-top"><small>Valor final${cost ? ` · BDI ${esc(OC.dec2(p.bdiMultiplier))}` : ''} · imp. ${esc(OC.dec2(p.taxPercentage || 0))}%</small></div>
@@ -130,10 +135,11 @@
           OC.$('[data-dec]', row).addEventListener('click', () => set(Math.max(1, current() - 1)));
           OC.$('[data-inc]', row).addEventListener('click', () => set(current() + 1));
           input.addEventListener('change', () => { if (current() > 0) set(current()); else ctx.reload(); });
+          OC.$('[data-edit]', row).addEventListener('click', () => OC.itemSheet(p, id, ctx));
         });
         const bdiButton = OC.$('[data-bdi]', el);
         if (bdiButton) bdiButton.addEventListener('click', () => bdiSheet(p, ctx));
-        OC.$('[data-add]', el).addEventListener('click', () => addSheet(p, ctx));
+        OC.$('[data-add]', el).addEventListener('click', () => OC.addItemSheet(p, ctx));
       },
     };
   }
@@ -160,14 +166,6 @@
     });
   }
 
-  function addSheet(p, ctx) {
-    OC.pickProduct('Adicionar do catálogo', async (x) => {
-      const res = await OC.api(`/proposals/${p.id}/items`, { method: 'POST', body: { productId: x.id, quantity: 1 } });
-      OC.toast('Item adicionado');
-      if (res.proposal) ctx.update(res.proposal); else ctx.reload();
-    });
-  }
-
   async function revisoes(p) {
     const data = await OC.api(`/proposals/${p.id}/history`);
     const list = data.revisions || [];
@@ -189,7 +187,7 @@
     let p = (await OC.api(`/proposals/${encodeURIComponent(params.id)}`)).proposal;
     let tab = params.tab || 'resumo';
     const el = OC.render(`${OC.header(p.number, { back: true, extra: `<button class="bell-btn" type="button" data-pdf-top aria-label="PDF da proposta">${icon('file-text', 22)}</button><button class="bell-btn" type="button" data-dots aria-label="Mais ações da proposta">${icon('dots-three-vertical', 22)}</button>` })}
-      <div class="prop-tags"><span class="tag">${esc(OC.rev(p.revision))}</span><span id="p-pill"></span><span class="prop-work">${esc(p.workName || p.clientName)}</span></div>
+      <div class="prop-tags"><span class="tag">${esc(OC.rev(p.revision))}</span><button class="pill-btn" type="button" id="p-pill" aria-label="Mudar situação da proposta"></button><span class="prop-work">${esc(p.workName || p.clientName)}</span></div>
       <div class="seg" id="p-tabs">${[['resumo', 'Resumo'], ['itens', 'Itens'], ['revisoes', 'Revisões']].map(([k, l]) => `<button type="button" data-tab="${k}">${l}</button>`).join('')}</div>
       <div id="p-body" class="p-body"></div>`, true, params);
     if (p.costCenterId) OC.suite.context = { obra: { id: p.costCenterId, nome: p.workName } };
@@ -199,7 +197,10 @@
       update: (next) => { p = next; paint(); },
     };
     async function paint() {
-      OC.$('#p-pill', el).innerHTML = OC.pill(p.status);
+      const pill = OC.$('#p-pill', el);
+      pill.innerHTML = `${OC.pill(p.status)}${OC.canChangeStatus(p) ? icon('caret-down', 14) : ''}`;
+      pill.disabled = !OC.canChangeStatus(p);
+      OC.$('.prop-work', el).textContent = p.workName || p.clientName;
       OC.$$('[data-tab]', el).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
       const body = OC.$('#p-body', el);
       const nav = OC.nav;
@@ -215,6 +216,9 @@
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));
     OC.$('[data-pdf-top]', el).addEventListener('click', () => OC.open('pdf', { id: p.id }));
     OC.$('[data-dots]', el).addEventListener('click', () => OC.propMenu(p));
+    OC.$('#p-pill', el).addEventListener('click', () => OC.statusSheet(p, ctx));
     await paint();
+    // Vindo do aviso de validade no Inicio: abre a validade direto.
+    if (params.acao === 'validade' && params.__nav === OC.nav) OC.validitySheet(p, ctx);
   };
 })(window.OC = window.OC || {});

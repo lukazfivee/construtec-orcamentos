@@ -87,7 +87,7 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
       <span className={`od-chip ${pill.tone}`}>{pill.tone === 'bad' && <WifiOff size={13} />}{pill.text}</span>
       <span className="od-go">Ver mudanças<ChevronRight size={16} /></span>
     </button>
-    {sync.busy && <div className="od-card pad" role="status"><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div><span className="od-bar"><span style={{ width: `${sync.phase.pct}%` }} /></span></div>}
+    {sync.busy && <div className="od-card pad" role="status"><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 'calc(13px * var(--fs, 1))' }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div><span className="od-bar"><span style={{ width: `${sync.phase.pct}%` }} /></span></div>}
     {sync.error && !sync.busy && <div className="od-note bad" role="alert"><WifiOff size={17} /><span>{sync.error.kind === 'offline' ? 'Sem internet. O catálogo continua com os preços da última sincronização.' : `${sync.error.message} O catálogo continua com os preços da última sincronização.`}</span></div>}
     {sync.last && !sync.busy && !sync.error && <div className="od-note ok" role="status"><RefreshCw size={17} /><span>Sincronizado agora · {plural(sync.last.created, 'item novo', 'itens novos')}, {plural(sync.last.updated, 'preço atualizado', 'preços atualizados')}{sync.last.skipped ? ` · ${plural(sync.last.skipped, 'item não confirmado ficou de fora', 'itens não confirmados ficaram de fora')}` : ''}.</span></div>}
     {!seesCost && <div className="od-note"><EyeOff size={17} /><span>Seu perfil não vê preços de custo. A coluna Custo fica escondida; o resto do catálogo funciona igual.</span></div>}
@@ -117,7 +117,7 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
                 </span>}
                 {extra?.isNew && <span className="od-chip info">Novo</span>}
               </td>
-              <td className="od-small" style={{ fontSize: 12.5 }}>{extra?.usedIn.length ? extra.usedIn.slice(0, 3).join(', ') + (extra.usedIn.length > 3 ? ` +${extra.usedIn.length - 3}` : '') : '—'}</td>
+              <td className="od-small" style={{ fontSize: 'calc(12.5px * var(--fs, 1))' }}>{extra?.usedIn.length ? extra.usedIn.slice(0, 3).join(', ') + (extra.usedIn.length > 3 ? ` +${extra.usedIn.length - 3}` : '') : '—'}</td>
             </tr>;
           })}
         </tbody>

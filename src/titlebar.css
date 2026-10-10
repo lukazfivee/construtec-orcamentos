@@ -10,7 +10,7 @@ html.com-barra #root { flex: 1 1 0; min-height: 0; height: auto; }
 .titlebar { position: relative; flex: 0 0 var(--tb-h); height: var(--tb-h); display: flex; align-items: center; gap: 10px; padding: 0 var(--tb-controls) 0 18px; overflow: hidden; background: var(--nav); color: #b9d4dd; -webkit-app-region: drag; user-select: none; z-index: 40; transition: filter .25s ease; }
 .titlebar.inativa { filter: saturate(.55) brightness(.82); }
 
-.titlebar-title { font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: #dcecf1; white-space: nowrap; pointer-events: none; }
+.titlebar-title { font-size: calc(12.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .02em; color: #dcecf1; white-space: nowrap; pointer-events: none; }
 
 /* Efeito 1: luz azul que acompanha o mouse. */
 .titlebar::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .35s ease; background: radial-gradient(260px circle at var(--mx, 30%) 50%, rgba(18, 169, 209, .26), rgba(18, 169, 209, 0) 70%); }
