@@ -73,7 +73,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
       <span><span>Itens no catálogo</span><b>{overview ? nfmt(overview.productCount) : '—'}</b></span>
     </div>
     {sync.busy && <div role="status" style={{ padding: '0 20px 18px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 'calc(13px * var(--fs, 1))' }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div>
       <span className="od-bar"><span style={{ width: `${sync.phase.pct}%` }} /></span>
     </div>}
     {!sync.desktop && <div className="od-note" style={{ margin: '0 20px 18px' }}><Info size={17} /><span>No site, a conta da Exsat fica guardada no servidor e a varredura roda em Catálogo, Importar itens em lote, aba Exsat. Aqui você vê o que mudou no catálogo e atualiza as propostas em edição.</span></div>}
@@ -117,7 +117,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {rows.length > 0 ? <div className="od-card" style={{ overflow: 'hidden' }}>
           <div className="od-toolbar" style={{ justifyContent: 'space-between' }}>
-            <span className="od-grow"><b style={{ fontSize: 15, fontWeight: 600 }}>Mudanças de preço</b><span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Preço do catálogo diferente do que as propostas em edição usam</span></span>
+            <span className="od-grow"><b style={{ fontSize: 'calc(15px * var(--fs, 1))', fontWeight: 600 }}>Mudanças de preço</b><span style={{ fontSize: 'calc(12.5px * var(--fs, 1))', color: 'var(--muted)' }}>Preço do catálogo diferente do que as propostas em edição usam</span></span>
             <Seg<Fil> label="Filtrar mudanças" value={fil} onChange={setFil} options={[['todos', `Todos · ${rows.length}`], ['sub', `Subiram · ${up}`], ['des', `Baixaram · ${down}`]]} />
           </div>
           <div className="od-scroll"><table className="od-tbl">
@@ -127,7 +127,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
               {seesCost && <><td className="od-num">{row.from !== undefined ? brl(row.from) : '—'}</td>
               <td className="od-num" style={{ fontWeight: 600 }}>{row.to !== undefined ? brl(row.to) : '—'}</td></>}
               <td><span className={`od-chip ${row.pct > 0 ? 'warn' : 'ok'}`}>{row.pct > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctSigned(row.pct)}</span></td>
-              <td style={{ fontSize: 12.5, color: 'var(--muted)' }}>{row.used.join(', ')}</td>
+              <td style={{ fontSize: 'calc(12.5px * var(--fs, 1))', color: 'var(--muted)' }}>{row.used.join(', ')}</td>
             </tr>)}</tbody>
           </table></div>
           {shown.length === 0 && <div className="od-empty">Nenhum item nesse filtro.</div>}
@@ -150,7 +150,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
           <div className="od-sect-head"><b>Propostas em edição</b><span>Usam itens com preço antigo</span></div>
           {drift.map((proposal) => <div className="od-propcard" key={proposal.id}>
             <span className="od-grow"><span className="od-lbl">{proposal.number} · {revText(proposal.revision)}</span><b>{proposal.workName || proposal.clientName}</b>
-              <span style={{ fontSize: 12 }}>{plural(proposal.items.length, 'item com preço novo', 'itens com preço novo')} · valor final {signBrl(proposal.finalDelta)}</span></span>
+              <span style={{ fontSize: 'calc(12px * var(--fs, 1))' }}>{plural(proposal.items.length, 'item com preço novo', 'itens com preço novo')} · valor final {signBrl(proposal.finalDelta)}</span></span>
             <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               <button type="button" className="od-btn sm s" onClick={() => onOpenProposal(proposal.id)}>Ver proposta</button>
               {canEdit && <button type="button" className="od-btn sm p" onClick={() => setDrawer(proposal)}><RefreshCw size={14} />Atualizar preços</button>}

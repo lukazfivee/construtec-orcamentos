@@ -196,7 +196,7 @@ export function ProposalSyncDirectAction({
             <CheckCircle2 size={15} color="var(--tx-green-30-2)" />
             <span>Centro de Custo Ativo {syncState.costCenterId ? `• Obra #${syncState.costCenterId}` : ''}</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
+          <p style={{ margin: 0, fontSize: 'calc(0.78rem * var(--fs, 1))' }}>{syncState.message}</p>
           <div className="gerar-centro-actions-row">
             <button type="button" className="gerar-centro-btn-secondary" onClick={handleOpenCenter} title="Abrir em outra janela (dual monitor)">
               <ExternalLink size={13} /> Janela externa
@@ -213,7 +213,7 @@ export function ProposalSyncDirectAction({
             <AlertTriangle size={15} color="var(--tx-red-51)" />
             <span>Centro de Custos Desconectado</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
+          <p style={{ margin: 0, fontSize: 'calc(0.78rem * var(--fs, 1))' }}>{syncState.message}</p>
           <div className="gerar-centro-actions-row">
             <button type="button" className="gerar-centro-btn-secondary" onClick={handleDownloadFallback} title="Baixar contingência JSON">
               <Download size={13} /> Baixar JSON
@@ -231,7 +231,7 @@ export function ProposalSyncDirectAction({
             <AlertTriangle size={15} color="var(--tx-red-51)" />
             <span>Falha na Integração</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.78rem' }}>{syncState.message}</p>
+          <p style={{ margin: 0, fontSize: 'calc(0.78rem * var(--fs, 1))' }}>{syncState.message}</p>
           <div className="gerar-centro-actions-row">
             <button type="button" className="gerar-centro-btn-secondary" onClick={handleDownloadFallback}>
               <Download size={13} /> Baixar contingência JSON

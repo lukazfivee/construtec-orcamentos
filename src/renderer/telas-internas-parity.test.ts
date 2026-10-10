@@ -6,7 +6,8 @@ import path from 'node:path';
 // Telas internas (editor da proposta, Catalogo, Kits, Clientes, Configuracoes, PDF) com os mesmos tokens e componentes
 // do Centro de Custos. Aqui ficam travados os tokens estaticos, a ausencia de botoes ambiguos e o PDF/Word sempre claros.
 const root = process.cwd();
-const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
+// O tamanho das letras vem multiplicado por --fs (escala-75.css); a medida comparada e a base em px.
+const read = (file: string) => readFileSync(path.join(root, file), 'utf8').replace(/calc\(([0-9.]+(?:px|rem)) \* var\(--fs, 1\)\)/g, '$1');
 const editor = read('src/editor-itens-centro.css');
 const paineis = read('src/editor-paineis-centro.css');
 const internas = read('src/telas-internas-centro.css');
