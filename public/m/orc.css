@@ -388,3 +388,16 @@ html[data-theme="escuro"] { --ok: #4cc38a; --down: #f08a72; }
 /* Link para o cliente (Rodada 27) */
 .link-url { width: 100%; margin: 10px 0; min-height: 44px; padding: 8px 10px; color: var(--text); background: var(--bg); border: 1px solid var(--divider); border-radius: 10px; font: inherit; font-size: 13px; }
 .tile-card.hl { border: 1px solid var(--accent); background: var(--accent-900); }
+
+/* Paridade com o computador: escopo e condicoes, linhas com acao, situacao e campos lado a lado nas folhas. */
+.scope .sec-row .chip-act { min-height: 36px; }
+.scope small.label { display: block; margin-top: 12px; }
+.scope .sec-row small.label { margin-top: 0; }
+.scope p.muted { color: var(--n300); }
+.kv-btn { width: 100%; border: 0; background: transparent; color: inherit; text-align: left; min-height: 44px; align-items: center; }
+.kv-btn b { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+.kv-btn b .ico { flex: none; color: var(--accent-300); }
+.pill-btn { border: 0; background: transparent; padding: 0; min-height: 32px; display: inline-flex; align-items: center; gap: 2px; color: var(--n300); }
+.pill-btn:disabled { opacity: 1; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.field-row:has(> .field:only-child) { grid-template-columns: 1fr; }

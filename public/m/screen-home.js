@@ -19,7 +19,7 @@
       const days = OC.daysUntil(p.validUntil);
       if (p.status === 'sent' && days !== null && days <= 7) {
         const t = days < 0 ? 'Validade vencida' : (days === 0 ? 'Validade termina hoje' : `Validade termina em ${days} ${days === 1 ? 'dia' : 'dias'}`);
-        out.push({ rank: 1, warn: true, ic: 'hourglass-medium', t, s: `${place(p)} · ${p.number} · enviada`, v: value, cta: 'Abrir proposta', id: p.id });
+        out.push({ rank: 1, warn: true, ic: 'hourglass-medium', t, s: `${place(p)} · ${p.number} · enviada`, v: value, cta: OC.canEdit() ? 'Prorrogar validade' : 'Abrir proposta', id: p.id, acao: OC.canEdit() ? 'validade' : undefined });
       }
       if (p.status === 'review') out.push({ rank: 2, ic: 'magnifying-glass', t: 'Aguardando revisão', s: `${place(p)} · ${meta(p)}`, v: value, cta: 'Revisar', id: p.id });
       if (p.status === 'draft') {
@@ -54,7 +54,7 @@
     OC.$('#h-sum', el).addEventListener('click', () => OC.open('painel'));
     OC.$$('[data-task]', el).forEach((b) => b.addEventListener('click', () => {
       const k = todo[Number(b.dataset.task)];
-      OC.open('prop', { id: k.id, tab: k.tab });
+      OC.open('prop', { id: k.id, tab: k.tab, acao: k.acao });
     }));
   };
 

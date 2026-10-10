@@ -51,6 +51,7 @@ const entryPoints = [
   'src/renderer/proposal-deep-link.test.ts',
   'src/renderer/mobile-site.test.ts',
   'src/renderer/mobile-visual.test.ts',
+  'src/documents/mobile-conditions.test.ts',
   'src/renderer/proposal-desktop-r23.test.ts',
   'src/renderer/desktop-polish.test.ts',
   'src/renderer/no-emoji.test.ts',

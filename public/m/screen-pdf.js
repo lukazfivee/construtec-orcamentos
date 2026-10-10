@@ -47,9 +47,10 @@
         ${last ? `<div class="pg-total"><small>Valor total da proposta</small><b>${esc(OC.money(total))}</b></div>
           ${c.validade && p.validUntil ? `<p class="pg-note">Proposta válida até ${esc(OC.dateFull(p.validUntil))}.</p>` : ''}` : ''}` });
     }
+    // Condicoes reais da proposta, com os mesmos textos de reserva do documento do servidor (observacoes so no modelo completo).
     if (c.condicoes) {
       out.push({ label: 'Condições', html: `${head('Condições comerciais')}
-        <dl class="pg-terms"><dt>Pagamento</dt><dd>Conforme combinado com o cliente</dd><dt>Prazo</dt><dd>A combinar após o aceite</dd><dt>Garantia</dt><dd>Conforme normas técnicas aplicáveis</dd></dl>
+        <dl class="pg-terms">${OC.conditionTerms(p.scope, c.modelo === 'completo').map(([dt, dd]) => `<dt>${esc(dt)}</dt><dd>${esc(dd)}</dd>`).join('')}</dl>
         ${c.validade && p.validUntil ? `<p class="pg-note">Validade: esta proposta vale até ${esc(OC.dateFull(p.validUntil))}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
         <p class="pg-sign">${esc(p.responsibleName || '')}<br>Construtec Engenharia</p>` });
     }
@@ -212,7 +213,7 @@
     history.replaceState(null, '', `#pdf=${encodeURIComponent(p.id)}`);
     OC.$('#pdf-sub', el).textContent = `${p.number} · ${OC.rev(p.revision)} · ${p.workName || p.clientName}`;
     if (!p.items.length && !OC.laborSale(p)) {
-      const can = p.status === 'draft' && p.isLatest && OC.canEdit();
+      const can = OC.propEditable(p);
       body.innerHTML = `<div class="empty">${icon('file-text', 28)}<b class="empty-t">Sem itens para o PDF</b>
         <span>${can ? 'Adicione os itens da proposta e o PDF fica pronto para o cliente.' : 'Esta revisão não tem itens.'}</span>
         ${can ? `<button class="btn" type="button" data-add style="padding:0 18px">${icon('plus', 18)}Adicionar itens</button>` : ''}
