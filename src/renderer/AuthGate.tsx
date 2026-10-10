@@ -5,6 +5,7 @@ import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
 import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
 import { useTheme } from './theme';
+import { suiteSessionFromHash } from './suiteSession';
 import { proposalFromHash } from './useProposalDeepLink';
 
 const SESSION_KEY = 'construtec.auth.session';
@@ -80,6 +81,23 @@ export function AuthGate() {
           return;
         } catch (handoffError) {
           if (active) setError(handoffError instanceof Error ? handoffError.message : 'Não foi possível entrar pelo aplicativo.');
+        }
+      }
+
+      const suiteToken = suiteSessionFromHash(window.location.hash);
+      if (new URLSearchParams(window.location.hash.slice(1)).has('sessao')) {
+        const proposta = proposalFromHash(window.location.hash);
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + (proposta ? `#proposta=${proposta}` : ''));
+      }
+      if (suiteToken && (await window.construtec?.runtime().catch(() => undefined))?.suite === true) {
+        setAuthSessionToken(suiteToken);
+        try {
+          const result = await authApi.me();
+          if (active) finishSession(suiteToken, result.user, false);
+          return;
+        } catch (sessionError) {
+          setAuthSessionToken(null);
+          if (active) setError(sessionError instanceof Error ? sessionError.message : 'Não foi possível entrar pelo aplicativo.');
         }
       }
 
