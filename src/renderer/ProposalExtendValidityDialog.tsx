@@ -84,10 +84,10 @@ export function ProposalExtendValidityDialog({
               <CalendarClock size={20} />
             </span>
             <div>
-              <h2 id="extend-validity-title" style={{ fontSize: '15px', margin: 0, fontWeight: 700, color: 'var(--status-review-text)' }}>
+              <h2 id="extend-validity-title" style={{ fontSize: 'calc(15px * var(--fs, 1))', margin: 0, fontWeight: 700, color: 'var(--status-review-text)' }}>
                 Prorrogar Validade da Proposta
               </h2>
-              <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--muted)' }}>
+              <p style={{ margin: '2px 0 0', fontSize: 'calc(11px * var(--fs, 1))', color: 'var(--muted)' }}>
                 {proposal.number} (REV.{String(proposal.revision).padStart(2, '0')}) — {proposal.clientName}
               </p>
             </div>
@@ -101,10 +101,10 @@ export function ProposalExtendValidityDialog({
           {/* Current Status Box */}
           <div style={{ padding: '12px 14px', background: 'var(--bg-cool-98)', borderRadius: '8px', border: '1px solid var(--bd-cool-93-2)', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <small style={{ display: 'block', fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+              <small style={{ display: 'block', fontSize: 'calc(10px * var(--fs, 1))', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 600 }}>
                 Situação Atual
               </small>
-              <strong style={{ fontSize: '12px', color: 'var(--ink)' }}>
+              <strong style={{ fontSize: 'calc(12px * var(--fs, 1))', color: 'var(--ink)' }}>
                 {currentStatus.formattedDate === '—' ? 'Sem data estipulada' : `Até ${currentStatus.formattedDate}`}
               </strong>
             </div>
@@ -114,7 +114,7 @@ export function ProposalExtendValidityDialog({
           </div>
 
           {/* Presets */}
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '8px' }}>
+          <label style={{ display: 'block', fontSize: 'calc(11px * var(--fs, 1))', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '8px' }}>
             Extensões rápidas:
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
@@ -124,7 +124,7 @@ export function ProposalExtendValidityDialog({
                 type="button"
                 className="secondary-btn"
                 onClick={() => handleApplyPreset(days)}
-                style={{ height: '34px', fontSize: '11px', fontWeight: 600, padding: '0 8px' }}
+                style={{ height: '34px', fontSize: 'calc(11px * var(--fs, 1))', fontWeight: 600, padding: '0 8px' }}
               >
                 +{days} dias
               </button>
@@ -132,7 +132,7 @@ export function ProposalExtendValidityDialog({
           </div>
 
           {/* Custom Date Input */}
-          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: 'calc(11px * var(--fs, 1))', fontWeight: 600, color: 'var(--ink-secondary)', marginBottom: '6px' }}>
             Ou selecione a data limite:
           </label>
           <input
@@ -145,7 +145,7 @@ export function ProposalExtendValidityDialog({
               border: '1px solid var(--line-strong)',
               borderRadius: '6px',
               padding: '0 12px',
-              fontSize: '13px',
+              fontSize: 'calc(13px * var(--fs, 1))',
               marginBottom: '16px',
               boxSizing: 'border-box',
             }}
@@ -153,7 +153,7 @@ export function ProposalExtendValidityDialog({
 
           {/* Preview of new date */}
           {selectedDate && (
-            <div style={{ padding: '10px 12px', background: 'var(--bg-cool-96-2)', borderRadius: '6px', border: '1px solid var(--bd-cool-86-2)', fontSize: '11px', color: 'var(--tx-cool-29-3)' }}>
+            <div style={{ padding: '10px 12px', background: 'var(--bg-cool-96-2)', borderRadius: '6px', border: '1px solid var(--bd-cool-86-2)', fontSize: 'calc(11px * var(--fs, 1))', color: 'var(--tx-cool-29-3)' }}>
               <b>Nova validade oficial:</b> {previewDateFormatted}
             </div>
           )}

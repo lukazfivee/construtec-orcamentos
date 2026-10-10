@@ -16,7 +16,7 @@
   .app-shell.cc .proposal-flow-top { align-items: center; gap: 16px; }
   .app-shell.cc .proposal-flow-title { flex: 1 1 0; min-width: 0; }
   .app-shell.cc .proposal-flow-title > div { flex-wrap: nowrap; gap: 10px; }
-  .app-shell.cc .proposal-flow-title h1 { font-size: 22px; }
+  .app-shell.cc .proposal-flow-title h1 { font-size: calc(22px * var(--fs, 1)); }
   .app-shell.cc .proposal-flow-title p { display: none; }
   .app-shell.cc .proposal-flow-actions { flex: none; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 8px; }
   .app-shell.cc .proposal-flow-bottom { gap: 12px; }
@@ -53,21 +53,21 @@
   .app-shell.cc .commercial-panel .panel-section { padding: 12px 14px; gap: 4px; }
   .app-shell.cc .commercial-panel .panel-section label { min-height: 36px; }
   .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { height: 34px; }
-  .app-shell.cc .commercial-panel .frozen-state { padding: 8px 12px; font-size: 12.5px; }
+  .app-shell.cc .commercial-panel .frozen-state { padding: 8px 12px; font-size: calc(12.5px * var(--fs, 1)); }
   .app-shell.cc .commercial-panel .panel-footnote { padding-top: 0; }
-  .app-shell.cc .commercial-panel .panel-footnote p { font-size: 11.5px; line-height: 1.4; }
+  .app-shell.cc .commercial-panel .panel-footnote p { font-size: calc(11.5px * var(--fs, 1)); line-height: 1.4; }
   .app-shell.cc .commercial-panel .panel-section.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .app-shell.cc .commercial-panel .panel-section.actions > .panel-section-toggle,
   .app-shell.cc .commercial-panel .panel-section.actions > .generate,
   .app-shell.cc .commercial-panel .panel-section.actions > div { grid-column: 1 / -1; }
-  .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { height: 36px; padding: 0 10px; gap: 6px; justify-content: center; font-size: 12.5px; white-space: nowrap; }
+  .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { height: 36px; padding: 0 10px; gap: 6px; justify-content: center; font-size: calc(12.5px * var(--fs, 1)); white-space: nowrap; }
   .app-shell.cc .commercial-panel .panel-section.actions > .generate { height: 40px; }
 }
 @media (min-width: 768px) {
   /* Aviso de custos preservados: linha de apoio, nao um cartao */
-  .app-shell.cc .commercial-panel .frozen-state { padding: 0 4px; background: transparent; color: var(--c-ok); gap: 8px; font-size: 12px; line-height: 1.4; }
+  .app-shell.cc .commercial-panel .frozen-state { padding: 0 4px; background: transparent; color: var(--c-ok); gap: 8px; font-size: calc(12px * var(--fs, 1)); line-height: 1.4; }
   .app-shell.cc .commercial-panel .frozen-state svg { width: 15px; height: 15px; flex: none; }
-  .app-shell.cc .commercial-panel .panel-section.actions button.btn-gerar-centro { height: 36px !important; padding: 0 10px !important; justify-content: center !important; font-size: 12.5px !important; }
+  .app-shell.cc .commercial-panel .panel-section.actions button.btn-gerar-centro { height: 36px !important; padding: 0 10px !important; justify-content: center !important; font-size: calc(12.5px * var(--fs, 1)) !important; }
   .app-shell.cc .commercial-panel .panel-section.actions .gerar-centro-feedback { margin-top: 8px; }
 }
 @media (min-width: 768px) {

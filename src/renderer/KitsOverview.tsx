@@ -63,14 +63,14 @@ export function KitsOverview({ onEdit, onOpenProposal, onNewProposalWithKit, onN
         {kits.map((kit) => <button key={kit.id} type="button" role="radio" aria-checked={kit.id === selected} className="od-card od-radio" onClick={() => setSelected(kit.id)}>
           <Layers size={20} style={{ color: 'var(--od-accent-300)' }} />
           <span className="od-grow"><b>{kit.name}</b><span>{plural(kit.itemCount, 'item', 'itens')} · {kit.category}</span></span>
-          {seesCost && <b className="od-num" style={{ fontSize: 13 }}>{brl(kit.totalEstimatedCost)}</b>}
+          {seesCost && <b className="od-num" style={{ fontSize: 'calc(13px * var(--fs, 1))' }}>{brl(kit.totalEstimatedCost)}</b>}
         </button>)}
       </div>
       <div className="od-card" style={{ overflow: 'hidden' }}>
         {detail ? <>
           <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--line)' }}>
-            <span className="od-item"><b style={{ fontSize: 15 }}>{detail.name}</b>
-              <span style={{ fontSize: 12.5 }}>{plural(detail.items.length, 'item', 'itens')} · {detail.category} · {seesCost ? `custo ${brl(detail.totalEstimatedCost)}` : 'preços de custo só com permissão'}{detail.description ? ` · ${detail.description}` : ''}</span></span>
+            <span className="od-item"><b style={{ fontSize: 'calc(15px * var(--fs, 1))' }}>{detail.name}</b>
+              <span style={{ fontSize: 'calc(12.5px * var(--fs, 1))' }}>{plural(detail.items.length, 'item', 'itens')} · {detail.category} · {seesCost ? `custo ${brl(detail.totalEstimatedCost)}` : 'preços de custo só com permissão'}{detail.description ? ` · ${detail.description}` : ''}</span></span>
           </div>
           <div className="od-scroll"><table className="od-tbl">
             <thead><tr><th>Item</th><th>Quantidade</th><th className="od-num">Custo unit.</th><th className="od-num">Total</th></tr></thead>

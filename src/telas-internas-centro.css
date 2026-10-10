@@ -3,7 +3,7 @@
 @media (min-width: 768px) {
   /* ---------- Abas de pagina (Configuracoes): texto + sublinhado de 2 px ---------- */
   .app-shell.cc .st-tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--color-divider); }
-  .app-shell.cc .st-tabs .tab { height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--color-neutral-300); font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; margin-bottom: -1px; }
+  .app-shell.cc .st-tabs .tab { height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--color-neutral-300); font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; margin-bottom: -1px; }
   .app-shell.cc .st-tabs .tab:hover { color: var(--color-text); }
   .app-shell.cc .st-tabs .tab[aria-selected="true"] { color: var(--color-accent-300); box-shadow: inset 0 -2px 0 var(--color-accent-300); }
   .app-shell.cc .st-pane:not([hidden]) { display: flex; flex-direction: column; gap: 14px; }
@@ -14,7 +14,7 @@
   .app-shell.cc .client-list-pane { border-right: 1px solid var(--color-divider); }
   .app-shell.cc .management-search { height: 40px; margin: 14px 16px; padding: 0 12px; gap: 8px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); color: var(--color-neutral-300); }
   .app-shell.cc .management-search:focus-within { box-shadow: inset 0 0 0 2px var(--color-focus); }
-  .app-shell.cc .management-search input { font: 14px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-text); background: transparent; box-shadow: none; }
+  .app-shell.cc .management-search input { font: calc(14px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-text); background: transparent; box-shadow: none; }
   .app-shell.cc .management-search input::placeholder { color: var(--color-placeholder); opacity: 1; }
   .app-shell.cc .management-search svg { flex: none; }
   .app-shell.cc .client-list { border-top: 1px solid var(--color-divider); }
@@ -23,38 +23,38 @@
   .app-shell.cc .client-list > button.selected { background: var(--color-accent-900); box-shadow: inset 3px 0 var(--color-accent-500); }
   .app-shell.cc .client-list > button > svg { color: var(--color-accent-300); stroke-width: 1.5; }
   .app-shell.cc .client-list > button > span { gap: 2px; }
-  .app-shell.cc .client-list b, .app-shell.cc .works-list b { font-size: 13.5px; font-weight: 600; color: var(--color-text); }
-  .app-shell.cc .client-list small, .app-shell.cc .works-list small { font-size: 12px; color: var(--color-neutral-300); }
-  .app-shell.cc .client-list em, .app-shell.cc .works-list em { font-size: 12px; font-weight: 600; color: var(--color-neutral-300); }
+  .app-shell.cc .client-list b, .app-shell.cc .works-list b { font-size: calc(13.5px * var(--fs, 1)); font-weight: 600; color: var(--color-text); }
+  .app-shell.cc .client-list small, .app-shell.cc .works-list small { font-size: calc(12px * var(--fs, 1)); color: var(--color-neutral-300); }
+  .app-shell.cc .client-list em, .app-shell.cc .works-list em { font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
   .app-shell.cc .product-list .inactive-label { color: var(--c-warn); }
-  .app-shell.cc .management-empty { padding: 48px 16px; font-size: 13.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .management-empty { padding: 48px 16px; font-size: calc(13.5px * var(--fs, 1)); color: var(--color-neutral-300); }
   .app-shell.cc .client-form, .app-shell.cc .works-section { padding: 20px; }
   .app-shell.cc .client-form { border-bottom: 1px solid var(--color-divider); }
   .app-shell.cc .editor-heading, .app-shell.cc .works-heading { gap: 16px; margin-bottom: 16px; }
-  .app-shell.cc .editor-heading h2, .app-shell.cc .works-heading h2 { font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--color-text); }
-  .app-shell.cc .editor-heading p, .app-shell.cc .works-heading p { margin-top: 0; font-size: 12.5px; line-height: 1.5; color: var(--color-neutral-300); }
+  .app-shell.cc .editor-heading h2, .app-shell.cc .works-heading h2 { font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; color: var(--color-text); }
+  .app-shell.cc .editor-heading p, .app-shell.cc .works-heading p { margin-top: 0; font-size: calc(12.5px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); }
   .app-shell.cc .form-grid, .app-shell.cc .work-form { gap: 14px 16px; max-width: none; }
-  .app-shell.cc .form-grid label, .app-shell.cc .work-form label { gap: 6px; font-size: 12px; font-weight: 600; color: var(--color-neutral-300); }
+  .app-shell.cc .form-grid label, .app-shell.cc .work-form label { gap: 6px; font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
   .app-shell.cc .form-grid label span b, .app-shell.cc .work-form label span b { color: var(--c-err); }
   .app-shell.cc .form-grid input:not([type="checkbox"]), .app-shell.cc .work-form input:not([type="checkbox"]) {
     height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-field);
-    font: 400 14px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease;
+    font: 400 calc(14px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease;
   }
   .app-shell.cc .form-grid input:not([type="checkbox"]):focus, .app-shell.cc .work-form input:not([type="checkbox"]):focus { box-shadow: inset 0 0 0 2px var(--color-focus); border: 0; }
   .app-shell.cc .form-grid input:disabled { opacity: .6; }
-  .app-shell.cc .form-grid .work-active, .app-shell.cc .work-form .work-active { font-size: 13.5px; font-weight: 600; color: var(--color-text); }
+  .app-shell.cc .form-grid .work-active, .app-shell.cc .work-form .work-active { font-size: calc(13.5px * var(--fs, 1)); font-weight: 600; color: var(--color-text); }
   .app-shell.cc .form-grid input[type="checkbox"], .app-shell.cc .work-form input[type="checkbox"] { width: 16px; height: 16px; }
   .app-shell.cc .work-form { padding: 14px; border: 0; border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
   .app-shell.cc .works-list { border: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-divider); overflow: hidden; }
   .app-shell.cc .works-list > div { min-height: 56px; padding: 8px 14px; }
   .app-shell.cc .works-list > div + div { border-top: 1px solid var(--color-divider); }
   .app-shell.cc .works-list > div > svg { color: var(--color-accent-300); stroke-width: 1.5; }
-  .app-shell.cc .editor-empty h2 { font-size: 16px; font-weight: 600; }
-  .app-shell.cc .editor-empty p { font-size: 13.5px; }
+  .app-shell.cc .editor-empty h2 { font-size: calc(16px * var(--fs, 1)); font-weight: 600; }
+  .app-shell.cc .editor-empty p { font-size: calc(13.5px * var(--fs, 1)); }
   /* Botoes dos formularios: .btn de 40 px (secundario, primario e perigo) */
   .app-shell.cc .editor-heading-actions button, .app-shell.cc .editor-heading > button, .app-shell.cc .kit-items-section button:not(.kit-item-remove-btn), .app-shell.cc .works-heading > button, .app-shell.cc .work-form button, .app-shell.cc .works-list > div > button, .app-shell.cc .kp-apply button, .app-shell.cc .kit-form button:not(.kit-item-remove-btn) {
     height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider);
-    font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; cursor: pointer;
+    font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; cursor: pointer;
   }
   .app-shell.cc .works-list > div > button { height: 32px; padding: 0 12px; }
   .app-shell.cc .editor-heading-actions button:hover:not(:disabled), .app-shell.cc .works-heading > button:hover:not(:disabled), .app-shell.cc .work-form button:hover:not(:disabled), .app-shell.cc .works-list > div > button:hover:not(:disabled) { background: var(--color-accent-900); }
@@ -63,39 +63,39 @@
   .app-shell.cc .editor-heading-actions button:disabled, .app-shell.cc .work-form button:disabled { opacity: .55; cursor: not-allowed; }
   .app-shell.cc .editor-heading-actions button svg, .app-shell.cc .works-heading > button svg, .app-shell.cc .work-form button svg { stroke-width: 1.5; }
   /* Itens do kit (tabela do editor de kits) */
-  .app-shell.cc .kit-items-section h3 { font-size: 15px; font-weight: 600; }
+  .app-shell.cc .kit-items-section h3 { font-size: calc(15px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .kit-table-wrapper { border: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-divider); overflow: auto; }
-  .app-shell.cc .kit-table-wrapper table { border-collapse: collapse; font-size: 13px; }
-  .app-shell.cc .kit-table-wrapper th { height: 40px; padding: 0 12px; border: 0; border-bottom: 1px solid var(--color-divider); background: transparent; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--color-neutral-300); white-space: nowrap; }
-  .app-shell.cc .kit-table-wrapper td { height: 56px; padding: 6px 12px; border: 0; border-bottom: 1px solid var(--color-divider); font-size: 13px; color: var(--color-text); }
+  .app-shell.cc .kit-table-wrapper table { border-collapse: collapse; font-size: calc(13px * var(--fs, 1)); }
+  .app-shell.cc .kit-table-wrapper th { height: 40px; padding: 0 12px; border: 0; border-bottom: 1px solid var(--color-divider); background: transparent; font-size: calc(11px * var(--fs, 1)); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--color-neutral-300); white-space: nowrap; }
+  .app-shell.cc .kit-table-wrapper td { height: 56px; padding: 6px 12px; border: 0; border-bottom: 1px solid var(--color-divider); font-size: calc(13px * var(--fs, 1)); color: var(--color-text); }
   .app-shell.cc .kit-table-wrapper tbody tr:last-child td { border-bottom: 0; }
-  .app-shell.cc .kit-table-wrapper input { height: 40px; padding: 0 8px; border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--color-field); background: var(--color-surface); color: var(--color-text); font: 13px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; text-align: right; }
+  .app-shell.cc .kit-table-wrapper input { height: 40px; padding: 0 8px; border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--color-field); background: var(--color-surface); color: var(--color-text); font: calc(13px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; text-align: right; }
   .app-shell.cc .kit-item-remove-btn { width: 36px; height: 36px; border: 0; border-radius: 9px; background: transparent; color: var(--c-err); }
   .app-shell.cc .kit-item-remove-btn:hover { background: var(--c-err-soft); }
 
   /* ---------- PDF da proposta ---------- */
   .app-shell.cc .pdf-options { gap: 14px; }
   .app-shell.cc .pdf-options fieldset { gap: 10px; padding: 18px 20px; }
-  .app-shell.cc .pdf-options legend { float: left; width: 100%; margin: 0 0 2px; padding: 0; font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--color-text); }
+  .app-shell.cc .pdf-options legend { float: left; width: 100%; margin: 0 0 2px; padding: 0; font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; color: var(--color-text); }
   .app-shell.cc .pdf-options legend + * { clear: both; }
   .app-shell.cc .pdf-options button, .app-shell.cc .drawer-switch { padding: 12px 14px; gap: 12px; border: 0; border-radius: 12px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); }
-  .app-shell.cc .pdf-options button span { gap: 2px; font-size: 13.5px; font-weight: 600; }
-  .app-shell.cc .pdf-options button small { font-size: 12px; font-weight: 400; color: var(--color-neutral-300); }
+  .app-shell.cc .pdf-options button span { gap: 2px; font-size: calc(13.5px * var(--fs, 1)); font-weight: 600; }
+  .app-shell.cc .pdf-options button small { font-size: calc(12px * var(--fs, 1)); font-weight: 400; color: var(--color-neutral-300); }
   .app-shell.cc .pdf-options button:hover { background: var(--color-accent-900); }
   .app-shell.cc .pdf-options button[aria-checked="true"][role="radio"] { background: var(--color-accent-900); box-shadow: inset 0 0 0 2px var(--color-accent-500); }
   .app-shell.cc .pdf-team { padding: 18px 20px; border: 0; border-radius: 14px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--c-warn-bar); }
   .app-shell.cc .pdf-team > div { margin-bottom: 10px; }
-  .app-shell.cc .pdf-team b { font-size: 15px; font-weight: 600; }
-  .app-shell.cc .pdf-team > div > span { height: 24px; display: inline-flex; align-items: center; padding: 0 9px; border-radius: 12px; background: var(--c-warn-soft); color: var(--c-warn); font-size: 11.5px; font-weight: 600; }
-  .app-shell.cc .pdf-team dl { gap: 8px 12px; font-size: 13px; }
+  .app-shell.cc .pdf-team b { font-size: calc(15px * var(--fs, 1)); font-weight: 600; }
+  .app-shell.cc .pdf-team > div > span { height: 24px; display: inline-flex; align-items: center; padding: 0 9px; border-radius: 12px; background: var(--c-warn-soft); color: var(--c-warn); font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; }
+  .app-shell.cc .pdf-team dl { gap: 8px 12px; font-size: calc(13px * var(--fs, 1)); }
   .app-shell.cc .pdf-team dd { font-weight: 600; }
-  .app-shell.cc .pdf-hint { padding: 12px 14px; border-radius: 12px; background: var(--color-accent-900); color: var(--color-text); font-size: 13px; }
+  .app-shell.cc .pdf-hint { padding: 12px 14px; border-radius: 12px; background: var(--color-accent-900); color: var(--color-text); font-size: calc(13px * var(--fs, 1)); }
   .app-shell.cc .pdf-hint.lock { background: var(--c-warn-soft); }
-  .app-shell.cc .pdf-viewer-bar { gap: 8px; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--color-divider); }
+  .app-shell.cc .pdf-viewer-bar { gap: 8px; padding: 10px 14px; font-size: calc(13px * var(--fs, 1)); border-bottom: 1px solid var(--color-divider); }
   .app-shell.cc .pdf-viewer-bar b { font-weight: 600; }
   .app-shell.cc .pdf-viewer-bar button { width: 36px; height: 36px; border: 0; border-radius: 9px; background: transparent; box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); }
   .app-shell.cc .pdf-viewer-bar button:hover:not(:disabled) { background: var(--color-accent-900); }
-  .app-shell.cc .pdf-thumbs button small { font-size: 11.5px; }
+  .app-shell.cc .pdf-thumbs button small { font-size: calc(11.5px * var(--fs, 1)); }
 }
 @media (min-width: 768px) {
   .app-shell.cc button.appearance-option { height: auto; min-height: 84px; overflow: visible; line-height: 1.4; gap: 4px; }
@@ -108,12 +108,12 @@
   .app-shell.cc button.appearance-option.active { background: var(--color-accent-900); box-shadow: inset 0 0 0 2px var(--color-accent-500); }
 }
 @media (min-width: 768px) {
-  .app-shell.cc .kit-items-head h3 { font-size: 15px; font-weight: 600; }
+  .app-shell.cc .kit-items-head h3 { font-size: calc(15px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .kit-table-wrapper table { min-width: 0; }
   .app-shell.cc .kit-table-wrapper td { border-top: 0; }
   .app-shell.cc .kit-table-wrapper .kit-sticky { box-shadow: none; background: transparent; }
   .app-shell.cc .kit-table-wrapper th.kit-sticky { background: transparent; }
-  .app-shell.cc .kit-empty { padding: 24px 0; font-size: 13.5px; font-style: normal; color: var(--color-neutral-300); }
+  .app-shell.cc .kit-empty { padding: 24px 0; font-size: calc(13.5px * var(--fs, 1)); font-style: normal; color: var(--color-neutral-300); }
   .app-shell.cc .kit-item-remove-btn { background: transparent; border: 0; }
   .app-shell.cc .kit-table-wrapper input { width: 72px; }
 }

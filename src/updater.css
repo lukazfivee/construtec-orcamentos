@@ -1,12 +1,12 @@
 /* Atualização do aplicativo desktop: aviso na barra superior e painel em Configurações. Só tokens, sem cor fixa. */
-.update-pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; color: var(--nav-muted); background: transparent; border: 1px solid var(--focus); border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.update-pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; color: var(--nav-muted); background: transparent; border: 1px solid var(--focus); border-radius: 999px; font-size: calc(12px * var(--fs, 1)); font-weight: 600; cursor: pointer; white-space: nowrap; }
 .update-pill:hover, .update-pill[aria-expanded="true"] { background: rgba(255, 255, 255, 0.08); }
 .update-pill.ready { border-color: var(--green); }
 .update-panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; display: grid; gap: 10px; width: min(360px, 92vw); padding: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 12px 32px rgba(3, 31, 41, 0.22); }
 .update-panel header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .update-panel .update-close { display: inline-grid; place-items: center; width: 28px; height: 28px; color: var(--muted); background: transparent; border: 0; border-radius: 5px; cursor: pointer; }
-.update-meta { margin: 0; color: var(--muted); font-size: 12px; }
-.update-notes { max-height: 160px; margin: 0; padding: 8px 10px; overflow: auto; color: var(--ink-secondary); background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 12px; white-space: pre-wrap; }
+.update-meta { margin: 0; color: var(--muted); font-size: calc(12px * var(--fs, 1)); }
+.update-notes { max-height: 160px; margin: 0; padding: 8px 10px; overflow: auto; color: var(--ink-secondary); background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: calc(12px * var(--fs, 1)); white-space: pre-wrap; }
 .update-panel button.primary, .update-card button.primary { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 34px; padding: 0 14px; color: #fff; background: var(--blue); border: 0; border-radius: 6px; font-weight: 600; cursor: pointer; }
 .update-panel button.primary:hover, .update-card button.primary:hover { background: var(--blue-hover); }
 .update-card button:not(.primary) { display: inline-flex; align-items: center; gap: 7px; }
@@ -16,12 +16,12 @@
 .update-bar i { position: absolute; inset: 0 auto 0 0; width: 40%; background: var(--blue); border-radius: 999px; animation: update-slide 1.3s ease-in-out infinite; }
 .update-spin { animation: update-rotate 1s linear infinite; }
 .update-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.update-warning { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 8px 10px; color: var(--amber); background: var(--amber-soft); border-radius: 6px; font-size: 12px; }
+.update-warning { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 8px 10px; color: var(--amber); background: var(--amber-soft); border-radius: 6px; font-size: calc(12px * var(--fs, 1)); }
 .update-card { display: grid; gap: 12px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .update-card-head { display: flex; align-items: center; gap: 10px; }
-.update-card-head h2 { margin: 0; font-size: 14px; font-weight: 700; }
-.update-card-head p { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
-.update-status { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-secondary); font-size: 12px; }
+.update-card-head h2 { margin: 0; font-size: calc(14px * var(--fs, 1)); font-weight: 700; }
+.update-card-head p { margin: 2px 0 0; color: var(--muted); font-size: calc(11px * var(--fs, 1)); }
+.update-status { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-secondary); font-size: calc(12px * var(--fs, 1)); }
 .update-status.ok { color: var(--green-ink); }
 .update-status.bad { color: var(--danger); }
 @keyframes update-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }

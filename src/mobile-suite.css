@@ -11,11 +11,11 @@
   }
   .suite-sheet-item > svg:first-child, .suite-sheet-context > svg:first-child { flex: none; color: var(--tx-cool-30); }
   .suite-sheet-item > span, .suite-sheet-context > span { display: grid; gap: 1px; flex: 1; min-width: 0; }
-  .suite-sheet-item b, .suite-sheet-context b { font-size: 14px; }
-  .suite-sheet-item small, .suite-sheet-context small { font-size: 11px; color: var(--muted); }
+  .suite-sheet-item b, .suite-sheet-context b { font-size: calc(14px * var(--fs, 1)); }
+  .suite-sheet-item small, .suite-sheet-context small { font-size: calc(11px * var(--fs, 1)); color: var(--muted); }
   .suite-sheet-item > svg:last-child, .suite-sheet-context > svg:last-child { flex: none; color: var(--muted); }
   .suite-sheet-item.current { background: var(--blue-soft); border-color: var(--status-review-border); }
-  .suite-sheet-item.current em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--tx-cool-30); }
+  .suite-sheet-item.current em { font-style: normal; font-size: calc(11px * var(--fs, 1)); font-weight: 700; color: var(--tx-cool-30); }
   .suite-sheet-context { background: var(--surface-subtle); }
 
   /* Tela cheia, por cima da barra inferior; o corpo inteiro rola (resumo, filtros e cartoes). */
@@ -39,13 +39,13 @@
   .diff-card.row-removed { border-left: 3px solid #b42318; }
   .diff-card.row-changed { border-left: 3px solid var(--amber); }
   .diff-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .diff-card-head strong { font-variant-numeric: tabular-nums; font-size: 14px; }
-  .diff-card-title { margin: 8px 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.35; }
-  .diff-card-title code { font-size: 11px; color: var(--muted); margin-right: 4px; }
-  .diff-card-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .diff-card-head strong { font-variant-numeric: tabular-nums; font-size: calc(14px * var(--fs, 1)); }
+  .diff-card-title { margin: 8px 0 6px; font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); line-height: 1.35; }
+  .diff-card-title code { font-size: calc(11px * var(--fs, 1)); color: var(--muted); margin-right: 4px; }
+  .diff-card-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px solid var(--line); font-size: calc(12px * var(--fs, 1)); color: var(--muted); }
   .diff-card-row b { color: var(--ink); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
   .diff-card-removed { text-decoration: line-through; color: var(--muted) !important; }
-  .diff-card-empty { display: flex; align-items: center; gap: 8px; margin: 16px 0; color: var(--muted); font-size: 13px; }
+  .diff-card-empty { display: flex; align-items: center; gap: 8px; margin: 16px 0; color: var(--muted); font-size: calc(13px * var(--fs, 1)); }
 }
 
 @keyframes suite-sheet-in { from { transform: translateY(105%); } to { transform: none; } }

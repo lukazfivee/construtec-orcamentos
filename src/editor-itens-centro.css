@@ -15,11 +15,11 @@
   .app-shell.cc .proposal-tabs .new-tab svg { stroke-width: 1.5; }
 
   /* ---------- Cabecalho: campos da proposta e Status completo (chip de 24 px sem cortar o texto) ---------- */
-  .app-shell.cc .meta-field .status-select { width: 100%; min-width: 0; max-width: none; height: 24px; padding: 0 28px 0 9px; border: 0; border-radius: 12px; font-size: 11.5px; font-weight: 600; text-overflow: clip; }
+  .app-shell.cc .meta-field .status-select { width: 100%; min-width: 0; max-width: none; height: 24px; padding: 0 28px 0 9px; border: 0; border-radius: 12px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; text-overflow: clip; }
   .app-shell.cc .proposal-meta { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) 164px 132px minmax(0, 1fr); }
   .app-shell.cc .meta-field { padding: 12px 16px; }
   .app-shell.cc .meta-field:first-child { padding-left: 32px; }
-  .app-shell.cc .status-field > label { font-size: 12px; font-weight: 600; color: var(--color-neutral-300); }
+  .app-shell.cc .status-field > label { font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
 
   /* ---------- Barra de ferramentas: mesmos botoes de 40 px; Subir/Descer distinguem as setas ---------- */
   .app-shell.cc .toolbar { flex-wrap: wrap; row-gap: 8px; }
@@ -31,13 +31,13 @@
 
   /* ---------- Tabela de itens (.tbl): cabecalho 11/600 em caixa alta, corpo 13, linha de 56 px, sem divisorias verticais ---------- */
   .app-shell.cc .table-region { background: var(--color-surface); }
-  .app-shell.cc .proposal-items-table { min-width: 0; width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; }
+  .app-shell.cc .proposal-items-table { min-width: 0; width: 100%; table-layout: fixed; border-collapse: collapse; font-size: calc(13px * var(--fs, 1)); }
   .app-shell.cc .proposal-items-table th, .app-shell.cc .proposal-items-table td { border-right: 0; border-bottom: 1px solid var(--color-divider); }
-  .app-shell.cc .proposal-items-table thead th { height: 40px; padding: 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .05em; line-height: 1.5; text-transform: uppercase; color: var(--color-neutral-300); background: var(--color-surface); white-space: normal; line-height: 1.3; overflow: hidden; }
-  .app-shell.cc .proposal-items-table tbody td { height: 55px; padding: 8px 6px; font-size: 13px; line-height: 1.5; color: var(--color-text); vertical-align: middle; }
+  .app-shell.cc .proposal-items-table thead th { height: 40px; padding: 0 6px; font-size: calc(11px * var(--fs, 1)); font-weight: 600; letter-spacing: .05em; line-height: 1.5; text-transform: uppercase; color: var(--color-neutral-300); background: var(--color-surface); white-space: normal; line-height: 1.3; overflow: hidden; }
+  .app-shell.cc .proposal-items-table tbody td { height: 55px; padding: 8px 6px; font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: var(--color-text); vertical-align: middle; }
   .app-shell.cc .proposal-items-table tbody td.col-index, .app-shell.cc .proposal-items-table tbody td.col-code { color: var(--color-neutral-300); }
   .app-shell.cc .proposal-items-table tbody td.col-code { color: var(--color-text); overflow: hidden; text-overflow: ellipsis; }
-  .app-shell.cc .proposal-items-table tfoot td { height: 48px; padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--color-text); background: var(--color-bg); border-top: 1px solid var(--color-divider); border-bottom: 0; }
+  .app-shell.cc .proposal-items-table tfoot td { height: 48px; padding: 0 6px; font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--color-text); background: var(--color-bg); border-top: 1px solid var(--color-divider); border-bottom: 0; }
   .app-shell.cc .proposal-items-table .col-select, .app-shell.cc .proposal-items-table td.col-select { width: 32px; min-width: 0; max-width: none; padding: 0; }
   .app-shell.cc .proposal-items-table .col-index { width: 28px; min-width: 0; max-width: none; padding: 0; }
   .app-shell.cc .proposal-items-table .col-code { width: 96px; min-width: 0; max-width: none; text-align: left; }
@@ -53,7 +53,7 @@
   /* Campos da tabela: .inp (40 px, raio 10, anel de 1 px, foco de 2 px) com fonte de 13 px */
   .app-shell.cc .proposal-items-table td input:not([type="checkbox"]), .app-shell.cc .proposal-items-table td select {
     width: 100%; min-width: 0; height: 40px; padding: 0 6px; border: 0; border-radius: 10px; background: var(--color-surface); color: var(--color-text);
-    box-shadow: inset 0 0 0 1px var(--color-divider); font: 13px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease;
+    box-shadow: inset 0 0 0 1px var(--color-divider); font: calc(13px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease;
   }
   .app-shell.cc .proposal-items-table td input:not([type="checkbox"]):hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--color-field); }
   .app-shell.cc .proposal-items-table td input:not([type="checkbox"]):focus { box-shadow: inset 0 0 0 2px var(--color-focus); }
@@ -63,37 +63,37 @@
   .app-shell.cc .proposal-items-table tbody tr:hover td { background: var(--color-accent-900); }
   .app-shell.cc .proposal-items-table tbody tr.selected td, .app-shell.cc .proposal-items-table tbody tr[aria-selected="true"] td { background: var(--color-accent-900); }
   .app-shell.cc .proposal-items-table .cost-cell { position: relative; }
-  .app-shell.cc .proposal-items-table .catalog-cost-badge { position: absolute; right: 8px; bottom: 1px; height: 14px; padding: 0 4px; font-size: 10px; line-height: 14px; border-radius: 7px; }
+  .app-shell.cc .proposal-items-table .catalog-cost-badge { position: absolute; right: 8px; bottom: 1px; height: 14px; padding: 0 4px; font-size: calc(10px * var(--fs, 1)); line-height: 14px; border-radius: 7px; }
   .app-shell.cc .proposal-items-panel .empty-row td { height: 96px; text-align: center; color: var(--color-neutral-300); }
 
   /* "Adicionar linha" fica a esquerda, fora do centro onde o aviso rapido aparece */
-  .app-shell.cc .proposal-items-panel .add-line { align-self: flex-start; margin: 0 0 0 32px; padding: 10px 0; font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-accent-300); }
-  .app-shell.cc .proposal-items-panel .add-line kbd { font-size: 11px; font-weight: 600; color: var(--color-neutral-300); background: var(--color-bg); border: 0; box-shadow: inset 0 0 0 1px var(--color-divider); border-radius: 6px; padding: 1px 6px; }
+  .app-shell.cc .proposal-items-panel .add-line { align-self: flex-start; margin: 0 0 0 32px; padding: 10px 0; font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-accent-300); }
+  .app-shell.cc .proposal-items-panel .add-line kbd { font-size: calc(11px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); background: var(--color-bg); border: 0; box-shadow: inset 0 0 0 1px var(--color-divider); border-radius: 6px; padding: 1px 6px; }
 
   /* ---------- Resumo comercial: cartoes do Centro (raio 14, anel de 1 px, sombra suave), dl de 13 e valor de 21/600 ---------- */
   .app-shell.cc .commercial-panel { gap: 14px; padding: 20px 16px 24px; background: var(--color-bg); border-left: 1px solid var(--color-divider); }
   .app-shell.cc .commercial-panel > * { flex: none; }
   .app-shell.cc .commercial-panel .panel-card { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 16px; background: var(--color-surface); border: 0; border-radius: 14px; box-shadow: var(--shadow-sm-cc), 0 1px 2px rgba(3, 31, 41, .04); }
-  .app-shell.cc .commercial-panel .panel-title { height: auto; min-height: 0; padding: 0 0 6px; border: 0; font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--color-text); }
-  .app-shell.cc .commercial-panel .panel-title b { font-size: 15px; font-weight: 600; }
-  .app-shell.cc .commercial-panel .amount { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0; border: 0; font-size: 13px; }
-  .app-shell.cc .commercial-panel .amount span { font-size: 13px; color: var(--color-neutral-300); }
-  .app-shell.cc .commercial-panel .amount strong { font-size: 13px; font-weight: 600; letter-spacing: 0; line-height: 1.5; color: var(--color-text); white-space: nowrap; }
+  .app-shell.cc .commercial-panel .panel-title { height: auto; min-height: 0; padding: 0 0 6px; border: 0; font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; color: var(--color-text); }
+  .app-shell.cc .commercial-panel .panel-title b { font-size: calc(15px * var(--fs, 1)); font-weight: 600; }
+  .app-shell.cc .commercial-panel .amount { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0; border: 0; font-size: calc(13px * var(--fs, 1)); }
+  .app-shell.cc .commercial-panel .amount span { font-size: calc(13px * var(--fs, 1)); color: var(--color-neutral-300); }
+  .app-shell.cc .commercial-panel .amount strong { font-size: calc(13px * var(--fs, 1)); font-weight: 600; letter-spacing: 0; line-height: 1.5; color: var(--color-text); white-space: nowrap; }
   .app-shell.cc .commercial-panel .amount.blue { flex-direction: column; align-items: stretch; gap: 4px; margin-top: 4px; padding: 12px 0 0; border-top: 1px solid var(--color-divider); }
-  .app-shell.cc .commercial-panel .amount.blue span { font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
-  .app-shell.cc .commercial-panel .amount.blue strong { font-size: 21px; font-weight: 600; line-height: 1.2; letter-spacing: 0; color: var(--color-accent-300); }
+  .app-shell.cc .commercial-panel .amount.blue span { font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+  .app-shell.cc .commercial-panel .amount.blue strong { font-size: calc(21px * var(--fs, 1)); font-weight: 600; line-height: 1.2; letter-spacing: 0; color: var(--color-accent-300); }
   .app-shell.cc .commercial-panel .panel-section { margin: 0; padding: 16px; border-top: 0; }
-  .app-shell.cc .commercial-panel .panel-section h2 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; }
-  .app-shell.cc .commercial-panel .panel-section label { min-height: 40px; font-size: 13px; color: var(--color-neutral-300); }
-  .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 112px; height: 40px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); font-size: 13px; color: var(--color-text); }
+  .app-shell.cc .commercial-panel .panel-section h2 { margin: 0; font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; }
+  .app-shell.cc .commercial-panel .panel-section label { min-height: 40px; font-size: calc(13px * var(--fs, 1)); color: var(--color-neutral-300); }
+  .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 112px; height: 40px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); font-size: calc(13px * var(--fs, 1)); color: var(--color-text); }
   .app-shell.cc .commercial-panel .editable-parameter:focus-within { box-shadow: inset 0 0 0 2px var(--color-focus); }
-  .app-shell.cc .commercial-panel .editable-parameter input { font-size: 13px; }
+  .app-shell.cc .commercial-panel .editable-parameter input { font-size: calc(13px * var(--fs, 1)); }
   .app-shell.cc .commercial-panel .panel-section.actions { gap: 10px; }
   .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { width: 100%; justify-content: flex-start; }
   .app-shell.cc .commercial-panel .panel-section-toggle { height: auto; min-height: 0; padding: 0; border: 0; box-shadow: none; background: transparent; justify-content: space-between; }
-  .app-shell.cc .commercial-panel .frozen-state { margin: 0; min-height: 0; padding: 12px 14px; justify-content: flex-start; font-size: 13px; font-weight: 600; line-height: 1.5; }
-  .app-shell.cc .commercial-panel .panel-footnote { margin-top: 0; padding-top: 4px; font-size: 12px; color: var(--color-neutral-300); }
-  .app-shell.cc .commercial-panel .panel-footnote p { margin: 0; font-size: 12px; line-height: 1.5; }
+  .app-shell.cc .commercial-panel .frozen-state { margin: 0; min-height: 0; padding: 12px 14px; justify-content: flex-start; font-size: calc(13px * var(--fs, 1)); font-weight: 600; line-height: 1.5; }
+  .app-shell.cc .commercial-panel .panel-footnote { margin-top: 0; padding-top: 4px; font-size: calc(12px * var(--fs, 1)); color: var(--color-neutral-300); }
+  .app-shell.cc .commercial-panel .panel-footnote p { margin: 0; font-size: calc(12px * var(--fs, 1)); line-height: 1.5; }
 
   /* ---------- Condicoes e Mao de obra: cartoes, rotulos e campos do Centro ---------- */
   .app-shell.cc .commercial-conditions-panel, .app-shell.cc .labor-panel { background: var(--color-bg); }
@@ -122,6 +122,6 @@
 /* Linha em branco (item fora do catalogo) e etiqueta "avulso" com o atalho para o catalogo. */
 .app-shell.cc .proposal-items-panel .add-line-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 28px; }
 .app-shell.cc .proposal-items-panel .add-line-row .add-line + .add-line { margin-left: 0; }
-.custom-line-tag { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300, var(--muted)); }
+.custom-line-tag { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: calc(10px * var(--fs, 1)); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300, var(--muted)); }
 .custom-line-tag button { padding: 0; font: inherit; letter-spacing: 0; text-transform: none; color: var(--color-accent-300, var(--tx-cool-30)); background: transparent; border: 0; cursor: pointer; text-decoration: underline; }
 .custom-line-tag button:disabled { opacity: .5; cursor: default; }

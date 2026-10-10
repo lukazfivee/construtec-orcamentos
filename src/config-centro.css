@@ -5,57 +5,57 @@
 .st-card { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
 .st-head { display: flex; align-items: center; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .st-ic { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 9px; background: var(--od-accent-900); color: var(--od-accent-300); }
-.st-head h2, .st-subhead h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--ink); }
-.st-head p, .st-subhead p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.st-head h2, .st-subhead h3 { margin: 0; font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; color: var(--ink); }
+.st-head p, .st-subhead p { margin: 0; font-size: calc(12.5px * var(--fs, 1)); line-height: 1.5; color: var(--muted); }
 .st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
 .st-grid .wide { grid-column: 1 / -1; }
 .st-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .st-tile { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--surface-subtle); box-shadow: inset 0 0 0 1px var(--line); }
-.st-tile span { font-size: 12px; color: var(--muted); }
-.st-tile b { font-size: 14px; font-weight: 600; color: var(--ink); }
+.st-tile span { font-size: calc(12px * var(--fs, 1)); color: var(--muted); }
+.st-tile b { font-size: calc(14px * var(--fs, 1)); font-weight: 600; color: var(--ink); }
 .st-tile b.ok { color: var(--od-ok-fg); }
 .st-tile b.info { color: var(--od-accent-300); }
 .st-actions { display: flex; flex-direction: column; }
 .st-action, .st-mail { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
 .st-action > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.st-action b, .st-two b { font-size: 13px; font-weight: 600; color: var(--ink); }
-.st-action span, .st-two small { font-size: 12px; color: var(--muted); }
+.st-action b, .st-two b { font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); }
+.st-action span, .st-two small { font-size: calc(12px * var(--fs, 1)); color: var(--muted); }
 .st-two { display: flex; flex-direction: column; min-width: 0; }
 .st-list { display: flex; flex-direction: column; }
-.st-empty { margin: 0; font-size: 13.5px; color: var(--muted); }
+.st-empty { margin: 0; font-size: calc(13.5px * var(--fs, 1)); color: var(--muted); }
 .st-new-user { display: grid; grid-template-columns: 1.2fr 1.25fr .9fr .85fr auto; gap: 12px; align-items: end; padding: 14px; border-radius: 12px; background: var(--surface-subtle); box-shadow: inset 0 0 0 1px var(--line); }
 .st-users { display: flex; flex-direction: column; gap: 10px; }
 .st-user { display: grid; grid-template-columns: 1.1fr 1.25fr .82fr auto; gap: 8px 12px; align-items: end; padding: 12px 14px; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
 .st-user.off { opacity: .72; background: var(--surface-subtle); }
 .st-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.st-cell span { font-size: 12px; font-weight: 600; color: var(--muted); }
-.st-cell strong { font-size: 13px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.st-cell span { font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--muted); }
+.st-cell strong { font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
 .st-user-actions { display: flex; align-items: center; gap: 8px; }
-.st-check { display: inline-flex; align-items: center; gap: 6px; height: 40px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.st-check { display: inline-flex; align-items: center; gap: 6px; height: 40px; font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); }
 .st-user-actions .od-btn.danger { color: var(--od-bad-fg); }
 .st-sub { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
 .st-subhead { display: flex; align-items: center; gap: 10px; color: var(--od-accent-300); }
 .st-auth { display: grid; grid-template-columns: 1.3fr 1.3fr auto; gap: 12px; align-items: end; }
 .od-sechead { display: flex; flex-direction: column; gap: 4px; }
-.od-sechead h2 { margin: 0; font: 600 20px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--ink); }
+.od-sechead h2 { margin: 0; font: 600 calc(20px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--ink); }
 .od-scope { display: flex; flex-direction: column; gap: 14px; }
 .od-col { display: flex; flex-direction: column; gap: 12px; }
-.od-lbl.plain { text-transform: none; letter-spacing: 0; font-size: 12px; }
+.od-lbl.plain { text-transform: none; letter-spacing: 0; font-size: calc(12px * var(--fs, 1)); }
 
 /* Aparencia e atualizacao: mesmo cartao e mesmas medidas */
 .appearance-card, .update-card { padding: 18px 20px; background: var(--surface); border: 0; border-radius: 14px; box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(3, 31, 41, .04); }
 .appearance-head, .update-card-head { gap: 12px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); color: var(--od-accent-300); }
-.appearance-head h2, .update-card-head h2 { font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--ink); }
-.appearance-head p, .update-card-head p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.appearance-head h2, .update-card-head h2 { font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; color: var(--ink); }
+.appearance-head p, .update-card-head p { margin: 0; font-size: calc(12.5px * var(--fs, 1)); line-height: 1.5; color: var(--muted); }
 .appearance-options { gap: 12px; }
 button.appearance-option { min-height: 84px; padding: 12px 14px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
-button.appearance-option b { font-size: 13.5px; font-weight: 600; }
-button.appearance-option span { font-size: 12px; }
+button.appearance-option b { font-size: calc(13.5px * var(--fs, 1)); font-weight: 600; }
+button.appearance-option span { font-size: calc(12px * var(--fs, 1)); }
 .appearance-option:hover { box-shadow: inset 0 0 0 1px var(--od-accent-300); }
 .appearance-option.active { background: var(--od-accent-900); box-shadow: inset 0 0 0 2px var(--od-accent); }
-.update-status { font-size: 13.5px; }
+.update-status { font-size: calc(13.5px * var(--fs, 1)); }
 .update-actions { gap: 10px; }
-.update-card button, .update-card button.primary { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.update-card button, .update-card button.primary { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 .update-card button.primary { background: #0a7896; color: #fefefe; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
 
 @media (max-width: 1100px) {
@@ -69,5 +69,5 @@ button.appearance-option span { font-size: 12px; }
 
 /* Contato do cliente no cadastro (linha A/C da carta). */
 .client-contact { margin: 18px 0 0; padding: 14px 16px 16px; border: 0; border-radius: 12px; background: var(--surface-subtle); box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
-.client-contact legend { padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
-.client-contact p { margin: 0 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.client-contact legend { padding: 0 6px; font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); }
+.client-contact p { margin: 0 0 12px; font-size: calc(12.5px * var(--fs, 1)); line-height: 1.5; color: var(--muted); }

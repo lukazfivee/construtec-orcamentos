@@ -150,7 +150,7 @@ export function KitProductPickerModal({
                 padding: '8px 14px',
                 background: 'var(--bg-cool-98)',
                 borderBottom: '1px solid var(--line)',
-                fontSize: '11px',
+                fontSize: 'calc(11px * var(--fs, 1))',
               }}
             >
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
@@ -174,7 +174,7 @@ export function KitProductPickerModal({
                       border: 'none',
                       color: 'var(--tx-red-51-2)',
                       cursor: 'pointer',
-                      fontSize: '11px',
+                      fontSize: 'calc(11px * var(--fs, 1))',
                       padding: 0,
                       textDecoration: 'underline',
                     }}
@@ -209,15 +209,15 @@ export function KitProductPickerModal({
                     style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '12px' }}>
+                    <div style={{ fontWeight: 600, fontSize: 'calc(12px * var(--fs, 1))' }}>
                       {product.code} - {product.description}
                     </div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                    <div style={{ fontSize: 'calc(10px * var(--fs, 1))', color: 'var(--muted)' }}>
                       {product.category} • Un: {product.unit}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '11px' }}>{costText(money.format(product.currentCost))}</span>
+                    <span style={{ fontWeight: 600, fontSize: 'calc(11px * var(--fs, 1))' }}>{costText(money.format(product.currentCost))}</span>
                     <button
                       type="button"
                       className={isSelected ? 'secondary' : 'primary'}
@@ -225,7 +225,7 @@ export function KitProductPickerModal({
                         e.stopPropagation();
                         handleAddSingle(product);
                       }}
-                      style={{ height: '28px', padding: '0 10px', fontSize: '11px' }}
+                      style={{ height: '28px', padding: '0 10px', fontSize: 'calc(11px * var(--fs, 1))' }}
                     >
                       <Plus size={13} /> {isSelected ? 'Adicionar itens' : 'Adicionar'}
                     </button>
@@ -234,7 +234,7 @@ export function KitProductPickerModal({
               );
             })}
             {!loading && products.length === 0 && (
-              <p style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', margin: 0, fontSize: '11px' }}>
+              <p style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)', margin: 0, fontSize: 'calc(11px * var(--fs, 1))' }}>
                 Nenhum produto ativo encontrado com esse termo.
               </p>
             )}
@@ -242,7 +242,7 @@ export function KitProductPickerModal({
         </div>
 
         <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+          <span style={{ fontSize: 'calc(11px * var(--fs, 1))', color: 'var(--muted)' }}>
             {selectedProducts.size} produto(s) marcado(s) para inclusão
           </span>
           <div style={{ display: 'flex', gap: '8px' }}>

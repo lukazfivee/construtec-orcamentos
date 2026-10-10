@@ -76,7 +76,7 @@ function FileStep({ imp, hints, onBack }: { imp: CatalogImport; hints: string[];
       <input ref={input} type="file" hidden accept=".xlsx,.xlsm,.csv,.tsv,.txt,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { pick(event.target.files); event.target.value = ''; }} />
       <div className="od-row">
         <span className="od-row-ic"><Camera size={18} /></span>
-        <span className="od-grow"><b style={{ fontSize: 13.5 }}>PDF ou foto da lista impressa</b>
+        <span className="od-grow"><b style={{ fontSize: 'calc(13.5px * var(--fs, 1))' }}>PDF ou foto da lista impressa</b>
           <span>{desktop ? 'Lemos a tabela com o reconhecimento de imagem do aplicativo; confira as colunas no passo seguinte.' : 'O reconhecimento de imagem roda só no aplicativo do computador. Aqui, use planilha XLSX ou CSV.'}</span></span>
         <button type="button" className="od-btn s" disabled={!desktop} onClick={() => void imp.openImage()}>Escolher PDF ou foto</button>
       </div>
@@ -87,7 +87,7 @@ function FileStep({ imp, hints, onBack }: { imp: CatalogImport; hints: string[];
         [FileText, 'PDF da lista de preços', 'Lemos a tabela do PDF no aplicativo; confira as colunas no passo seguinte'],
         [Camera, 'Foto da lista impressa', 'No aplicativo do computador, ou pelo celular em Menu, Catálogo, Importar']].map(([Icon, title, sub]) => {
         const I = Icon as typeof Camera;
-        return <div className="od-row" key={title as string}><span className="od-row-ic"><I size={18} /></span><span className="od-grow"><b style={{ fontSize: 13.5 }}>{title as string}</b><span>{sub as string}</span></span></div>;
+        return <div className="od-row" key={title as string}><span className="od-row-ic"><I size={18} /></span><span className="od-grow"><b style={{ fontSize: 'calc(13.5px * var(--fs, 1))' }}>{title as string}</b><span>{sub as string}</span></span></div>;
       })}
       <div style={{ padding: '14px 20px 18px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <button type="button" className="od-btn s" onClick={() => downloadText('modelo-catalogo.csv', templateCsv())}><FileDown size={17} />Baixar o modelo de planilha</button>
@@ -116,7 +116,7 @@ function MapStep({ imp }: { imp: CatalogImport }) {
           const badge = !has ? (field.required ? 'Falta' : '') : (mine ? 'Você escolheu' : (suggested.conf[field.key] ? 'Confira' : 'Sugerido'));
           const tone = !has ? 'bad' : mine ? 'info' : (suggested.conf[field.key] ? 'warn' : 'ok');
           return <div className={`od-field-row${!has && field.required && imp.mapError ? ' bad' : ''}`} key={field.key}>
-            <span><b style={{ fontSize: 13.5 }}>{field.label}</b><span>{field.required ? 'obrigatório' : 'opcional'}</span></span>
+            <span><b style={{ fontSize: 'calc(13.5px * var(--fs, 1))' }}>{field.label}</b><span>{field.required ? 'obrigatório' : 'opcional'}</span></span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
               <select className="od-inp" aria-label={`Coluna para ${field.label}`} value={has ? String(idx) : ''}
                 onChange={(event) => imp.setColumn(field.key as FieldKey, event.target.value === '' ? undefined : Number(event.target.value))}>
@@ -171,7 +171,7 @@ function FixCell({ imp, row }: { imp: CatalogImport; row: ErrRow }) {
     {row.sug && value !== row.sug && <button type="button" className="od-btn sm g" onClick={() => setValue(row.sug!)}>Usar {row.sug}</button>}
     <button type="button" className="od-btn sm g" onClick={() => imp.undo(row.id)}>Cancelar</button>
     <button type="button" className="od-btn sm p" disabled={busy} onClick={() => void save()}><Check size={14} />Salvar</button>
-    {message && <span role="alert" style={{ flexBasis: '100%', textAlign: 'right', fontSize: 12, color: 'var(--od-bad-fg)' }}>{message}</span>}
+    {message && <span role="alert" style={{ flexBasis: '100%', textAlign: 'right', fontSize: 'calc(12px * var(--fs, 1))', color: 'var(--od-bad-fg)' }}>{message}</span>}
   </span>;
 }
 
@@ -207,7 +207,7 @@ function ReviewStep({ imp, usedIn }: { imp: CatalogImport; usedIn?: (code: strin
           return <tr key={g.id}><td><span className="od-item"><b>{g.desc}</b><span>{g.code}</span></span></td>
             <td className="od-num">{before !== null ? brl(before) : '—'}</td><td className="od-num" style={{ fontWeight: 600 }}>{brl(g.cost)}</td>
             <td>{same ? <span className="od-small">Mesmo preço · outros dados mudaram</span> : <span className={`od-chip ${ratio > 0 ? 'warn' : 'ok'}`}>{ratio > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctText(ratio)}</span>}</td>
-            <td className="od-small" style={{ fontSize: 12.5 }}>{usedText(usedIn?.(g.code) ?? [])}</td></tr>;
+            <td className="od-small" style={{ fontSize: 'calc(12.5px * var(--fs, 1))' }}>{usedText(usedIn?.(g.code) ?? [])}</td></tr>;
         })}</tbody>
       </table></div>}
       {groups.atu.length > shown.atu && <div className="od-footer"><span>Mostrando {nfmt(shown.atu)} de {nfmt(groups.atu.length)} preços atualizados</span><button type="button" className="od-btn sm s" onClick={() => more('atu', PAGE)}>Ver mais {Math.min(PAGE, groups.atu.length - shown.atu)}</button></div>}
@@ -267,8 +267,8 @@ function DoneStep({ imp, catalogCount, onBack }: { imp: CatalogImport; catalogCo
   return <>
     <div className="od-card od-ok-hero">
       <span className="od-empty-ic ok"><CheckCircle2 size={28} /></span>
-      <span className="od-item"><b style={{ fontSize: 18 }}>{plural(total, 'item importado', 'itens importados')}</b>
-        <span style={{ fontSize: 13 }}>De {imp.file?.name}{imp.supplier ? ` · ${imp.supplier}` : ''}</span></span>
+      <span className="od-item"><b style={{ fontSize: 'calc(18px * var(--fs, 1))' }}>{plural(total, 'item importado', 'itens importados')}</b>
+        <span style={{ fontSize: 'calc(13px * var(--fs, 1))' }}>De {imp.file?.name}{imp.supplier ? ` · ${imp.supplier}` : ''}</span></span>
     </div>
     <div className="od-kpis">{cards.map(([label, value, sub, Icon]) => <div className="od-card od-kpi" key={label}>
       <div className="od-kpi-top"><span className="od-lbl">{label}</span><span className="od-kpi-ic od-chip info" style={{ padding: 0, width: 28, height: 28, justifyContent: 'center' }}><Icon size={15} /></span></div>

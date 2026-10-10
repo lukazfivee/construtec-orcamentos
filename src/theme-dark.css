@@ -4,13 +4,13 @@
 /* ---------- Aparência (Configurações) ---------- */
 .appearance-card { padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .appearance-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); color: var(--tx-cool-28-3); }
-.appearance-head h2 { margin: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
-.appearance-head p { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
+.appearance-head h2 { margin: 0; color: var(--ink); font-size: calc(14px * var(--fs, 1)); font-weight: 700; }
+.appearance-head p { margin: 2px 0 0; color: var(--muted); font-size: calc(11px * var(--fs, 1)); }
 .appearance-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 button.appearance-option { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; min-height: 84px; padding: 12px 14px; color: var(--ink); text-align: left; background: var(--surface-subtle); border: 1px solid var(--line-strong); border-radius: 8px; cursor: pointer; }
 button.appearance-option svg { color: var(--muted); }
-button.appearance-option b { font-size: 12px; }
-button.appearance-option span { color: var(--muted); font-size: 11px; }
+button.appearance-option b { font-size: calc(12px * var(--fs, 1)); }
+button.appearance-option span { color: var(--muted); font-size: calc(11px * var(--fs, 1)); }
 .appearance-option:hover { border-color: var(--blue); }
 .appearance-option.active { background: var(--blue-soft); border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
 button.appearance-option.active svg { color: var(--blue-ink); }

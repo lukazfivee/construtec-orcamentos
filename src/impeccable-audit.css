@@ -177,7 +177,7 @@ button:not(:disabled):active {
 }
 
 .kpi-content strong {
-  font-size: 18px;
+  font-size: calc(18px * var(--fs, 1));
 }
 
 .quick-actions-bar,
@@ -258,7 +258,7 @@ button:not(:disabled):active {
   padding: 0 11px;
   border-color: var(--line-strong);
   border-radius: var(--radius-control);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   font-weight: 600;
 }
 
