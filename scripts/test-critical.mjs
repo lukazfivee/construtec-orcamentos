@@ -52,6 +52,8 @@ const entryPoints = [
   'src/renderer/suite-session.test.ts',
   'src/renderer/mobile-site.test.ts',
   'src/renderer/mobile-visual.test.ts',
+  'src/renderer/mobile-assistant.test.ts',
+  'src/renderer/assistant.test.ts',
   'src/documents/mobile-conditions.test.ts',
   'src/renderer/proposal-desktop-r23.test.ts',
   'src/renderer/desktop-polish.test.ts',

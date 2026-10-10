@@ -17,8 +17,10 @@ test('modo inicial e o menu sempre levam para a lista', () => {
 test('App.tsx: estado inicial da visao e a lista; menu e Suite voltam para a lista', () => {
   assert.match(app, /useState<ProposalViewMode>\(INITIAL_PROPOSAL_VIEW_MODE\)/);
   assert.doesNotMatch(app, /useState<'editor' \| 'list' \| 'pdf' \| 'compare'>\('editor'\)/);
-  // onSelectNav (menu lateral) reseta a visao
-  assert.match(app, /onSelectNav=\{\(label\) => \{[^}]*setProposalViewMode\(viewModeOnSelectNav\(\)\)/s);
+  // onSelectNav (menu lateral e assistente de IA, mesma funcao selectNav) reseta a visao
+  assert.match(app, /const selectNav = \(label: NavSection\) => \{[^}]*setProposalViewMode\(viewModeOnSelectNav\(\)\)/s);
+  assert.match(app, /onSelectNav=\{selectNav\}/);
+  assert.match(app, /navigate=\{selectNav\}/);
   // onSelectApp('orcamentos') (menu Suite) reseta a visao
   assert.match(app, /app === 'orcamentos'\) \{[^}]*setProposalViewMode\(viewModeOnSelectNav\(\)\)/s);
 });

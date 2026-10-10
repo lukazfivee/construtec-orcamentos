@@ -56,6 +56,7 @@ import './updater.css';
 import './escala-75.css';
 import './transicao-telas.css';
 import './titlebar.css';
+import './assistant.css';
 import { WindowTitleBar } from './renderer/WindowTitleBar';
 
 const rootElement = document.getElementById('root');
