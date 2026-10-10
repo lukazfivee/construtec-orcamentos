@@ -241,18 +241,24 @@
       <button class="card ex-link" type="button" id="c-ex">${icon('arrow-square-out', 20)}<span class="grow"><b>Integração EXSAT</b><small id="c-ex-s">Conferindo preços das propostas…</small></span>${icon('caret-right', 18)}</button>
       <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" placeholder="Buscar por nome ou código" autocomplete="off"></label>
       <div class="rows" id="c-rows"></div>
-      <div class="actions">${OC.canEdit() && OC.can('p10') ? `<button class="btn2" type="button" id="c-imp">${icon('plus', 18)}Importar</button>` : ''}<button class="btn" type="button" id="c-sync">${icon('arrow-square-out', 18)}EXSAT</button></div>`, true, params);
+      <div class="actions">${OC.canEditCatalog() ? `<button class="btn2" type="button" id="c-new">${icon('plus', 18)}Novo item</button><button class="btn2" type="button" id="c-imp">${icon('download-simple', 18)}Importar</button>` : ''}<button class="btn" type="button" id="c-sync">${icon('arrow-square-out', 18)}EXSAT</button></div>`, true, params);
     const rows = OC.$('#c-rows', el);
-    let timer = 0, seq = 0;
+    const editor = OC.canEditCatalog();
+    let timer = 0, seq = 0, list = [], lastQ = '';
+    // Quem edita ve tambem os inativos (cadastro completo, como no computador); os outros, a busca das propostas.
     const load = async (q) => {
       const mine = ++seq;
+      lastQ = q;
       try {
-        const list = (await OC.api(`/catalog?q=${encodeURIComponent(q)}&limit=50`)).products || [];
+        list = (await OC.api(editor ? `/catalog/manage?q=${encodeURIComponent(q)}` : `/catalog?q=${encodeURIComponent(q)}&limit=50`)).products || [];
         if (mine !== seq) return;
-        rows.innerHTML = list.length ? list.map((x) => `<div class="prow static"><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.unit)} · ${esc(x.category)}${x.active === false ? ' · inativo' : ''}</small></span>
-          <span class="end"><b>${esc(OC.costText(OC.money(x.currentCost)))}</b><small>custo</small></span></div>`).join('') : '<div class="empty">Nada encontrado.</div>';
+        rows.innerHTML = list.length ? list.map((x) => `<${editor ? `button type="button" class="prow" data-prod="${esc(x.id)}"` : 'div class="prow static"'}><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.unit)} · ${esc(x.category)}${x.active === false ? ' · inativo' : ''}</small></span>
+          <span class="end"><b>${esc(OC.costText(OC.money(x.currentCost)))}</b><small>custo</small></span></${editor ? 'button' : 'div'}>`).join('') : '<div class="empty">Nada encontrado.</div>';
+        OC.$$('[data-prod]', rows).forEach((b) => b.addEventListener('click', () => OC.catalogSheet(list.find((x) => x.id === b.dataset.prod), () => load(lastQ))));
       } catch (error) { if (mine === seq) rows.innerHTML = `<div class="empty">${esc(error.message)}</div>`; }
     };
+    const novo = OC.$('#c-new', el);
+    if (novo) novo.addEventListener('click', () => OC.catalogSheet(null, () => load(lastQ)));
     OC.$('#c-q', el).addEventListener('input', (event) => { clearTimeout(timer); timer = setTimeout(() => load(event.target.value.trim()), 300); });
     load('');
     OC.$('#c-ex', el).addEventListener('click', () => OC.open('exsat'));
