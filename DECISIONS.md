@@ -41,3 +41,8 @@ Decidido pelo Lucas: (1) importar só preço lido com login; (2) a senha da cont
 Implementado assim: AES-256-GCM em repouso com chave só em variável de ambiente (`EXSAT_CREDENTIAL_KEY`; sem ela o servidor recusa gravar e ler); a conta só é gravada depois que a Exsat aceita o login (uma tentativa por clique, pausa depois de falha); cookie da Exsat só em memória; varredura em segundo plano por departamento, uma página por vez com pausa, estado no banco e retomável; `exsat_credentials` fora do dump de backup. Cadastrar, trocar e remover a conta exige p10 e perfil admin. A resposta de erro de leitura do corpo (`entity.*`) passou a ser genérica para o corpo cru, que pode conter a senha, não ir para o log nem para a tela.
 
 Alternativa descartada: ler preço público de URL sem login (podia importar preço de tabela como custo). Se a Exsat passar a exigir captcha no login, a decisão é não contornar: o aplicativo do computador sincroniza e o site mostra o catálogo.
+
+## 2026-10-10 — Suíte: entrada pela sessão do Centro (#sessao=)
+
+- O login do Orçamentos dentro da Suíte mostrava "Integração de contas com o Centro de Custos não configurada" porque o código de uso único (#handoff=) só é trocado com a chave de serviço do servidor, que o app instalado não tem. Agora a Suíte entrega a sessão corporativa da conta em `#sessao=<token>` e o `AuthGate` a valida pelo servidor local (`/api/auth/me`, que consulta o Centro só com o Bearer).
+- `#sessao=` só vale com `runtime.suite === true`: num navegador, um link com esse trecho não troca a conta de quem abre. O token sai do endereço logo que lido. `#handoff=` segue para quem tem a chave de serviço (servidor na nuvem). Detalhe do lado do Centro em `DECISIONS.md` do Centro de Custos, 2026-10-10.

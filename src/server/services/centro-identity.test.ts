@@ -247,6 +247,17 @@ test('identidade delegada ao Centro de Custos', async context => {
     await assert.rejects(consumeHandoff(database, code), /AUTH_HANDOFF_INVALID/);
   });
 
+  await context.test('Suite do Windows: sessao do Centro vale sem a chave de servico (fora do instalador)', async () => {
+    const central = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
+    delete process.env.CONSTRUTEC_IDENTITY_KEY;
+    try {
+      forgetCachedSessions();
+      assert.equal((await verifyUserSession(database, central.token))?.email, 'gestor@rcconstrutec.com.br');
+      assert.equal(stub.seen.filter(entry => entry.path === '/v1/auth/session').at(-1)?.serviceKey, undefined);
+      await assert.rejects(consumeHandoff(database, 'b'.repeat(43)), /configurada/, 'o codigo continua exigindo a chave');
+    } finally { process.env.CONSTRUTEC_IDENTITY_KEY = SERVICE_KEY; forgetCachedSessions(); }
+  });
+
   await context.test('desktop sem internet aceita sessao ja confirmada; nuvem nao', async () => {
     const gestor = await loginUser(database, 'gestor@rcconstrutec.com.br', 'senha-ges1');
     const savedUrl = process.env.CENTRO_CUSTOS_IDENTITY_URL;
