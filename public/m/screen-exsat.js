@@ -1,6 +1,6 @@
 // Integracao EXSAT e preco novo na proposta, no celular (prototipo, Rodada 22: telas 22c a 22f e 22n a 22y).
-// A varredura do EXSAT com a conta conectada roda so no aplicativo do computador (a sessao do site fica la);
-// aqui o celular mostra o que o catalogo tem de preco novo em relacao as propostas em edicao e atualiza item a item.
+// Conta e varredura da Exsat rodam no servidor (exsat-conta.js, rotas /api/exsat/*, como no site de computador);
+// abaixo, o que o catalogo tem de preco novo em relacao as propostas em edicao, com a atualizacao proposta a proposta.
 (function (OC) {
   const { esc, icon } = OC;
   const fmtN = (n) => Number(n || 0).toLocaleString('pt-BR');
@@ -53,7 +53,8 @@
 
   // ---------- tela: Integracao EXSAT ----------
   OC.screens.exsat = async function (params) {
-    const el = OC.render(`${OC.header('Integração EXSAT', { back: true })}<div id="x-body" class="imp-body"></div>`, true, params);
+    const el = OC.render(`${OC.header('Integração EXSAT', { back: true })}<div id="x-acc"></div><div id="x-body" class="imp-body"></div>`, true, params);
+    if (OC.exsatAccount && OC.can('p10')) OC.exsatAccount(OC.$('#x-acc', el));
     const body = OC.$('#x-body', el);
     const live = () => OC.nav === params.__nav;
     let filter = 'todos', busy = false, seq = 0;
@@ -101,15 +102,15 @@
       const itemsN = proposals.reduce((n, d) => n + d.items.length, 0);
       const shown = rows.filter((r) => filter === 'todos' || (filter === 'sub' ? r.pct > 0 : r.pct < 0));
       const cost = OC.can('p10');
-      const status = `<div class="card ex-card"><div class="ex-head"><span class="ex-ic">${icon('arrow-square-out', 22)}</span><span class="grow"><b>EXSAT</b>
+      const status = `<div class="card ex-card"><div class="ex-head"><span class="ex-ic">${icon('trend-up', 22)}</span><span class="grow"><b>Preços novos nas propostas</b>
           <small>${proposals.length ? `${plural(proposals.length, 'proposta com preço novo', 'propostas com preço novo')}` : 'Nenhum preço novo nas propostas'}</small></span>
-          <span class="imp-badge sug">Pelo computador</span></div>
+</div>
         <div class="kv"><span>Itens no catálogo</span><b>${fmtN(count)}</b></div>
         <div class="kv"><span>Itens com preço novo</span><b>${fmtN(rows.length)}${rows.length ? ` · ${fmtN(up)} subiu, ${fmtN(down)} baixou` : ''}</b></div>
         <div class="kv"><span>Propostas em edição afetadas</span><b>${fmtN(proposals.length)}</b></div>
-        <p class="hint" style="margin-top:6px">A varredura do EXSAT usa a conta conectada, no aplicativo ou no site do computador (Catálogo, Importar itens em lote, aba Exsat). Aqui você vê o que mudou no catálogo e atualiza as propostas em edição.</p>
+        <p class="hint" style="margin-top:6px">Depois que a varredura grava os preços no catálogo, as propostas em edição com preço novo aparecem aqui para atualizar.</p>
         <div class="ex-btns"><button class="btn2" type="button" id="x-reload">Atualizar lista</button></div></div>`;
-      const empty = `<div class="empty imp-state">${icon('check-circle', 32)}<b>Nenhum preço mudou</b><span>Os itens das propostas em edição continuam com o mesmo preço do catálogo. Quando o computador atualizar o catálogo pelo EXSAT, os avisos aparecem aqui e dentro de cada proposta.</span></div>`;
+      const empty = `<div class="empty imp-state">${icon('check-circle', 32)}<b>Nenhum preço mudou</b><span>Os itens das propostas em edição continuam com o mesmo preço do catálogo. Quando o catálogo receber preços novos da Exsat, os avisos aparecem aqui e dentro de cada proposta.</span></div>`;
       const chips = `<div class="chips wrap" role="group" aria-label="Filtro">${[['todos', `Todos · ${rows.length}`], ['sub', `Subiram · ${up}`], ['des', `Baixaram · ${down}`]].map(([k, l]) => `<button class="chip-act" type="button" data-fil="${k}" aria-pressed="${filter === k}">${l}</button>`).join('')}</div>`;
       const list = rows.length ? `<div class="sec-row"><span class="label">Itens com preço novo</span></div>${chips}
         ${shown.length ? `<div class="rows">${shown.map((r) => `<div class="prow static imp-upd"><span class="grow"><b>${esc(r.description)}</b><small>${esc(r.code)} · ${esc(r.unit)}</small>
