@@ -64,7 +64,7 @@
     font-weight:750; font-variant-numeric:tabular-nums;
     letter-spacing:-.025em; overflow-wrap:anywhere;
   }
-  .kpi-content strong { font-size:24px; }
+  .kpi-content strong { font-size: calc(24px * var(--fs, 1)); }
   .kpi.balance { border-color:var(--bd-cool-30); background:transparent; }
   .amount.blue { padding-bottom:12px; border-bottom:1px solid var(--line-strong); }
   .amount.blue strong { font-weight:800; }

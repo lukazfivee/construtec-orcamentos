@@ -19,7 +19,7 @@
   align-content: center;
   gap: 14px;
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--fs, 1));
 }
 
 .auth-loading::before {
@@ -112,7 +112,7 @@
 .auth-eyebrow {
   display: inline-block;
   color: var(--tx-cool-30);
-  font-size: 9px;
+  font-size: calc(9px * var(--fs, 1));
   font-weight: 750;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -121,7 +121,7 @@
 .auth-card h1 {
   margin: 2px 0 4px;
   color: var(--ink);
-  font-size: 19px;
+  font-size: calc(19px * var(--fs, 1));
   font-weight: 700;
   line-height: 1.2;
 }
@@ -129,7 +129,7 @@
 .auth-card p {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: calc(11px * var(--fs, 1));
   line-height: 1.5;
 }
 
@@ -143,7 +143,7 @@
   display: grid;
   gap: 6px;
   color: var(--tx-cool-33);
-  font-size: 10px;
+  font-size: calc(10px * var(--fs, 1));
   font-weight: 650;
 }
 
@@ -174,7 +174,7 @@
   gap: 8px;
   cursor: pointer;
   user-select: none;
-  font-size: 11px !important;
+  font-size: calc(11px * var(--fs, 1)) !important;
   font-weight: 500 !important;
   color: var(--tx-cool-28-2) !important;
   margin: 4px 0 2px;
@@ -200,7 +200,7 @@
   background: var(--bg-red-97);
   border: 1px solid var(--bd-red-89);
   border-radius: 6px;
-  font-size: 10px;
+  font-size: calc(10px * var(--fs, 1));
   line-height: 1.45;
 }
 
@@ -216,7 +216,7 @@
   background: var(--blue);
   border: 1px solid var(--bd-cool-30);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   font-weight: 700;
   cursor: pointer;
 }
@@ -235,7 +235,7 @@
   background: transparent;
   border: 0;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: calc(12px * var(--fs, 1));
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -259,7 +259,7 @@
   color: var(--muted);
   background: var(--surface-subtle);
   border-top: 1px solid var(--line);
-  font-size: 9px;
+  font-size: calc(9px * var(--fs, 1));
 }
 
 

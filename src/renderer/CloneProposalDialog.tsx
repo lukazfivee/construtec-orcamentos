@@ -228,7 +228,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
                     {activeWorks.length > 0 && (
                       <button
                         type="button"
-                        style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', fontSize: '11px', padding: 0 }}
+                        style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', fontSize: 'calc(11px * var(--fs, 1))', padding: 0 }}
                         onClick={() => {
                           setIsCreatingWork(false);
                           setWorkId(activeWorks[0]?.id ?? '');

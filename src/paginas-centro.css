@@ -3,10 +3,10 @@
    cartoes, botoes, campos, chips, tabelas, paineis laterais, dialogos e aviso rapido. So no desktop (>= 768 px). */
 @media (min-width: 768px) {
   /* ---------- Moldura: area de conteudo = .conteudo do Centro (padding 28/32/40, folga de 20 px entre blocos) ---------- */
-  .app-shell.cc { font: 14px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-text); -webkit-font-smoothing: antialiased; }
+  .app-shell.cc { font: calc(14px * var(--fs, 1))/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: var(--color-text); -webkit-font-smoothing: antialiased; }
   .app-shell.cc > .management-workspace, .app-shell.cc > .home-workspace, .app-shell.cc > .od-page, .app-shell.cc > .workspace-page {
     grid-column: 2; grid-row: 2; display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; overflow: auto;
-    padding: 28px 32px 40px; background: var(--color-bg); color: var(--color-text); font-size: 14px;
+    padding: 28px 32px 40px; background: var(--color-bg); color: var(--color-text); font-size: calc(14px * var(--fs, 1));
   }
   .app-shell.cc > .management-workspace > *, .app-shell.cc > .home-workspace > *, .app-shell.cc > .od-page > *, .app-shell.cc > .workspace-page > * { flex: none; }
   .app-shell.cc .od-stack { max-width: none; margin: 0; gap: 20px; }
@@ -19,18 +19,18 @@
     min-height: 0; padding: 0; background: transparent; border: 0; box-shadow: none; width: 100%;
   }
   .app-shell.cc .cab > .tit, .app-shell.cc .od-head > div:first-child, .app-shell.cc .page-head > div:first-child { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
-  .app-shell.cc .cab .eyebrow, .app-shell.cc .od-eyebrow, .app-shell.cc .page-eyebrow, .app-shell.cc .app-badge { font-size: 11px; font-weight: 600; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent-300); }
+  .app-shell.cc .cab .eyebrow, .app-shell.cc .od-eyebrow, .app-shell.cc .page-eyebrow, .app-shell.cc .app-badge { font-size: calc(11px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent-300); }
   .app-shell.cc .cab h1, .app-shell.cc .od-head h1, .app-shell.cc .page-head h1, .app-shell.cc .home-header h1, .app-shell.cc .management-header h1 {
-    margin: 0; font: 600 26px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; color: var(--color-text);
+    margin: 0; font: 600 calc(26px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; color: var(--color-text);
   }
-  .app-shell.cc .cab .sub, .app-shell.cc .od-sub, .app-shell.cc .page-sub, .app-shell.cc .cab p { margin: 0; max-width: none; min-height: 0; font-size: 13.5px; line-height: 1.5; color: var(--color-neutral-300); }
+  .app-shell.cc .cab .sub, .app-shell.cc .od-sub, .app-shell.cc .page-sub, .app-shell.cc .cab p { margin: 0; max-width: none; min-height: 0; font-size: calc(13.5px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); }
   .app-shell.cc .cab > .acoes, .app-shell.cc .od-actions, .app-shell.cc .page-head-actions { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; flex: none; width: auto; }
   .app-shell.cc .page-back { margin: 0; }
 
   /* ---------- Botoes (.btn: 40 px, raio 10, 600 13.5) ---------- */
   .app-shell.cc .primary-btn, .app-shell.cc .secondary-btn, .app-shell.cc .flow-btn, .app-shell.cc .cab .acoes button, .app-shell.cc .btn-export-csv, .app-shell.cc .clear-filters-btn,
   .app-shell.cc .management-header-actions button, .app-shell.cc .home-header-actions button {
-    height: 40px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    height: 40px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; cursor: pointer; text-decoration: none;
     background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider);
     transition: transform .12s ease, background-color .15s ease, box-shadow .15s ease;
@@ -66,9 +66,9 @@
   .app-shell.cc .kpi-card:hover { transform: none; background: var(--color-surface); box-shadow: var(--shadow-sm-cc), 0 1px 2px rgba(3, 31, 41, .04); }
   .app-shell.cc .kpi-card.highlight-blue, .app-shell.cc .kpi-card.highlight-green { border: 0; }
   .app-shell.cc .kpi-card .kpi-content { display: contents; }
-  .app-shell.cc .kpi-card .kpi-content > span { grid-area: lbl; font-size: 11.5px; font-weight: 600; line-height: 1.5; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300); }
-  .app-shell.cc .kpi-card .kpi-content > strong { grid-area: val; min-width: 0; font: 600 21px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: 0; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text); animation: none; }
-  .app-shell.cc .kpi-card .kpi-content > small { grid-area: det; font-size: 12px; line-height: 1.5; color: var(--color-neutral-300); }
+  .app-shell.cc .kpi-card .kpi-content > span { grid-area: lbl; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300); }
+  .app-shell.cc .kpi-card .kpi-content > strong { grid-area: val; min-width: 0; font: 600 calc(21px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: 0; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text); animation: none; }
+  .app-shell.cc .kpi-card .kpi-content > small { grid-area: det; font-size: calc(12px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); }
   .app-shell.cc .kpi-card .kpi-icon { grid-area: ic; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--color-accent-900); color: var(--color-accent-300); }
   .app-shell.cc .kpi-card .kpi-icon svg { width: 16px; height: 16px; stroke-width: 1.5; }
   .app-shell.cc .kpi-card.highlight-green .kpi-icon, .app-shell.cc .kpi-card .kpi-icon.ok { background: var(--c-ok-soft); color: var(--c-ok); }
@@ -77,20 +77,20 @@
   .app-shell.cc .od-kpis { gap: 14px; }
   .app-shell.cc .od-kpi { padding: 16px; gap: 8px; }
   .app-shell.cc .od-kpi-ic { width: 30px; height: 30px; border-radius: 9px; }
-  .app-shell.cc .od-kpi-v { font: 600 21px/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
-  .app-shell.cc .od-kpi-s { font-size: 12px; }
+  .app-shell.cc .od-kpi-v { font: 600 calc(21px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
+  .app-shell.cc .od-kpi-s { font-size: calc(12px * var(--fs, 1)); }
 
   /* ---------- Campos (.inp: 40 px, raio 10, anel de 1 px na cor do campo, foco de 2 px) ---------- */
   .app-shell.cc .od-inp, .app-shell.cc .filter-select, .app-shell.cc .search-box input, .app-shell.cc .compare-pick select, .app-shell.cc .new-proposal-dialog input, .app-shell.cc .new-proposal-dialog select,
   .app-shell.cc .drawer-field input, .app-shell.cc .drawer-field textarea {
     height: 40px; padding-top: 0; padding-bottom: 0; padding-right: 12px; padding-left: 12px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); color: var(--color-text);
-    font: 14px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease;
+    font: calc(14px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; outline: none; transition: box-shadow .15s ease;
   }
   .app-shell.cc .od-inp:focus, .app-shell.cc .filter-select:focus, .app-shell.cc .search-box input:focus, .app-shell.cc .compare-pick select:focus, .app-shell.cc .new-proposal-dialog input:focus, .app-shell.cc .new-proposal-dialog select:focus,
   .app-shell.cc .drawer-field input:focus, .app-shell.cc .drawer-field textarea:focus { box-shadow: inset 0 0 0 2px var(--color-focus); border: 0; outline: none; }
   .app-shell.cc .drawer-field textarea { height: 76px; padding: 10px 12px; }
   .app-shell.cc input::placeholder, .app-shell.cc textarea::placeholder { color: var(--color-placeholder); opacity: 1; }
-  .app-shell.cc .od-fld > span, .app-shell.cc .drawer-field, .app-shell.cc .new-proposal-dialog label { font-size: 12px; font-weight: 600; color: var(--color-neutral-300); }
+  .app-shell.cc .od-fld > span, .app-shell.cc .drawer-field, .app-shell.cc .new-proposal-dialog label { font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
   .app-shell.cc .od-btn, .app-shell.cc .od-btn.s { box-shadow: inset 0 0 0 1px var(--color-divider); }
   .app-shell.cc .od-btn.p { box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
   .app-shell.cc .od-btn.g { box-shadow: none; }
@@ -102,7 +102,7 @@
 
   /* ---------- Etiquetas (.chip: 24 px, raio 12, 11.5/600) ---------- */
   .app-shell.cc .status-tag, .app-shell.cc .validity-badge, .app-shell.cc .items-count-badge, .app-shell.cc .rev-badge, .app-shell.cc .revision-tag, .app-shell.cc .tab-counter, .app-shell.cc .sync-badge, .app-shell.cc .od-chip {
-    display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border: 0; border-radius: 12px; font-size: 11.5px; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border: 0; border-radius: 12px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap;
   }
   .app-shell.cc .status-tag.status-draft { background: var(--c-warn-soft); color: var(--c-warn); }
   .app-shell.cc .status-tag.status-review { background: var(--color-accent-900); color: var(--color-accent-300); }
@@ -113,42 +113,42 @@
   .app-shell.cc .rev-badge svg, .app-shell.cc .items-count-badge svg, .app-shell.cc .validity-badge svg { width: 13px; height: 13px; stroke-width: 1.5; }
 
   /* ---------- Tabelas (.tbl: cabecalho 40 px em caixa alta pequena, linha de 56 px, hover azul claro) ---------- */
-  .app-shell.cc .home-proposals-table, .app-shell.cc .proposals-table, .app-shell.cc .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .app-shell.cc .home-proposals-table, .app-shell.cc .proposals-table, .app-shell.cc .compare-table { width: 100%; border-collapse: collapse; font-size: calc(13px * var(--fs, 1)); }
   .app-shell.cc .home-proposals-table th, .app-shell.cc .proposals-table th, .app-shell.cc .compare-table th {
-    height: 40px; padding: 0 14px; text-align: left; background: transparent; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    height: 40px; padding: 0 14px; text-align: left; background: transparent; font-size: calc(11px * var(--fs, 1)); font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
     color: var(--color-neutral-300); border: 0; border-bottom: 1px solid var(--color-divider); white-space: nowrap;
   }
-  .app-shell.cc .home-proposals-table td, .app-shell.cc .proposals-table td { height: 56px; padding: 6px 14px; border: 0; border-bottom: 1px solid var(--color-divider); vertical-align: middle; font-size: 13px; color: var(--color-text); background: transparent; }
+  .app-shell.cc .home-proposals-table td, .app-shell.cc .proposals-table td { height: 56px; padding: 6px 14px; border: 0; border-bottom: 1px solid var(--color-divider); vertical-align: middle; font-size: calc(13px * var(--fs, 1)); color: var(--color-text); background: transparent; }
   .app-shell.cc .home-proposals-table tbody tr:hover td, .app-shell.cc .proposals-table tbody tr:hover td { background: var(--color-accent-900); }
   .app-shell.cc .home-proposals-table tr:last-child td, .app-shell.cc .proposals-table tr:last-child td { border-bottom: 1px solid var(--color-divider); }
-  .app-shell.cc .home-proposals-table td strong, .app-shell.cc .proposals-table td strong, .app-shell.cc .home-proposals-table td b { font-size: 13px; font-weight: 600; }
+  .app-shell.cc .home-proposals-table td strong, .app-shell.cc .proposals-table td strong, .app-shell.cc .home-proposals-table td b { font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .home-proposals-table td:first-child { white-space: nowrap; }
   .app-shell.cc .home-proposals-table td .rev-badge { margin-left: 8px; vertical-align: middle; }
   .app-shell.cc .home-proposals-table td b, .app-shell.cc .home-proposals-table td small { display: block; }
   .app-shell.cc .home-proposals-table td:first-child strong { display: inline; }
-  .app-shell.cc .home-proposals-table td small { font-size: 11.5px; color: var(--color-neutral-300); }
+  .app-shell.cc .home-proposals-table td small { font-size: calc(11.5px * var(--fs, 1)); color: var(--color-neutral-300); }
 
   /* ---------- Paineis laterais (.drawer), dialogos e aviso rapido ---------- */
   .app-shell.cc .side-drawer-scrim, .app-shell.cc .od-drawer-bg { background: rgba(3, 31, 41, .38); }
   .app-shell.cc .side-drawer, .app-shell.cc .od-drawer { width: var(--drawer-w); max-width: 100%; background: var(--color-surface); box-shadow: -24px 0 60px rgba(3, 31, 41, .22); }
   .app-shell.cc .side-drawer > header, .app-shell.cc .od-drawer-head { padding: 18px 20px; gap: 12px; border-bottom: 1px solid var(--color-divider); }
   .app-shell.cc .side-drawer-icon, .app-shell.cc .od-drawer-head .od-row-ic { width: 38px; height: 38px; border-radius: 11px; background: var(--color-accent-900); color: var(--color-accent-300); }
-  .app-shell.cc .side-drawer h2, .app-shell.cc .od-drawer-head .od-grow > b { font-size: 17px; font-weight: 600; }
+  .app-shell.cc .side-drawer h2, .app-shell.cc .od-drawer-head .od-grow > b { font-size: calc(17px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .side-drawer-body, .app-shell.cc .od-drawer-body { padding: 20px; gap: 16px; }
   .app-shell.cc .side-drawer > footer, .app-shell.cc .od-drawer-foot { gap: 10px; padding: 14px 20px; background: var(--color-surface); border-top: 1px solid var(--color-divider); }
   .dialog-backdrop, .modal-backdrop { background: rgba(3, 31, 41, .45); backdrop-filter: none; }
   .new-proposal-dialog > header { min-height: 0; padding: 18px 20px; gap: 12px; border-bottom: 1px solid var(--color-divider); }
   .new-proposal-dialog > header > div > svg { width: 22px; height: 22px; stroke-width: 1.5; color: var(--color-accent-300); }
-  .new-proposal-dialog h2 { font-size: 17px; font-weight: 600; line-height: 1.5; }
-  .new-proposal-dialog header p { margin-top: 0; font-size: 12.5px; color: var(--color-neutral-300); }
+  .new-proposal-dialog h2 { font-size: calc(17px * var(--fs, 1)); font-weight: 600; line-height: 1.5; }
+  .new-proposal-dialog header p { margin-top: 0; font-size: calc(12.5px * var(--fs, 1)); color: var(--color-neutral-300); }
   .new-proposal-dialog form { gap: 16px; padding: 20px; }
   .new-proposal-dialog form > footer { gap: 10px; margin: 4px -20px -20px; padding: 14px 20px; background: var(--color-surface); border-top: 1px solid var(--color-divider); border-radius: 0 0 14px 14px; }
-  .new-proposal-dialog form > footer button { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 13.5px "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider); }
+  .new-proposal-dialog form > footer button { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider); }
   .new-proposal-dialog form > footer button.primary { background: var(--color-brand); color: #fefefe; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
   .new-proposal-dialog form > footer button:disabled { opacity: .55; }
   .dialog-close { width: 36px; height: 36px; border: 0; border-radius: 9px; background: transparent; color: var(--color-neutral-300); }
   .dialog-close:hover { background: var(--color-accent-900); color: var(--color-accent-300); }
   .new-proposal-dialog, .modal-dialog, .flow-confirm { border: 0; border-radius: 14px; box-shadow: var(--shadow-pop); background: var(--color-surface); }
-  .toast { left: 50%; right: auto; bottom: 24px; z-index: 70; transform: translateX(-50%); max-width: calc(100vw - 64px); display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 0; border-radius: 12px; background: #031f29; color: #fefefe; font-size: 13.5px; line-height: 1.5; box-shadow: 0 14px 34px rgba(3, 31, 41, .3); pointer-events: none; animation: cc-toast-in .28s cubic-bezier(.2, .8, .2, 1) both; }
+  .toast { left: 50%; right: auto; bottom: 24px; z-index: 70; transform: translateX(-50%); max-width: calc(100vw - 64px); display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 0; border-radius: 12px; background: #031f29; color: #fefefe; font-size: calc(13.5px * var(--fs, 1)); line-height: 1.5; box-shadow: 0 14px 34px rgba(3, 31, 41, .3); pointer-events: none; animation: cc-toast-in .28s cubic-bezier(.2, .8, .2, 1) both; }
   @keyframes cc-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(12px) } to { opacity: 1; transform: translateX(-50%) } }
 }

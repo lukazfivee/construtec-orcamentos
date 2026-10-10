@@ -9,7 +9,8 @@ import { NAV_GROUPS } from './navSections';
 // menu Suite identico (sem Portal Hub) e interface sem emoji. As medidas reais (getComputedStyle nos dois apps)
 // vao na tabela do PR; aqui ficam travadas as constantes que a produzem.
 const root = process.cwd();
-const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
+// O tamanho das letras vem multiplicado por --fs (escala-75.css); a medida comparada e a base em px.
+const read = (file: string) => readFileSync(path.join(root, file), 'utf8').replace(/calc\(([0-9.]+(?:px|rem)) \* var\(--fs, 1\)\)/g, '$1');
 const shell = read('src/shell-centro.css');
 const paginas = read('src/paginas-centro.css');
 const telas = read('src/telas-centro.css');

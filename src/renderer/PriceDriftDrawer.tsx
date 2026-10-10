@@ -45,8 +45,8 @@ export function PriceDriftDrawer({ drift, onClose, onApplied, onError }: Props) 
       {drift.items.map((item) => {
         const delta = p10 ? item.costDelta ?? 0 : item.finalDelta;
         return <div className="od-drift-row" key={item.id}>
-          <span className="od-grow"><b style={{ fontSize: 13, fontWeight: 600 }}>{item.description}</b>
-            <span style={{ fontSize: 12 }}>{item.quantity.toLocaleString('pt-BR')} {item.unit}{p10 ? ` · custo ${brl(item.fromUnit ?? 0)} → ${brl(item.toUnit ?? 0)}` : ` · ${pctSigned(item.changePercent)} no preço`}</span></span>
+          <span className="od-grow"><b style={{ fontSize: 'calc(13px * var(--fs, 1))', fontWeight: 600 }}>{item.description}</b>
+            <span style={{ fontSize: 'calc(12px * var(--fs, 1))' }}>{item.quantity.toLocaleString('pt-BR')} {item.unit}{p10 ? ` · custo ${brl(item.fromUnit ?? 0)} → ${brl(item.toUnit ?? 0)}` : ` · ${pctSigned(item.changePercent)} no preço`}</span></span>
           <b className="od-num" style={{ color: delta > 0 ? 'var(--od-warn-fg)' : 'var(--od-ok-fg)' }}>{signBrl(delta)}</b>
         </div>;
       })}
