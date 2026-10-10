@@ -1,0 +1,117 @@
+/* Assistente de IA (AssistantFab): botao flutuante e painel de conversa.
+   Camadas: acima do conteudo e das barras (menu lateral 30, topo 20), abaixo de toasts (70) e modais (60+).
+   Cores so por token (claro e escuro). */
+.assistant-fab {
+  position: fixed; right: 24px; bottom: 24px; z-index: 35;
+  display: grid; place-items: center; width: 52px; height: 52px; padding: 0;
+  color: var(--on-fill); background: var(--blue); border: 0; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(13, 127, 159, .4);
+  transition: transform .15s ease, background-color .15s ease;
+}
+.grecaptcha-badge { visibility: hidden; } /* o aviso do reCAPTCHA fica no painel do assistente */
+.assistant-fab:hover { background: var(--blue-hover); transform: translateY(-1px); }
+.assistant-fab:focus-visible, .assistant-panel button:focus-visible, .assistant-panel textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* O botao fica no canto onde termina o painel comercial do editor: sobra espaco no fim da rolagem dele
+   para os botoes de baixo (Gerar PDF + Word, Gerar Centro de Custo) nunca ficarem atras do botao. */
+.app-shell.cc .commercial-panel { padding-bottom: 92px; }
+
+.assistant-scrim { display: none; }
+.assistant-handle { display: none; }
+.assistant-panel {
+  position: fixed; right: 24px; bottom: 24px; z-index: 36;
+  display: flex; flex-direction: column; width: min(420px, calc(100vw - 48px)); height: min(640px, 80vh);
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 14px;
+  box-shadow: var(--shadow-popover); overflow: hidden; animation: assistant-in .18s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes assistant-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.assistant-head { display: flex; align-items: center; gap: 8px; flex: none; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.assistant-head b { display: flex; align-items: center; flex: 1; gap: 8px; font-size: calc(14px * var(--fs, 1)); color: var(--ink); }
+.assistant-head b svg { color: var(--blue-ink); }
+.assistant-panel .assistant-new {
+  height: 30px; padding: 0 10px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 7px;
+  font-size: calc(12px * var(--fs, 1)); font-weight: 600; cursor: pointer;
+}
+.assistant-panel .assistant-new:hover:not(:disabled) { border-color: var(--blue); }
+.assistant-panel .assistant-new:disabled { opacity: .5; cursor: default; }
+.assistant-panel .assistant-x { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; color: var(--muted); background: transparent; border: 0; border-radius: 7px; cursor: pointer; }
+.assistant-panel .assistant-x:hover { color: var(--ink); background: var(--surface-subtle); }
+
+.assistant-log { display: flex; flex: 1; flex-direction: column; gap: 10px; min-height: 0; padding: 14px; overflow-y: auto; overscroll-behavior: contain; }
+.assistant-msg { max-width: 88%; padding: 9px 12px; border-radius: 12px; font-size: calc(13px * var(--fs, 1)); line-height: 1.5; overflow-wrap: anywhere; }
+.assistant-msg.eu { align-self: flex-end; color: var(--on-fill); background: var(--blue); border-bottom-right-radius: 4px; }
+.assistant-msg.ia { align-self: flex-start; color: var(--ink); background: var(--surface-subtle); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.assistant-msg.erro { align-self: flex-start; color: var(--status-rejected-text); background: var(--status-rejected-bg); border: 1px solid var(--status-rejected-border); }
+.assistant-msg p { margin: 0 0 6px; }
+.assistant-msg ul { margin: 2px 0 6px; padding-left: 18px; }
+.assistant-msg li { margin: 2px 0; }
+.assistant-msg > :last-child { margin-bottom: 0; }
+.assistant-panel .assistant-go {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; margin-top: 8px; padding: 0 12px; color: var(--blue-ink); background: var(--surface);
+  border: 1px solid var(--blue); border-radius: 7px; font-size: calc(12px * var(--fs, 1)); font-weight: 600; cursor: pointer;
+}
+.assistant-msg.busy { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.assistant-msg.busy small { font-size: calc(12px * var(--fs, 1)); }
+.assistant-dots { display: inline-flex; gap: 4px; }
+.assistant-dots i { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: assistant-dot 1.1s ease-in-out infinite; }
+.assistant-dots i:nth-child(2) { animation-delay: .15s; }
+.assistant-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes assistant-dot { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
+
+.assistant-hello { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 4px 4px; color: var(--muted); font-size: calc(13px * var(--fs, 1)); text-align: center; }
+.assistant-hello svg { color: var(--blue-ink); }
+.assistant-hello b { color: var(--ink); font-size: calc(15px * var(--fs, 1)); }
+.assistant-suggestions { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 8px; }
+.assistant-panel .assistant-suggestions button {
+  padding: 9px 12px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px;
+  font-size: calc(12.5px * var(--fs, 1)); text-align: left; cursor: pointer;
+}
+.assistant-panel .assistant-suggestions button:hover { border-color: var(--blue); }
+
+.assistant-input { display: flex; align-items: flex-end; gap: 8px; flex: none; padding: 10px 12px; border-top: 1px solid var(--line); }
+.assistant-input textarea {
+  flex: 1; min-width: 0; min-height: 38px; max-height: 120px; padding: 8px 10px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px;
+  font: inherit; font-size: calc(13px * var(--fs, 1)); line-height: 1.4; resize: none;
+}
+.assistant-panel .assistant-send { display: grid; place-items: center; flex: none; width: 38px; height: 38px; padding: 0; color: var(--on-fill); background: var(--blue); border: 0; border-radius: 8px; cursor: pointer; }
+.assistant-panel .assistant-send:disabled { opacity: .5; cursor: default; }
+.assistant-note { flex: none; padding: 0 14px 10px; color: var(--muted); font-size: calc(11px * var(--fs, 1)); line-height: 1.4; }
+.assistant-note a { color: inherit; text-decoration: underline; }
+
+/* Janela larga (>= 1200px): o app roda a 75% de zoom (escala-75.css) e vh/vw contam a janela antes da reducao.
+   Aqui tudo divide por .75 para o botao ficar com 52px e o painel com 420px por min(640px, 80vh) na tela. */
+@media screen and (min-width: 1200px) {
+  .assistant-fab { right: 32px; bottom: 32px; width: 69px; height: 69px; }
+  .assistant-fab svg { width: 32px; height: 32px; }
+  .app-shell.cc .commercial-panel { padding-bottom: 112px; }
+  .assistant-panel { right: 32px; bottom: 32px; width: min(560px, calc((100vw - 48px) / .75)); height: min(853px, calc(80vh / .75)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-panel, .assistant-fab { animation: none; transition: none; }
+  .assistant-dots i { animation: none; opacity: .6; }
+}
+@media print { .assistant-fab, .assistant-panel, .assistant-scrim { display: none !important; } }
+
+/* Celular e janela estreita: o botao sobe acima da barra de abas (~59px) e, no editor da proposta,
+   acima do chip de resumo (bottom 74px) e do botao + dos itens (bottom 144px); o painel vira folha inferior. */
+@media screen and (max-width: 767px) {
+  .assistant-fab { right: 16px; bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body:has(.proposal-summary-chip) .assistant-fab { bottom: calc(148px + env(safe-area-inset-bottom)); }
+  body:has(.proposal-items-fab) .assistant-fab { bottom: calc(208px + env(safe-area-inset-bottom)); }
+  body:has(.proposal-items-fab-menu) .assistant-fab,
+  body:has(input:focus, textarea:focus, select:focus) .assistant-fab { display: none; }
+  .assistant-scrim { display: block; position: fixed; inset: 0; z-index: 66; background: rgba(10, 20, 35, .45); }
+  .assistant-handle { display: block; flex: none; width: 34px; height: 4px; margin: 8px auto 0; background: var(--line-strong); border-radius: 2px; }
+  .assistant-panel {
+    left: 0; right: 0; bottom: 0; z-index: 67; width: auto; height: 88dvh; max-height: 88dvh;
+    padding-bottom: env(safe-area-inset-bottom); border-width: 1px 0 0; border-radius: 16px 16px 0 0;
+    animation: assistant-sheet .22s cubic-bezier(.2, .8, .2, 1);
+  }
+  .assistant-panel .assistant-new, .assistant-panel .assistant-x { min-height: 40px; }
+  .assistant-panel .assistant-x { width: 40px; }
+  .assistant-input textarea { font-size: 16px; }
+  .assistant-msg { max-width: 92%; }
+}
+@keyframes assistant-sheet { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }

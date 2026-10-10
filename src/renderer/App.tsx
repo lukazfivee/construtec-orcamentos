@@ -4,6 +4,7 @@ import { kitsApi, proposalApi } from './api';
 import { AppSidebar } from './AppSidebar';
 import type { NavSection } from './AppSidebar';
 import { AppTopbar } from './AppTopbar';
+import { AssistantFab } from './AssistantFab';
 import { CatalogWorkspace } from './CatalogWorkspace';
 import { CentroCustosWorkspace } from './CentroCustosWorkspace';
 import { ClientsWorkspace } from './ClientsWorkspace';
@@ -204,6 +205,20 @@ export function App({ user, onLogout }: AppProps = {}) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [openSearch, createRevision, exportProposal, previewProposal, proposal?.isLatest]);
 
+  const selectNav = (label: NavSection) => {
+    setActiveNav(label);
+    setProposalViewMode(viewModeOnSelectNav());
+    setCatalogOpen(false);
+    setMobileMenuOpen(false);
+    setError('');
+  };
+  const openCentroCustos = (ccId?: number) => {
+    setTargetCostCenterId(ccId ?? null);
+    setActiveNav('Centro de Custos');
+  };
+  // Tela aberta, em texto, para o assistente de IA.
+  const assistantScreen = activeNav === 'Propostas' && proposal && proposalViewMode !== 'list' ? `Propostas (proposta ${proposal.number} aberta)` : activeNav;
+
   return (
     <SuiteUserProvider value={user ?? null}>
     <div className="app-shell cc">
@@ -238,13 +253,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         }}
         onCloseMobileMenu={() => setMobileMenuOpen(false)}
         pendingProposals={countPendingProposals(proposalTabs)}
-        onSelectNav={(label) => {
-          setActiveNav(label);
-          setProposalViewMode(viewModeOnSelectNav());
-          setCatalogOpen(false);
-          setMobileMenuOpen(false);
-          setError('');
-        }}
+        onSelectNav={selectNav}
         user={user}
         onLogout={onLogout}
       />
@@ -313,10 +322,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           initialSection={editorSection}
           onOpenPdf={() => { setCatalogOpen(false); setProposalViewMode('pdf'); }}
           onOpenCompare={(fromRevisionId) => { setCatalogOpen(false); setCompareFrom(fromRevisionId); setProposalViewMode('compare'); }}
-          onNavigateToCentroCustos={(ccId) => {
-            setTargetCostCenterId(ccId ?? null);
-            setActiveNav('Centro de Custos');
-          }}
+          onNavigateToCentroCustos={openCentroCustos}
           showNotice={showNotice}
           setError={setError}
         />
@@ -384,6 +390,14 @@ export function App({ user, onLogout }: AppProps = {}) {
         onClose={() => { setNewProposalOpen(false); setPendingKitId(null); }}
         onCreated={(created) => void proposalCreated(created)}
         onError={setError}
+      />
+      <AssistantFab
+        user={user}
+        screen={assistantScreen}
+        openProposal={(id) => void openProposalFromList(id)}
+        navigate={selectNav}
+        newProposal={() => { setError(''); setNewProposalOpen(true); }}
+        openCentroCustos={openCentroCustos}
       />
     </div>
     </SuiteUserProvider>

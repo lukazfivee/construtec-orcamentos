@@ -49,7 +49,6 @@ body.no-tabs .screen { min-height: calc(100vh - var(--sab)); min-height: calc(10
 .top .brand img { height: 14px; width: auto; }
 .top .grow { flex: 1; }
 .top .brand > span { overflow: hidden; text-overflow: ellipsis; }
-.top .ia-btn, .top .ia-btn + .bell-btn { margin-left: -6px; } /* estrela e sino juntos: cabem com a Suíte em 375 px */
 .top h1 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.2; }
 .back { flex: none; width: 44px; height: 44px; margin-left: -12px; border: 0; border-radius: 10px; background: transparent; display: grid; place-items: center; }
 .back:active { background: var(--accent-900); }
@@ -169,8 +168,8 @@ body:not(.no-tabs)::after { content: ''; position: fixed; left: 0; right: 0; bot
 .suite-item.current em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--accent-300); }
 .suite-item.ctx { background: var(--accent-900); box-shadow: none; }
 
-.bell-btn, .ia-btn { position: relative; flex: none; width: 44px; height: 44px; border: 0; border-radius: 22px; background: transparent; display: grid; place-items: center; }
-.bell-btn .ico, .ia-btn .ico { color: var(--accent-300); }
+.bell-btn { position: relative; flex: none; width: 44px; height: 44px; border: 0; border-radius: 22px; background: transparent; display: grid; place-items: center; }
+.bell-btn .ico { color: var(--accent-300); }
 .bell-count { position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #b8452c; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; }
 .chips { display: flex; gap: 8px; overflow-x: auto; margin: 4px -20px 12px; padding: 0 20px; }
 .chips .chip-act { flex: none; white-space: nowrap; }
@@ -200,8 +199,17 @@ html[data-theme="escuro"] .tab { text-shadow: 0 1px 3px rgba(0, 18, 27, .75); }
 .menu-item small { display: block; font-size: 12px; color: var(--n300); }
 .menu-item.danger, .menu-item.danger .ico { color: var(--danger); }
 
+/* Botao flutuante do assistente (ia-chat.js): acima da barra de abas, em todas as telas.
+   --fab-bottom (JS) sobe o botao acima da barra de acoes fixa; some enquanto o teclado esta aberto. */
+.ia-fab { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: var(--fab-bottom, calc(90px + var(--sab))); z-index: 21; width: 52px; height: 52px; border: 0; border-radius: 26px; background: var(--btn); color: var(--on-accent); display: grid; place-items: center; box-shadow: 0 6px 18px rgba(2, 24, 32, .28), inset 0 0 0 1px rgba(255, 255, 255, .18); transition: transform .12s, opacity .15s; }
+.ia-fab[hidden] { display: none; }
+.ia-fab:active { transform: scale(.94); }
+.ia-fab .ico { color: inherit; }
+body.no-tabs .ia-fab { bottom: var(--fab-bottom, calc(16px + var(--sab))); }
+body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointer-events: none; }
+
 /* Assistente (ia-chat.js): folha de conversa com altura fixa, lista rolando e campo embaixo. */
-.ia-sheet { height: 88dvh; max-height: 88dvh; display: flex; flex-direction: column; overflow: hidden; padding-bottom: calc(10px + var(--sab)); }
+.ia-sheet { height: calc(var(--vvh, 100dvh) * .88); max-height: calc(var(--vvh, 100dvh) * .88); display: flex; flex-direction: column; overflow: hidden; padding-bottom: calc(10px + var(--sab)); }
 .ia-sheet .sheet-head { gap: 6px; } .ia-sheet .sheet-head .grow { flex: 1; } .ia-sheet .chip-act { min-height: 36px; }
 .ia-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px 2px; overscroll-behavior: contain; }
 .ia-msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 14.5px; line-height: 1.45; overflow-wrap: anywhere; }
