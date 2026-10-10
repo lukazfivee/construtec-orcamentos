@@ -1,5 +1,15 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-10-10 02:45 BRT - Celular (/m/) faz o que o computador faz na proposta (Claude Code)
+
+- Base: `origin/main` em `dea8164`, branch `feat/m-paridade-propostas`, worktree `C:\orc-m-paridade`. Só `public/m/*`, um teste novo e `scripts/test-critical.mjs`; nada em `src/renderer`, `src/*.css` nem no servidor.
+- `prop-cond.js`: leitor das condições igual a `parseCommercialConditions` (JSON do computador e texto antigo), cartão "Escopo" legível no Resumo, folha de escopo e condições (grava o JSON inteiro em `PATCH /details`), folha de validade (+7 a +45 dias ou data; enviada ou recusada pede "Voltar para revisão", só com p11, porque o servidor só altera em edição ou revisão). Prévia do PDF usa as condições reais com os textos de reserva do documento do servidor.
+- `prop-edit.js`: editar item (descrição, quantidade, unidade, venda com imposto, custo só com p10; `PATCH items/:id` só com o que mudou), remover item (`items/remove`), linha em branco (`items/blank`), mudar situação (transições de `proposalStatus.ts`; enviar, aprovar e reabrir exigem p11), cliente e obra (`PATCH /context`), criar revisão a partir de qualquer revisão atual (p11).
+- Proposta editável no celular agora é a mesma do computador: em edição ou em revisão, revisão atual. Pílula da situação e menu de três pontos abrem situação, validade e nova revisão. Aviso "Validade termina em N dias" do Início abre a validade (`acao` de uma vez só em `app.js`).
+- Nova proposta escolhe obra ativa do cliente ou cria nova. Clientes saíram de `screen-misc.js` para `screen-cli.js` com cadastro e edição completos (razão social, fantasia, documento, contato). Menu: "Versão completa" com subtítulo novo; versão do celular 4.
+- Validação: `npm run verify` verde; teste novo `src/documents/mobile-conditions.test.ts`. Conferido no navegador com API falsa (sem o servidor real).
+- Próximo passo: PR, revisão do Lucas e deploy. Nada publicado.
+
 ## 2026-10-07 BRT - Proposta completa como a feita a mão: carta, modelos e formato de carta (Claude Code)
 
 - Base: `origin/main` em `3ab8fb8` (montador do corpo, PR #142), branch `feat/modelo-proposta-servico`, worktree `C:\orc-modelo`. Pedido do Lucas: montar a proposta inteira dentro do app, como o `.docx` de exemplo, e exportar PDF e Word com cara de proposta de verdade.

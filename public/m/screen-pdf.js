@@ -47,9 +47,10 @@
         ${last ? `<div class="pg-total"><small>Valor total da proposta</small><b>${esc(OC.money(total))}</b></div>
           ${c.validade && p.validUntil ? `<p class="pg-note">Proposta válida até ${esc(OC.dateFull(p.validUntil))}.</p>` : ''}` : ''}` });
     }
+    // Condicoes reais da proposta, com os mesmos textos de reserva do documento do servidor (observacoes so no modelo completo).
     if (c.condicoes) {
       out.push({ label: 'Condições', html: `${head('Condições comerciais')}
-        <dl class="pg-terms"><dt>Pagamento</dt><dd>Conforme combinado com o cliente</dd><dt>Prazo</dt><dd>A combinar após o aceite</dd><dt>Garantia</dt><dd>Conforme normas técnicas aplicáveis</dd></dl>
+        <dl class="pg-terms">${OC.conditionTerms(p.scope, c.modelo === 'completo').map(([dt, dd]) => `<dt>${esc(dt)}</dt><dd>${esc(dd)}</dd>`).join('')}</dl>
         ${c.validade && p.validUntil ? `<p class="pg-note">Validade: esta proposta vale até ${esc(OC.dateFull(p.validUntil))}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
         <p class="pg-sign">${esc(p.responsibleName || '')}<br>Construtec Engenharia</p>` });
     }
@@ -104,6 +105,25 @@
     OC.toast('Arquivo baixado. Anexe na conversa com o cliente.');
     return true;
   }
+  // Word (.docx) montado no servidor com o gerador do computador: compartilha pelo aparelho ou baixa.
+  async function shareWord(p, c) {
+    let response;
+    try {
+      response = await fetch(`/api/proposals/${encodeURIComponent(p.id)}/document.docx?${query(c)}`, { headers: { 'X-Construtec-Session': OC.session.token() }, cache: 'no-store' });
+    } catch { throw new OC.ApiError(0, 'Sem internet. Confira a conexão e tente de novo.'); }
+    if (!response.ok) throw new OC.ApiError(response.status, 'Não foi possível montar o Word agora.');
+    const name = `${fileBase(p)}.docx`;
+    const file = new File([await response.blob()], name, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: name }); return; } catch (error) { if (error && error.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    OC.toast('Word baixado.');
+  }
   const message = (p) => `Olá! Segue a proposta ${p.number} (${OC.rev(p.revision)}) da Construtec para ${p.workName || p.clientName}, no valor de ${OC.money((p.totals && p.totals.finalValue) || 0)}${p.validUntil ? `, válida até ${OC.dateFull(p.validUntil)}` : ''}.`;
 
   function zoomView(list, start) {
@@ -140,6 +160,7 @@
         <button class="opt" type="button" data-sh="mail">${icon('envelope-simple', 20)}<span class="grow"><b>E-mail</b><small>Abre o e-mail com a mensagem</small></span></button>
         <button class="opt" type="button" data-sh="file">${icon('arrow-square-out', 20)}<span class="grow"><b>Outros apps</b><small>Menu de compartilhar do aparelho</small></span></button>
         <button class="opt" type="button" data-sh="print">${icon('file-text', 20)}<span class="grow"><b>Salvar como PDF</b><small>Pela impressão do aparelho</small></span></button>
+        <button class="opt" type="button" data-sh="word">${icon('download-simple', 20)}<span class="grow"><b>Word (.docx)</b><small>O mesmo documento, para editar no Word</small></span></button>
       </div>
       <p class="sheet-text">Compartilhar não muda a situação da proposta.</p>`);
     OC.$$('[data-sh]', s.el).forEach((b) => b.addEventListener('click', async () => {
@@ -156,6 +177,8 @@
           location.href = `mailto:?subject=${encodeURIComponent(`Proposta ${p.number} · Construtec`)}&body=${encodeURIComponent(`${message(p)}\n\nO arquivo da proposta segue em anexo.`)}`;
         } else if (kind === 'file') {
           await shareFile(await fetchDocument(p, c), message(p));
+        } else if (kind === 'word') {
+          await shareWord(p, c);
         } else {
           printDocument(await fetchDocument(p, c));
         }
@@ -212,7 +235,7 @@
     history.replaceState(null, '', `#pdf=${encodeURIComponent(p.id)}`);
     OC.$('#pdf-sub', el).textContent = `${p.number} · ${OC.rev(p.revision)} · ${p.workName || p.clientName}`;
     if (!p.items.length && !OC.laborSale(p)) {
-      const can = p.status === 'draft' && p.isLatest && OC.canEdit();
+      const can = OC.propEditable(p);
       body.innerHTML = `<div class="empty">${icon('file-text', 28)}<b class="empty-t">Sem itens para o PDF</b>
         <span>${can ? 'Adicione os itens da proposta e o PDF fica pronto para o cliente.' : 'Esta revisão não tem itens.'}</span>
         ${can ? `<button class="btn" type="button" data-add style="padding:0 18px">${icon('plus', 18)}Adicionar itens</button>` : ''}

@@ -41,13 +41,16 @@
     current = name;
     if (OC.suite) OC.suite.context = null;
     currentParams = { ...(params || {}) };
+    // acao: pedido de uma vez so (ex.: abrir a validade); nao volta ao recarregar nem ao voltar de outra tela.
+    const { acao } = currentParams;
     delete currentParams.__nav;
+    delete currentParams.acao;
     OC.nav += 1;
     document.body.classList.remove('no-tabs');
     paintTabs();
     history.replaceState(null, '', `#${name}${currentParams.id ? `=${encodeURIComponent(currentParams.id)}` : ''}`);
     const nav = OC.nav;
-    Promise.resolve(screen({ ...currentParams, __nav: nav })).catch((error) => {
+    Promise.resolve(screen({ ...currentParams, acao, __nav: nav })).catch((error) => {
       if (error instanceof OC.Stale || nav !== OC.nav) return;
       OC.errorScreen(error, () => OC.go(name, params));
     });

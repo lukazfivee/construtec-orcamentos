@@ -33,7 +33,7 @@
     OC.toast(`${text} copiado`, 'copy');
   }
 
-  // Menu de tres pontos da proposta: PDF, copiar numero e, por ultimo, excluir ou descartar.
+  // Menu de tres pontos da proposta: PDF, copiar numero, situacao, validade, nova revisao e, por ultimo, excluir ou descartar.
   OC.propMenu = function (p) {
     const apr = p.status === 'approved';
     const del = !apr && OC.canDeleteProposal(), desc = apr && OC.isAdmin();
@@ -42,6 +42,9 @@
       <div class="menu-card pm-list">
         ${row('pdf', 'file-text', 'PDF da proposta', 'Pré-visualizar, baixar ou enviar')}
         ${row('copy', 'copy', 'Copiar número', p.number)}
+        ${OC.canChangeStatus && OC.canChangeStatus(p) ? row('status', 'arrows-left-right', 'Mudar situação', `Agora: ${OC.STATUS[p.status][0]}`) : ''}
+        ${OC.canEdit() && p.isLatest && OC.validitySheet ? row('val', 'calendar-blank', 'Validade', p.validUntil ? `Até ${OC.dateFull(p.validUntil)}` : 'Sem validade definida') : ''}
+        ${OC.canCreateRevision && OC.canCreateRevision(p) ? row('rev', 'clock-counter-clockwise', 'Criar nova revisão', `${OC.rev(p.revision + 1)} em edição; a atual fica guardada`) : ''}
         ${del ? row('del', 'trash', 'Excluir proposta', `Apaga ${p.number} e as revisões. Não dá para desfazer.`, 'danger') : ''}
         ${desc ? row('desc', 'archive', 'Descartar com registro', 'Sai da lista, fica guardada e pode ser recuperada', 'danger') : ''}
       </div>`);
@@ -51,6 +54,9 @@
       s.close();
       if (b.dataset.m === 'pdf') OC.open('pdf', { id: p.id });
       else if (b.dataset.m === 'copy') copy(p.number);
+      else if (b.dataset.m === 'status') OC.statusSheet(p);
+      else if (b.dataset.m === 'val') OC.validitySheet(p);
+      else if (b.dataset.m === 'rev') OC.createRevision(p);
       else if (b.dataset.m === 'del') deleteSheet(p);
       else if (b.dataset.m === 'desc') discardSheet(p);
     });

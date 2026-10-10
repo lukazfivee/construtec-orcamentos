@@ -212,6 +212,14 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
       for (const leak of [/R\$\s10,00/, /BDI/, /[Mm]argem/, /m-validity/]) assert.doesNotMatch(html.replace(/<style>[\s\S]*?<\/style>/g, ''), leak, String(leak));
       assert.doesNotMatch(await (await request(`/proposals/${id}/document?capa=0`, session(viewerId), 'GET')).text(), /class="m-cover"/);
       assert.equal((await request(`/proposals/${randomUUID()}/document`, session(viewerId), 'GET')).status, 404);
+      // Word do celular: mesmo gerador do computador, so preco de venda.
+      const word = await request(`/proposals/${id}/document.docx?modelo=completo`, session(viewerId), 'GET');
+      assert.equal(word.status, 200);
+      assert.match(word.headers.get('content-type') || '', /wordprocessingml/);
+      assert.match(word.headers.get('content-disposition') || '', /\.docx/);
+      const zip = Buffer.from(await word.arrayBuffer());
+      assert.equal(zip.subarray(0, 2).toString('latin1'), 'PK');
+      assert.equal((await request(`/proposals/${randomUUID()}/document.docx`, session(viewerId), 'GET')).status, 404);
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'approved' })).status, 200);
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'draft' })).status, 409);
       assert.equal((await request(`/proposals/${id}`, session(userId), 'DELETE')).status, 409);
