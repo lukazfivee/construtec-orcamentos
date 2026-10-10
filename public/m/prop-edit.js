@@ -20,8 +20,10 @@
       <div class="field-row">${cost ? `<label class="field"><span>Custo unit. (R$)</span><input id="it-cost" type="text" inputmode="decimal" value="${esc(OC.dec2(it.unitCost))}"></label>` : ''}
         <label class="field"><span>Venda unit. (R$)</span><input id="it-sale" type="text" inputmode="decimal" value="${esc(OC.dec2(it.unitSale))}"></label></div>
       <p class="sheet-text">${cost ? 'Venda com imposto, como aparece no PDF. Mudar só o custo recalcula a venda quando ela segue o BDI.' : 'Venda com imposto, como aparece no PDF.'}</p>
+      ${OC.itemExtraHtml ? OC.itemExtraHtml(p, it) : ''}
       <button class="btn2 danger-btn" type="button" data-del style="width:100%;margin-top:14px">${icon('trash', 18)}Remover item</button>
       ${actions('Cancelar', 'Salvar')}`);
+    if (OC.bindItemExtra) OC.bindItemExtra(s, p, it, ctx);
     OC.$('[data-no]', s.el).addEventListener('click', s.close);
     OC.$('[data-del]', s.el).addEventListener('click', () => { s.close(); OC.removeItem(p, it, ctx); });
     OC.$('[data-yes]', s.el).addEventListener('click', async (event) => {
@@ -62,7 +64,9 @@
   OC.addItemSheet = function (p, ctx) {
     const s = OC.sheet(`${OC.sheetHead('Adicionar item', 'plus')}<div class="opts" style="margin-top:12px">
       <button class="opt" type="button" data-a="cat">${icon('package', 20)}<span><b>Do catálogo</b><small>Busque por código ou descrição</small></span>${icon('caret-right', 18)}</button>
-      <button class="opt" type="button" data-a="blank">${icon('file-text', 20)}<span><b>Linha em branco</b><small>Item fora do catálogo, você preenche</small></span>${icon('caret-right', 18)}</button></div>`);
+      <button class="opt" type="button" data-a="blank">${icon('file-text', 20)}<span><b>Linha em branco</b><small>Item fora do catálogo, você preenche</small></span>${icon('caret-right', 18)}</button>
+      ${OC.importOpts ? OC.importOpts(p) : ''}</div>`);
+    if (OC.bindImportOpts) OC.bindImportOpts(s, p, ctx);
     OC.$('[data-a="cat"]', s.el).addEventListener('click', () => {
       s.close();
       OC.pickProduct('Adicionar do catálogo', async (x) => {
