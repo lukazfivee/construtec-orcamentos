@@ -1,5 +1,15 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-11 BRT - Barra de abas do celular (/m/) no estilo do iPhone (Claude Code)
+
+- Base: `origin/main` em `4bc2dae`, branch `feat/barra-abas-iphone`. Pedido do Lucas: a barra inferior do app igual à dos apps de iPhone. Só `public/m/m.css`, `orc.css` e `index.html`; nenhuma tela, JS ou servidor mudou.
+- Antes: retângulo arredondado (raio 24) com distorção SVG (`#cc-glass-distortion`), lente com brilho ciano/laranja ao mover e texto quase preto na aba ativa. Agora, como a barra do iOS 26: cápsula flutuante (raio 32 em 64 px de altura), vidro com `backdrop-filter: blur(22px) saturate(1.8)` e borda de luz no topo, pílula cinza translúcida sobre a aba ativa (desliza com mola e se estica um pouco ao mover), ícone e rótulo da aba ativa na cor da marca, toque numa aba inativa acende a pílula. O filtro SVG saiu do `index.html`.
+- Número de abas por `--tabs-n` (5 no `m.css`, 4 em `orc.css`); a pílula e as colunas usam a mesma variável. Variáveis novas `--tab-thumb`, `--tab-rim`, `--tab-edge`, `--tab-shadow`; saíram `--tab-border` e `--tab-lens`. `--tab-ink` e `--tab-active` são hex (o teste de contraste do Centro só lê hex).
+- Conteúdo visível por trás da barra: a faixa opaca sob a barra (`body::after`) virou um esmaecido com `mask-image` (cor de fundo a 90% sob a cápsula, 60% na base dela, 15% no topo, 0 acima), então o que rola passa desfocado pelo vidro, como a borda de rolagem do iOS 26.
+- Mantido: altura 64 px, `bottom: calc(12px + var(--sab))` e as folgas do botão da IA e da barra de ações.
+- Validação: `npm run verify` verde (309 de 310; 1 ignorado). Conferido no navegador em 375x812, claro e escuro, aba ativa trocando. Não conferido: aparelho de verdade (iPhone e Android).
+- Publicação: só `public/m`, vai pela nuvem (`npm run deploy:cloud`); sem novo APK nem instalador.
+
 ## 2026-10-10 BRT - Assistente de IA no desktop (React), botão flutuante em todas as telas (Claude Code)
 
 - Base: `origin/main` em `ba23f7f`, sem branch (alterações soltas na pasta clonada em `_tools\repos`). Porta para o React/TS do desktop e da web o assistente que já existe no `/m/` (mesmo projeto Firebase `suite-construtec`, mesmas 9 ferramentas só de leitura). `public/m/*` não mudou.
