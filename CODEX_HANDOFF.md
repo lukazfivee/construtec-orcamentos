@@ -17,7 +17,13 @@
   - Lente: luz só na borda (miolo limpo; ícone ativo de 3,97 para 4,95:1), `--lente-tinta` .03 no claro; 1,15x segurando e 1,35x arrastando, esticando com a velocidade.
   - Gesto: fim do toque ouvido na janela (lente não fica presa se soltar fora da barra) e toque novo logo após um arrasto não é engolido.
   - Esmaecido sob a barra: só 36px + home indicator (.9 na base, .3 na base da barra, 0 a 24px dela). Rótulos com halo discreto; `prefers-contrast: more` deixa o vidro quase opaco com borda `--n300`.
-  - Não feito: barra a 21pt da borda no iPhone (hoje 12px + safe-area), que mexe em várias telas.
+  - Igual ao vídeo do iPhone (12/10/2026, o Lucas mandou um vídeo do app do McDonald's no iOS 26 e pediu "exatamente assim"; vídeo na pasta do projeto). Medido quadro a quadro com ffmpeg:
+    - Vidro: preto atrás da barra vira cinza 117 e branco fica 250, então `--vidro-tinta` virou véu claro de .47 (escuro .5) com desfoque de 2px e `saturate(1.5)`; conferido na prévia: 120 sobre o mesmo banner.
+    - Geometria: cápsula de 58px (raio 29) a `max(12px, safe-area - 19px)` da borda (15px no iPhone, 12px no Android). `--barra-topo` em `m.css` alimenta `body`, `.screen`, `.actions`, `.toast` e o botão da IA (no Android os números finais não mudam).
+    - Ícones e rótulos quase pretos (`#1a1d1f`; escuro `#f2f5f6`) também na aba ativa; a ativa se distingue pelo ícone preenchido e pela pílula cinza neutra `rgba(118,118,128,.16)`. `app.js` desenha os dois ícones (`ico-off` e `ico-on`) e o CSS mostra o preenchido na ativa e sob a lente; durante o toque a ativa volta ao contorno.
+    - Lente: 1,25x a largura da aba e 1,38x a altura (69px, passa da barra), contorno cinza, leve véu .12, dispersão R/G/B .9/1.1. Sob a lente o vidro da barra abre (máscara que segue `--drag-x`), então a lente mostra o conteúdo limpo com refração.
+    - Tinta adaptativa só no tema escuro (sobre bloco claro); no claro o véu já garante a leitura, como no vídeo. Sem halo nos rótulos.
+    - Limitação: no iPhone (Safari/WebKit) não há refração de verdade (`backdrop-filter: url()` não existe no WebKit); lá ficam o vidro, o aro, a franja pintada e o estiramento.
 - Mantido: altura 64 px, `bottom: calc(12px + var(--sab))` e as folgas do botão da IA e da barra de ações.
 - Validação: `npm run verify` verde (309 de 310; 1 ignorado). Conferido no navegador em 375x812, claro e escuro, aba ativa trocando. Não conferido: aparelho de verdade (iPhone e Android).
 - Publicação: só `public/m`, vai pela nuvem (`npm run deploy:cloud`); sem novo APK nem instalador.
