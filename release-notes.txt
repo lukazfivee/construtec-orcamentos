@@ -1,1 +1,1 @@
-Corrige a pré-visualização do PDF da proposta, que mostrava as páginas e as miniaturas em branco.
+Botão do assistente de IA em todas as telas, letras maiores mantendo a escala de 75% e entrada direta pela sessão do Centro de Custos na Suíte.

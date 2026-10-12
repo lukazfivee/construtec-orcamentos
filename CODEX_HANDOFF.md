@@ -9,6 +9,13 @@
 - Conferido em produção sem sessão no Centro: `/` e `/m/` vão ao Centro uma vez e voltam com o login daqui, mantendo `#proposta=`; recarregar não repete; histórico sem entrada extra. Não conferido: entrada automática com uma conta logada no Centro (precisa de login real).
 - Próximo passo: conferir com uma conta real logada no Centro (menu Suíte, favorito, Sair e recarregar, celular pelo navegador) e fazer o merge dos dois PRs.
 
+## 2026-10-12 BRT - Versão 1.0.12 (instalador e atualização do app do Windows) (Claude Code)
+
+- Base: `origin/main` em `7e178e0`, branch `release/1.0.12`. Pedido do Lucas: gerar o instalador novo do Orçamentos.
+- O feed de atualização (`windows-updates`) estava parado na 1.0.11 (08/10), porque o workflow só publica pacote novo quando a versão do `package.json` muda; o instalador avulso (`windows-latest`) já saía a cada merge.
+- `package.json`/`package-lock.json` em 1.0.12 e `release-notes.txt` com o que mudou no app do Windows desde a 1.0.11: botão do assistente de IA (#174), letras maiores na escala de 75% (#172) e entrada pela sessão do Centro na Suíte (#173). O restante desde então foi no site do celular.
+- Ao entrar no `main`, o "Gerar instalador do Windows" publica o `Construtec-Orcamentos-Setup.exe` em `windows-latest` e o pacote 1.0.12 no feed; os apps instalados passam a oferecer a atualização.
+
 ## 2026-10-11 BRT - Barra de abas do celular (/m/) no estilo do iPhone (Claude Code)
 
 - Base: `origin/main` em `4bc2dae`, branch `feat/barra-abas-iphone`. Pedido do Lucas: a barra inferior do app igual à dos apps de iPhone. Só `public/m/m.css`, `orc.css` e `index.html`; nenhuma tela, JS ou servidor mudou.
