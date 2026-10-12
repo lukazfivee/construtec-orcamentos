@@ -175,6 +175,7 @@
       <div class="card who"><span class="avatar" style="--a:44px">${esc(initials(u.name))}</span><span class="grow"><b>${esc(u.name || '')}</b><small>${esc(roles[u.role] || '')} · ${esc(u.email || '')}</small></span></div>
       <div class="card menu-card">
         ${item('m-cfg', 'gear-six', 'Configurações da empresa', `BDI padrão ${OC.can('p10') ? esc(OC.dec2(settings.defaultBdi || 0)) : '—'} · validade ${settings.defaultValidityDays || 30} dias`)}
+        ${item('m-corpo', 'list', 'Corpo padrão e modelos', 'Corpo das propostas novas e modelos de texto')}
         ${item('m-cat', 'package', 'Catálogo', `${summary.totalProductsCount || 0} itens`)}
         ${item('m-cli', 'users', 'Clientes e obras', `${summary.totalClientsCount || 0} clientes${proposals ? ` · ${summary.activeProposalsCount || 0} propostas abertas` : ''}`)}
         ${OC.isAdmin && OC.isAdmin() ? `<button class="menu-item" type="button" id="m-desc">${icon('archive', 22)}<span class="grow">Propostas descartadas<small>Guardadas e recuperáveis · só administrador</small></span>${discarded ? `<span class="menu-count">${discarded}</span>` : ''}${icon('caret-right', 18)}</button>` : ''}
@@ -186,6 +187,7 @@
       <button class="btn2 danger-btn" type="button" id="m-sair">${icon('sign-out', 20)}Sair</button>
       <p class="hint" style="text-align:center">Construtec Orçamentos · celular ${VERSION}</p>`, false, params);
     OC.$('#m-cfg', el).addEventListener('click', () => OC.open('cfg'));
+    OC.$('#m-corpo', el).addEventListener('click', () => OC.open('cfgCorpo'));
     OC.$('#m-cat', el).addEventListener('click', () => OC.open('cat'));
     OC.$('#m-cli', el).addEventListener('click', () => OC.open('cli'));
     if (OC.$('#m-desc', el)) OC.$('#m-desc', el).addEventListener('click', () => OC.open('desc'));

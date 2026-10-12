@@ -1,61 +1,13 @@
 // PDF da proposta no celular (prototipo: Rodada 21, telas 21a-21j e 21p-21r).
-// A pre-visualizacao e desenhada aqui so com precos de venda; o arquivo vem do servidor
-// (GET /proposals/:id/document), que tambem nunca leva custo, BDI ou margem.
+// A pre-visualizacao (pdf-corpo.js) segue o documento do servidor, com o corpo da proposta e so precos de venda; o arquivo vem
+// do servidor (GET /proposals/:id/document e document.docx, com as mesmas opcoes), que tambem nunca leva custo, BDI ou margem.
 (function (OC) {
   const { esc, icon } = OC;
-  const ROWS_PER_PAGE = 14;
   const THUMB_SCALE = 74 / 396;
   // Escolhas por proposta: sobrevivem ao erro de rede e ao "Tentar de novo".
   const saved = {};
-  const choicesFor = (id) => (saved[id] = saved[id] || { modelo: 'completo', capa: true, condicoes: true, validade: true });
-  const query = (c) => `modelo=${c.modelo}&capa=${c.capa ? 1 : 0}&condicoes=${c.condicoes ? 1 : 0}&validade=${c.validade ? 1 : 0}`;
-
-  // Paginas da pre-visualizacao: capa, itens (agrupados por sistema) e condicoes.
-  function pages(p, c) {
-    const total = (p.totals && p.totals.finalValue) || 0;
-    const head = (title) => `<div class="pg-head"><b>CONSTRUTEC</b><span>${esc(p.number)} · ${esc(OC.rev(p.revision))}</span></div><div class="pg-title">${esc(title)}</div>`;
-    const foot = (n) => `<div class="pg-foot"><span>Construtec Engenharia · Sistemas especiais</span><span>Página ${n}</span></div>`;
-    const out = [];
-    const labor = OC.laborSale(p);
-    const systems = [...new Set(p.items.map((it) => it.category || 'Itens'))];
-    if (labor > 0) systems.push('Mão de obra e serviços técnicos');
-    if (c.capa) {
-      out.push({ label: 'Capa', html: `<div class="pg-cover"><small>Proposta comercial</small><b class="pg-h1">${esc(p.workName || p.clientName)}</b><span>${esc(p.clientName)}</span>
-        <dl><dt>Proposta</dt><dd>${esc(p.number)} · ${esc(OC.rev(p.revision))}</dd>
-        ${c.validade && p.validUntil ? `<dt>Válida até</dt><dd>${esc(OC.dateFull(p.validUntil))}</dd>` : ''}
-        <dt>Responsável</dt><dd>${esc(p.responsibleName || '')}</dd><dt>Sistemas</dt><dd>${esc(systems.join(', '))}</dd></dl>
-        <div class="pg-total"><small>Valor total</small><b>${esc(OC.money(total))}</b></div></div>` });
-    }
-    const rows = [];
-    const laborLine = { description: 'Mão de obra', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
-    if (c.modelo === 'completo') {
-      // Planilha item a item, na ordem da proposta, sem separar por sistema.
-      [...p.items, ...(labor > 0 ? [laborLine] : [])].forEach((it) => rows.push({ it }));
-    } else {
-      systems.forEach((s) => {
-        const list = labor > 0 && s === systems[systems.length - 1] ? [laborLine] : p.items.filter((it) => (it.category || 'Itens') === s);
-        rows.push({ cat: s, sum: list.reduce((a, it) => a + (it.totalSale || 0), 0) });
-      });
-    }
-    for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
-      const chunk = rows.slice(i, i + ROWS_PER_PAGE);
-      const last = i + ROWS_PER_PAGE >= rows.length;
-      out.push({ label: 'Itens', html: `${head(c.modelo === 'completo' ? 'Itens da proposta' : 'Resumo por sistema')}
-        <table class="pg-tab"><tbody>${chunk.map((r) => (r.cat
-          ? `<tr class="pg-cat"><td colspan="${c.modelo === 'completo' ? 3 : 1}">${esc(r.cat)}</td><td>${esc(OC.money(r.sum))}</td></tr>`
-          : `<tr><td>${esc(r.it.description)}</td><td>${esc(OC.num(r.it.quantity))} ${esc(r.it.unit)}</td><td>${esc(OC.money(r.it.unitSale))}</td><td>${esc(OC.money(r.it.totalSale))}</td></tr>`)).join('')}</tbody></table>
-        ${last ? `<div class="pg-total"><small>Valor total da proposta</small><b>${esc(OC.money(total))}</b></div>
-          ${c.validade && p.validUntil ? `<p class="pg-note">Proposta válida até ${esc(OC.dateFull(p.validUntil))}.</p>` : ''}` : ''}` });
-    }
-    // Condicoes reais da proposta, com os mesmos textos de reserva do documento do servidor (observacoes so no modelo completo).
-    if (c.condicoes) {
-      out.push({ label: 'Condições', html: `${head('Condições comerciais')}
-        <dl class="pg-terms">${OC.conditionTerms(p.scope, c.modelo === 'completo').map(([dt, dd]) => `<dt>${esc(dt)}</dt><dd>${esc(dd)}</dd>`).join('')}</dl>
-        ${c.validade && p.validUntil ? `<p class="pg-note">Validade: esta proposta vale até ${esc(OC.dateFull(p.validUntil))}. Depois disso, os preços dos equipamentos podem mudar.</p>` : ''}
-        <p class="pg-sign">${esc(p.responsibleName || '')}<br>Construtec Engenharia</p>` });
-    }
-    return out.map((pg, i) => ({ ...pg, html: `<div class="pg">${pg.html}${foot(i + 1)}</div>` }));
-  }
+  const choicesFor = (id) => (saved[id] = saved[id] || OC.docDefaults());
+  const query = (c) => OC.docQuery(c);
 
   // Nome do arquivo: Proposta_Construtec_CLIENTE_Obra (mesma regra do computador; REV so da segunda revisao em diante).
   function fileBase(p) {
@@ -191,7 +143,7 @@
     const s = OC.sheet(`${OC.sheetHead('Enviar ao cliente', 'paper-plane-tilt')}
       <div class="kv"><span>Cliente</span><b>${esc(p.clientName)}</b></div>
       <label class="field" style="margin-top:12px"><span>Mensagem</span><textarea rows="4" data-msg>${esc(message(p))}</textarea></label>
-      <div class="card attach">${icon('file-text', 20)}<span class="grow"><b>${esc(p.number)}-${esc(OC.rev(p.revision).replace(' ', '-'))}</b><small>Proposta ${c.modelo === 'completo' ? 'completa' : 'resumida'} · só preços de venda</small></span></div>
+      <div class="card attach">${icon('file-text', 20)}<span class="grow"><b>${esc(p.number)}-${esc(OC.rev(p.revision).replace(' ', '-'))}</b><small>Proposta comercial · só preços de venda</small></span></div>
       <p class="sheet-text">A proposta passa a Enviada depois que você compartilhar o arquivo.</p>
       <div class="sheet-actions"><button class="btn2" type="button" data-no>Cancelar</button><button class="btn" type="button" data-yes>${icon('paper-plane-tilt', 18)}Enviar</button></div>`);
     OC.$('[data-no]', s.el).addEventListener('click', s.close);
@@ -218,15 +170,15 @@
     const el = OC.render(`${OC.header('PDF da proposta', { back: true })}<div class="prop-tags"><span class="prop-work" id="pdf-sub">Gerando a pré-visualização do PDF…</span></div><div id="pdf-body" class="p-body">${skeleton()}</div>`, true, params);
     const body = OC.$('#pdf-body', el);
     const nav = OC.nav;
-    let p;
+    let p, settings = {};
     try {
-      p = (await OC.api(`/proposals/${encodeURIComponent(params.id)}`)).proposal;
+      [p, settings] = await Promise.all([OC.api(`/proposals/${encodeURIComponent(params.id)}`).then((d) => d.proposal), OC.api('/settings').then((d) => d.settings || {}).catch(() => ({}))]);
     } catch (error) {
       if (nav !== OC.nav) return;
       if (error.status === 401) return;
       OC.$('#pdf-sub', el).textContent = '';
       body.innerHTML = `<div class="empty">${icon(error.status === 0 ? 'wifi-slash' : 'warning-circle', 28)}<b class="empty-t">Não deu para gerar o PDF</b>
-        <span>${error.status === 0 ? 'O PDF é montado no servidor e o celular está sem internet. Suas escolhas de modelo e capa ficam guardadas.' : esc(error.message)}</span>
+        <span>${error.status === 0 ? 'O PDF é montado no servidor e o celular está sem internet. Suas escolhas do documento ficam guardadas.' : esc(error.message)}</span>
         <button class="btn" type="button" data-retry style="padding:0 18px">Tentar de novo</button><button class="btn2" type="button" data-back style="padding:0 18px">Voltar à proposta</button></div>`;
       OC.$('[data-retry]', body).addEventListener('click', () => OC.go('pdf', params, { back: true }));
       return;
@@ -249,7 +201,6 @@
     const canSend = OC.can('p11') && OC.canEdit() && p.isLatest;
     const sendable = p.status === 'review';
     const t = p.totals || {};
-    const opt = (key, val, title, sub) => `<button class="opt" type="button" data-opt="${key}" data-val="${val}"><span class="grow"><b>${title}</b><small>${sub}</small></span><span class="radio"></span></button>`;
     const sw = (key, title, sub, off) => `<button class="opt" type="button" data-sw="${key}"${off ? ' disabled' : ''}><span class="grow"><b>${title}</b><small>${sub}</small></span><span class="switch"></span></button>`;
     let sendBlock;
     if (!canSend) sendBlock = `<p class="hint lock">${icon('lock-simple', 15)}<span>${OC.can('p11') ? (p.isLatest ? 'Seu acesso é só de consulta: baixe ou compartilhe o PDF.' : 'Só a revisão atual pode ser enviada.') : 'Seu papel não permite enviar a proposta ao cliente. Baixe ou compartilhe o PDF; quem envia marca como Enviada.'}</span></p>`;
@@ -259,10 +210,12 @@
     body.innerHTML = `<div class="sec-row"><span class="label">Pré-visualização</span><span class="hint right" id="pdf-pages"></span></div>
       <div class="pdf-thumbs" id="pdf-thumbs"></div>
       <p class="hint busy-row" id="pdf-busy" role="status" hidden>${icon('circle-notch', 16)}Atualizando a pré-visualização…</p>
-      <span class="label">Modelo</span>
-      <div class="opt-list">${opt('modelo', 'completo', 'Completo', 'Cada item com quantidade e preço')}${opt('modelo', 'resumido', 'Resumido', 'Só o total de cada sistema')}</div>
-      <span class="label">Incluir no PDF</span>
-      <div class="opt-list">${sw('capa', 'Capa', 'Obra, cliente e valor total')}${sw('condicoes', 'Condições comerciais', 'Pagamento, prazo e garantia')}${sw('validade', 'Validade', p.validUntil ? `Até ${OC.dateFull(p.validUntil)}` : 'Sem validade definida', !p.validUntil)}</div>
+      <span class="label">Incluir no documento</span>
+      <div class="opt-list">${sw('capa', 'Capa', 'Obra, cliente e valor total')}${sw('condicoes', 'Cláusulas comerciais', 'Validade, prazo, pagamento e garantia')}${sw('obs', 'Observações', 'Observações das condições e notas deste documento')}
+        ${sw('validade', 'Aviso de validade', p.validUntil ? `Até ${OC.dateFull(p.validUntil)}` : 'Sem validade definida', !p.validUntil)}${OC.docLabor(p) > 0 ? sw('mao', 'Mão de obra', `Linha de serviços técnicos (${esc(OC.money(OC.docLabor(p)))})`) : ''}</div>
+      <label class="field pdf-notes" id="pdf-notes"><span>Observações complementares para este documento</span><textarea rows="3" maxlength="1000" placeholder="Ex.: Não inclusa infraestrutura de alvenaria. Ponto de energia por conta do contratante.">${esc(c.notas)}</textarea></label>
+      <span class="label">Apresentação</span>
+      <div class="opt-list">${sw('agrupar', 'Agrupar por categoria', 'Itens separados por sistema (Elétrica, CFTV...)')}${sw('codigos', 'Códigos do catálogo', 'Abaixo da descrição de cada item')}${sw('marca', "Marca d'água", 'Logo ao fundo das páginas')}</div>
       ${cost ? `<div class="card team"><div class="sec-row"><b>${icon('eye', 18)}Só para a equipe</b><span class="tag">Não vai no PDF</span></div>
         <div class="kv"><span>Custo base</span><b>${esc(OC.money0(t.baseCost))}</b></div>
         <div class="kv"><span>BDI</span><b>${esc(OC.dec2(p.bdiMultiplier))} ×</b></div>
@@ -276,10 +229,11 @@
 
     let list = [];
     let timer = 0;
-    const effective = () => ({ ...c, validade: c.validade && !!p.validUntil });
+    const effective = () => ({ ...c, validade: c.validade && !!p.validUntil, marca: c.marca === undefined ? settings.pdfWatermark === true : c.marca });
+    const notes = OC.$('#pdf-notes', body);
     function preview() {
-      OC.$$('[data-opt]', body).forEach((b) => b.setAttribute('aria-pressed', String(c[b.dataset.opt] === b.dataset.val)));
-      OC.$$('[data-sw]', body).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sw === 'validade' ? effective().validade : !!c[b.dataset.sw])));
+      OC.$$('[data-sw]', body).forEach((b) => b.setAttribute('aria-pressed', String(!!effective()[b.dataset.sw])));
+      notes.hidden = !c.obs;
       const thumbs = OC.$('#pdf-thumbs', body), busy = OC.$('#pdf-busy', body);
       thumbs.classList.add('busy');
       busy.hidden = false;
@@ -287,7 +241,7 @@
       OC.$('#pdf-pages', body).textContent = '';
       clearTimeout(timer);
       timer = setTimeout(() => {
-        list = pages(p, effective());
+        list = OC.pdfPages(p, effective(), settings);
         thumbs.innerHTML = list.map((pg, i) => `<button class="pg-thumb" type="button" data-pg="${i}" aria-label="Ampliar página ${i + 1}, ${esc(pg.label)}"><span class="pg-box">${pg.html}</span><small>${esc(pg.label)}</small></button>`).join('');
         OC.$$('.pg-box', thumbs).forEach((box) => { box.style.height = `${Math.round(box.firstElementChild.offsetHeight * THUMB_SCALE)}px`; });
         thumbs.classList.remove('busy');
@@ -296,8 +250,8 @@
         OC.$$('[data-pg]', thumbs).forEach((b) => b.addEventListener('click', () => zoomView(list, Number(b.dataset.pg))));
       }, 250);
     }
-    OC.$$('[data-opt]', body).forEach((b) => b.addEventListener('click', () => { c[b.dataset.opt] = b.dataset.val; preview(); }));
-    OC.$$('[data-sw]', body).forEach((b) => b.addEventListener('click', () => { c[b.dataset.sw] = !c[b.dataset.sw]; preview(); }));
+    OC.$$('[data-sw]', body).forEach((b) => b.addEventListener('click', () => { c[b.dataset.sw] = !effective()[b.dataset.sw]; preview(); }));
+    OC.$('textarea', notes).addEventListener('input', (event) => { c.notas = event.target.value; preview(); });
     OC.$('[data-share]', body).addEventListener('click', () => shareSheet(p, c));
     const printButton = OC.$('[data-print]', body);
     if (printButton) printButton.addEventListener('click', async () => {

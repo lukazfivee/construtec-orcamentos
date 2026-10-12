@@ -56,6 +56,7 @@ const entryPoints = [
   'src/renderer/assistant.test.ts',
   'src/renderer/mobile-prop-itens.test.ts',
   'src/documents/mobile-conditions.test.ts',
+  'src/documents/mobile-body.test.ts',
   'src/renderer/proposal-desktop-r23.test.ts',
   'src/renderer/desktop-polish.test.ts',
   'src/renderer/no-emoji.test.ts',
