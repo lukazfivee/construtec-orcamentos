@@ -2,6 +2,7 @@
 // versao completa (buildProposalHtml) e acrescenta capa e aviso de validade conforme as escolhas.
 // So leva precos de venda: custo, BDI e margem nunca entram, com ou sem a permissao p10.
 import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
+import { cleanBodyText } from '../shared/proposalBody';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import { CLOSING_END_MARK, SHEET_END_MARK } from './proposalClosingEnd';
 import { buildProposalHtml } from './proposalDocument';
@@ -14,12 +15,25 @@ export type MobileDocumentChoices = {
   validity: boolean;
   /** Sem valor, vale o padrao da empresa. */
   watermark?: boolean;
+  /** Opcoes do exportar do computador (ProposalExportDialog); sem valor, os padroes de sempre do celular. */
+  group?: boolean;
+  codes?: boolean;
+  labor?: boolean;
+  /** Observacoes; sem valor, so no modelo completo. */
+  notes?: boolean;
+  customNotes?: string;
 };
+
+export const MOBILE_CUSTOM_NOTES_MAX = 1000;
 
 const flag = (value: unknown, fallback: boolean) => {
   if (value === undefined || value === null || value === '') return fallback;
   return !['0', 'false', 'nao', 'não'].includes(String(value).toLowerCase());
 };
+
+// Parametro ausente ou vazio nao entra: o padrao fica com mobileExportOptions.
+const optional = <K extends string>(key: K, value: unknown): Partial<Record<K, boolean>> =>
+  (value === undefined || value === null || value === '' || Array.isArray(value) ? {} : { [key]: flag(value, false) } as Record<K, boolean>);
 
 export const parseMobileDocumentChoices = (query: Record<string, unknown>): MobileDocumentChoices => ({
   model: query.modelo === 'resumido' ? 'resumido' : 'completo',
@@ -27,15 +41,21 @@ export const parseMobileDocumentChoices = (query: Record<string, unknown>): Mobi
   terms: flag(query.condicoes, true),
   validity: flag(query.validade, true),
   ...(query.marca === undefined || query.marca === '' ? {} : { watermark: flag(query.marca, false) }),
+  ...optional('group', query.agrupar),
+  ...optional('codes', query.codigos),
+  ...optional('labor', query.mao),
+  ...optional('notes', query.observacoes),
+  ...(typeof query.notas === 'string' && cleanBodyText(query.notas, true) ? { customNotes: cleanBodyText(query.notas, true).slice(0, MOBILE_CUSTOM_NOTES_MAX) } : {}),
 });
 
 export const mobileExportOptions = (choices: MobileDocumentChoices): ProposalExportOptions => ({
   format: 'pdf',
-  groupByCategory: false,
-  showProductCodes: false,
-  includeLabor: true,
+  groupByCategory: choices.group ?? false,
+  showProductCodes: choices.codes ?? false,
+  includeLabor: choices.labor ?? true,
   includeCommercialTerms: choices.terms,
-  includeNotes: choices.model === 'completo',
+  includeNotes: choices.notes ?? choices.model === 'completo',
+  ...(choices.customNotes ? { customNotes: choices.customNotes } : {}),
   ...(choices.watermark === undefined ? {} : { watermark: choices.watermark }),
 });
 
