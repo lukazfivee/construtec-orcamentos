@@ -67,7 +67,7 @@
     const head = ['Número', 'Revisão', 'Cliente', 'Obra / Projeto', 'Status', 'Qtd de Itens', 'Valor Total de Venda', 'Última Atualização'];
     const lines = rows.map((p) => [p.number, `REV ${String(p.revision).padStart(2, '0')}`, p.clientName, p.workName, (L.LABEL[p.status] || p.status),
       p.itemCount, money.format(p.totalSale || 0), p.updatedAt ? dateTime.format(new Date(p.updatedAt)) : '-'].map(cell).join(';'));
-    return `﻿${[head.map(cell).join(';'), ...lines].join('\r\n')}`;
+    return `\uFEFF${[head.map(cell).join(';'), ...lines].join('\r\n')}`;
   };
 
   // Filtros ficam guardados enquanto o app esta aberto (abrir uma proposta e voltar mantem a lista como estava).

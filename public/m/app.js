@@ -6,7 +6,7 @@
     ['home', 'Início', 'squares-four', ['home', 'painel', 'avisos']],
     ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor', 'pdf', 'cmp', 'link']],
     ['kits', 'Kits', 'stack', ['kits', 'kit']],
-    ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli', 'imp', 'exsat', 'desc', 'descDet']],
+    ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli', 'imp', 'exsat', 'desc', 'descDet', 'catConf', 'cfgEmp', 'users', 'ajuda']],
   ];
   let current = 'home', currentParams = {};
   let lensTimer;
@@ -63,7 +63,7 @@
     const prev = stack.pop();
     if (prev) OC.go(prev[0], prev[1], { back: true });
     else if ((current === 'pdf' || current === 'cmp' || current === 'link') && currentParams.id) OC.go('prop', { id: currentParams.id, tab: current === 'cmp' ? 'revisoes' : 'resumo' }, { back: true });
-    else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cat: 'menu', cli: 'menu', imp: 'cat', exsat: 'cat', desc: 'menu', descDet: 'desc' }[current] || 'props');
+    else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cat: 'menu', cli: 'menu', imp: 'cat', exsat: 'cat', desc: 'menu', descDet: 'desc', catConf: 'cat', cfgEmp: 'cfg', users: 'menu', ajuda: 'menu' }[current] || 'props');
   };
   OC.reload = () => OC.go(current, currentParams, { back: true });
   document.addEventListener('click', (event) => { if (event.target.closest('[data-back]')) OC.back(); });
