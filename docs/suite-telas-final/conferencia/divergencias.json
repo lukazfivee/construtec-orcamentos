@@ -1,0 +1,3533 @@
+[
+  {
+    "tela": "Tokens de cor",
+    "referencia": "DesktopOrc.dc.html (:root e [data-theme=\"escuro\"])",
+    "resolucao": "desktop",
+    "tema": "claro",
+    "itens": [],
+    "print": ""
+  },
+  {
+    "tela": "Desktop novo: Início",
+    "referencia": "sPainel · quadros 23b Início do Orçamentos",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Bom dia, Marina\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Propostas abertas, o que precisa de você e os preços do catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Ver propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Precisam de ação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Funil de propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Valor final por situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"EX\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Integração EXSAT\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 10 textos fixos de sPainel ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/inicio.png"
+  },
+  {
+    "tela": "Desktop novo: Propostas (lista)",
+    "referencia": "sProps · quadros 23c Propostas",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: strong \"R$ 313.789,99\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Da edição à aprovação, com o valor final de cada revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Buscar por obra, cliente ou número\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Filtrar propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Sem permissão de ver margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Nenhuma proposta com esse filtro.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 16 textos fixos de sProps ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/propostas.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Itens",
+    "referencia": "sProp · quadros 23f Itens editáveis; 23e Resumo com aviso de preço",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Abrir obra no Centro de Custos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preços desta proposta?\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Agora não\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Ver e atualizar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Custo, BDI e margem aparecem só para quem tem a permissão de ver custos.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Por sistema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Parte do valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Dados da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"PDF da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Mude as quantidades direto na tabela. Itens com preço novo no EXSAT ganham o botão Atualizar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"BDI e impostos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Criar nova revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Diminuir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Aumentar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Remover item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Esta proposta ainda não tem itens. Use Adicionar itens para buscar no catálogo ou num kit.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Histórico de revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"A mais nova em cima\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar com a atual\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Só a revisão em edição pode ser alterada. Revisões enviadas ou aprovadas ficam congeladas, com os preços de quando foram montadas.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "24 de 31 textos fixos de sProp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/proposta-itens.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Mão de obra",
+    "referencia": "sProp",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por section.proposal-editor (horizontal): 23 elemento(s), até 63 px, ex.: table.labor-table \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; tr \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; th \"CUSTO TOTAL\""
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/proposta-mao-de-obra.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Kits",
+    "referencia": "sProp · quadros 23g Adicionar itens",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/proposta-kits.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Corpo e condições",
+    "referencia": "sProp",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/proposta-corpo.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Histórico (revisões)",
+    "referencia": "sProp · quadros 23j Revisões",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/proposta-historico.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: menu Inserir",
+    "referencia": "dAdd · quadros 23g Adicionar itens",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Origem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Buscar por nome ou código\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Na proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Nada encontrado no catálogo.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Adicionar kit\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "5 de 6 textos fixos de dAdd ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/proposta-inserir.png"
+  },
+  {
+    "tela": "Desktop novo: PDF da proposta",
+    "referencia": "sPdf · quadros 23m Pré-visualização; 23n Compartilhar; 23o Enviar ao cliente; 23p Engenharia · resumido sem capa",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: p.pdf-hint \"O cliente vê só preços de venda. Custo, \""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Compartilhar não muda a situação da proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Proposta comercial\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Emitida em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Válida até\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Responsável\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sistemas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia · Sistemas especiais\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Qtd.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Unitário\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Valor total da proposta · impostos inclusos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Atualizando a pré-visualização…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Gerando a pré-visualização do PDF…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sem itens para o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Não deu para gerar o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"O PDF é montado no servidor e o computador está sem internet. Suas escolhas de modelo e capa ficam guardadas.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "18 de 37 textos fixos de sPdf ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/pdf.png"
+  },
+  {
+    "tela": "Desktop novo: Comparativo de revisões",
+    "referencia": "sCmp · quadros 23q REV 01 × REV 03; 23r Só o que mudou; 23s PROP-041 · em edição",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 2 elemento(s), ex.: table.compare-table \"ITEM REV 00 TOTAL REV 01 TOTAL DIFERENÇA\"; tr.row.same \"Item de teste 128 para conferência de ta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Nada mudou entre as duas revisões.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Para comparar, a proposta precisa de pelo menos duas revisões. Quando o cliente pedir ajustes, crie uma nova revisão e volte aqui.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"As revisões antigas ficam no servidor e o computador está sem internet. A revisão atual continua aberta na proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 16 textos fixos de sCmp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/comparativo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo",
+    "referencia": "sCat · quadros 24a Catálogo EXSAT",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 3 elemento(s), ex.: table.od-tbl \"ITEM CATEGORIA UNID. CUSTO MUDANÇA DE PR\"; tr \"Treinamento de usuários (até 8h) SER-TRE\"; td.od-small \"PA-1054\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Seu perfil não vê preços de custo. A coluna Custo fica escondida; o resto do catálogo funciona igual.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Nada encontrado com esse nome.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "2 de 18 textos fixos de sCat ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/catalogo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo: Importar lista",
+    "referencia": "sImp · quadros 24b Importar · arquivo; 24c Importar · colunas; 24d Importar · revisar com erro; 24e Importando; 24f Resultado",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"ou escolha um dos recentes em Downloads\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Lemos a tabela do PDF; confira as colunas no passo seguinte\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pelo celular, em Menu › Catálogo › Importar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Continuar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ligar as colunas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Sugerimos uma coluna para cada campo. Confira as marcadas e troque se precisar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Primeiras linhas do arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Como o arquivo vai ser lido com essa ligação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Item novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Categoria\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Linhas com erro não entram no catálogo. Corrija aqui, ou deixe de fora e ajuste depois na planilha.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Problema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Corrigir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Deixar de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Custo, ex.: 1.200,00\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Descrição do item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Cancelar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Salvar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Desfazer\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar linhas com erro (.csv)\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pode continuar usando o sistema. Leva menos de um minuto.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar as linhas que ficaram de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Importar outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ver no catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Nenhum item no arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Escolher outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Não deu para abrir o arquivo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "30 de 54 textos fixos de sImp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/catalogo-importar.png"
+  },
+  {
+    "tela": "Desktop novo: Integração EXSAT",
+    "referencia": "sEx · quadros 24g Integração EXSAT; 24h Sincronizando; 24i Depois de sincronizar",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Mudanças de preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Filtrar mudanças\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Antes\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Ver proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Atualizar preços\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Conectando ao EXSAT…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "11 de 23 textos fixos de sEx ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/exsat.png"
+  },
+  {
+    "tela": "Desktop novo: Kits",
+    "referencia": "sKits · quadros 24k Kits",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/kits.png"
+  },
+  {
+    "tela": "Desktop novo: Kits: Usar em proposta",
+    "referencia": "dKit · quadros 24l Usar kit",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/kits-usar.png"
+  },
+  {
+    "tela": "Desktop novo: Clientes",
+    "referencia": "sClis · quadros 24m Clientes",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/clientes.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Geral",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: button.body-icon.danger \"Remover o modelo Garantia e suporte\""
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/configuracoes-geral.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Empresa e propostas",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/configuracoes-empresa.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Usuários",
+    "referencia": "",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/configuracoes-usuarios.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Sistema",
+    "referencia": "",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/claro/configuracoes-sistema.png"
+  },
+  {
+    "tela": "Desktop novo: Nova proposta (janela)",
+    "referencia": "dNova · quadros 23d Nova proposta",
+    "resolucao": "1440x900",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Nome do cliente novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital Santa Clara\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital São Lucas · Ala D\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Começar com\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 8 textos fixos de dNova ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/claro/nova-proposta.png"
+  },
+  {
+    "tela": "Tokens de cor",
+    "referencia": "DesktopOrc.dc.html (:root e [data-theme=\"escuro\"])",
+    "resolucao": "desktop",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cor",
+        "descricao": "--c-warn-soft é rgba(242, 181, 68, .14), a Referência pede #3a2a0c"
+      }
+    ],
+    "print": ""
+  },
+  {
+    "tela": "Desktop novo: Início",
+    "referencia": "sPainel · quadros 23b Início do Orçamentos",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Bom dia, Marina\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Propostas abertas, o que precisa de você e os preços do catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Ver propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Precisam de ação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Funil de propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Valor final por situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"EX\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Integração EXSAT\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 10 textos fixos de sPainel ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/inicio.png"
+  },
+  {
+    "tela": "Desktop novo: Propostas (lista)",
+    "referencia": "sProps · quadros 23c Propostas",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: strong \"R$ 313.789,99\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Da edição à aprovação, com o valor final de cada revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Buscar por obra, cliente ou número\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Filtrar propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Sem permissão de ver margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Nenhuma proposta com esse filtro.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 16 textos fixos de sProps ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/propostas.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Itens",
+    "referencia": "sProp · quadros 23f Itens editáveis; 23e Resumo com aviso de preço",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Abrir obra no Centro de Custos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preços desta proposta?\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Agora não\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Ver e atualizar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Custo, BDI e margem aparecem só para quem tem a permissão de ver custos.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Por sistema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Parte do valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Dados da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"PDF da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Mude as quantidades direto na tabela. Itens com preço novo no EXSAT ganham o botão Atualizar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"BDI e impostos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Criar nova revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Diminuir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Aumentar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Remover item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Esta proposta ainda não tem itens. Use Adicionar itens para buscar no catálogo ou num kit.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Histórico de revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"A mais nova em cima\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar com a atual\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Só a revisão em edição pode ser alterada. Revisões enviadas ou aprovadas ficam congeladas, com os preços de quando foram montadas.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "24 de 31 textos fixos de sProp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/proposta-itens.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Mão de obra",
+    "referencia": "sProp",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por section.proposal-editor (horizontal): 23 elemento(s), até 63 px, ex.: table.labor-table \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; tr \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; th \"CUSTO TOTAL\""
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/proposta-mao-de-obra.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Kits",
+    "referencia": "sProp · quadros 23g Adicionar itens",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/proposta-kits.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Corpo e condições",
+    "referencia": "sProp",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/proposta-corpo.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Histórico (revisões)",
+    "referencia": "sProp · quadros 23j Revisões",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/proposta-historico.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: menu Inserir",
+    "referencia": "dAdd · quadros 23g Adicionar itens",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Origem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Buscar por nome ou código\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Na proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Nada encontrado no catálogo.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Adicionar kit\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "5 de 6 textos fixos de dAdd ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/proposta-inserir.png"
+  },
+  {
+    "tela": "Desktop novo: PDF da proposta",
+    "referencia": "sPdf · quadros 23m Pré-visualização; 23n Compartilhar; 23o Enviar ao cliente; 23p Engenharia · resumido sem capa",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: p.pdf-hint \"O cliente vê só preços de venda. Custo, \""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Compartilhar não muda a situação da proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Proposta comercial\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Emitida em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Válida até\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Responsável\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sistemas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia · Sistemas especiais\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Qtd.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Unitário\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Valor total da proposta · impostos inclusos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Atualizando a pré-visualização…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Gerando a pré-visualização do PDF…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sem itens para o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Não deu para gerar o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"O PDF é montado no servidor e o computador está sem internet. Suas escolhas de modelo e capa ficam guardadas.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "18 de 37 textos fixos de sPdf ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/pdf.png"
+  },
+  {
+    "tela": "Desktop novo: Comparativo de revisões",
+    "referencia": "sCmp · quadros 23q REV 01 × REV 03; 23r Só o que mudou; 23s PROP-041 · em edição",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 2 elemento(s), ex.: table.compare-table \"ITEM REV 00 TOTAL REV 01 TOTAL DIFERENÇA\"; tr.row.same \"Item de teste 128 para conferência de ta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Nada mudou entre as duas revisões.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Para comparar, a proposta precisa de pelo menos duas revisões. Quando o cliente pedir ajustes, crie uma nova revisão e volte aqui.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"As revisões antigas ficam no servidor e o computador está sem internet. A revisão atual continua aberta na proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 16 textos fixos de sCmp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/comparativo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo",
+    "referencia": "sCat · quadros 24a Catálogo EXSAT",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 3 elemento(s), ex.: table.od-tbl \"ITEM CATEGORIA UNID. CUSTO MUDANÇA DE PR\"; tr \"Treinamento de usuários (até 8h) SER-TRE\"; td.od-small \"PA-1054\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Seu perfil não vê preços de custo. A coluna Custo fica escondida; o resto do catálogo funciona igual.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Nada encontrado com esse nome.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "2 de 18 textos fixos de sCat ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/catalogo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo: Importar lista",
+    "referencia": "sImp · quadros 24b Importar · arquivo; 24c Importar · colunas; 24d Importar · revisar com erro; 24e Importando; 24f Resultado",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"ou escolha um dos recentes em Downloads\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Lemos a tabela do PDF; confira as colunas no passo seguinte\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pelo celular, em Menu › Catálogo › Importar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Continuar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ligar as colunas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Sugerimos uma coluna para cada campo. Confira as marcadas e troque se precisar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Primeiras linhas do arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Como o arquivo vai ser lido com essa ligação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Item novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Categoria\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Linhas com erro não entram no catálogo. Corrija aqui, ou deixe de fora e ajuste depois na planilha.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Problema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Corrigir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Deixar de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Custo, ex.: 1.200,00\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Descrição do item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Cancelar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Salvar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Desfazer\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar linhas com erro (.csv)\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pode continuar usando o sistema. Leva menos de um minuto.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar as linhas que ficaram de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Importar outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ver no catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Nenhum item no arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Escolher outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Não deu para abrir o arquivo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "30 de 54 textos fixos de sImp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/catalogo-importar.png"
+  },
+  {
+    "tela": "Desktop novo: Integração EXSAT",
+    "referencia": "sEx · quadros 24g Integração EXSAT; 24h Sincronizando; 24i Depois de sincronizar",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Mudanças de preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Filtrar mudanças\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Antes\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Ver proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Atualizar preços\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Conectando ao EXSAT…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "11 de 23 textos fixos de sEx ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/exsat.png"
+  },
+  {
+    "tela": "Desktop novo: Kits",
+    "referencia": "sKits · quadros 24k Kits",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/kits.png"
+  },
+  {
+    "tela": "Desktop novo: Kits: Usar em proposta",
+    "referencia": "dKit · quadros 24l Usar kit",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/kits-usar.png"
+  },
+  {
+    "tela": "Desktop novo: Clientes",
+    "referencia": "sClis · quadros 24m Clientes",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/clientes.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Geral",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: button.body-icon.danger \"Remover o modelo Garantia e suporte\""
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/configuracoes-geral.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Empresa e propostas",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/configuracoes-empresa.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Usuários",
+    "referencia": "",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/configuracoes-usuarios.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Sistema",
+    "referencia": "",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1440x900/escuro/configuracoes-sistema.png"
+  },
+  {
+    "tela": "Desktop novo: Nova proposta (janela)",
+    "referencia": "dNova · quadros 23d Nova proposta",
+    "resolucao": "1440x900",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Nome do cliente novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital Santa Clara\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital São Lucas · Ala D\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Começar com\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 8 textos fixos de dNova ausentes"
+      }
+    ],
+    "print": "prints/desktop/1440x900/escuro/nova-proposta.png"
+  },
+  {
+    "tela": "Desktop novo: Início",
+    "referencia": "sPainel · quadros 23b Início do Orçamentos",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 3 elemento(s), ex.: table.home-proposals-table \"NÚMERO CLIENTE / OBRA STATUS ITENS VALOR\"; tr \"PA-1054REV 00 Edifício Horizonte Edifíci\"; button.open-proposal-btn \"Abrir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Bom dia, Marina\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Propostas abertas, o que precisa de você e os preços do catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Ver propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Precisam de ação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Funil de propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Valor final por situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"EX\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Integração EXSAT\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 10 textos fixos de sPainel ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/inicio.png"
+  },
+  {
+    "tela": "Desktop novo: Propostas (lista)",
+    "referencia": "sProps · quadros 23c Propostas",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: strong \"R$ 313.789,99\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Da edição à aprovação, com o valor final de cada revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Buscar por obra, cliente ou número\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Filtrar propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Sem permissão de ver margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Nenhuma proposta com esse filtro.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 16 textos fixos de sProps ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/propostas.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Itens",
+    "referencia": "sProp · quadros 23f Itens editáveis; 23e Resumo com aviso de preço",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Abrir obra no Centro de Custos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preços desta proposta?\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Agora não\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Ver e atualizar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Custo, BDI e margem aparecem só para quem tem a permissão de ver custos.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Por sistema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Parte do valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Dados da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"PDF da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Mude as quantidades direto na tabela. Itens com preço novo no EXSAT ganham o botão Atualizar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"BDI e impostos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Criar nova revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Diminuir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Aumentar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Remover item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Esta proposta ainda não tem itens. Use Adicionar itens para buscar no catálogo ou num kit.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Histórico de revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"A mais nova em cima\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar com a atual\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Só a revisão em edição pode ser alterada. Revisões enviadas ou aprovadas ficam congeladas, com os preços de quando foram montadas.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "24 de 31 textos fixos de sProp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/proposta-itens.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Mão de obra",
+    "referencia": "sProp",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 4 elemento(s), ex.: table.labor-table \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; tr \"Instalador 6 6,00 3.200,00 600,00 300,00\"; tr \"Total de mão de obra R$ 160.363,63\""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por section.proposal-editor (horizontal): 31 elemento(s), até 205 px, ex.: table.labor-table \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; tr \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; th \"HORAS DA EQUIPE\""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/proposta-mao-de-obra.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Kits",
+    "referencia": "sProp · quadros 23g Adicionar itens",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/proposta-kits.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Corpo e condições",
+    "referencia": "sProp",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/proposta-corpo.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Histórico (revisões)",
+    "referencia": "sProp · quadros 23j Revisões",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/proposta-historico.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: menu Inserir",
+    "referencia": "dAdd · quadros 23g Adicionar itens",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Origem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Buscar por nome ou código\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Na proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Nada encontrado no catálogo.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Adicionar kit\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "5 de 6 textos fixos de dAdd ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/proposta-inserir.png"
+  },
+  {
+    "tela": "Desktop novo: PDF da proposta",
+    "referencia": "sPdf · quadros 23m Pré-visualização; 23n Compartilhar; 23o Enviar ao cliente; 23p Engenharia · resumido sem capa",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: p.pdf-hint \"O cliente vê só preços de venda. Custo, \""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por div.pdf-thumbs (vertical): 2 elemento(s), até 30 px, ex.: button \"5 · Condições\"; small \"5 · Condições\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Compartilhar não muda a situação da proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Proposta comercial\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Emitida em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Válida até\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Responsável\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sistemas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia · Sistemas especiais\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Qtd.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Unitário\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Valor total da proposta · impostos inclusos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Atualizando a pré-visualização…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Gerando a pré-visualização do PDF…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sem itens para o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Não deu para gerar o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"O PDF é montado no servidor e o computador está sem internet. Suas escolhas de modelo e capa ficam guardadas.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "18 de 37 textos fixos de sPdf ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/pdf.png"
+  },
+  {
+    "tela": "Desktop novo: Comparativo de revisões",
+    "referencia": "sCmp · quadros 23q REV 01 × REV 03; 23r Só o que mudou; 23s PROP-041 · em edição",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 2 elemento(s), ex.: table.compare-table \"ITEM REV 00 TOTAL REV 01 TOTAL DIFERENÇA\"; tr.row.same \"Item de teste 128 para conferência de ta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Nada mudou entre as duas revisões.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Para comparar, a proposta precisa de pelo menos duas revisões. Quando o cliente pedir ajustes, crie uma nova revisão e volte aqui.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"As revisões antigas ficam no servidor e o computador está sem internet. A revisão atual continua aberta na proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 16 textos fixos de sCmp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/comparativo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo",
+    "referencia": "sCat · quadros 24a Catálogo EXSAT",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 3 elemento(s), ex.: table.od-tbl \"ITEM CATEGORIA UNID. CUSTO MUDANÇA DE PR\"; tr \"Treinamento de usuários (até 8h) SER-TRE\"; td.od-small \"PA-1054\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Seu perfil não vê preços de custo. A coluna Custo fica escondida; o resto do catálogo funciona igual.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Nada encontrado com esse nome.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "2 de 18 textos fixos de sCat ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/catalogo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo: Importar lista",
+    "referencia": "sImp · quadros 24b Importar · arquivo; 24c Importar · colunas; 24d Importar · revisar com erro; 24e Importando; 24f Resultado",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"ou escolha um dos recentes em Downloads\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Lemos a tabela do PDF; confira as colunas no passo seguinte\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pelo celular, em Menu › Catálogo › Importar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Continuar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ligar as colunas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Sugerimos uma coluna para cada campo. Confira as marcadas e troque se precisar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Primeiras linhas do arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Como o arquivo vai ser lido com essa ligação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Item novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Categoria\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Linhas com erro não entram no catálogo. Corrija aqui, ou deixe de fora e ajuste depois na planilha.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Problema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Corrigir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Deixar de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Custo, ex.: 1.200,00\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Descrição do item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Cancelar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Salvar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Desfazer\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar linhas com erro (.csv)\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pode continuar usando o sistema. Leva menos de um minuto.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar as linhas que ficaram de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Importar outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ver no catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Nenhum item no arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Escolher outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Não deu para abrir o arquivo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "30 de 54 textos fixos de sImp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/catalogo-importar.png"
+  },
+  {
+    "tela": "Desktop novo: Integração EXSAT",
+    "referencia": "sEx · quadros 24g Integração EXSAT; 24h Sincronizando; 24i Depois de sincronizar",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Mudanças de preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Filtrar mudanças\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Antes\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Ver proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Atualizar preços\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Conectando ao EXSAT…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "11 de 23 textos fixos de sEx ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/exsat.png"
+  },
+  {
+    "tela": "Desktop novo: Kits",
+    "referencia": "sKits · quadros 24k Kits",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/claro/kits.png"
+  },
+  {
+    "tela": "Desktop novo: Kits: Usar em proposta",
+    "referencia": "dKit · quadros 24l Usar kit",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/claro/kits-usar.png"
+  },
+  {
+    "tela": "Desktop novo: Clientes",
+    "referencia": "sClis · quadros 24m Clientes",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/claro/clientes.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Geral",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: button.body-icon.danger \"Remover o modelo Garantia e suporte\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/configuracoes-geral.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Empresa e propostas",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/claro/configuracoes-empresa.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Usuários",
+    "referencia": "",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: button.od-btn.s \"Revogar\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/configuracoes-usuarios.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Sistema",
+    "referencia": "",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/claro/configuracoes-sistema.png"
+  },
+  {
+    "tela": "Desktop novo: Nova proposta (janela)",
+    "referencia": "dNova · quadros 23d Nova proposta",
+    "resolucao": "1280x800",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Nome do cliente novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital Santa Clara\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital São Lucas · Ala D\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Começar com\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 8 textos fixos de dNova ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/claro/nova-proposta.png"
+  },
+  {
+    "tela": "Desktop novo: Início",
+    "referencia": "sPainel · quadros 23b Início do Orçamentos",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 3 elemento(s), ex.: table.home-proposals-table \"NÚMERO CLIENTE / OBRA STATUS ITENS VALOR\"; tr \"PA-1054REV 00 Edifício Horizonte Edifíci\"; button.open-proposal-btn \"Abrir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Bom dia, Marina\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Propostas abertas, o que precisa de você e os preços do catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Ver propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Precisam de ação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Funil de propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Valor final por situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"EX\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPainel) que não aparece em nenhum estado capturado: \"Integração EXSAT\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 10 textos fixos de sPainel ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/inicio.png"
+  },
+  {
+    "tela": "Desktop novo: Propostas (lista)",
+    "referencia": "sProps · quadros 23c Propostas",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: strong \"R$ 313.789,99\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Da edição à aprovação, com o valor final de cada revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Buscar por obra, cliente ou número\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Filtrar propostas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Situação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Sem permissão de ver margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProps) que não aparece em nenhum estado capturado: \"Nenhuma proposta com esse filtro.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "8 de 16 textos fixos de sProps ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/propostas.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Itens",
+    "referencia": "sProp · quadros 23f Itens editáveis; 23e Resumo com aviso de preço",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Abrir obra no Centro de Custos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preços desta proposta?\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Agora não\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Ver e atualizar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Margem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Custo, BDI e margem aparecem só para quem tem a permissão de ver custos.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Por sistema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Parte do valor final\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Dados da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"PDF da proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Mude as quantidades direto na tabela. Itens com preço novo no EXSAT ganham o botão Atualizar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"BDI e impostos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Criar nova revisão\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Diminuir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Aumentar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Atualizar preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Remover item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Esta proposta ainda não tem itens. Use Adicionar itens para buscar no catálogo ou num kit.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Histórico de revisões\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"A mais nova em cima\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Comparar com a atual\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sProp) que não aparece em nenhum estado capturado: \"Só a revisão em edição pode ser alterada. Revisões enviadas ou aprovadas ficam congeladas, com os preços de quando foram montadas.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "24 de 31 textos fixos de sProp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/proposta-itens.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Mão de obra",
+    "referencia": "sProp",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 4 elemento(s), ex.: table.labor-table \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; tr \"Instalador 6 6,00 3.200,00 600,00 300,00\"; tr \"Total de mão de obra R$ 160.363,63\""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por section.proposal-editor (horizontal): 31 elemento(s), até 205 px, ex.: table.labor-table \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; tr \"FUNÇÃO PROF. SALÁRIO ALIMENTAÇÃO TRANSPO\"; th \"HORAS DA EQUIPE\""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/proposta-mao-de-obra.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Kits",
+    "referencia": "sProp · quadros 23g Adicionar itens",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/proposta-kits.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Corpo e condições",
+    "referencia": "sProp",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/proposta-corpo.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: Histórico (revisões)",
+    "referencia": "sProp · quadros 23j Revisões",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/proposta-historico.png"
+  },
+  {
+    "tela": "Desktop novo: Proposta: menu Inserir",
+    "referencia": "dAdd · quadros 23g Adicionar itens",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por main.workspace (horizontal): 3 elemento(s), até 44 px, ex.: strong \"R$ 37.978,20\"; strong \"R$ 160.363,63\"; strong \"R$ 49.585,46\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Origem\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Buscar por nome ou código\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Na proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Nada encontrado no catálogo.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dAdd) que não aparece em nenhum estado capturado: \"Adicionar kit\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "5 de 6 textos fixos de dAdd ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/proposta-inserir.png"
+  },
+  {
+    "tela": "Desktop novo: PDF da proposta",
+    "referencia": "sPdf · quadros 23m Pré-visualização; 23n Compartilhar; 23o Enviar ao cliente; 23p Engenharia · resumido sem capa",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: p.pdf-hint \"O cliente vê só preços de venda. Custo, \""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por div.pdf-thumbs (vertical): 2 elemento(s), até 30 px, ex.: button \"5 · Condições\"; small \"5 · Condições\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Compartilhar não muda a situação da proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Proposta comercial\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Emitida em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Válida até\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Responsável\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sistemas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia · Sistemas especiais\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Qtd.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Unitário\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Valor total da proposta · impostos inclusos\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Construtec Engenharia\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Atualizando a pré-visualização…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Gerando a pré-visualização do PDF…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Sem itens para o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Adicionar itens\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Não deu para gerar o PDF\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"O PDF é montado no servidor e o computador está sem internet. Suas escolhas de modelo e capa ficam guardadas.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sPdf) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "18 de 37 textos fixos de sPdf ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/pdf.png"
+  },
+  {
+    "tela": "Desktop novo: Comparativo de revisões",
+    "referencia": "sCmp · quadros 23q REV 01 × REV 03; 23r Só o que mudou; 23s PROP-041 · em edição",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 2 elemento(s), ex.: table.compare-table \"ITEM REV 00 TOTAL REV 01 TOTAL DIFERENÇA\"; tr.row.same \"Item de teste 128 para conferência de ta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Nada mudou entre as duas revisões.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Para comparar, a proposta precisa de pelo menos duas revisões. Quando o cliente pedir ajustes, crie uma nova revisão e volte aqui.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"As revisões antigas ficam no servidor e o computador está sem internet. A revisão atual continua aberta na proposta.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCmp) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 16 textos fixos de sCmp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/comparativo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo",
+    "referencia": "sCat · quadros 24a Catálogo EXSAT",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 3 elemento(s), ex.: table.od-tbl \"ITEM CATEGORIA UNID. CUSTO MUDANÇA DE PR\"; tr \"Treinamento de usuários (até 8h) SER-TRE\"; td.od-small \"PA-1054\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Seu perfil não vê preços de custo. A coluna Custo fica escondida; o resto do catálogo funciona igual.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sCat) que não aparece em nenhum estado capturado: \"Nada encontrado com esse nome.\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "2 de 18 textos fixos de sCat ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/catalogo.png"
+  },
+  {
+    "tela": "Desktop novo: Catálogo: Importar lista",
+    "referencia": "sImp · quadros 24b Importar · arquivo; 24c Importar · colunas; 24d Importar · revisar com erro; 24e Importando; 24f Resultado",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"ou escolha um dos recentes em Downloads\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Lemos a tabela do PDF; confira as colunas no passo seguinte\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pelo celular, em Menu › Catálogo › Importar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Continuar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ligar as colunas\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Sugerimos uma coluna para cada campo. Confira as marcadas e troque se precisar.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Primeiras linhas do arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Como o arquivo vai ser lido com essa ligação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Item novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Categoria\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Linhas com erro não entram no catálogo. Corrija aqui, ou deixe de fora e ajuste depois na planilha.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Problema\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Corrigir\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Deixar de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Custo, ex.: 1.200,00\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Descrição do item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Cancelar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Salvar\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Desfazer\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar linhas com erro (.csv)\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Pode continuar usando o sistema. Leva menos de um minuto.\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Baixar as linhas que ficaram de fora\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Importar outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Ver no catálogo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Nenhum item no arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Escolher outro arquivo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sImp) que não aparece em nenhum estado capturado: \"Não deu para abrir o arquivo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "30 de 54 textos fixos de sImp ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/catalogo-importar.png"
+  },
+  {
+    "tela": "Desktop novo: Integração EXSAT",
+    "referencia": "sEx · quadros 24g Integração EXSAT; 24h Sincronizando; 24i Depois de sincronizar",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Mudanças de preço\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Filtrar mudanças\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Item\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Antes\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Depois\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Variação\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Usado em\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Ver proposta\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Atualizar preços\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Conectando ao EXSAT…\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (sEx) que não aparece em nenhum estado capturado: \"Tentar de novo\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "11 de 23 textos fixos de sEx ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/exsat.png"
+  },
+  {
+    "tela": "Desktop novo: Kits",
+    "referencia": "sKits · quadros 24k Kits",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/escuro/kits.png"
+  },
+  {
+    "tela": "Desktop novo: Kits: Usar em proposta",
+    "referencia": "dKit · quadros 24l Usar kit",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/escuro/kits-usar.png"
+  },
+  {
+    "tela": "Desktop novo: Clientes",
+    "referencia": "sClis · quadros 24m Clientes",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/escuro/clientes.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Geral",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: button.body-icon.danger \"Remover o modelo Garantia e suporte\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/configuracoes-geral.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Empresa e propostas",
+    "referencia": "sCfg · quadros 24n Padrões da empresa",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/escuro/configuracoes-empresa.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Usuários",
+    "referencia": "",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.assistant-fab: 1 elemento(s), ex.: button.od-btn.s \"Revogar\""
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/configuracoes-usuarios.png"
+  },
+  {
+    "tela": "Desktop novo: Configurações: Sistema",
+    "referencia": "",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/desktop/1280x800/escuro/configuracoes-sistema.png"
+  },
+  {
+    "tela": "Desktop novo: Nova proposta (janela)",
+    "referencia": "dNova · quadros 23d Nova proposta",
+    "resolucao": "1280x800",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Nome do cliente novo\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital Santa Clara\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Ex.: Hospital São Lucas · Ala D\""
+      },
+      {
+        "tipo": "texto",
+        "descricao": "texto da Referência (dNova) que não aparece em nenhum estado capturado: \"Começar com\""
+      },
+      {
+        "tipo": "texto-resumo",
+        "descricao": "4 de 8 textos fixos de dNova ausentes"
+      }
+    ],
+    "print": "prints/desktop/1280x800/escuro/nova-proposta.png"
+  },
+  {
+    "tela": "Tokens de cor",
+    "referencia": "DesktopOrc.dc.html (:root e [data-theme=\"escuro\"])",
+    "resolucao": "celular",
+    "tema": "claro",
+    "itens": [],
+    "print": ""
+  },
+  {
+    "tela": "Celular: Início",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/inicio.png"
+  },
+  {
+    "tela": "Celular: Painel",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/painel.png"
+  },
+  {
+    "tela": "Celular: Avisos",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.btn2 \"Enviar notificação de teste\""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por div (horizontal): 1 elemento(s), até 3 px, ex.: button.chip-act \"Conta\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/avisos.png"
+  },
+  {
+    "tela": "Celular: Propostas (lista)",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por div (horizontal): 3 elemento(s), até 208 px, ex.: button.chip-act \"Enviada 1\"; button.chip-act \"Aprovada 1\"; button.chip-act \"Recusada 0\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/propostas.png"
+  },
+  {
+    "tela": "Celular: Proposta: Resumo",
+    "referencia": "quadros 21a Proposta · Resumo",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: p.muted \"Não informado\"; p.hint \"Próximo passo: revisão interna do orçame\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/proposta-resumo.png"
+  },
+  {
+    "tela": "Celular: Proposta: Itens",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.qbtn \"Editar ou remover Gravador NVR 16 canais\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/proposta-itens.png"
+  },
+  {
+    "tela": "Celular: Proposta: Revisões",
+    "referencia": "quadros 21c Proposta · Revisões",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/proposta-revisoes.png"
+  },
+  {
+    "tela": "Celular: Nova proposta",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.opt \"Começar com um kit Os itens do kit entra\"; p.hint \"Escolha o cliente e a obra (ou dê um nom\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/nova-proposta.png"
+  },
+  {
+    "tela": "Celular: Mão de obra",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.btn2 \"Adicionar função\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/mao-de-obra.png"
+  },
+  {
+    "tela": "Celular: PDF da proposta",
+    "referencia": "quadros 21b PDF da proposta; 21e Pré-visualização; 21f Página ampliada; 21g Compartilhar; 21h Enviar ao cliente; 21i Engenharia · resumido sem capa; 21j Técnico de campo; 21p PDF · carregando; 21q PDF · vazio; 21r PDF · erro",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: p.hint \"O cliente vê só preços de venda. Custo, \"; p.hint \"Envie para revisão interna antes de mand\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/pdf.png"
+  },
+  {
+    "tela": "Celular: Comparativo de revisões",
+    "referencia": "quadros 21d Comparar revisões; 21k REV 01 × REV 03; 21l Só o que mudou; 21m Escolher revisão; 21n PROP-041 · REV 01 × REV 02; 21o Sem permissão de custo; 21s Comparativo · carregando; 21t Comparativo · vazio; 21u Comparativo · erro",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/comparativo.png"
+  },
+  {
+    "tela": "Celular: Link do cliente",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/link-do-cliente.png"
+  },
+  {
+    "tela": "Celular: Corpo da proposta",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.bk-add \"Adicionar aqui\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/corpo.png"
+  },
+  {
+    "tela": "Celular: Kits",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/kits.png"
+  },
+  {
+    "tela": "Celular: Kit (detalhe)",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.btn2 \"Adicionar item\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/kit.png"
+  },
+  {
+    "tela": "Celular: Menu",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: p.hint \"Construtec Orçamentos · celular 4\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/menu.png"
+  },
+  {
+    "tela": "Celular: Configurações",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.card.cfg-link \"CONSTRUTEC 32.992.946/0001-78 · responsá\"; p.hint \"Propostas já criadas mantêm seus valores\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/configuracoes.png"
+  },
+  {
+    "tela": "Celular: Configurações: corpo padrão",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: p.hint \"Propostas já criadas mantêm o corpo dela\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/configuracoes-corpo.png"
+  },
+  {
+    "tela": "Celular: Configurações: empresa",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: input \"Nome de quem assina\"; p.hint \"Propostas já criadas mantêm os dados del\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/configuracoes-empresa.png"
+  },
+  {
+    "tela": "Celular: Catálogo",
+    "referencia": "quadros 22a Catálogo · Importar; 22c Catálogo · cartão EXSAT",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.prow \"Treinamento de usuários (até 8h) SER-TRE\"; small.hint \"27 itens · a busca procura no catálogo i\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/catalogo.png"
+  },
+  {
+    "tela": "Celular: Catálogo: configurar",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.prow \"Treinamento de usuários (até 8h) SER-TRE\"; small.hint \"27 itens · a busca procura no catálogo i\""
+      }
+    ],
+    "print": "prints/celular/375x812/claro/catalogo-configurar.png"
+  },
+  {
+    "tela": "Celular: Importar catálogo",
+    "referencia": "quadros 22b Importar catálogo; 22g Escolher arquivo; 22h Ligar colunas; 22i Trocar a coluna; 22j Campo faltando; 22k Revisar · com erro; 22l Corrigir uma linha; 22m Resultado; 22s Importar · lendo; 22t Importar · importando; 22u Importar · vazio; 22v Importar · erro",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/importar.png"
+  },
+  {
+    "tela": "Celular: Integração EXSAT",
+    "referencia": "quadros 22d Integração EXSAT; 22p Antes de sincronizar; 22e Proposta em edição; 22q Aviso na proposta; 22f Atualizar preços; 22r Atualizar preços desta proposta?; 22n Sincronizando; 22o Depois de sincronizar; 22w EXSAT · carregando; 22x EXSAT · vazio; 22y EXSAT · erro",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/exsat.png"
+  },
+  {
+    "tela": "Celular: Clientes",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/clientes.png"
+  },
+  {
+    "tela": "Celular: Propostas descartadas",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/descartadas.png"
+  },
+  {
+    "tela": "Celular: Proposta descartada (detalhe)",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/descartada-detalhe.png"
+  },
+  {
+    "tela": "Celular: Usuários",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/usuarios.png"
+  },
+  {
+    "tela": "Celular: Ajuda",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "claro",
+    "itens": [],
+    "print": "prints/celular/375x812/claro/ajuda.png"
+  },
+  {
+    "tela": "Tokens de cor",
+    "referencia": "DesktopOrc.dc.html (:root e [data-theme=\"escuro\"])",
+    "resolucao": "celular",
+    "tema": "escuro",
+    "itens": [],
+    "print": ""
+  },
+  {
+    "tela": "Celular: Início",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/inicio.png"
+  },
+  {
+    "tela": "Celular: Painel",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/painel.png"
+  },
+  {
+    "tela": "Celular: Avisos",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.btn2 \"Enviar notificação de teste\""
+      },
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por div (horizontal): 1 elemento(s), até 3 px, ex.: button.chip-act \"Conta\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/avisos.png"
+  },
+  {
+    "tela": "Celular: Propostas (lista)",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "cortado",
+        "descricao": "cortado por div (horizontal): 3 elemento(s), até 208 px, ex.: button.chip-act \"Enviada 1\"; button.chip-act \"Aprovada 1\"; button.chip-act \"Recusada 0\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/propostas.png"
+  },
+  {
+    "tela": "Celular: Proposta: Resumo",
+    "referencia": "quadros 21a Proposta · Resumo",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: p.muted \"Não informado\"; p.hint \"Próximo passo: revisão interna do orçame\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/proposta-resumo.png"
+  },
+  {
+    "tela": "Celular: Proposta: Itens",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.qbtn \"Editar ou remover Gravador NVR 16 canais\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/proposta-itens.png"
+  },
+  {
+    "tela": "Celular: Proposta: Revisões",
+    "referencia": "quadros 21c Proposta · Revisões",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/proposta-revisoes.png"
+  },
+  {
+    "tela": "Celular: Nova proposta",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.opt \"Começar com um kit Os itens do kit entra\"; p.hint \"Escolha o cliente e a obra (ou dê um nom\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/nova-proposta.png"
+  },
+  {
+    "tela": "Celular: Mão de obra",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.btn2 \"Adicionar função\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/mao-de-obra.png"
+  },
+  {
+    "tela": "Celular: PDF da proposta",
+    "referencia": "quadros 21b PDF da proposta; 21e Pré-visualização; 21f Página ampliada; 21g Compartilhar; 21h Enviar ao cliente; 21i Engenharia · resumido sem capa; 21j Técnico de campo; 21p PDF · carregando; 21q PDF · vazio; 21r PDF · erro",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: p.hint \"O cliente vê só preços de venda. Custo, \"; p.hint \"Envie para revisão interna antes de mand\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/pdf.png"
+  },
+  {
+    "tela": "Celular: Comparativo de revisões",
+    "referencia": "quadros 21d Comparar revisões; 21k REV 01 × REV 03; 21l Só o que mudou; 21m Escolher revisão; 21n PROP-041 · REV 01 × REV 02; 21o Sem permissão de custo; 21s Comparativo · carregando; 21t Comparativo · vazio; 21u Comparativo · erro",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/comparativo.png"
+  },
+  {
+    "tela": "Celular: Link do cliente",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/link-do-cliente.png"
+  },
+  {
+    "tela": "Celular: Corpo da proposta",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.bk-add \"Adicionar aqui\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/corpo.png"
+  },
+  {
+    "tela": "Celular: Kits",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/kits.png"
+  },
+  {
+    "tela": "Celular: Kit (detalhe)",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: button.btn2 \"Adicionar item\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/kit.png"
+  },
+  {
+    "tela": "Celular: Menu",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: p.hint \"Construtec Orçamentos · celular 4\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/menu.png"
+  },
+  {
+    "tela": "Celular: Configurações",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.card.cfg-link \"CONSTRUTEC 32.992.946/0001-78 · responsá\"; p.hint \"Propostas já criadas mantêm seus valores\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/configuracoes.png"
+  },
+  {
+    "tela": "Celular: Configurações: corpo padrão",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 1 elemento(s), ex.: p.hint \"Propostas já criadas mantêm o corpo dela\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/configuracoes-corpo.png"
+  },
+  {
+    "tela": "Celular: Configurações: empresa",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: input \"Nome de quem assina\"; p.hint \"Propostas já criadas mantêm os dados del\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/configuracoes-empresa.png"
+  },
+  {
+    "tela": "Celular: Catálogo",
+    "referencia": "quadros 22a Catálogo · Importar; 22c Catálogo · cartão EXSAT",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.prow \"Treinamento de usuários (até 8h) SER-TRE\"; small.hint \"27 itens · a busca procura no catálogo i\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/catalogo.png"
+  },
+  {
+    "tela": "Celular: Catálogo: configurar",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [
+      {
+        "tipo": "coberto",
+        "descricao": "button.ia-fab: 2 elemento(s), ex.: button.prow \"Treinamento de usuários (até 8h) SER-TRE\"; small.hint \"27 itens · a busca procura no catálogo i\""
+      }
+    ],
+    "print": "prints/celular/375x812/escuro/catalogo-configurar.png"
+  },
+  {
+    "tela": "Celular: Importar catálogo",
+    "referencia": "quadros 22b Importar catálogo; 22g Escolher arquivo; 22h Ligar colunas; 22i Trocar a coluna; 22j Campo faltando; 22k Revisar · com erro; 22l Corrigir uma linha; 22m Resultado; 22s Importar · lendo; 22t Importar · importando; 22u Importar · vazio; 22v Importar · erro",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/importar.png"
+  },
+  {
+    "tela": "Celular: Integração EXSAT",
+    "referencia": "quadros 22d Integração EXSAT; 22p Antes de sincronizar; 22e Proposta em edição; 22q Aviso na proposta; 22f Atualizar preços; 22r Atualizar preços desta proposta?; 22n Sincronizando; 22o Depois de sincronizar; 22w EXSAT · carregando; 22x EXSAT · vazio; 22y EXSAT · erro",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/exsat.png"
+  },
+  {
+    "tela": "Celular: Clientes",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/clientes.png"
+  },
+  {
+    "tela": "Celular: Propostas descartadas",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/descartadas.png"
+  },
+  {
+    "tela": "Celular: Proposta descartada (detalhe)",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/descartada-detalhe.png"
+  },
+  {
+    "tela": "Celular: Usuários",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/usuarios.png"
+  },
+  {
+    "tela": "Celular: Ajuda",
+    "referencia": "",
+    "resolucao": "375x812",
+    "tema": "escuro",
+    "itens": [],
+    "print": "prints/celular/375x812/escuro/ajuda.png"
+  }
+]
