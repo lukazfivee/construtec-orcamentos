@@ -28,6 +28,7 @@
       return `<button class="tab" type="button" data-go="${key}"${on ? ' aria-current="page"' : ''}>${icon(on ? `${ic}-fill` : ic, 22)}<span>${label}</span></button>`;
     }).join('');
     OC.$$('[data-go]', nav).forEach((b) => b.addEventListener('click', () => OC.go(b.dataset.go)));
+    if (!nav.dataset.drag && window.arrastarAbas) { nav.dataset.drag = '1'; window.arrastarAbas(nav, (key) => OC.go(key)); }
     if (!nav.classList.contains('is-ready')) requestAnimationFrame(() => nav.classList.add('is-ready'));
   }
 
