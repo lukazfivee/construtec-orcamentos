@@ -5,7 +5,7 @@ import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
 import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
 import { useTheme } from './theme';
-import { centroEntryUrl, claimCentroEntry, skipCentroEntry, suiteSessionFromHash } from './suiteSession';
+import { centroEntryUrl, claimCentroEntry, isFramed, skipCentroEntry, suiteSessionFromHash } from './suiteSession';
 import { proposalFromHash } from './useProposalDeepLink';
 
 const SESSION_KEY = 'construtec.auth.session';
@@ -122,7 +122,7 @@ export function AuthGate() {
         }
       }
       // Sem sessao no navegador: pergunta uma vez ao Centro de Custos (mesma conta), que devolve #handoff= ou #centro=0.
-      const centro = inApp ? null : centroEntryUrl(window.location.origin, arrivedHash);
+      const centro = inApp || isFramed(window) ? null : centroEntryUrl(window.location.origin, arrivedHash);
       if (active && centro && claimCentroEntry(sessionStorage)) {
         window.location.replace(centro);
         return;

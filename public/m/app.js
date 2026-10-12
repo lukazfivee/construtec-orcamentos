@@ -100,7 +100,8 @@
   const installed = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
   function askCentro() {
     const hash = new URLSearchParams(location.hash.slice(1));
-    if (inApp() || installed() || location.origin !== ORC_WEB || ['handoff', 'centro'].some((key) => hash.has(key))) return false;
+    // Dentro de moldura (iframe de outro site) nao pergunta: o Centro so aceita ser embutido por ele e pelo Orcamentos.
+    if (inApp() || installed() || window.self !== window.top || location.origin !== ORC_WEB || ['handoff', 'centro'].some((key) => hash.has(key))) return false;
     try {
       if (sessionStorage.getItem(ASKED_KEY)) return false;
       sessionStorage.setItem(ASKED_KEY, '1');

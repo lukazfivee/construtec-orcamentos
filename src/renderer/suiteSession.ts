@@ -27,6 +27,12 @@ export const centroEntryUrl = (origin: string, hash: string) => {
   return `${CENTRO_ENTRADA}${proposta ? `#proposta=${proposta}` : ''}`;
 };
 
+// Dentro de uma moldura (iframe de outro site) nao pergunta: a pagina do Centro so aceita ser embutida pelo
+// proprio Centro e pelo Orcamentos (frame-ancestors), entao o navegador bloquearia e a moldura ficaria vazia.
+export const isFramed = (w: { readonly self: unknown; readonly top: unknown }) => {
+  try { return w.self !== w.top; } catch { return true; }
+};
+
 // Marca a pergunta desta aba. Sem como guardar a marca (armazenamento bloqueado) nao pergunta: evita ida e volta sem fim.
 export const claimCentroEntry = (storage: Pick<Storage, 'getItem' | 'setItem'>) => {
   try {

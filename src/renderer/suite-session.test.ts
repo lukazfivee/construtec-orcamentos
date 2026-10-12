@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { CENTRO_ENTRADA, ORCAMENTOS_WEB, centroEntryUrl, claimCentroEntry, skipCentroEntry, suiteSessionFromHash } from './suiteSession';
+import { CENTRO_ENTRADA, ORCAMENTOS_WEB, centroEntryUrl, claimCentroEntry, isFramed, skipCentroEntry, suiteSessionFromHash } from './suiteSession';
 
 test('#sessao= da Suite aceita so token de sessao do Centro, com ou sem proposta junto', () => {
   const token = `${'ab+/'.repeat(5)}Zm9v`;
@@ -34,6 +34,14 @@ test('sem sessao no navegador, o Orcamentos pergunta ao Centro de Custos levando
   }
 });
 
+test('dentro de moldura (iframe de outro site) o Orcamentos nao pergunta ao Centro', () => {
+  const janela = {};
+  assert.equal(isFramed({ self: janela, top: janela }), false, 'aba normal pergunta');
+  assert.equal(isFramed({ self: janela, top: {} }), true, 'embutido: o Centro recusaria a moldura (frame-ancestors)');
+  const bloqueado = { self: janela, get top(): unknown { throw new Error('cross-origin'); } };
+  assert.equal(isFramed(bloqueado), true);
+});
+
 test('a pergunta ao Centro acontece uma vez por aba, e nunca sem como guardar a marca', () => {
   const aba = memoria();
   assert.equal(claimCentroEntry(aba), true);
@@ -52,10 +60,10 @@ test('o celular (/m/) segue a mesma regra e nao perde a proposta ao entrar pelo 
   assert.ok(app.includes(`const CENTRO_ENTRADA = '${CENTRO_ENTRADA}'`));
   assert.ok(app.includes("const ASKED_KEY = 'construtec.auth.centro'"));
   assert.match(app, /if \(!OC\.session\.token\(\)\) return askCentro\(\) \|\| signedOut\(\);/);
-  assert.match(app, /if \(inApp\(\) \|\| installed\(\) \|\| location\.origin !== ORC_WEB/, 'app Android e site instalado na tela inicial ficam fora');
+  assert.match(app, /if \(inApp\(\) \|\| installed\(\) \|\| window\.self !== window\.top \|\| location\.origin !== ORC_WEB/, 'app Android, site instalado e moldura ficam fora');
   assert.match(app, /OC\.onUnauthorized = \(\) => askCentro\(\) \|\| signedOut/);
   assert.match(app, /async function consumeHandoff\(code\) \{[^}]*proposta \? `#proposta=\$\{proposta\}`/);
   const gate = readFileSync('src/renderer/AuthGate.tsx', 'utf8');
-  assert.match(gate, /inApp \? null : centroEntryUrl\(window\.location\.origin, arrivedHash\)/);
+  assert.match(gate, /inApp \|\| isFramed\(window\) \? null : centroEntryUrl\(window\.location\.origin, arrivedHash\)/);
   assert.match(gate, /claimCentroEntry\(sessionStorage\)\) \{\s*window\.location\.replace\(centro\);/);
 });
