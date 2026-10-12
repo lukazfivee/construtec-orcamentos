@@ -1,4 +1,4 @@
-// Kits, Menu, Configuracoes e Catalogo no celular (prototipo: sOrcKits, sKit, sOrcMenu, cfg, cat). Clientes: screen-cli.js.
+// Kits, Menu e Configuracoes no celular (prototipo: sOrcKits, sKit, sOrcMenu, cfg). Clientes: screen-cli.js; catalogo: screen-cat.js.
 (function (OC) {
   const { esc, icon } = OC;
   const VERSION = '4';
@@ -6,7 +6,9 @@
   const initials = OC.initials = (name) => String(name || '?').split(/\s+/).filter(Boolean).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 
   OC.screens.kits = async function (params) {
-    const list = ((await OC.api('/kits')).kits || []).filter((k) => k.active !== false);
+    // Quem edita kits (p10) ve tambem os inativos, como no computador.
+    const all = (await OC.api('/kits')).kits || [];
+    const list = all.filter((k) => k.active !== false || OC.canEditKits());
     let query = '';
     const el = OC.render(`${OC.header('')}
       <div class="title-row"><h1 class="title">Kits</h1>${OC.canEdit() && OC.can('p10') ? `<button class="chip-act" type="button" id="k-new">${icon('plus', 16)}Novo kit</button>` : ''}</div>
@@ -17,7 +19,7 @@
       const q = query.trim().toLowerCase();
       const rows = list.filter((k) => !q || `${k.name} ${k.category}`.toLowerCase().includes(q));
       OC.$('#k-rows', el).innerHTML = rows.length ? rows.map((k) => `<button class="card kit-row" type="button" data-id="${esc(k.id)}">${icon('stack', 20)}
-          <span class="grow"><b>${esc(k.name)}</b><small>${k.itemCount} ${k.itemCount === 1 ? 'item' : 'itens'}${k.description ? ` · ${esc(k.description)}` : ''}</small></span>
+          <span class="grow"><b>${esc(k.name)}</b><small>${esc(k.category || 'Geral')} · ${k.itemCount} ${k.itemCount === 1 ? 'item' : 'itens'}${k.active === false ? ' · inativo' : ''}${k.description ? ` · ${esc(k.description)}` : ''}</small></span>
           <b>${esc(OC.costText(OC.money0(k.totalEstimatedCost)))}</b>${icon('caret-right', 18)}</button>`).join('')
         : `<div class="empty">${icon('stack', 28)}${list.length ? 'Nenhum kit com esse nome.' : 'Nenhum kit cadastrado.'}</div>`;
       OC.$$('[data-id]', el).forEach((b) => b.addEventListener('click', () => OC.open('kit', { id: b.dataset.id })));
@@ -25,10 +27,7 @@
     const q = OC.$('#k-q', el);
     if (q) q.addEventListener('input', (event) => { query = event.target.value; paint(); });
     const nk = OC.$('#k-new', el);
-    if (nk) nk.addEventListener('click', () => OC.ask('Novo kit', 'Nome do kit', 'Ex.: Kit câmera IP externa', async (name) => {
-      const kit = (await OC.api('/kits', { method: 'POST', body: { name, category: 'Geral', items: [] } })).kit;
-      OC.open('kit', { id: kit.id });
-    }));
+    if (nk) nk.addEventListener('click', () => OC.kitSheet(null, all.map((k) => k.category), (kit) => OC.open('kit', { id: kit.id })));
     paint();
   };
 
@@ -41,6 +40,7 @@
       <p class="sub" style="margin:-6px 0 0">Custo sem BDI · o BDI entra quando o kit vai para a proposta</p>
       <label class="field"><span>Nome do kit</span><input id="k-name" type="text" value="${esc(kit.name)}"${can ? '' : ' readonly'}></label>
       <label class="field"><span>Referência · opcional</span><input id="k-ref" type="text" value="${esc(kit.description || '')}" placeholder="Ex.: por ponto"${can ? '' : ' readonly'}></label>
+      ${OC.kitMetaRow(kit, can)}
       <div class="sec-row"><span class="label" id="k-count"></span><span class="label" id="k-sum"></span></div>
       <div class="items" id="k-items"></div>
       ${can ? `<button class="btn2" type="button" id="k-add">${icon('plus', 18)}Adicionar item</button>` : ''}
@@ -88,6 +88,11 @@
       paintTotals();
     }
     if (can) {
+      OC.$('#k-meta', el).addEventListener('click', async () => {
+        const cats = ((await OC.api('/kits').catch(() => ({}))).kits || []).map((k) => k.category);
+        // Nome e referencia digitados agora (o salvamento automatico pode nao ter voltado ainda).
+        OC.kitSheet({ ...kit, name: OC.$('#k-name', el).value.trim() || kit.name, description: OC.$('#k-ref', el).value.trim() || null }, cats, () => OC.reload(), () => OC.go('kits'));
+      });
       OC.$('#k-name', el).addEventListener('input', save);
       OC.$('#k-ref', el).addEventListener('input', save);
       OC.$('#k-add', el).addEventListener('click', () => OC.pickProduct('Adicionar ao kit', (x) => {
@@ -181,8 +186,10 @@
         ${OC.isAdmin && OC.isAdmin() ? `<button class="menu-item" type="button" id="m-desc">${icon('archive', 22)}<span class="grow">Propostas descartadas<small>Guardadas e recuperáveis · só administrador</small></span>${discarded ? `<span class="menu-count">${discarded}</span>` : ''}${icon('caret-right', 18)}</button>` : ''}
         ${inApp() ? item('m-seg', 'shield-check', 'Segurança', 'PIN, digital e bloqueio automático', 'suite://seguranca') : ''}
         ${inApp() ? item('m-tour', 'info', 'Rever o tour', 'Telas rápidas sobre os apps', 'suite://tour') : ''}
-        <button class="menu-item" type="button" id="m-tema">${icon(dark ? 'sun' : 'moon', 22)}<span class="grow">${dark ? 'Modo claro' : 'Modo escuro'}</span></button>
-        ${item('m-full', 'desktop', 'Versão completa', 'Corpo da proposta, catálogo e usuários')}
+        ${u.role === 'admin' ? item('m-users', 'users', 'Usuários e e-mails autorizados', 'Contas, perfis e acessos · só administrador') : ''}
+        ${item('m-tema', dark ? 'moon' : 'sun', 'Tema', OC.theme.label ? esc(OC.theme.label()) : (dark ? 'Escuro' : 'Claro'))}
+        ${item('m-ajuda', 'info', 'Ajuda', 'Situações, revisões e sigilo comercial')}
+        ${item('m-full', 'desktop', 'Versão completa', 'Foto e PDF no catálogo, backup e restauração')}
       </div>
       <button class="btn2 danger-btn" type="button" id="m-sair">${icon('sign-out', 20)}Sair</button>
       <p class="hint" style="text-align:center">Construtec Orçamentos · celular ${VERSION}</p>`, false, params);
@@ -191,7 +198,9 @@
     OC.$('#m-cat', el).addEventListener('click', () => OC.open('cat'));
     OC.$('#m-cli', el).addEventListener('click', () => OC.open('cli'));
     if (OC.$('#m-desc', el)) OC.$('#m-desc', el).addEventListener('click', () => OC.open('desc'));
-    OC.$('#m-tema', el).addEventListener('click', () => { OC.theme.toggle(); OC.go('menu'); });
+    OC.$('#m-tema', el).addEventListener('click', () => (OC.themeSheet ? OC.themeSheet(() => OC.go('menu')) : (OC.theme.toggle(), OC.go('menu'))));
+    if (OC.$('#m-users', el)) OC.$('#m-users', el).addEventListener('click', () => OC.open('users'));
+    OC.$('#m-ajuda', el).addEventListener('click', () => OC.open('ajuda'));
     OC.$('#m-full', el).addEventListener('click', OC.fullVersion);
     OC.$('#m-sair', el).addEventListener('click', () => OC.logout());
   };
@@ -211,7 +220,7 @@
           <div class="qty"><button class="qbtn" type="button" data-step="defaultStandardHours:-4"${admin ? '' : ' disabled'} aria-label="Diminuir horas">${icon('minus', 18)}</button><span class="qval" data-v="defaultStandardHours"></span><button class="qbtn" type="button" data-step="defaultStandardHours:4"${admin ? '' : ' disabled'} aria-label="Aumentar horas">${icon('plus', 18)}</button></div></div>
       </div>
       <div class="field"><span>Validade padrão</span><div class="chips wrap" id="c-days"></div></div>
-      <div class="card"><div class="kv"><span>Empresa</span><b>${esc(s.tradeName || s.companyName || '')}</b></div><div class="kv"><span>Responsável padrão</span><b>${esc(s.defaultResponsible || '')}</b></div></div>
+      ${OC.cfgExtra ? OC.cfgExtra.html(s, admin) : ''}
       <p class="hint">${admin ? 'Propostas já criadas mantêm seus valores.' : 'Só administradores alteram os padrões.'}</p>
       ${admin ? `<div class="actions"><button class="btn" type="button" id="c-save">${icon('check', 18)}Salvar padrões</button></div>` : ''}`, true, params);
     const paint = () => {
@@ -226,6 +235,7 @@
       v[k] = Math.min(lim[1], Math.max(lim[0], Math.round((v[k] + Number(d)) * 100) / 100));
       paint();
     }));
+    if (OC.cfgExtra) OC.cfgExtra.bind(el, s, admin, v);
     const save = OC.$('#c-save', el);
     if (save) save.addEventListener('click', async () => {
       save.disabled = true;
@@ -235,42 +245,5 @@
     paint();
   };
 
-  // Catalogo: consulta, importar planilha e integracao EXSAT (Rodada 22). Foto e PDF ficam na versao completa.
-  OC.screens.cat = async function (params) {
-    const summary = await OC.api('/dashboard').then((d) => d.summary || {}).catch(() => ({}));
-    const el = OC.render(`${OC.header('Catálogo', { back: true })}
-      <p class="sub" style="margin:-6px 0 0">${summary.totalProductsCount || 0} itens</p>
-      <button class="card ex-link" type="button" id="c-ex">${icon('arrow-square-out', 20)}<span class="grow"><b>Integração EXSAT</b><small id="c-ex-s">Conferindo preços das propostas…</small></span>${icon('caret-right', 18)}</button>
-      <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" placeholder="Buscar por nome ou código" autocomplete="off"></label>
-      <div class="rows" id="c-rows"></div>
-      <div class="actions">${OC.canEditCatalog() ? `<button class="btn2" type="button" id="c-new">${icon('plus', 18)}Novo item</button><button class="btn2" type="button" id="c-imp">${icon('download-simple', 18)}Importar</button>` : ''}<button class="btn" type="button" id="c-sync">${icon('arrow-square-out', 18)}EXSAT</button></div>`, true, params);
-    const rows = OC.$('#c-rows', el);
-    const editor = OC.canEditCatalog();
-    let timer = 0, seq = 0, list = [], lastQ = '';
-    // Quem edita ve tambem os inativos (cadastro completo, como no computador); os outros, a busca das propostas.
-    const load = async (q) => {
-      const mine = ++seq;
-      lastQ = q;
-      try {
-        list = (await OC.api(editor ? `/catalog/manage?q=${encodeURIComponent(q)}` : `/catalog?q=${encodeURIComponent(q)}&limit=50`)).products || [];
-        if (mine !== seq) return;
-        rows.innerHTML = list.length ? list.map((x) => `<${editor ? `button type="button" class="prow" data-prod="${esc(x.id)}"` : 'div class="prow static"'}><span class="grow"><b>${esc(x.description)}</b><small>${esc(x.code)} · ${esc(x.unit)} · ${esc(x.category)}${x.active === false ? ' · inativo' : ''}</small></span>
-          <span class="end"><b>${esc(OC.costText(OC.money(x.currentCost)))}</b><small>custo</small></span></${editor ? 'button' : 'div'}>`).join('') : '<div class="empty">Nada encontrado.</div>';
-        OC.$$('[data-prod]', rows).forEach((b) => b.addEventListener('click', () => OC.catalogSheet(list.find((x) => x.id === b.dataset.prod), () => load(lastQ))));
-      } catch (error) { if (mine === seq) rows.innerHTML = `<div class="empty">${esc(error.message)}</div>`; }
-    };
-    const novo = OC.$('#c-new', el);
-    if (novo) novo.addEventListener('click', () => OC.catalogSheet(null, () => load(lastQ)));
-    OC.$('#c-q', el).addEventListener('input', (event) => { clearTimeout(timer); timer = setTimeout(() => load(event.target.value.trim()), 300); });
-    load('');
-    OC.$('#c-ex', el).addEventListener('click', () => OC.open('exsat'));
-    OC.$('#c-sync', el).addEventListener('click', () => OC.open('exsat'));
-    const imp = OC.$('#c-imp', el);
-    if (imp) imp.addEventListener('click', () => OC.open('imp'));
-    // Cartao da EXSAT: quantas propostas em edicao tem preco novo (falha de rede nao atrapalha o catalogo).
-    OC.api('/proposals/price-drift').then((d) => {
-      const n = (d.proposals || []).length, t = OC.$('#c-ex-s', el);
-      if (t) t.textContent = n ? `${n} ${n === 1 ? 'proposta com preço novo' : 'propostas com preço novo'}` : 'Nenhum preço novo nas propostas';
-    }).catch(() => { const t = OC.$('#c-ex-s', el); if (t) t.textContent = 'Toque para ver preços e propostas'; });
-  };
+  // Catalogo: screen-cat.js (visao geral, filtros e importacoes).
 })(window.OC = window.OC || {});
