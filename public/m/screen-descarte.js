@@ -45,6 +45,8 @@
         ${OC.canChangeStatus && OC.canChangeStatus(p) ? row('status', 'arrows-left-right', 'Mudar situação', `Agora: ${OC.STATUS[p.status][0]}`) : ''}
         ${OC.canEdit() && p.isLatest && OC.validitySheet ? row('val', 'calendar-blank', 'Validade', p.validUntil ? `Até ${OC.dateFull(p.validUntil)}` : 'Sem validade definida') : ''}
         ${OC.canCreateRevision && OC.canCreateRevision(p) ? row('rev', 'clock-counter-clockwise', 'Criar nova revisão', `${OC.rev(p.revision + 1)} em edição; a atual fica guardada`) : ''}
+        ${OC.cloneSheet && OC.canEdit() ? row('clone', 'copy', 'Clonar proposta', 'Proposta nova com os mesmos itens; troque cliente, obra ou escopo') : ''}
+        ${OC.canExportIntegration && OC.canExportIntegration(p) ? row('json', 'download-simple', 'Exportar JSON de integração', 'Plano B: arquivo para o Centro de Custos') : ''}
         ${del ? row('del', 'trash', 'Excluir proposta', `Apaga ${p.number} e as revisões. Não dá para desfazer.`, 'danger') : ''}
         ${desc ? row('desc', 'archive', 'Descartar com registro', 'Sai da lista, fica guardada e pode ser recuperada', 'danger') : ''}
       </div>`);
@@ -57,6 +59,8 @@
       else if (b.dataset.m === 'status') OC.statusSheet(p);
       else if (b.dataset.m === 'val') OC.validitySheet(p);
       else if (b.dataset.m === 'rev') OC.createRevision(p);
+      else if (b.dataset.m === 'clone') OC.cloneSheet(p);
+      else if (b.dataset.m === 'json') OC.exportIntegration(p);
       else if (b.dataset.m === 'del') deleteSheet(p);
       else if (b.dataset.m === 'desc') discardSheet(p);
     });

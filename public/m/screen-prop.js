@@ -211,6 +211,8 @@
       view.bind(body);
       if (tab !== 'revisoes' && OC.driftBanner) OC.driftBanner(p, ctx, body);
       if (tab === 'resumo' && OC.linkCard) OC.linkCard(p, ctx, body);
+      if (tab === 'resumo' && OC.trackingCard) OC.trackingCard(p, body);
+      if (tab === 'itens' && OC.itemsTools) OC.itemsTools(p, ctx, body);
       history.replaceState(null, '', `#prop=${encodeURIComponent(p.id)}`);
     }
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));
