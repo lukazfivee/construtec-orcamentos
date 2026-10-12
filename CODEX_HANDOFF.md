@@ -1,5 +1,14 @@
 # Construtec Orçamentos — handoff operacional
 
+## 2026-10-10 BRT - Celular (/m/): corpo da proposta, prévia com o corpo e opções do documento (Claude Code)
+
+- Base: `origin/main` em `ba23f7f`, branch `feat/m-corpo-proposta`, worktree `C:\orc-m-corpo`. Nada em `src/renderer` nem `src/*.css`; nenhuma rota nova.
+- Arquivos novos em `public/m`: `body-core.js` (regras de `src/shared/proposalBody.ts`: variáveis, partes, limites, operações da lista), `body-models.js` (cópia dos modelos de fábrica), `corpo-editor.js` (cartões dos blocos, folha de cada bloco, inserir bloco ou modelo de texto), `corpo-grid.js` (planilha própria por linha e colar do Excel), `prop-corpo.js` (tela `corpo`: salva sozinho em `PUT /proposals/:id/body`, aplicar modelo, salvar como modelo da empresa, voltar ao formato padrão), `cfg-corpo.js` (tela `cfgCorpo`: corpo padrão, modelos da empresa, modelos de texto; só admin altera), `pdf-corpo.js` (prévia na ordem do documento do servidor, páginas medidas), `corpo.css`.
+- Compartilhados (mínimo): `index.html` (scripts e CSS), `app.js` (telas `corpo` e `cfgCorpo` na navegação e no recarregar), `screen-prop.js` (cartão "Corpo da proposta" no Resumo), `screen-misc.js` (item "Corpo padrão e modelos" no Menu), `screen-pdf.js` (prévia via `pdf-corpo.js`; opções capa, cláusulas, observações, aviso de validade, mão de obra, notas complementares, agrupar, códigos, marca d'água; o seletor Completo/Resumido saiu porque o servidor só tirava as observações).
+- Servidor: `parseMobileDocumentChoices`/`mobileExportOptions` aceitam `agrupar`, `codigos`, `mao`, `observacoes` e `notas` (até 1000 caracteres, limpo); sem eles, tudo igual a antes (HTML e Word).
+- Validação: `npm run verify`; teste novo `src/documents/mobile-body.test.ts` (leitor, documento HTML/Word e paridade do JS do celular com o módulo compartilhado). Telas conferidas com jsdom e API falsa (sem servidor real, sem navegador).
+- Pendências: conferência visual a 375 px; subtítulo "Versão completa" no Menu ainda cita "Corpo da proposta"; sem aviso ao sair do corpo padrão com alterações não salvas. Nada publicado.
+
 ## 2026-10-10 02:45 BRT - Celular (/m/) faz o que o computador faz na proposta (Claude Code)
 
 - Base: `origin/main` em `dea8164`, branch `feat/m-paridade-propostas`, worktree `C:\orc-m-paridade`. Só `public/m/*`, um teste novo e `scripts/test-critical.mjs`; nada em `src/renderer`, `src/*.css` nem no servidor.

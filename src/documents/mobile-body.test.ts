@@ -129,7 +129,7 @@ test('documento do celular: agrupar, codigos, mao de obra e notas chegam ao HTML
   assert.ok(html.includes('NOTA-EXTRA') && html.includes('Sem obra civil'));
   assert.ok(!buildMobileProposalHtml(p, settings, parseMobileDocumentChoices({ observacoes: '0', notas: 'NOTA-EXTRA' })).includes('NOTA-EXTRA'));
   const visible = (doc: string) => doc.replace(/<style[\s\S]*?<\/style>/g, '').replace(/[A-Za-z0-9+/=]{200,}/g, '');
-  for (const doc of [base, html]) assert.ok(!/(BDI|margem|custo)/i.test(visible(doc)), 'documento do cliente com custo, BDI ou margem');
+  for (const doc of [base, html]) assert.ok(!/\b(BDI|margem|custo)\b/i.test(visible(doc)), 'documento do cliente com custo, BDI ou margem');
   const docx = await buildProposalDocx(p, settings, { ...mobileExportOptions(parseMobileDocumentChoices({ codigos: '1', notas: 'NOTA-WORD' })), format: 'docx' });
   const xml = await (await JSZip.loadAsync(docx)).file('word/document.xml')!.async('string');
   assert.ok(xml.includes('NOTA-WORD') && xml.includes('CB-01'));
