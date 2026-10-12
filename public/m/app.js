@@ -87,15 +87,41 @@
       <span>Entre de novo no aplicativo.</span>
       <a class="btn" href="suite://entrar" style="padding:0 22px;text-decoration:none">Entrar</a></div>`);
   }
-  OC.onUnauthorized = () => signedOut('Sua sessão terminou');
+  // Navegador sem sessao: pergunta uma vez por aba ao Centro de Custos (mesma conta), que devolve #handoff= ou
+  // #centro=0. Mesma regra de src/renderer/suiteSession.ts; a pagina do Centro e public/entrar-orcamentos.js de la.
+  const ORC_WEB = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev';
+  const CENTRO_ENTRADA = 'https://centro-custos-api.construtec-reports.workers.dev/entrar-orcamentos.html';
+  const ASKED_KEY = 'construtec.auth.centro';
+  const proposalId = () => {
+    const id = new URLSearchParams(location.hash.slice(1)).get('proposta');
+    return id && /^[A-Za-z0-9-]{1,64}$/.test(id) ? id : '';
+  };
+  // Instalado na tela inicial (standalone) o celular guarda os dados a parte e abre outro site por cima: nao pergunta.
+  const installed = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  function askCentro() {
+    const hash = new URLSearchParams(location.hash.slice(1));
+    if (inApp() || installed() || location.origin !== ORC_WEB || ['handoff', 'centro'].some((key) => hash.has(key))) return false;
+    try {
+      if (sessionStorage.getItem(ASKED_KEY)) return false;
+      sessionStorage.setItem(ASKED_KEY, '1');
+    } catch { return false; } // sem como marcar a pergunta, nao pergunta (evita ida e volta sem fim)
+    const proposta = proposalId();
+    location.replace(CENTRO_ENTRADA + (proposta ? `#proposta=${proposta}` : ''));
+    return true;
+  }
+
+  OC.onUnauthorized = () => askCentro() || signedOut('Sua sessão terminou');
   OC.logout = async function () {
     try { await OC.api('/auth/logout', { method: 'POST', body: {} }); } catch { /* sai mesmo sem rede */ }
     OC.session.clear();
+    try { sessionStorage.setItem(ASKED_KEY, '1'); } catch { /* sem armazenamento o Centro nao e perguntado mesmo */ }
     signedOut('Você saiu da sua conta');
   };
 
   async function consumeHandoff(code) {
-    history.replaceState(null, '', location.pathname + location.search);
+    // Tira so o codigo; um #proposta= junto continua para abrir a proposta.
+    const proposta = proposalId();
+    history.replaceState(null, '', location.pathname + location.search + (proposta ? `#proposta=${proposta}` : ''));
     const data = await OC.api('/auth/handoff', { method: 'POST', body: { code } });
     if (!data.token || !data.user) throw new Error('Não foi possível entrar pelo aplicativo.');
     OC.session.save(data);
@@ -115,7 +141,7 @@
     if (code) {
       try { await consumeHandoff(code); } catch (error) { if (!OC.session.token()) return signedOut(error.message); }
     }
-    if (!OC.session.token()) return signedOut();
+    if (!OC.session.token()) return askCentro() || signedOut();
     try { await ensureUser(); } catch (error) { if (error.status === 401) return undefined; }
     return start();
   }

@@ -46,3 +46,11 @@ Alternativa descartada: ler preço público de URL sem login (podia importar pre
 
 - O login do Orçamentos dentro da Suíte mostrava "Integração de contas com o Centro de Custos não configurada" porque o código de uso único (#handoff=) só é trocado com a chave de serviço do servidor, que o app instalado não tem. Agora a Suíte entrega a sessão corporativa da conta em `#sessao=<token>` e o `AuthGate` a valida pelo servidor local (`/api/auth/me`, que consulta o Centro só com o Bearer).
 - `#sessao=` só vale com `runtime.suite === true`: num navegador, um link com esse trecho não troca a conta de quem abre. O token sai do endereço logo que lido. `#handoff=` segue para quem tem a chave de serviço (servidor na nuvem). Detalhe do lado do Centro em `DECISIONS.md` do Centro de Custos, 2026-10-10.
+
+## 2026-10-12 — Suíte no navegador: logado no Centro, o Orçamentos entra sozinho
+
+- Pedido: "se eu estou logado no Centro de Custos, não preciso fazer login no Orçamentos". No navegador os dois sites ficam em domínios diferentes e não enxergam a sessão um do outro; o menu Suíte do Centro só abria o endereço daqui, que pedia o login.
+- Regra única, no `AuthGate` (desktop e web) e no `public/m/app.js` (celular): sem sessão, a aba vai uma vez para `entrar-orcamentos.html` do Centro, que volta com `#handoff=` (conta logada lá, troca pelo servidor como no app Android) ou `#centro=0` (mostra o login daqui). Uma vez por aba (`sessionStorage`, `construtec.auth.centro`); sem como guardar a marca não pergunta, para nunca ficar indo e voltando. "Sair" marca a aba: recarregar depois de sair não entra de novo pelo Centro.
+- Só no site publicado (`ORCAMENTOS_WEB`): app do Windows (`file://`, entra por `#sessao=`), app Android (`SuiteConstrutec/`, entra pelo app), servidor de desenvolvimento e o Orçamentos embutido no Centro ficam fora. No celular, o site instalado na tela inicial também fica fora: ele guarda os dados à parte e abriria o Centro por cima.
+- No celular, entrar por `#handoff=` passou a manter o `#proposta=` (antes o endereço era limpo inteiro e a proposta pedida pelo app ou pelo Centro não abria).
+- Lado do Centro: `public/entrar-orcamentos.js` e `DECISIONS.md` do Centro de Custos, 2026-10-12.

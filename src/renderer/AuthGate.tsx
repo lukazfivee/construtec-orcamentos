@@ -5,7 +5,7 @@ import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
 import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
 import { useTheme } from './theme';
-import { suiteSessionFromHash } from './suiteSession';
+import { centroEntryUrl, claimCentroEntry, skipCentroEntry, suiteSessionFromHash } from './suiteSession';
 import { proposalFromHash } from './useProposalDeepLink';
 
 const SESSION_KEY = 'construtec.auth.session';
@@ -52,7 +52,10 @@ export function AuthGate() {
   };
 
   const clearSession = async (endRemote = false) => {
-    if (endRemote) await authApi.logout().catch(() => undefined);
+    if (endRemote) {
+      await authApi.logout().catch(() => undefined);
+      skipCentroEntry(sessionStorage);
+    }
     sessionStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(SESSION_KEY);
     setAuthSessionToken(null);
@@ -70,11 +73,16 @@ export function AuthGate() {
       const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
       if (savedEmail) setEmail(savedEmail);
 
-      const handoff = new URLSearchParams(window.location.hash.slice(1)).get('handoff');
-      if (handoff) {
-        // Tira so o codigo; um #proposta= junto continua para o App abrir a proposta.
-        const proposta = proposalFromHash(window.location.hash);
+      // Tira do endereco o que e de entrada (#handoff=, #sessao=, #centro=); um #proposta= junto continua para o App abrir.
+      const arrivedHash = window.location.hash;
+      const arrived = new URLSearchParams(arrivedHash.slice(1));
+      if (['handoff', 'sessao', 'centro'].some((key) => arrived.has(key))) {
+        const proposta = proposalFromHash(arrivedHash);
         window.history.replaceState(null, '', window.location.pathname + window.location.search + (proposta ? `#proposta=${proposta}` : ''));
+      }
+
+      const handoff = arrived.get('handoff');
+      if (handoff) {
         try {
           const session = await authApi.handoff(handoff);
           if (active) finishSession(session.token, session.user, false);
@@ -84,11 +92,7 @@ export function AuthGate() {
         }
       }
 
-      const suiteToken = suiteSessionFromHash(window.location.hash);
-      if (new URLSearchParams(window.location.hash.slice(1)).has('sessao')) {
-        const proposta = proposalFromHash(window.location.hash);
-        window.history.replaceState(null, '', window.location.pathname + window.location.search + (proposta ? `#proposta=${proposta}` : ''));
-      }
+      const suiteToken = suiteSessionFromHash(arrivedHash);
       if (suiteToken && (await window.construtec?.runtime().catch(() => undefined))?.suite === true) {
         setAuthSessionToken(suiteToken);
         try {
@@ -116,6 +120,12 @@ export function AuthGate() {
           localStorage.removeItem(SESSION_KEY);
           setAuthSessionToken(null);
         }
+      }
+      // Sem sessao no navegador: pergunta uma vez ao Centro de Custos (mesma conta), que devolve #handoff= ou #centro=0.
+      const centro = inApp ? null : centroEntryUrl(window.location.origin, arrivedHash);
+      if (active && centro && claimCentroEntry(sessionStorage)) {
+        window.location.replace(centro);
+        return;
       }
       if (active) setMode('login');
     };

@@ -1,5 +1,12 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-12 BRT - Logado no Centro, o Orçamentos do navegador entra sozinho (Claude Code)
+
+- Base: `origin/main` em `7e178e0`, branch `feat/suite-login-pelo-centro`, worktree `_tools\_worktrees\orc\wt-sso`. Par no Centro: branch `feat/suite-login-orcamentos` (`public/entrar-orcamentos.*`). Publicar o Centro antes: sem a página de lá, o `app.get('*')` do Centro responde com a tela de entrar antiga e a aba fica parada lá.
+- `suiteSession.ts` (`centroEntryUrl`, `claimCentroEntry`, `skipCentroEntry`), `AuthGate.tsx` (sem sessão, vai uma vez por aba ao Centro; limpa `#handoff=`, `#sessao=` e `#centro=` do endereço num lugar só), `public/m/app.js` (mesma regra; fora no app Android e no site instalado na tela inicial; `#proposta=` sobrevive ao `#handoff=`). Detalhes em `DECISIONS.md`, 2026-10-12.
+- Validação: `npm run typecheck` e `npm run lint` sem erros (avisos antigos); `npm run test:critical` 325 de 326 (1 ignorado, PostgreSQL real); `suite-session.test.ts` ganhou a regra nova. Não conferido no navegador: a ida ao Centro só liga nos domínios publicados.
+- Próximo passo: PR nos dois repositórios, deploy do Centro e depois `npm run deploy:cloud` daqui. Conferir em produção: entrar no Centro, abrir o Orçamentos pelo menu Suíte e por um favorito, sair e recarregar, e o mesmo no celular pelo navegador. Nada publicado.
+
 ## 2026-10-11 BRT - Barra de abas do celular (/m/) no estilo do iPhone (Claude Code)
 
 - Base: `origin/main` em `4bc2dae`, branch `feat/barra-abas-iphone`. Pedido do Lucas: a barra inferior do app igual à dos apps de iPhone. Só `public/m/m.css`, `orc.css` e `index.html`; nenhuma tela, JS ou servidor mudou.
