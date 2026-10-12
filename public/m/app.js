@@ -4,9 +4,9 @@
   OC.screens = OC.screens || {};
   const TABS = [
     ['home', 'Início', 'squares-four', ['home', 'painel', 'avisos']],
-    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor', 'pdf', 'cmp', 'link']],
+    ['props', 'Propostas', 'file-text', ['props', 'prop', 'nova', 'labor', 'pdf', 'cmp', 'link', 'corpo']],
     ['kits', 'Kits', 'stack', ['kits', 'kit']],
-    ['menu', 'Menu', 'list', ['menu', 'cfg', 'cat', 'cli', 'imp', 'exsat', 'desc', 'descDet']],
+    ['menu', 'Menu', 'list', ['menu', 'cfg', 'cfgCorpo', 'cat', 'cli', 'imp', 'exsat', 'desc', 'descDet', 'catConf', 'cfgEmp', 'users', 'ajuda']],
   ];
   let current = 'home', currentParams = {};
   let lensTimer;
@@ -62,8 +62,8 @@
   OC.back = function () {
     const prev = stack.pop();
     if (prev) OC.go(prev[0], prev[1], { back: true });
-    else if ((current === 'pdf' || current === 'cmp' || current === 'link') && currentParams.id) OC.go('prop', { id: currentParams.id, tab: current === 'cmp' ? 'revisoes' : 'resumo' }, { back: true });
-    else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cat: 'menu', cli: 'menu', imp: 'cat', exsat: 'cat', desc: 'menu', descDet: 'desc' }[current] || 'props');
+    else if ((current === 'pdf' || current === 'cmp' || current === 'link' || current === 'corpo') && currentParams.id) OC.go('prop', { id: currentParams.id, tab: current === 'cmp' ? 'revisoes' : 'resumo' }, { back: true });
+    else OC.go({ kit: 'kits', painel: 'home', avisos: 'home', cfg: 'menu', cfgCorpo: 'menu', cat: 'menu', cli: 'menu', imp: 'cat', exsat: 'cat', desc: 'menu', descDet: 'desc', catConf: 'cat', cfgEmp: 'cfg', users: 'menu', ajuda: 'menu' }[current] || 'props');
   };
   OC.reload = () => OC.go(current, currentParams, { back: true });
   document.addEventListener('click', (event) => { if (event.target.closest('[data-back]')) OC.back(); });
@@ -137,8 +137,8 @@
     if (id) return OC.go('prop', { id });
     // Recarregar numa tela interna (#kit=<id>, #labor=<id>) volta para ela.
     const [first, param] = location.hash.slice(1).split('=');
-    if (['kit', 'labor', 'pdf', 'cmp', 'link'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
-    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova', 'pdf', 'cmp', 'link'].includes(first) ? first : 'home');
+    if (['kit', 'labor', 'pdf', 'cmp', 'link', 'corpo'].includes(first) && param) return OC.go(first, { id: decodeURIComponent(param) });
+    return OC.go(OC.screens[first] && !['prop', 'kit', 'labor', 'nova', 'pdf', 'cmp', 'link', 'corpo'].includes(first) ? first : 'home');
   }
 
   document.addEventListener('DOMContentLoaded', boot);

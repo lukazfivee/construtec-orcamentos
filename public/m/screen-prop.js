@@ -71,7 +71,7 @@
           <div class="kv sep"><span class="strong">Custo base</span><b>${esc(OC.money0(t.base))}</b></div>
           <div class="kv"><span>+ BDI ${esc(OC.dec2(p.bdiMultiplier))} ×</span><b>${esc(OC.money0(t.additions))}</b></div>` : ''}
           <div class="kv"><span>+ Impostos ${esc(OC.dec2(p.taxPercentage || 0))}%</span><b>${esc(OC.money0(t.tax))}</b></div></div>
-        <button class="card tile-card" type="button" data-pdf><span class="tile">${icon('file-text', 21)}</span><span class="grow"><b>PDF da proposta</b><small>${p.items.length ? 'Pré-visualizar, baixar e compartilhar' : 'Adicione itens para gerar o PDF'}</small></span>${icon('caret-right', 18)}</button>
+        ${OC.corpoTile ? OC.corpoTile(p) : ''}<button class="card tile-card" type="button" data-pdf><span class="tile">${icon('file-text', 21)}</span><span class="grow"><b>PDF da proposta</b><small>${p.items.length ? 'Pré-visualizar, baixar e compartilhar' : 'Adicione itens para gerar o PDF'}</small></span>${icon('caret-right', 18)}</button>
         <div class="card">
           ${kvRow('val', 'Validade', p.validUntil ? `${esc(OC.dateFull(p.validUntil))}${days !== null ? ` · ${days < 0 ? 'vencida' : `${days} ${days === 1 ? 'dia' : 'dias'}`}` : ''}` : 'Sem validade', OC.canEdit() && p.isLatest)}
           ${kvRow('ctx', 'Cliente', esc(p.clientName), editable(p))}
@@ -82,6 +82,7 @@
         ${next.hint ? `<p class="hint">${esc(next.hint)}</p>` : ''}${actions}`,
       bind(el) {
         OC.$('[data-pdf]', el).addEventListener('click', () => OC.open('pdf', { id: p.id }));
+        OC.$$('[data-corpo]', el).forEach((b) => b.addEventListener('click', () => OC.open('corpo', { id: p.id }, { tab: 'resumo' })));
         if (next.prim) OC.$('[data-prim]', el).addEventListener('click', async (event) => {
           const b = event.currentTarget; b.disabled = true;
           try { await next.prim[2](); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { b.disabled = false; }
@@ -211,6 +212,8 @@
       view.bind(body);
       if (tab !== 'revisoes' && OC.driftBanner) OC.driftBanner(p, ctx, body);
       if (tab === 'resumo' && OC.linkCard) OC.linkCard(p, ctx, body);
+      if (tab === 'resumo' && OC.trackingCard) OC.trackingCard(p, body);
+      if (tab === 'itens' && OC.itemsTools) OC.itemsTools(p, ctx, body);
       history.replaceState(null, '', `#prop=${encodeURIComponent(p.id)}`);
     }
     OC.$$('[data-tab]', el).forEach((b) => b.addEventListener('click', () => ctx.tab(b.dataset.tab)));

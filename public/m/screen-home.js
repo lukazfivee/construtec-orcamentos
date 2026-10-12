@@ -58,33 +58,7 @@
     }));
   };
 
-  OC.screens.props = async function (params) {
-    const list = await OC.loadProposals();
-    let filter = params.filter || null;
-    let query = params.q || '';
-    const el = OC.render(`${OC.header('')}
-      <div class="title-row"><h1 class="title">Propostas</h1>${OC.canEdit() ? `<button class="chip-act" type="button" id="p-new">${icon('plus', 16)}Nova</button>` : ''}</div>
-      <label class="search">${icon('magnifying-glass', 18)}<input id="p-q" type="search" placeholder="Buscar obra, cliente ou número" autocomplete="off" value="${esc(query)}"></label>
-      <div class="chips wrap" id="p-chips"></div>
-      <span class="group" id="p-count"></span>
-      <div class="rows" id="p-rows"></div>`, false, params);
-    const paint = () => {
-      const q = query.trim().toLowerCase();
-      const rows = list.filter((p) => (!filter || GROUPS[filter](p)) && (!q || `${p.workName} ${p.clientName} ${p.number}`.toLowerCase().includes(q)));
-      OC.$('#p-chips', el).innerHTML = [['and', 'Em andamento'], ['apr', 'Aprovadas'], ['rec', 'Recusadas']].map(([k, l]) => `<button class="chip-act" type="button" data-f="${k}" aria-pressed="${filter === k}">${l} ${list.filter(GROUPS[k]).length}</button>`).join('');
-      OC.$('#p-count', el).textContent = `${rows.length} ${rows.length === 1 ? 'proposta' : 'propostas'}`;
-      OC.$('#p-rows', el).innerHTML = rows.length ? rows.map((p) => `<button class="prow" type="button" data-id="${esc(p.id)}">
-          <span class="grow"><b>${esc(place(p))}</b><small>${esc(meta(p))}${p.clientName && p.workName ? ` · ${esc(p.clientName)}` : ''}</small></span>
-          <span class="end"><b>${p.totalSale ? esc(OC.money0(p.totalSale)) : 'Sem itens'}</b>${OC.pill(p.status)}</span>${icon('caret-right', 18)}</button>`).join('')
-        : `<div class="empty">${icon('file-text', 28)}${list.length ? 'Nenhuma proposta com esse filtro.' : 'Nenhuma proposta ainda.'}</div>`;
-      OC.$$('[data-f]', el).forEach((b) => b.addEventListener('click', () => { filter = filter === b.dataset.f ? null : b.dataset.f; paint(); }));
-      OC.$$('[data-id]', el).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.id })));
-    };
-    const nova = OC.$('#p-new', el);
-    if (nova) nova.addEventListener('click', () => OC.open('nova'));
-    OC.$('#p-q', el).addEventListener('input', (event) => { query = event.target.value; paint(); });
-    paint();
-  };
+  // Lista de propostas: screen-lista.js (filtros, ordenacao, CSV e rodape do computador).
   // Painel (prototipo: orcScr 'painel'): numeros do /api/dashboard e validades perto do fim.
   OC.screens.painel = async function (params) {
     const [summary, list] = await Promise.all([OC.api('/dashboard').then((d) => d.summary || {}), OC.loadProposals()]);
@@ -95,7 +69,7 @@
     const ending = list.filter((p) => p.status === 'sent' && OC.daysUntil(p.validUntil) !== null && OC.daysUntil(p.validUntil) <= 7)
       .sort((a, b) => OC.daysUntil(a.validUntil) - OC.daysUntil(b.validUntil));
     const el = OC.render(`${OC.header('Painel', { back: true })}
-      <p class="sub" style="margin:-6px 0 0">Todas as propostas atuais</p>
+      <div class="title-row"><p class="sub" style="margin:0">Todas as propostas atuais</p><button class="chip-act ghost" type="button" id="pn-ref">Atualizar</button></div>
       <div class="grid2">
         <div class="card stat"><small>Em negociação</small><b>${esc(OC.money0(summary.totalInNegotiation))}</b><small>${neg.length} ${neg.length === 1 ? 'proposta aberta' : 'propostas abertas'}</small></div>
         <div class="card stat"><small>Aprovadas</small><b>${esc(OC.money0(summary.totalApproved))}</b><small>${apr.length} ${apr.length === 1 ? 'aprovada' : 'aprovadas'} · conversão ${esc(OC.pct(intel.conversionRate))}</small></div>
@@ -108,7 +82,9 @@
         <div class="kv"><span>Clientes · kits · itens no catálogo</span><b>${summary.totalClientsCount || 0} · ${summary.totalKitsCount || 0} · ${summary.totalProductsCount || 0}</b></div></div>
       ${ending.length ? `<span class="group">Validade perto do fim</span><div class="rows">${ending.map((p) => { const d = OC.daysUntil(p.validUntil); return `<button class="prow" type="button" data-id="${esc(p.id)}">
           <span class="ic-warn">${icon('hourglass-medium', 18)}</span><span class="grow"><b>${esc(place(p))}</b><small class="warn">${esc(p.number)} · ${esc(OC.dateFull(p.validUntil))} · ${d < 0 ? 'vencida' : (d === 0 ? 'termina hoje' : `termina em ${d} ${d === 1 ? 'dia' : 'dias'}`)}</small></span>
-          <span class="end"><b>${esc(OC.money0(p.totalSale))}</b></span>${icon('caret-right', 18)}</button>`; }).join('')}</div>` : ''}`, true, params);
+          <span class="end"><b>${esc(OC.money0(p.totalSale))}</b></span>${icon('caret-right', 18)}</button>`; }).join('')}</div>` : ''}
+      ${OC.painelMais ? OC.painelMais(intel) : ''}`, true, params);
+    OC.$('#pn-ref', el).addEventListener('click', () => OC.reload());
     OC.$$('[data-id]', el).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.id })));
   };
 })(window.OC = window.OC || {});
