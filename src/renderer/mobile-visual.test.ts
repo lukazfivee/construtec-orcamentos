@@ -55,7 +55,9 @@ test('/m/: barras fixas tem fundo opaco, encostam na borda e respeitam a area se
   const actions = css.match(/\.actions \{[^}]*\}/)?.[0] ?? '';
   assert.match(actions, /position: sticky; bottom: 0/);
   assert.match(actions, /background: var\(--bg\)/);
-  assert.match(actions, /var\(--sab\)/);
+  assert.match(actions, /var\(--barra-topo\)/);
+  // --barra-topo segue a barra de abas: 15px da borda no iPhone (home indicator por baixo), 12px no Android
+  assert.match(css, /--barra-topo: calc\(max\(12px, calc\(var\(--sab\) - 19px\)\) \+ 58px\)/);
   // faixa sob a barra de abas: o conteudo nao aparece atras dela nem atras do home indicator
   const scrim = css.match(/body:not\(\.no-tabs\)::after \{[^}]*\}/)?.[0] ?? '';
   assert.match(scrim, /position: fixed/);
