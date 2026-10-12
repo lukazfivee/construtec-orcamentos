@@ -5,7 +5,9 @@
 - Base: `origin/main` em `7e178e0`, branch `feat/suite-login-pelo-centro`, worktree `_tools\_worktrees\orc\wt-sso`. Par no Centro: branch `feat/suite-login-orcamentos` (`public/entrar-orcamentos.*`). Publicar o Centro antes: sem a página de lá, o `app.get('*')` do Centro responde com a tela de entrar antiga e a aba fica parada lá.
 - `suiteSession.ts` (`centroEntryUrl`, `claimCentroEntry`, `skipCentroEntry`), `AuthGate.tsx` (sem sessão, vai uma vez por aba ao Centro; limpa `#handoff=`, `#sessao=` e `#centro=` do endereço num lugar só), `public/m/app.js` (mesma regra; fora no app Android e no site instalado na tela inicial; `#proposta=` sobrevive ao `#handoff=`). Detalhes em `DECISIONS.md`, 2026-10-12.
 - Validação: `npm run typecheck` e `npm run lint` sem erros (avisos antigos); `npm run test:critical` 325 de 326 (1 ignorado, PostgreSQL real); `suite-session.test.ts` ganhou a regra nova. Não conferido no navegador: a ida ao Centro só liga nos domínios publicados.
-- Próximo passo: PR nos dois repositórios, deploy do Centro e depois `npm run deploy:cloud` daqui. Conferir em produção: entrar no Centro, abrir o Orçamentos pelo menu Suíte e por um favorito, sair e recarregar, e o mesmo no celular pelo navegador. Nada publicado.
+- Publicado em 12/10/2026, a pedido, a partir das branches (PRs lukazfivee/centro-custos-construtec-v3#128 e lukazfivee/construtec-orcamentos#180 abertos, sem merge): Centro `centro-custos-api` versão `23f60b90`, depois daqui `construtec-orcamentos-cloud` versão `ce55acc8` (só o site; o container não mudou). Antes, `public/` de produção comparado com o `main` nos dois: só os arquivos desta mudança diferiam.
+- Conferido em produção sem sessão no Centro: `/` e `/m/` vão ao Centro uma vez e voltam com o login daqui, mantendo `#proposta=`; recarregar não repete; histórico sem entrada extra. Não conferido: entrada automática com uma conta logada no Centro (precisa de login real).
+- Próximo passo: conferir com uma conta real logada no Centro (menu Suíte, favorito, Sair e recarregar, celular pelo navegador) e fazer o merge dos dois PRs.
 
 ## 2026-10-11 BRT - Barra de abas do celular (/m/) no estilo do iPhone (Claude Code)
 
