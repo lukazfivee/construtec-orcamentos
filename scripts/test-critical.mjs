@@ -20,6 +20,7 @@ const entryPoints = [
   'src/server/services/exsatLogin.test.ts',
   'src/server/services/exsatSync.test.ts',
   'src/server/routes/exsat.test.ts',
+  'src/server/routes/reports.test.ts',
   'src/main/updater.test.ts',
   'src/main/suite-bundle.test.ts',
   'src/server/services/integration/integration-key.test.ts',

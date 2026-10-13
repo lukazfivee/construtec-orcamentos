@@ -9,6 +9,7 @@ import { createExsatRouter } from './routes/exsat';
 import { createNotificationsRouter } from './routes/notifications';
 import { createKitsRouter } from './routes/kits';
 import { createProposalsRouter } from './routes/proposals';
+import { createReportsRouter } from './routes/reports';
 import { createProposalTrackingRouter } from './routes/proposalTracking';
 import { createProposalPriceDriftRouter } from './routes/proposalPriceDrift';
 import { createProposalDocumentRouter } from './routes/proposalDocument';
@@ -185,8 +186,8 @@ export const createApp = (rawDatabase: LocalDatabase, apiToken: string) => {
     response.locals.authUser = user;
     const path = request.path.toLowerCase();
     response.locals.sessionToken = getSessionToken(request);
-    // Avisos sao da conta (lidas e preferencias), nao dos dados do Orcamentos.
-    if (user.role === 'viewer' && request.method !== 'GET' && !path.startsWith('/api/notifications')) {
+    // Avisos e reports sao da conta, nao dos dados do Orcamentos.
+    if (user.role === 'viewer' && request.method !== 'GET' && !path.startsWith('/api/notifications') && !path.startsWith('/api/reports')) {
       response.status(403).json({ error: 'Seu perfil possui acesso somente para consulta.' });
       return;
     }
@@ -223,6 +224,7 @@ export const createApp = (rawDatabase: LocalDatabase, apiToken: string) => {
   api.use('/api/system', createSystemRouter(database));
   api.use('/api/dashboard', createDashboardRouter(database));
   api.use('/api/notifications', createNotificationsRouter());
+  api.use('/api/reports', createReportsRouter());
 
   api.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
     void _next;
