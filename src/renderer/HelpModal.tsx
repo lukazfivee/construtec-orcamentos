@@ -6,15 +6,17 @@ import {
   HelpCircle,
   Info,
   Lock,
+  MessageSquareWarning,
   X,
 } from 'lucide-react';
+import { ReportProblemForm } from './ReportProblemForm';
 
 interface HelpModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-type TabKey = 'shortcuts' | 'calculations' | 'privacy' | 'about';
+type TabKey = 'shortcuts' | 'calculations' | 'privacy' | 'about' | 'report';
 
 export function HelpModal({ open, onClose }: HelpModalProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('shortcuts');
@@ -87,6 +89,13 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
             onClick={() => setActiveTab('about')}
           >
             <Info size={15} /> Sobre o Sistema
+          </button>
+          <button
+            type="button"
+            className={activeTab === 'report' ? 'active' : ''}
+            onClick={() => setActiveTab('report')}
+          >
+            <MessageSquareWarning size={15} /> Reportar problema
           </button>
         </nav>
 
@@ -199,6 +208,8 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
               </div>
             </div>
           )}
+
+          {activeTab === 'report' && <ReportProblemForm />}
 
           {activeTab === 'about' && (
             <div className="help-section">
