@@ -1,7 +1,8 @@
-import { FileText, Grid2X2, Layers3, LogOut, Menu } from 'lucide-react';
+import { FileText, Grid2X2, Layers3, LogOut, Mail, Menu } from 'lucide-react';
 import type { AuthUser } from '../shared/contracts';
 import type { NavItem, NavSection } from './navSections';
 import { NAV_ITEMS } from './navSections';
+import { openWebmail } from './webmail';
 
 /* Barra inferior no celular: tres destinos de uso diario. Espelha o padrao do
    Centro de Custos, onde a barra carrega poucos itens largos em vez de uma
@@ -99,6 +100,18 @@ export function AppSidebarMobile({
             </button>
           );
         })}
+        <button
+          type="button"
+          role="menuitem"
+          tabIndex={mobileMenuOpen ? 0 : -1}
+          onClick={() => {
+            onCloseMobileMenu();
+            openWebmail();
+          }}
+        >
+          <Mail size={20} />
+          <span>Webmail Pro</span>
+        </button>
         {user && onLogout && (
           <button
             type="button"
