@@ -1,0 +1,12 @@
+.report-form { display: flex; flex-direction: column; gap: 12px; }
+.report-form label { display: flex; flex-direction: column; gap: 6px; color: var(--tx-cool-33); font-size: calc(11px * var(--fs, 1)); font-weight: 600; }
+.report-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.report-form input, .report-form select, .report-form textarea { width: 100%; padding: 8px 10px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 5px; outline: none; font: inherit; font-weight: 400; }
+.report-form input, .report-form select { height: 38px; padding-block: 0; }
+.report-form textarea { resize: vertical; min-height: 120px; }
+.report-form input:focus, .report-form select:focus, .report-form textarea:focus { border-color: var(--bd-cool-30); box-shadow: 0 0 0 2px rgba(13, 127, 159, .12); }
+.report-form-error { padding: 8px 10px; border-radius: 5px; color: var(--tx-red-46); border: 1px solid var(--tx-red-46); font-size: calc(12px * var(--fs, 1)); }
+.report-form-actions { display: flex; justify-content: flex-end; }
+.report-form-done { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 0; text-align: center; }
+.report-form-done svg { color: var(--tx-cool-28-3); }
+@media (max-width: 560px) { .report-form-row { grid-template-columns: 1fr; } }

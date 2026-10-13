@@ -145,6 +145,9 @@ export const proposalApi = {
   restoreDiscarded: (discardId: string) => request<{ proposalId: string | null; proposalNumber: string }>(
     `/api/proposals/discarded/${discardId}/restore`, { method: 'POST', body: '{}' },
   ),
+  deleteDiscarded: (ids: string[]) => request<{ deleted: number }>(
+    '/api/proposals/discarded/delete', { method: 'POST', body: JSON.stringify({ ids }) },
+  ),
   updateStatus: (proposalId: string, status: ProposalDetail['status']) => request<{ proposal: ProposalDetail }>(
     `/api/proposals/${proposalId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) },
   ),

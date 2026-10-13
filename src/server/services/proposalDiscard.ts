@@ -159,3 +159,20 @@ export const restoreProposal = async (
     return { proposalId: (latest?.id as string) ?? null, proposalNumber: row.proposal_number };
   });
 };
+
+// Exclusao permanente de registros da lista de descartadas (selecionados ou todos): o conteudo guardado some de vez e
+// a proposta nao pode mais ser recuperada. Fica so o evento de auditoria, com o numero e quem excluiu.
+export const deleteDiscardedProposals = async (
+  database: LocalDatabase,
+  discardIds: string[],
+  actor: { id: string; name: string },
+): Promise<{ deleted: number }> => database.transaction(async (transaction) => {
+  const removed = await transaction.query<{ id: string; proposal_number: string; restored_at: string | null }>(
+    'DELETE FROM discarded_proposals WHERE id = ANY($1::uuid[]) RETURNING id, proposal_number, restored_at::text AS restored_at', [[...new Set(discardIds)]]);
+  for (const row of removed.rows) {
+    await transaction.query(`INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data, user_id)
+      VALUES ($1, 'proposal', $2, 'discard_deleted', $3::jsonb, NULL, $4)`, [
+      randomUUID(), row.id, JSON.stringify({ number: row.proposal_number, restored: Boolean(row.restored_at), by: actor.name }), actor.id]);
+  }
+  return { deleted: removed.rows.length };
+});

@@ -169,20 +169,65 @@
   };
   const revs = (d) => `${d.revision_count} ${d.revision_count === 1 ? 'revisão' : 'revisões'}`;
 
+  // Lista com modo Selecionar: marca uma, varias ou todas e exclui de vez (so administrador).
   OC.screens.desc = async function (params) {
     const list = await loadDiscarded();
+    const sel = new Set();
+    let selecting = false;
     const el = OC.render(`${OC.header('Propostas descartadas', { back: true })}
-      <p class="sub" style="margin:-6px 0 0">${list.length ? `${list.length} ${list.length > 1 ? 'propostas guardadas' : 'proposta guardada'} · só o administrador vê` : 'Só o administrador vê'}</p>
-      ${list.length ? `<div class="desc-list">${list.map((d) => `<button class="card desc-row" type="button" data-d="${esc(d.id)}">
-          <span class="desc-top"><b>${esc(d.proposal_number)}</b>${d.had_approval ? OC.pill('approved') : ''}<span class="grow"></span>${icon('caret-right', 18)}</span>
+      <div class="desc-bar"><p class="sub" style="margin:0" data-sub></p>${list.length ? '<button class="btn2 desc-sel" type="button" data-sel></button>' : ''}</div>
+      <div data-list></div><div data-act></div>`, true, params);
+    const rowHtml = (d) => `<button class="card desc-row${selecting ? ' sel' : ''}${sel.has(d.id) ? ' on' : ''}" type="button" data-d="${esc(d.id)}"${selecting ? ` role="checkbox" aria-checked="${sel.has(d.id)}"` : ''}>
+          <span class="desc-top">${selecting ? `<span class="desc-chk">${sel.has(d.id) ? icon('check', 16) : ''}</span>` : ''}<b>${esc(d.proposal_number)}</b>${d.had_approval ? OC.pill('approved') : ''}<span class="grow"></span>${selecting ? '' : icon('caret-right', 18)}</span>
           <span class="desc-obra">${esc(d.work_name || 'Sem obra')}</span>
           <small>${esc(d.client_name || '')} · ${esc(revs(d))}</small>
           <small>Descartada por ${esc(d.discarded_by_name || '—')} · ${esc(when(d.discarded_at))}</small>
-          <small class="desc-why${d.reason ? '' : ' none'}">${d.reason ? `“${esc(d.reason)}”` : 'Sem motivo informado'}</small></button>`).join('')}</div>`
+          <small class="desc-why${d.reason ? '' : ' none'}">${d.reason ? `“${esc(d.reason)}”` : 'Sem motivo informado'}</small></button>`;
+    const paint = () => {
+      OC.$('[data-sub]', el).textContent = selecting ? (sel.size ? `${sel.size} selecionada${sel.size > 1 ? 's' : ''}` : 'Toque nas propostas para marcar')
+        : (list.length ? `${list.length} ${list.length > 1 ? 'propostas guardadas' : 'proposta guardada'} · só o administrador vê` : 'Só o administrador vê');
+      const selBtn = OC.$('[data-sel]', el);
+      if (selBtn) selBtn.textContent = selecting ? 'Cancelar' : 'Selecionar';
+      OC.$('[data-list]', el).innerHTML = list.length ? `<div class="desc-list">${list.map(rowHtml).join('')}</div>`
         : `<div class="empty" style="padding-top:48px">${icon('archive', 32)}<b class="empty-t">Nenhuma proposta descartada</b>
-          <span>Quando um administrador descartar uma proposta aprovada, ela fica guardada aqui com quem descartou, quando e o motivo, e pode ser recuperada.</span></div>`}`, true, params);
-    OC.$$('[data-d]', el).forEach((b) => b.addEventListener('click', () => OC.open('descDet', { id: b.dataset.d })));
+          <span>Quando um administrador descartar uma proposta aprovada, ela fica guardada aqui com quem descartou, quando e o motivo, e pode ser recuperada.</span></div>`;
+      OC.$('[data-act]', el).innerHTML = selecting ? `<div class="desc-actions"><button class="btn2" type="button" data-all>${sel.size === list.length ? 'Limpar' : 'Marcar todas'}</button>
+        <button class="btn btn-danger" type="button" data-del${sel.size ? '' : ' disabled'}>${icon('trash', 18)}Excluir${sel.size ? ` (${sel.size})` : ''}</button></div>` : '';
+    };
+    el.addEventListener('click', (event) => {
+      const t = event.target;
+      if (t.closest('[data-sel]')) { selecting = !selecting; sel.clear(); paint(); return; }
+      if (t.closest('[data-all]')) { if (sel.size === list.length) sel.clear(); else list.forEach((d) => sel.add(d.id)); paint(); return; }
+      if (t.closest('[data-del]')) { deleteForeverSheet(list.filter((d) => sel.has(d.id))); return; }
+      const row = t.closest('[data-d]');
+      if (!row) return;
+      if (selecting) { if (!sel.delete(row.dataset.d)) sel.add(row.dataset.d); paint(); } else OC.open('descDet', { id: row.dataset.d });
+    });
+    paint();
   };
+
+  // Excluir de vez: o conteudo guardado some e a proposta nao pode mais ser recuperada.
+  function deleteForeverSheet(items) {
+    const one = items.length === 1;
+    const head = OC.sheetHead(one ? `Excluir ${items[0].proposal_number} de vez?` : `Excluir ${items.length} propostas de vez?`, 'trash');
+    const { s, state } = stateSheet(head, (st, error) => `${st === 'erro' ? errBox(errKind(error)) : ''}
+      <p class="sheet-text">${one ? 'A proposta guardada some' : 'As propostas guardadas somem'} para sempre e não dá mais para recuperar. Só o registro de auditoria fica.</p>
+      <div class="sheet-actions"><button class="btn2" type="button" data-no${st === 'send' ? ' disabled' : ''}>Cancelar</button>
+        <button class="btn btn-danger" type="button" data-yes${st === 'send' ? ' disabled' : ''}>${st === 'send' ? spin('Excluindo…') : `${icon('trash', 18)}Excluir de vez`}</button></div>`,
+    (body, go) => {
+      OC.$('[data-no]', body).addEventListener('click', s.close);
+      OC.$('[data-yes]', body).addEventListener('click', async () => {
+        go('send');
+        try {
+          await OC.api('/proposals/discarded/delete', { method: 'POST', body: { ids: items.map((d) => d.id) } });
+        } catch (error) { if (document.body.contains(s.el)) go('erro', error); return; }
+        s.close();
+        OC.toast(one ? `${items[0].proposal_number} excluída de vez` : `${items.length} propostas excluídas de vez`, 'trash');
+        OC.go('desc', {}, { back: true });
+      });
+    });
+    state('form');
+  }
 
   OC.screens.descDet = async function (params) {
     const d = (await loadDiscarded()).find((x) => x.id === params.id);
@@ -192,8 +237,10 @@
       <div class="card">${kv.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
       <div class="card scope"><small class="label">Motivo</small><p${d.reason ? '' : ' class="none"'}>${esc(d.reason || 'Sem motivo informado.')}</p></div>
       <p class="hint">Se a obra saiu do Centro de Custos junto com a proposta, ela volta ao recuperar.</p>
-      <div class="actions"><button class="btn" type="button" data-rec>${icon('arrow-counter-clockwise', 18)}Recuperar proposta</button></div>`, true, params);
+      <div class="actions"><button class="btn" type="button" data-rec>${icon('arrow-counter-clockwise', 18)}Recuperar proposta</button>
+        <button class="btn2" type="button" data-forever>${icon('trash', 18)}Excluir de vez</button></div>`, true, params);
     OC.$('[data-rec]', el).addEventListener('click', () => recoverSheet(d));
+    OC.$('[data-forever]', el).addEventListener('click', () => deleteForeverSheet([d]));
   };
 
   function recoverSheet(d) {

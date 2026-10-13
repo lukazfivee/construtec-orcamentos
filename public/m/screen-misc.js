@@ -189,6 +189,7 @@
         ${u.role === 'admin' ? item('m-users', 'users', 'Usuários e e-mails autorizados', 'Contas, perfis e acessos · só administrador') : ''}
         ${item('m-tema', dark ? 'moon' : 'sun', 'Tema', OC.theme.label ? esc(OC.theme.label()) : (dark ? 'Escuro' : 'Claro'))}
         ${item('m-ajuda', 'info', 'Ajuda', 'Situações, revisões e sigilo comercial')}
+        ${item('m-reportar', 'warning-circle', 'Reportar problema', 'Erro, melhoria ou sugestão para o suporte')}
         ${item('m-full', 'desktop', 'Versão completa', 'Foto e PDF no catálogo, backup e restauração')}
       </div>
       <button class="btn2 danger-btn" type="button" id="m-sair">${icon('sign-out', 20)}Sair</button>
@@ -201,6 +202,7 @@
     OC.$('#m-tema', el).addEventListener('click', () => (OC.themeSheet ? OC.themeSheet(() => OC.go('menu')) : (OC.theme.toggle(), OC.go('menu'))));
     if (OC.$('#m-users', el)) OC.$('#m-users', el).addEventListener('click', () => OC.open('users'));
     OC.$('#m-ajuda', el).addEventListener('click', () => OC.open('ajuda'));
+    OC.$('#m-reportar', el).addEventListener('click', () => OC.open('reportar'));
     OC.$('#m-full', el).addEventListener('click', OC.fullVersion);
     OC.$('#m-sair', el).addEventListener('click', () => OC.logout());
   };
