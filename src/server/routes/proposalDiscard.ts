@@ -3,9 +3,10 @@ import type { Response } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from '../services/database';
-import { discardProposal, listDiscardedProposals, restoreProposal } from '../services/proposalDiscard';
+import { deleteDiscardedProposals, discardProposal, listDiscardedProposals, restoreProposal } from '../services/proposalDiscard';
 
 const idSchema = z.string().uuid();
+const deleteSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(500) });
 const discardSchema = z.object({ confirmNumber: z.string().trim().min(1).max(40), reason: z.string().trim().max(300).optional() });
 
 // Descartar e recuperar propostas (inclusive aprovadas): so administrador. Montado antes do roteador de propostas.
@@ -21,6 +22,14 @@ export const createProposalDiscardRouter = (database: LocalDatabase) => {
     try {
       if (!admin(response)) return;
       response.json({ discarded: await listDiscardedProposals(database) });
+    } catch (error) { next(error); }
+  });
+
+  router.post('/discarded/delete', async (request, response, next) => {
+    try {
+      const user = admin(response);
+      if (!user) return;
+      response.json(await deleteDiscardedProposals(database, deleteSchema.parse(request.body).ids, { id: user.id, name: user.name }));
     } catch (error) { next(error); }
   });
 
