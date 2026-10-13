@@ -32,6 +32,7 @@ const entryPoints = [
   'src/renderer/catalogImportFlow.test.ts',
   'src/renderer/catalog-import-dialog.test.ts',
   'src/server/services/proposal-discard.test.ts',
+  'src/server/services/proposal-discard-delete.test.ts',
   'src/documents/proposalDocx.test.ts',
   'src/renderer/titlebar.test.ts',
   'src/renderer/pdfPageFrame.test.ts',

@@ -32,7 +32,7 @@
 .st-cell strong { font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
 .st-user-actions { display: flex; align-items: center; gap: 8px; }
 .st-check { display: inline-flex; align-items: center; gap: 6px; height: 40px; font-size: calc(13px * var(--fs, 1)); font-weight: 600; color: var(--ink); }
-.st-user-actions .od-btn.danger { color: var(--od-bad-fg); }
+.st-user-actions .od-btn.danger, .st-mail .od-btn.danger { color: var(--od-bad-fg); }
 .st-sub { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
 .st-subhead { display: flex; align-items: center; gap: 10px; color: var(--od-accent-300); }
 .st-auth { display: grid; grid-template-columns: 1.3fr 1.3fr auto; gap: 12px; align-items: end; }
