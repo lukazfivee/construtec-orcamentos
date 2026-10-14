@@ -84,7 +84,7 @@ async function principal() {
   const capturas = [];
   try {
     for (const plataforma of plataformas) {
-      const telas = (plataforma === 'desktop' ? TELAS_DESKTOP : TELAS_CELULAR)(ambiente.dados).filter((t) => !filtroTela || t.id === filtroTela);
+      const telas = (plataforma === 'desktop' ? TELAS_DESKTOP : TELAS_CELULAR)(ambiente.dados).filter((t) => !filtroTela || filtroTela.split(',').includes(t.id));
       const viewports = (opcao('viewports', '') || (plataforma === 'desktop' ? VIEWPORTS_DESKTOP : VIEWPORTS_CELULAR).join(',')).split(',');
       for (const viewport of viewports) for (const tema of temas) {
         log(`${plataforma} ${viewport} ${tema}: ${telas.length} telas`);

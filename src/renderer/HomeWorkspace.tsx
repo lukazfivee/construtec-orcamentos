@@ -76,7 +76,7 @@ export function HomeWorkspace({
         <div className="tit">
           <span className="eyebrow">Visão geral</span>
           <h1>Início</h1>
-          <p className="sub">Visão geral de orçamentos, inteligência comercial e atalhos operacionais.</p>
+          <p className="sub">Propostas abertas, o que precisa de você e os preços do catálogo.</p>
         </div>
         <div className="acoes management-header-actions">
           <button type="button" onClick={() => void loadData()} disabled={loading}>
@@ -181,7 +181,7 @@ export function HomeWorkspace({
                 <h2>Propostas recentes</h2>
               </div>
               <button type="button" onClick={() => onNavigate('Propostas')}>
-                Ver todas as propostas
+                Ver propostas
               </button>
             </div>
 

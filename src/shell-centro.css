@@ -48,7 +48,7 @@
   --shadow-sm-cc: 0 0 0 1px #164656;
   --shadow-pop: 0 0 0 1px #164656, 0 18px 40px rgba(0, 0, 0, .4);
   --c-warn: #f2b544;
-  --c-warn-soft: rgba(242, 181, 68, .14);
+  --c-warn-soft: #3a2a0c;
   --c-ok: #3ccf8e;
   --c-ok-soft: rgba(60, 207, 142, .14);
   --c-err: #ff9d8a;
