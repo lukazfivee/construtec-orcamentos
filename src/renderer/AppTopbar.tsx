@@ -6,6 +6,7 @@ import { AppTopbarMobile } from './AppTopbarMobile';
 import { HelpModal } from './HelpModal';
 import { NotificationsPopover } from './NotificationsPopover';
 import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
+import { openWebmail } from './webmail';
 import { UpdateNotice } from './UpdateNotice';
 import { useTheme } from './theme';
 import { useIsMobile } from './useIsMobile';
@@ -80,7 +81,7 @@ function AppTopbarDesktop({ activeNav, proposal, editorOpen, onSearch, onSelectA
           aria-label="Webmail Corporativo (UOL Pro)"
           title="Webmail Corporativo (UOL Pro)"
           onClick={() => {
-            void window.construtec?.openWebmail?.();
+            openWebmail();
             showNotice('Abrindo UOL Webmail Pro corporativo…');
           }}
         >

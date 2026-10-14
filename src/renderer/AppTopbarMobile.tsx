@@ -15,6 +15,7 @@ import { isCloudRuntime } from './api';
 import { HelpModal } from './HelpModal';
 import { MobileSuiteSheet } from './MobileSuiteSheet';
 import { NotificationsPopover } from './NotificationsPopover';
+import { openWebmail } from './webmail';
 import { UpdateNotice } from './UpdateNotice';
 import { UserProfilePopover } from './UserProfilePopover';
 import { useTheme } from './theme';
@@ -184,7 +185,7 @@ export function AppTopbarMobile({
               aria-label="Webmail Corporativo (UOL Pro)"
               type="button"
               onClick={() => {
-                void window.construtec?.openWebmail?.();
+                openWebmail();
                 showNotice('Abrindo UOL Webmail Pro corporativo…');
               }}
               title="Webmail Corporativo (UOL Pro)"
