@@ -292,3 +292,10 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 .login-tip { display: flex; gap: 12px; align-items: flex-start; margin-top: 10px; font-size: 13px; color: var(--n300); }
 .login-tip b { display: block; color: var(--text); font-size: 14px; }
 .login-tip .ico { color: var(--accent-300); margin-top: 2px; }
+
+/* O5: o fim de cada tela sai de baixo do botao do assistente (52px + folga). Sem barra de acoes, a sobra fica no fim
+   da tela; com a barra de acoes fixa, o botao sobe acima dela e a sobra fica antes da barra. */
+#view:not(:has(.actions)) { padding-bottom: 66px; }
+#view :has(+ .actions) { margin-bottom: 66px; }
+/* Filtros de situacao (lista de propostas) quebram linha em vez de rolar de lado e cortar o ultimo chip. */
+.chips { flex-wrap: wrap; overflow-x: visible; }
