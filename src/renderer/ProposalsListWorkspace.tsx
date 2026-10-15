@@ -205,7 +205,7 @@ export function ProposalsListWorkspace({
         <div className="tit">
           <span className="eyebrow">Comercial</span>
           <h1>Central de Propostas</h1>
-          <p className="sub">Visualize, filtre, edite o status e gerencie todas as propostas comerciais da Construtec.</p>
+          <p className="sub">Da edição à aprovação, com o valor final de cada revisão.</p>
         </div>
         <div className="home-header-actions acoes">
           <button

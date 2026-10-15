@@ -73,7 +73,7 @@ export function ProposalsListFilterBar({
           <input
             data-proposals-search
             type="text"
-            placeholder="Buscar por número (PA-XXXX), cliente ou obra..."
+            placeholder="Buscar por obra, cliente ou número"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
           />

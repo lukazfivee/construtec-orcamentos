@@ -65,6 +65,6 @@ export const TELAS_CELULAR = (d) => [
   { id: 'ajuda', nome: 'Ajuda', quadros: [], passos: [M('ajuda'), PRONTO] },
 ];
 
-export const VIEWPORTS_DESKTOP = ['1440x900', '1280x800'];
+export const VIEWPORTS_DESKTOP = ['1440x900', '1280x800', '1280x720'];
 export const VIEWPORTS_CELULAR = ['375x812'];
 export const TEMAS = ['claro', 'escuro'];
