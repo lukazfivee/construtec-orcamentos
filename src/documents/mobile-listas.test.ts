@@ -92,7 +92,7 @@ test('/m/: lista colada no catalogo lida como no computador', () => {
 
 test('/m/: telas novas ligadas no index e nas abas, sem varredura so no computador', () => {
   const html = readFileSync(path.join(root, 'index.html'), 'utf8');
-  for (const file of ['screen-lista.js', 'screen-painel-mais.js', 'kit-edit.js', 'screen-cfg.js', 'screen-usuarios.js', 'screen-ajuda.js', 'screen-cat.js', 'cat-manual.js', 'screen-catconf.js', 'exsat-conta.js', 'listas.css']) {
+  for (const file of ['screen-lista.js', 'screen-painel-mais.js', 'kit-edit.js', 'screen-cfg.js', 'screen-usuarios.js', 'screen-ajuda.js', 'screen-reportar.js', 'screen-cat.js', 'cat-manual.js', 'screen-catconf.js', 'exsat-conta.js', 'listas.css']) {
     assert.ok(html.includes(file), `index.html sem ${file}`);
     assert.ok(readFileSync(path.join(root, file), 'utf8').split('\n').length <= 350, `${file} passou de 350 linhas`);
   }
