@@ -85,8 +85,8 @@
   .assistant-fab { right: 32px; bottom: 32px; width: 69px; height: 69px; }
   .assistant-fab svg { width: 32px; height: 32px; }
   .app-shell.cc .commercial-panel { padding-bottom: 112px; }
-  /* Inicio e Propostas: sobra no fim da rolagem para a ultima linha da lista sair de baixo do botao. */
-  .app-shell.cc > .home-workspace { padding-bottom: 112px; }
+  /* Paginas (Inicio, Propostas, Catalogo, Kits, EXSAT...): sobra no fim da rolagem para a ultima linha da lista sair de baixo do botao. */
+  .app-shell.cc > .home-workspace, .app-shell.cc > .management-workspace, .app-shell.cc > .od-page, .app-shell.cc > .workspace-page { padding-bottom: 112px; }
   .assistant-panel { right: 32px; bottom: 32px; width: min(560px, calc((100vw - 48px) / .75)); height: min(853px, calc(80vh / .75)); }
 }
 
