@@ -193,3 +193,9 @@ test('contrato: todo campo numerico de custo, BDI ou margem em contracts.ts esta
   const missing = [...found].filter(key => !COST_KEYS.has(key) && !allowed.has(key));
   assert.deepEqual(missing, [], `campos de custo fora de COST_KEYS: ${missing.join(', ')}`);
 });
+
+test('painel (/api/dashboard) esconde custo de quem nao tem p10 (passada S-O)', () => {
+  // Antes da S-O o painel devolvia totalCost de cada proposta para o tecnico.
+  assert.equal(run(user('tecnico'), 'GET', '/api/dashboard').sent?.bdiMultiplier, 0);
+  assert.equal(run(user('comercial'), 'GET', '/api/dashboard').sent?.bdiMultiplier, 1.4);
+});
