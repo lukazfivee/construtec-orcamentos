@@ -59,7 +59,7 @@
     const items = (list.items || []).filter((n) => !filter || n.app === filter);
     const groups = ['Hoje', 'Ontem', 'Anteriores'].map((g) => [g, items.filter((n) => group(n.createdAt) === g)]).filter(([, l]) => l.length);
     const el = OC.render(`${OC.header('Notificações', { back: true })}
-      <div class="chips" role="group" aria-label="Filtrar por app">${APPS.map(([k, l]) => `<button type="button" class="chip-act" data-app="${k}" aria-pressed="${k === filter}">${l}</button>`).join('')}</div>
+      <div class="chips wrap" style="margin-bottom:12px" role="group" aria-label="Filtrar por app">${APPS.map(([k, l]) => `<button type="button" class="chip-act" data-app="${k}" aria-pressed="${k === filter}">${l}</button>`).join('')}</div>
       ${OC.notif.unread ? `<button class="btn2 lidas" type="button" id="lidas">${icon('check', 18)}Marcar todas como lidas</button>` : ''}
       ${groups.length ? groups.map(([g, l]) => `<p class="sheet-sec">${g}</p><div class="avisos">${l.map(row).join('')}</div>`).join('')
         : `<div class="empty">${icon('bell', 28)}Nenhuma notificação${filter ? ' neste filtro' : ''} por enquanto.</div>`}

@@ -109,6 +109,13 @@
   .app-shell.cc .commercial-panel .panel-card { padding: 14px; }
   .app-shell.cc .commercial-panel .amount span, .app-shell.cc .commercial-panel .panel-section label { white-space: nowrap; }
   .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 96px; }
+  /* Coluna do resumo estreita (1280): o valor desce para baixo do rotulo em vez de ser cortado (as acoes ficam uma por linha em editor-layout-centro.css). */
+  .app-shell.cc .commercial-panel .amount:not(.blue) { flex-wrap: wrap; row-gap: 0; }
+  .app-shell.cc .commercial-panel .amount:not(.blue) strong { margin-left: auto; }
+  /* Itens: os totais do rodape (custo e venda) em negrito nao cabiam em 84/92 px e eram cobertos pela coluna vizinha. */
+  .app-shell.cc .proposal-items-table th.col-total-cost, .app-shell.cc .proposal-items-table td.col-total-cost,
+  .app-shell.cc .proposal-items-table th.col-total-sale, .app-shell.cc .proposal-items-table td.col-total-sale { width: 104px; }
+  .app-shell.cc .proposal-items-table th.col-total-sale, .app-shell.cc .proposal-items-table td.col-total-sale { padding-right: 12px; }
 }
 @media (min-width: 1400px) {
   .app-shell.cc .proposal-items-table .col-code { width: 100px; }

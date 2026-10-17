@@ -66,8 +66,8 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
     if (!canSee) maskJson(response);
     return next();
   }
-  // BDI padrao das configuracoes: so quem ve BDI.
-  if (path.startsWith('/api/settings') && !canSee && request.method === 'GET') maskJson(response);
+  // BDI padrao das configuracoes e totais de custo do painel (Inicio): so quem ve custo e BDI.
+  if ((path.startsWith('/api/settings') || path.startsWith('/api/dashboard')) && !canSee && request.method === 'GET') maskJson(response);
   if (!path.startsWith('/api/proposals')) return next();
 
   const write = request.method !== 'GET';

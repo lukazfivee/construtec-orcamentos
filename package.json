@@ -22,7 +22,9 @@
     "deploy:cloud": "node scripts/deploy-cloud.mjs",
     "deploy:cloud:dry": "node scripts/deploy-cloud.mjs --dry-run",
     "deploy:cloud:skipbuild": "node scripts/deploy-cloud.mjs --skip-build",
-    "test:critical": "node scripts/test-critical.mjs"
+    "test:critical": "node scripts/test-critical.mjs",
+    "conferencia": "node scripts/conferencia/conferir.mjs",
+    "conferencia:referencia": "node scripts/conferencia/referencia.mjs"
   },
   "keywords": [
     "electron",

@@ -132,3 +132,12 @@
 @media (min-width: 768px) {
   .app-shell.cc .kp-table td:nth-child(2) { white-space: normal; }
 }
+
+/* Mao de obra: a tabela cabe na largura do editor (1280 a 1440), sem rolagem horizontal dentro do painel.
+   Os titulos das colunas quebram em duas linhas e o espaco lateral das celulas fica menor. */
+@media (min-width: 768px) {
+  .app-shell.cc .labor-table { width: 100%; min-width: 0; }
+  .app-shell.cc .labor-table thead th { white-space: normal; line-height: 1.25; vertical-align: bottom; padding-top: 8px; padding-bottom: 8px; font-size: calc(10.5px * var(--fs, 1)); letter-spacing: .02em; }
+  .app-shell.cc .labor-table th, .app-shell.cc .labor-table td { padding-left: 6px; padding-right: 6px; }
+  .app-shell.cc .labor-table tbody td.number, .app-shell.cc .labor-table tfoot td.number { white-space: nowrap; }
+}

@@ -13,7 +13,7 @@ const user = (suiteRole: Parameters<typeof permissionsFor>[0], apps = ['centro',
 });
 
 // Roda o guarda com uma requisicao de mentira; devolve o status (200 se passou) e o corpo que sairia.
-const run = (authUser: AuthUser, method: string, path: string, body?: unknown) => {
+const run = (authUser: AuthUser, method: string, path: string, body?: unknown, payload?: unknown) => {
   let status = 200;
   let sent: unknown;
   const response = {
@@ -23,7 +23,7 @@ const run = (authUser: AuthUser, method: string, path: string, body?: unknown) =
   } as unknown as Response;
   let passed = false;
   suiteGuard({ method, path, body } as Request, response, () => { passed = true; });
-  if (passed) response.json({ items: [{ unitCost: 10, unitSale: 20 }], totals: { cost: 5, sale: 9, marginPercent: 30 }, bdiMultiplier: 1.4 });
+  if (passed) response.json(payload ?? { items: [{ unitCost: 10, unitSale: 20 }], totals: { cost: 5, sale: 9, marginPercent: 30 }, bdiMultiplier: 1.4 });
   return { status: passed ? 200 : status, sent: sent as { bdiMultiplier?: number } | undefined };
 };
 
@@ -192,4 +192,18 @@ test('contrato: todo campo numerico de custo, BDI ou margem em contracts.ts esta
   const allowed = new Set(['hasCostCenter', 'costCenterId', 'costCenterCode', 'costCenterStatus', 'costCenterName', 'costDelta', 'baseCostCents']);
   const missing = [...found].filter(key => !COST_KEYS.has(key) && !allowed.has(key));
   assert.deepEqual(missing, [], `campos de custo fora de COST_KEYS: ${missing.join(', ')}`);
+});
+
+test('painel (/api/dashboard) esconde custo de quem nao tem p10 (passada S-O)', () => {
+  // Antes da S-O o painel devolvia totalCost de cada proposta para o tecnico.
+  assert.equal(run(user('tecnico'), 'GET', '/api/dashboard').sent?.bdiMultiplier, 0);
+  assert.equal(run(user('comercial'), 'GET', '/api/dashboard').sent?.bdiMultiplier, 1.4);
+  // Formato real do painel: listCurrentProposals devolve totalCost em cada proposta recente (alem do tipo ProposalSummary).
+  const painel = { totalApproved: 900, recentProposals: [{ id: 'p1', totalSale: 100, totalCost: 60 }], intelligence: { topClients: [{ clientName: 'A', totalValue: 100 }] } };
+  type Painel = typeof painel;
+  const semCusto = run(user('tecnico'), 'GET', '/api/dashboard', undefined, painel).sent as unknown as Painel;
+  assert.equal(semCusto.recentProposals[0].totalCost, 0);
+  assert.equal(semCusto.recentProposals[0].totalSale, 100);
+  assert.equal(semCusto.totalApproved, 900);
+  assert.equal((run(user('comercial'), 'GET', '/api/dashboard', undefined, painel).sent as unknown as Painel).recentProposals[0].totalCost, 60);
 });

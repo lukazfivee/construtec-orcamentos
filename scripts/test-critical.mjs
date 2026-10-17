@@ -73,6 +73,6 @@ const entryPoints = [
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',
   format: 'cjs', packages: 'external', outbase: 'src', outExtension: { '.js': '.cjs' } });
 const outputs = entryPoints.map(file => path.join(outdir, file.replace(/^src\//, '').replace(/\.ts$/, '.cjs')));
-const result = spawnSync(process.execPath, ['--test', ...outputs], { cwd: root, stdio: 'inherit' });
+const result = spawnSync(process.execPath, ['--test', ...outputs, 'scripts/conferencia/conferencia.test.mjs'], { cwd: root, stdio: 'inherit' });
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

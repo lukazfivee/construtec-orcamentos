@@ -1,0 +1,903 @@
+{
+  "gerado": "por scripts/conferencia/referencia.mjs; nao edite a mao",
+  "desktop": {
+    "arquivo": "docs/suite-desktop/prototipo-orcamentos/DesktopOrc.dc.html",
+    "tokens": {
+      "claro": {
+        "--color-bg": "#f2f8fa",
+        "--color-surface": "#fefefe",
+        "--color-text": "#0b2530",
+        "--color-accent": "#12a9d1",
+        "--color-divider": "#d6e4e9",
+        "--color-neutral-300": "#5d7480",
+        "--color-neutral-500": "#8fa6b0",
+        "--color-neutral-600": "#bad0d8",
+        "--color-neutral-800": "#d6e4e9",
+        "--color-accent-300": "#0a7896",
+        "--color-accent-500": "#12a9d1",
+        "--color-accent-600": "#0d7f9f",
+        "--color-accent-700": "#0b4a5c",
+        "--color-accent-900": "#e8f8fc",
+        "--shadow-sm": "0 0 0 1px #d6e4e9",
+        "--font-body": "\"IBM Plex Sans\",\"Segoe UI\",system-ui,sans-serif",
+        "--font-heading": "\"IBM Plex Sans\",\"Segoe UI\",system-ui,sans-serif",
+        "--c-warn": "var(--c-warn)",
+        "--c-warn-bar": "#e0a33a",
+        "--c-warn-soft": "#fff5d9",
+        "--c-tab": "#031f29"
+      },
+      "escuro": {
+        "--color-bg": "#031f29",
+        "--color-surface": "#0b2f3b",
+        "--color-text": "#f2f8fa",
+        "--color-divider": "#164656",
+        "--color-neutral-300": "#b9d4dd",
+        "--color-neutral-500": "#6f8f9b",
+        "--color-neutral-600": "#2e5463",
+        "--color-neutral-800": "#123c4a",
+        "--color-accent-300": "#5fd0ee",
+        "--color-accent-500": "#12a9d1",
+        "--color-accent-600": "#0d7f9f",
+        "--color-accent-700": "#0b5a70",
+        "--color-accent-900": "#0a3a48",
+        "--shadow-sm": "0 0 0 1px #164656",
+        "--c-warn": "#f2b544",
+        "--c-warn-bar": "#e0a33a",
+        "--c-warn-soft": "#3a2a0c",
+        "--c-tab": "#021820"
+      }
+    },
+    "telas": {
+      "sPainel": [
+        "Orçamentos",
+        "Bom dia, Marina",
+        "Propostas abertas, o que precisa de você e os preços do catálogo",
+        "Ver propostas",
+        "Nova proposta",
+        "Precisam de ação",
+        "Funil de propostas",
+        "Valor final por situação",
+        "EX",
+        "Integração EXSAT"
+      ],
+      "sProps": [
+        "Comercial",
+        "Propostas",
+        "Da edição à aprovação, com o valor final de cada revisão",
+        "Nova proposta",
+        "Buscar por obra, cliente ou número",
+        "Filtrar propostas",
+        "Proposta",
+        "Cliente",
+        "Revisão",
+        "Situação",
+        "Itens",
+        "Validade",
+        "Valor final",
+        "Margem",
+        "Sem permissão de ver margem",
+        "Nenhuma proposta com esse filtro."
+      ],
+      "sProp": [
+        "Propostas",
+        "PDF",
+        "Comparar revisões",
+        "Abrir obra no Centro de Custos",
+        "Atualizar preços desta proposta?",
+        "Agora não",
+        "Ver e atualizar",
+        "Valor final",
+        "Margem",
+        "Custo, BDI e margem aparecem só para quem tem a permissão de ver custos.",
+        "Por sistema",
+        "Parte do valor final",
+        "Dados da proposta",
+        "PDF da proposta",
+        "Pré-visualizar, baixar, compartilhar ou enviar",
+        "Mude as quantidades direto na tabela. Itens com preço novo no EXSAT ganham o botão Atualizar.",
+        "BDI e impostos",
+        "Adicionar itens",
+        "Criar nova revisão",
+        "Item",
+        "Quantidade",
+        "Unid.",
+        "Diminuir",
+        "Aumentar",
+        "Atualizar preço",
+        "Remover item",
+        "Esta proposta ainda não tem itens. Use Adicionar itens para buscar no catálogo ou num kit.",
+        "Histórico de revisões",
+        "A mais nova em cima",
+        "Comparar com a atual",
+        "Só a revisão em edição pode ser alterada. Revisões enviadas ou aprovadas ficam congeladas, com os preços de quando foram montadas."
+      ],
+      "sPdf": [
+        "Voltar à proposta",
+        "Proposta",
+        "PDF da proposta",
+        "Compartilhar",
+        "Compartilhar não muda a situação da proposta.",
+        "Proposta comercial",
+        "Emitida em",
+        "Válida até",
+        "Responsável",
+        "Sistemas",
+        "Valor total",
+        "Construtec Engenharia · Sistemas especiais",
+        "CONSTRUTEC",
+        "Item",
+        "Qtd.",
+        "Unitário",
+        "Total",
+        "Valor total da proposta · impostos inclusos",
+        "Condições comerciais",
+        "Validade:",
+        "Construtec Engenharia",
+        "Página anterior",
+        "Próxima página",
+        "Diminuir o zoom",
+        "Aumentar o zoom",
+        "Atualizando a pré-visualização…",
+        "Modelo",
+        "Incluir no PDF",
+        "Só para a equipe",
+        "Não vai no PDF",
+        "O cliente vê só preços de venda. Custo, BDI e margem nunca entram no PDF.",
+        "Gerando a pré-visualização do PDF…",
+        "Sem itens para o PDF",
+        "Adicionar itens",
+        "Não deu para gerar o PDF",
+        "O PDF é montado no servidor e o computador está sem internet. Suas escolhas de modelo e capa ficam guardadas.",
+        "Tentar de novo"
+      ],
+      "sCmp": [
+        "Voltar às revisões",
+        "Proposta",
+        "Comparar revisões",
+        "De",
+        "Trocar a ordem das revisões",
+        "Para",
+        "Valor final",
+        "Só o que mudou",
+        "Item",
+        "Total",
+        "Diferença",
+        "Mudança",
+        "Nada mudou entre as duas revisões.",
+        "Para comparar, a proposta precisa de pelo menos duas revisões. Quando o cliente pedir ajustes, crie uma nova revisão e volte aqui.",
+        "As revisões antigas ficam no servidor e o computador está sem internet. A revisão atual continua aberta na proposta.",
+        "Tentar de novo"
+      ],
+      "sCat": [
+        "Catálogo",
+        "Catálogo EXSAT",
+        "Importar lista",
+        "Sincronizar agora",
+        "EX",
+        "Integração EXSAT",
+        "Ver mudanças",
+        "Seu perfil não vê preços de custo. A coluna Custo fica escondida; o resto do catálogo funciona igual.",
+        "Buscar por nome ou código",
+        "Filtrar catálogo",
+        "Item",
+        "Categoria",
+        "Unid.",
+        "Custo",
+        "Mudança de preço",
+        "Usado em",
+        "Novo",
+        "Nada encontrado com esse nome."
+      ],
+      "sImp": [
+        "Catálogo",
+        "Importar lista de preços",
+        "De um fornecedor para o catálogo, conferindo cada linha antes de entrar",
+        "Baixar modelo",
+        "Arquivo",
+        "Planilha .xlsx ou .csv, PDF ou foto da lista de preços",
+        "De qual fornecedor?",
+        "Fornecedor",
+        "Arraste o arquivo para cá",
+        "ou escolha um dos recentes em Downloads",
+        "O que dá para importar",
+        "Planilha .xlsx ou .csv",
+        "Uma linha por item, com código, descrição, unidade e custo",
+        "PDF da lista de preços",
+        "Lemos a tabela do PDF; confira as colunas no passo seguinte",
+        "Foto da lista impressa",
+        "Pelo celular, em Menu › Catálogo › Importar",
+        "Baixar o modelo de planilha",
+        "Continuar",
+        "Ligar as colunas",
+        "Sugerimos uma coluna para cada campo. Confira as marcadas e troque se precisar.",
+        "Primeiras linhas do arquivo",
+        "Como o arquivo vai ser lido com essa ligação",
+        "Voltar",
+        "Item novo",
+        "Categoria",
+        "Unid.",
+        "Custo",
+        "Item",
+        "Antes",
+        "Depois",
+        "Variação",
+        "Usado em",
+        "Linhas com erro não entram no catálogo. Corrija aqui, ou deixe de fora e ajuste depois na planilha.",
+        "Linha",
+        "Problema",
+        "Corrigir",
+        "Deixar de fora",
+        "Custo, ex.: 1.200,00",
+        "Unidade",
+        "Descrição do item",
+        "Descrição",
+        "Cancelar",
+        "Salvar",
+        "Desfazer",
+        "Baixar linhas com erro (.csv)",
+        "Pode continuar usando o sistema. Leva menos de um minuto.",
+        "Baixar as linhas que ficaram de fora",
+        "Importar outro arquivo",
+        "Ver no catálogo",
+        "Nenhum item no arquivo",
+        "Escolher outro arquivo",
+        "Não deu para abrir o arquivo",
+        "Voltar ao catálogo"
+      ],
+      "sEx": [
+        "Catálogo",
+        "Integração EXSAT",
+        "Preços do distribuidor chegando no catálogo e nas propostas",
+        "EX",
+        "EXSAT",
+        "Distribuidor de sistemas especiais · catálogo e preços de custo",
+        "Mudanças de preço",
+        "Filtrar mudanças",
+        "Item",
+        "Antes",
+        "Depois",
+        "Variação",
+        "Usado em",
+        "Nenhum preço mudou",
+        "Itens novos no catálogo",
+        "Propostas em edição",
+        "Usam itens com preço antigo",
+        "Ver proposta",
+        "Atualizar preços",
+        "Nenhuma proposta em edição usa itens com preço mudado.",
+        "Conectando ao EXSAT…",
+        "Tentar de novo",
+        "Voltar ao catálogo"
+      ],
+      "sKits": [
+        "Comercial",
+        "Kits",
+        "Conjuntos de itens que entram de uma vez na proposta",
+        "Usar em proposta",
+        "Item",
+        "Quantidade",
+        "Custo unit.",
+        "Total"
+      ],
+      "sClis": [
+        "Comercial",
+        "Clientes",
+        "Quem recebe propostas e quanto já foi aprovado",
+        "Cliente",
+        "Propostas",
+        "Em andamento",
+        "Aprovado"
+      ],
+      "sCfg": [
+        "Administração",
+        "Padrões da empresa",
+        "Valem para as próximas propostas; as que já existem mantêm os valores delas",
+        "Preço",
+        "BDI e impostos que toda proposta nova recebe",
+        "BDI · multiplicador sobre o custo",
+        "Diminuir",
+        "Aumentar",
+        "Impostos · % sobre o valor com BDI",
+        "Validade da proposta",
+        "Validade",
+        "PDF da proposta",
+        "O que sai em todo PDF enviado ao cliente",
+        "Logo da Construtec na capa",
+        "Versão branca sobre o azul-marinho",
+        "Assinatura de quem envia",
+        "Nome e cargo no fim das condições",
+        "Custo, BDI e margem nunca entram no PDF, qualquer que seja o padrão.",
+        "Descartar",
+        "Salvar padrões"
+      ],
+      "dAdd": [
+        "Origem",
+        "Buscar por nome ou código",
+        "Adicionar",
+        "Na proposta",
+        "Nada encontrado no catálogo.",
+        "Adicionar kit"
+      ],
+      "dBdi": [
+        "BDI · multiplicador sobre o custo base",
+        "Diminuir",
+        "Aumentar",
+        "BDI rápido",
+        "Impostos · % sobre o valor com BDI",
+        "Valor final"
+      ],
+      "dNova": [
+        "Cliente",
+        "Nome do cliente novo",
+        "Ex.: Hospital Santa Clara",
+        "Obra",
+        "Ex.: Hospital São Lucas · Ala D",
+        "Validade",
+        "Começar com",
+        "Kit"
+      ],
+      "dSend": [
+        "Esta revisão ainda não passou pela revisão interna. Dá para enviar, mas o ideal é revisar antes.",
+        "Para",
+        "Mensagem",
+        "Marcar a proposta como Enviada",
+        "A validade começa a contar hoje"
+      ],
+      "dUpd": [
+        "Os preços desta proposta já estão iguais aos do catálogo.",
+        "Custo base",
+        "Valor final",
+        "Só muda o preço de custo desses itens. Quantidades, BDI e impostos continuam como estão."
+      ],
+      "dKit": [
+        "Nova proposta com este kit"
+      ]
+    }
+  },
+  "rodadas": [
+    {
+      "arquivo": "docs/suite-mobile/prototipo/Rodada21.dc.html",
+      "rodada": "21",
+      "titulo": "Orçamentos · PDF da proposta e comparativo de revisões",
+      "quadros": [
+        {
+          "id": "21a",
+          "titulo": "Proposta · Resumo.",
+          "texto": "Ícone de PDF no cabeçalho e o cartão \"PDF da proposta\" logo abaixo do valor. Em revisão, \"Gerar PDF e enviar\" também abre esta tela.",
+          "inicio": "fromPdf"
+        },
+        {
+          "id": "21b",
+          "titulo": "PDF da proposta.",
+          "texto": "Abre carregando e mostra as páginas em miniatura.",
+          "inicio": "pdf"
+        },
+        {
+          "id": "21c",
+          "titulo": "Proposta · Revisões.",
+          "texto": "Cartão \"Comparar REV 01 × REV 03\" com a diferença no valor final, antes do histórico.",
+          "inicio": "fromCmp"
+        },
+        {
+          "id": "21d",
+          "titulo": "Comparar revisões.",
+          "texto": "Já abre com a primeira e a última revisão.",
+          "inicio": "cmp"
+        },
+        {
+          "id": "21e",
+          "titulo": "Pré-visualização.",
+          "texto": "Capa, itens em duas páginas e condições, com o valor total na capa e no fim dos itens. Toque numa página para ampliar.",
+          "inicio": "pdf"
+        },
+        {
+          "id": "21f",
+          "titulo": "Página ampliada.",
+          "texto": "Zoom de 100%, 150% e 200%, arrastando para os lados, e Anterior/Próxima para trocar de página.",
+          "inicio": "pdfZoom"
+        },
+        {
+          "id": "21g",
+          "titulo": "Compartilhar.",
+          "texto": "WhatsApp, e-mail, link e outros apps. Avisa que compartilhar não muda a situação da proposta.",
+          "inicio": "pdfShare"
+        },
+        {
+          "id": "21h",
+          "titulo": "Enviar ao cliente.",
+          "texto": "Contatos do cliente, mensagem pronta e o anexo. Marca a proposta como Enviada; a validade começa a contar.",
+          "inicio": "pdfSend"
+        },
+        {
+          "id": "21i",
+          "titulo": "Engenharia · resumido sem capa.",
+          "texto": "Com p10 vê custo e margem, mas sem p11 não envia: o botão vira uma explicação.",
+          "inicio": "pdfRes"
+        },
+        {
+          "id": "21j",
+          "titulo": "Técnico de campo.",
+          "texto": "Sem p10 e sem p11: não vê o cartão de custo e só baixa ou compartilha.",
+          "inicio": "pdfTec"
+        },
+        {
+          "id": "21k",
+          "titulo": "REV 01 × REV 03.",
+          "texto": "Valor final, itens, BDI e os quatro contadores: incluídos, removidos, quantidade e preço.",
+          "inicio": "cmp"
+        },
+        {
+          "id": "21l",
+          "titulo": "Só o que mudou.",
+          "texto": "Esconde os itens iguais; cada sistema mostra quantos mudaram e quanto somam.",
+          "inicio": "cmpOnly"
+        },
+        {
+          "id": "21m",
+          "titulo": "Escolher revisão.",
+          "texto": "Folha com as três revisões, situação e valor. Escolher a que está do outro lado troca as duas de lugar.",
+          "inicio": "cmpPick"
+        },
+        {
+          "id": "21n",
+          "titulo": "PROP-041 · REV 01 × REV 02.",
+          "texto": "Funciona com a proposta em edição: compara com o que está sendo editado agora.",
+          "inicio": "cmp041"
+        },
+        {
+          "id": "21o",
+          "titulo": "Sem permissão de custo.",
+          "texto": "Sem p10, a linha do BDI vira \"Ajuste geral de preço\". Os valores são de venda.",
+          "inicio": "cmpTec"
+        },
+        {
+          "id": "21p",
+          "titulo": "PDF · carregando.",
+          "texto": "Miniaturas e opções em esqueleto, com os botões travados.",
+          "inicio": "pdfLoad"
+        },
+        {
+          "id": "21q",
+          "titulo": "PDF · vazio.",
+          "texto": "Proposta nova, sem itens: leva direto para Adicionar itens.",
+          "inicio": "pdfVazio"
+        },
+        {
+          "id": "21r",
+          "titulo": "PDF · erro.",
+          "texto": "Sem internet o PDF não é montado; as escolhas ficam guardadas.",
+          "inicio": "pdfErro"
+        },
+        {
+          "id": "21s",
+          "titulo": "Comparativo · carregando.",
+          "texto": "Seletores, resumo e linhas em esqueleto.",
+          "inicio": "cmpLoad"
+        },
+        {
+          "id": "21t",
+          "titulo": "Comparativo · vazio.",
+          "texto": "Proposta com uma revisão só.",
+          "inicio": "cmpVazio"
+        },
+        {
+          "id": "21u",
+          "titulo": "Comparativo · erro.",
+          "texto": "As revisões antigas ficam no servidor.",
+          "inicio": "cmpErro"
+        }
+      ]
+    },
+    {
+      "arquivo": "docs/suite-mobile/prototipo/Rodada22.dc.html",
+      "rodada": "22",
+      "titulo": "Orçamentos · importar catálogo e integração EXSAT",
+      "quadros": [
+        {
+          "id": "22a",
+          "titulo": "Catálogo · Importar.",
+          "texto": "Botão no rodapé, ao lado de Sincronizar.",
+          "inicio": "fromImp"
+        },
+        {
+          "id": "22b",
+          "titulo": "Importar catálogo.",
+          "texto": "Passo 1: fornecedor e arquivo.",
+          "inicio": "imp1"
+        },
+        {
+          "id": "22c",
+          "titulo": "Catálogo · cartão EXSAT.",
+          "texto": "Estado da conexão e quantos preços mudaram. \"Sincronizar\" abre esta tela e já começa.",
+          "inicio": "fromEx"
+        },
+        {
+          "id": "22d",
+          "titulo": "Integração EXSAT.",
+          "texto": "Status, mudanças de preço e propostas afetadas.",
+          "inicio": "ex"
+        },
+        {
+          "id": "22e",
+          "titulo": "Proposta em edição.",
+          "texto": "Depois de sincronizar, o aviso \"Atualizar preços desta proposta?\" aparece no Resumo e nos Itens.",
+          "inicio": "exProp"
+        },
+        {
+          "id": "22f",
+          "titulo": "Atualizar preços.",
+          "texto": "Item a item, antes e depois, e o efeito no valor final.",
+          "inicio": "exUpd"
+        },
+        {
+          "id": "22g",
+          "titulo": "Escolher arquivo.",
+          "texto": "Recentes em Downloads, foto da lista impressa ou outros apps. Os dois últimos arquivos mostram o vazio e o erro.",
+          "inicio": "impFile"
+        },
+        {
+          "id": "22h",
+          "titulo": "Ligar colunas.",
+          "texto": "Código, descrição, unidade e custo são obrigatórios; categoria é opcional. A coluna Estoque fica de fora.",
+          "inicio": "imp2"
+        },
+        {
+          "id": "22i",
+          "titulo": "Trocar a coluna.",
+          "texto": "Folha com as colunas do arquivo e um exemplo de cada. Coluna repetida ou campo faltando bloqueia o passo.",
+          "inicio": "impCol"
+        },
+        {
+          "id": "22j",
+          "titulo": "Campo faltando.",
+          "texto": "O erro fica no topo e o campo ganha contorno vermelho.",
+          "inicio": "impMiss"
+        },
+        {
+          "id": "22k",
+          "titulo": "Revisar · com erro.",
+          "texto": "Novos, atualizados e com erro. Cada linha diz o problema e tem Corrigir ou Deixar de fora.",
+          "inicio": "imp3Err"
+        },
+        {
+          "id": "22l",
+          "titulo": "Corrigir uma linha.",
+          "texto": "Custo, unidade ou descrição, com sugestão quando dá para adivinhar.",
+          "inicio": "impFix"
+        },
+        {
+          "id": "22m",
+          "titulo": "Resultado.",
+          "texto": "Quantos entraram, quantos ficaram de fora e o botão para baixar essas linhas.",
+          "inicio": "impOk"
+        },
+        {
+          "id": "22n",
+          "titulo": "Sincronizando.",
+          "texto": "Conectando, baixando 1.286 itens e comparando preços, com a porcentagem no botão.",
+          "inicio": "exSync"
+        },
+        {
+          "id": "22o",
+          "titulo": "Depois de sincronizar.",
+          "texto": "Dois preços mudaram (um subiu, outro baixou), com filtro e a proposta que usa cada item.",
+          "inicio": "exAfter"
+        },
+        {
+          "id": "22p",
+          "titulo": "Antes de sincronizar.",
+          "texto": "Mudanças da sincronização automática das 06:00: NVR e cabos subiram.",
+          "inicio": "ex"
+        },
+        {
+          "id": "22q",
+          "titulo": "Aviso na proposta.",
+          "texto": "Agora não esconde o aviso; Ver e atualizar abre a folha.",
+          "inicio": "exProp"
+        },
+        {
+          "id": "22r",
+          "titulo": "Atualizar preços desta proposta?",
+          "texto": "Com p10 mostra o custo; sem p10, só o valor final.",
+          "inicio": "exUpd"
+        },
+        {
+          "id": "22s",
+          "titulo": "Importar · lendo.",
+          "texto": "Progresso com as etapas de leitura; Cancelar volta ao passo 1.",
+          "inicio": "impLoad"
+        },
+        {
+          "id": "22t",
+          "titulo": "Importar · importando.",
+          "texto": "Barra com quantos itens já entraram.",
+          "inicio": "impRun"
+        },
+        {
+          "id": "22u",
+          "titulo": "Importar · vazio.",
+          "texto": "A planilha só tem o cabeçalho.",
+          "inicio": "impVazio"
+        },
+        {
+          "id": "22v",
+          "titulo": "Importar · erro.",
+          "texto": "Arquivo protegido por senha, com o que fazer.",
+          "inicio": "impErro"
+        },
+        {
+          "id": "22w",
+          "titulo": "EXSAT · carregando.",
+          "texto": "Status e listas em esqueleto.",
+          "inicio": "exLoad"
+        },
+        {
+          "id": "22x",
+          "titulo": "EXSAT · vazio.",
+          "texto": "Sincronizou e nenhum preço mudou.",
+          "inicio": "exVazio"
+        },
+        {
+          "id": "22y",
+          "titulo": "EXSAT · erro.",
+          "texto": "O EXSAT não respondeu; os preços continuam os da última vez.",
+          "inicio": "exErro"
+        }
+      ]
+    },
+    {
+      "arquivo": "docs/suite-desktop/prototipo-orcamentos/Rodada23.dc.html",
+      "rodada": "23",
+      "titulo": "Desktop · Orçamentos: propostas, PDF e comparativo",
+      "quadros": [
+        {
+          "id": "23a",
+          "titulo": "Centro de Custos · Suíte.",
+          "texto": "Orçamentos agora abre o protótipo do Orçamentos no computador.",
+          "inicio": "suite"
+        },
+        {
+          "id": "23b",
+          "titulo": "Início do Orçamentos.",
+          "texto": "Em negociação, aprovado no ano, taxa de aprovação e validade vencendo; o que precisa de ação, o funil e o estado do EXSAT.",
+          "inicio": "painel"
+        },
+        {
+          "id": "23c",
+          "titulo": "Propostas.",
+          "texto": "Contadores por situação, busca, filtro e a tabela com revisão, validade, valor final e margem.",
+          "inicio": "props"
+        },
+        {
+          "id": "23d",
+          "titulo": "Nova proposta.",
+          "texto": "Cliente existente ou novo, obra, validade e começar em branco, com um kit ou copiando a PROP-041.",
+          "inicio": "nova"
+        },
+        {
+          "id": "23e",
+          "titulo": "Resumo com aviso de preço.",
+          "texto": "Depois de sincronizar o EXSAT, a proposta em edição mostra quanto o custo e o valor final mudam.",
+          "inicio": "exProp"
+        },
+        {
+          "id": "23f",
+          "titulo": "Itens editáveis.",
+          "texto": "Quantidade direto na tabela, agrupada por sistema; o item com preço novo ganha Atualizar preço.",
+          "inicio": "itens"
+        },
+        {
+          "id": "23g",
+          "titulo": "Adicionar itens.",
+          "texto": "Painel lateral com a busca no catálogo EXSAT e os kits.",
+          "inicio": "add"
+        },
+        {
+          "id": "23h",
+          "titulo": "BDI e impostos.",
+          "texto": "Ajuste com simulação do valor final e da margem antes de aplicar.",
+          "inicio": "bdi"
+        },
+        {
+          "id": "23i",
+          "titulo": "PROP-042 · em revisão.",
+          "texto": "Itens congelados; a ação principal é Gerar PDF e enviar.",
+          "inicio": "p42"
+        },
+        {
+          "id": "23j",
+          "titulo": "Revisões.",
+          "texto": "Histórico com valor de cada revisão e Comparar com a atual.",
+          "inicio": "p42rev"
+        },
+        {
+          "id": "23k",
+          "titulo": "Técnico de campo.",
+          "texto": "Sem permissão de custo: vê só o valor final e os preços de venda, sem editar.",
+          "inicio": "tec"
+        },
+        {
+          "id": "23l",
+          "titulo": "Simular perfil.",
+          "texto": "No rodapé do menu: Comercial, Engenharia ou Técnico de campo.",
+          "inicio": "role"
+        },
+        {
+          "id": "23m",
+          "titulo": "Pré-visualização.",
+          "texto": "Capa, itens e condições, com zoom de 100% a 200% e troca de página.",
+          "inicio": "pdf"
+        },
+        {
+          "id": "23n",
+          "titulo": "Compartilhar.",
+          "texto": "WhatsApp, e-mail ou link de 7 dias, sem mudar a situação.",
+          "inicio": "pdfShare"
+        },
+        {
+          "id": "23o",
+          "titulo": "Enviar ao cliente.",
+          "texto": "Contatos, mensagem e anexo; marca a proposta como Enviada.",
+          "inicio": "pdfSend"
+        },
+        {
+          "id": "23p",
+          "titulo": "Engenharia · resumido sem capa.",
+          "texto": "Vê custo e margem, mas não envia.",
+          "inicio": "pdfRes"
+        },
+        {
+          "id": "23q",
+          "titulo": "REV 01 × REV 03.",
+          "texto": "Todos os itens, inclusive os iguais.",
+          "inicio": "cmp"
+        },
+        {
+          "id": "23r",
+          "titulo": "Só o que mudou.",
+          "texto": "Esconde os iguais e mostra quanto cada sistema mudou.",
+          "inicio": "cmpOnly"
+        },
+        {
+          "id": "23s",
+          "titulo": "PROP-041 · em edição.",
+          "texto": "Compara a REV 01 com o que está sendo editado agora.",
+          "inicio": "cmp041"
+        },
+        {
+          "id": "23t",
+          "titulo": "Sem permissão de custo.",
+          "texto": "O BDI vira \"Ajuste geral de preço\".",
+          "inicio": "cmpTec"
+        }
+      ]
+    },
+    {
+      "arquivo": "docs/suite-desktop/prototipo-orcamentos/Rodada24.dc.html",
+      "rodada": "24",
+      "titulo": "Desktop · Orçamentos: catálogo, importação, EXSAT e cadastros",
+      "quadros": [
+        {
+          "id": "24a",
+          "titulo": "Catálogo EXSAT.",
+          "texto": "Importar lista e Sincronizar agora no topo; o cartão leva à integração.",
+          "inicio": "cat"
+        },
+        {
+          "id": "24b",
+          "titulo": "Importar · arquivo.",
+          "texto": "Fornecedor, área para soltar o arquivo e os recentes. Os dois últimos mostram o vazio e o erro.",
+          "inicio": "imp1"
+        },
+        {
+          "id": "24c",
+          "titulo": "Importar · colunas.",
+          "texto": "Sugestão para cada campo e como as primeiras linhas vão ser lidas.",
+          "inicio": "imp2"
+        },
+        {
+          "id": "24d",
+          "titulo": "Importar · revisar com erro.",
+          "texto": "Corrigir na linha ou deixar de fora; Desfazer volta atrás.",
+          "inicio": "imp3Err"
+        },
+        {
+          "id": "24e",
+          "titulo": "Importando.",
+          "texto": "Barra com quantos itens já entraram.",
+          "inicio": "impRun"
+        },
+        {
+          "id": "24f",
+          "titulo": "Resultado.",
+          "texto": "Novos, atualizados, corrigidos e os que ficaram de fora, com o arquivo para baixar.",
+          "inicio": "impOk"
+        },
+        {
+          "id": "24g",
+          "titulo": "Integração EXSAT.",
+          "texto": "Status, contadores, mudanças de preço com onde cada item é usado e as propostas afetadas.",
+          "inicio": "ex"
+        },
+        {
+          "id": "24h",
+          "titulo": "Sincronizando.",
+          "texto": "Etapas e porcentagem no cartão e no botão.",
+          "inicio": "exSync"
+        },
+        {
+          "id": "24i",
+          "titulo": "Depois de sincronizar.",
+          "texto": "Um preço subiu e outro baixou; dois itens novos.",
+          "inicio": "exAfter"
+        },
+        {
+          "id": "24j",
+          "titulo": "Atualizar preços desta proposta?",
+          "texto": "Item a item, com o efeito no custo e no valor final.",
+          "inicio": "exUpd"
+        },
+        {
+          "id": "24k",
+          "titulo": "Kits.",
+          "texto": "Lista de kits e os itens do escolhido; Usar em proposta adiciona tudo de uma vez.",
+          "inicio": "kits"
+        },
+        {
+          "id": "24l",
+          "titulo": "Usar kit.",
+          "texto": "Escolha a proposta em edição ou comece uma nova com o kit.",
+          "inicio": "kitUse"
+        },
+        {
+          "id": "24m",
+          "titulo": "Clientes.",
+          "texto": "Propostas, em andamento e aprovado por cliente, abrindo as propostas de cada um.",
+          "inicio": "cli"
+        },
+        {
+          "id": "24n",
+          "titulo": "Padrões da empresa.",
+          "texto": "BDI, impostos e validade das próximas propostas, e o que sai em todo PDF.",
+          "inicio": "cfg"
+        },
+        {
+          "id": "24o",
+          "titulo": "Carregando.",
+          "texto": "PDF em esqueleto enquanto a pré-visualização é montada.",
+          "inicio": "pdfLoad"
+        },
+        {
+          "id": "24p",
+          "titulo": "Sem internet.",
+          "texto": "O PDF não é montado; as escolhas ficam guardadas.",
+          "inicio": "pdfErro"
+        },
+        {
+          "id": "24q",
+          "titulo": "Comparativo vazio.",
+          "texto": "Proposta com uma revisão só.",
+          "inicio": "cmpVazio"
+        },
+        {
+          "id": "24r",
+          "titulo": "Arquivo que não abre.",
+          "texto": "Planilha protegida por senha, com o que fazer.",
+          "inicio": "impErro"
+        },
+        {
+          "id": "24s",
+          "titulo": "EXSAT · nada mudou.",
+          "texto": "Sincronizou e nenhum preço mudou.",
+          "inicio": "exVazio"
+        },
+        {
+          "id": "24t",
+          "titulo": "EXSAT fora do ar.",
+          "texto": "Os preços continuam os da última vez.",
+          "inicio": "exErro"
+        }
+      ]
+    }
+  ]
+}

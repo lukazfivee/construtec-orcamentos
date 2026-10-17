@@ -39,3 +39,6 @@ coverage/
 # projectless workspace folders
 outputs/
 work/
+
+# prints do kit de conferencia (gerados por npm run conferencia)
+docs/suite-telas-final/conferencia/prints/

@@ -81,6 +81,10 @@
   .app-shell.cc .commercial-panel .amount { min-height: 20px; }
   .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { padding: 0 6px; }
 }
+@media (min-width: 768px) and (max-width: 1360px) {
+  /* Coluna do resumo estreita (1280): as acoes ficam uma por linha, depois da regra de 2 colunas acima (mesma especificidade, ordem decide). */
+  .app-shell.cc .commercial-panel .panel-section.actions { grid-template-columns: minmax(0, 1fr); }
+}
 @media (min-width: 768px) {
   /* Tabela de Mao de obra (13 colunas): rola so na horizontal; a coluna Funcao fica fixa a esquerda */
   .app-shell.cc .labor-table-region { overflow-x: auto; overflow-y: visible; }
