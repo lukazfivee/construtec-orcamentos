@@ -19,6 +19,7 @@ import { createProposalDiscardRouter } from './routes/proposalDiscard';
 import { createSettingsRouter } from './routes/settings';
 import { createBodySettingsRouter, createProposalBodyRouter } from './routes/proposalBody';
 import { requestTiming, withQueryTiming } from './requestTiming';
+import { securityHeaders } from './securityHeaders';
 import { createProposalCustomItemsRouter } from './routes/proposalCustomItems';
 import { createSystemRouter } from './routes/system';
 import { createUsersRouter } from './routes/users';
@@ -87,6 +88,7 @@ export const createApp = (rawDatabase: LocalDatabase, apiToken: string) => {
 
   api.disable('x-powered-by');
   api.use(requestTiming);
+  api.use(securityHeaders);
   api.use((request, response, next) => {
     const origin = request.headers.origin;
     if (cloud) {

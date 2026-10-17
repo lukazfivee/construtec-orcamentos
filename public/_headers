@@ -1,5 +1,9 @@
 # Cabecalhos dos arquivos estaticos (Cloudflare Workers Assets).
-# Pagina publica do cliente: nao pode ser embutida em outro site.
+# Nenhuma tela do Orcamentos pode ser embutida em outro site. A pagina publica do cliente (/c) mantem a regra propria;
+# quando duas regras casam, a Cloudflare junta os valores do mesmo cabecalho (duas politicas iguais continuam validas).
+/*
+  X-Content-Type-Options: nosniff
+  Content-Security-Policy: frame-ancestors 'self'
 /c
   Content-Security-Policy: frame-ancestors 'self'
 /c/*
