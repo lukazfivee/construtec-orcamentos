@@ -14,7 +14,7 @@ const run = (route: string) => {
 };
 
 test('API e health saem sem cache e com nosniff', () => {
-  for (const route of ['/api/proposals', '/api/dashboard', '/api/public/c/abc', '/health']) {
+  for (const route of ['/api/proposals', '/api/dashboard', '/api/public/c/abc', '/health', '/API/PROPOSALS', '/Api/Dashboard', '/HEALTH']) {
     const { headers, passed } = run(route);
     assert.equal(passed, true, route);
     assert.equal(headers['cache-control'], 'no-store', route);
@@ -34,6 +34,10 @@ test('arquivos estaticos: nenhuma tela pode ser embutida em outro site', () => {
   // Cabecalhos da regra: as linhas indentadas logo abaixo, ate a proxima regra.
   const regra: string[] = [];
   for (const linha of linhas.slice(inicio + 1)) { if (!/^\s+\S/.test(linha)) break; regra.push(linha.trim()); }
-  assert.ok(regra.includes("Content-Security-Policy: frame-ancestors 'self'"), regra.join(' | '));
+  const csp = regra.find((linha) => linha.startsWith('Content-Security-Policy:')) ?? '';
+  assert.match(csp, /frame-ancestors 'self'/, regra.join(' | '));
+  // O Orcamentos embutido no Centro e um fluxo suportado: o Centro tem de estar na lista, e nenhum curinga.
+  assert.ok(csp.includes('https://centro-custos-api.construtec-reports.workers.dev'), csp);
+  assert.doesNotMatch(csp, /\*|http:/, csp);
   assert.ok(regra.includes('X-Content-Type-Options: nosniff'), regra.join(' | '));
 });
