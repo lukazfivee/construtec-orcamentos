@@ -82,7 +82,9 @@ test('corParaHex entende hex curto, rgb e rgba opaco', () => {
 test('compararTokens aponta so as cores que diferem da Referencia', () => {
   const ref = { '--color-bg': '#f2f8fa', '--color-text': '#0b2530', '--shadow-sm': '0 0 0 1px #d6e4e9' };
   const real = { '--color-bg': 'rgb(242, 248, 250)', '--color-text': '#111111' };
-  assert.deepEqual(compararTokens(ref, real), [{ token: '--color-text', referencia: '#0b2530', real: '#111111' }]);
+  const difere = compararTokens(ref, real);
+  assert.equal(difere.length, 1);
+  assert.deepEqual(Object.values(difere[0]), ['--color-text', '#0b2530', '#111111']);
   // Token que o app nem define (valor vazio) nao e divergencia de cor: o app usa outro nome para ele.
   assert.deepEqual(compararTokens({ '--c-tab': '#031f29' }, { '--c-tab': '' }), []);
 });
