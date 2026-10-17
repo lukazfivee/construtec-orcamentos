@@ -1,5 +1,15 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-17 BRT - Vidro translucido nos overlays do desktop (Claude Code)
+
+- Base: `origin/main` em `796d150`, branch `feat/vidro-translucido`. Pedido do Lucas: o mesmo efeito de vidro do ChamadoPro em tudo que sobrepoe a tela do desktop, igual ao do Centro (`public/d/css/vidro.css` do Centro, mesmos valores de token).
+- Novo `src/vidro.css` (importado por ultimo em `renderer.tsx`): tokens `--vidro-blur` (14px), `--vidro-blur-painel` (12px), `--vidro-saturar`, `--vidro-cortina`, `--vidro-painel`, `--vidro-painel-forte`, `--vidro-borda`, `--vidro-brilho`, `--vidro-aviso`, `--vidro-foco`. Cortina com `blur(14px) saturate(1.2)` em dialog-backdrop, modal-overlay, modal-backdrop, cid-overlay, od-drawer-bg, side-drawer-scrim e assistant-scrim; painel de dialogo e gaveta translucidos com contorno ciano e brilho (sem blur proprio, o fundo ja vem desfocado); menus, popovers, assistente, dica do menu e toast com blur de 12px; menu lateral e topo com leve translucidez e filete ciano (sem blur: nada rola por baixo). Fallback `@supports not (backdrop-filter)`, `prefers-reduced-motion`, `prefers-reduced-transparency`. Com `html.com-barra` a cortina comeca abaixo da barra de titulo (barra nitida).
+- Saiu a cortina/blur duplicada de `index.css`, `impeccable-audit.css`, `desktop-polish.css`, `dialogos-centro.css`, `paginas-centro.css`, `proposal-pages.css`, `assistant.css`, `catalogImportDialog.css`, `orcDesk.css` (e os keyframes `drawer-fade` e `od-fade`). Teste novo `src/renderer/vidro.test.ts` impede voltar a repetir.
+- Painel claro em `.94` (o Centro usa `.88`): com `.88` sobre o menu escuro desfocado o cinza `--muted` cai para ~4,2:1; com `.94` fica em ~4,5:1. Ajustar o Centro para o mesmo valor.
+- Validacao: `npm run verify` verde (349 testes); `scripts/audit-rolagem.mjs` com o mesmo resultado de `origin/main` (42 itens ja em falha antes, gap de 11 px e painel Resumo rolando); dialogos e gavetas dentro da janela, sem rolagem aninhada, em 1280x720 e 1920x1080, claro e escuro. Capturas antes e depois conferidas no Chrome headless.
+- Nao aplicado: Link para o cliente (so existe no modo nuvem), celular (/m/ fora do escopo).
+- Proximo passo: merge e publicacao a pedido do Lucas.
+
 ## 2026-10-12 BRT - Logado no Centro, o Orçamentos do navegador entra sozinho (Claude Code)
 
 - Base: `origin/main` em `7e178e0`, branch `feat/suite-login-pelo-centro`, worktree `_tools\_worktrees\orc\wt-sso`. Par no Centro: branch `feat/suite-login-orcamentos` (`public/entrar-orcamentos.*`). Publicar o Centro antes: sem a página de lá, o `app.get('*')` do Centro responde com a tela de entrar antiga e a aba fica parada lá.

@@ -433,12 +433,7 @@ button:not(:disabled):active {
   border-radius: var(--radius-panel);
 }
 
-/* Dialogs / destructive actions */
-.dialog-backdrop,
-.modal-overlay {
-  background: rgba(12, 23, 40, .58);
-}
-
+/* Dialogs / destructive actions (a cortina está em vidro.css) */
 .dialog-close:hover {
   color: var(--ink);
   background: var(--surface-subtle);

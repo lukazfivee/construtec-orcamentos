@@ -104,7 +104,7 @@
   body:has(.proposal-items-fab) .assistant-fab { bottom: calc(208px + env(safe-area-inset-bottom)); }
   body:has(.proposal-items-fab-menu) .assistant-fab,
   body:has(input:focus, textarea:focus, select:focus) .assistant-fab { display: none; }
-  .assistant-scrim { display: block; position: fixed; inset: 0; z-index: 66; background: rgba(10, 20, 35, .45); }
+  .assistant-scrim { display: block; position: fixed; inset: 0; z-index: 66; }
   .assistant-handle { display: block; flex: none; width: 34px; height: 4px; margin: 8px auto 0; background: var(--line-strong); border-radius: 2px; }
   .assistant-panel {
     left: 0; right: 0; bottom: 0; z-index: 67; width: auto; height: 88dvh; max-height: 88dvh;

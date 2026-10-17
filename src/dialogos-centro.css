@@ -1,8 +1,6 @@
 /* Dialogos do Orçamentos com o padrao do Centro de Custos (.dialogo e .drawer; o de importar em lote tem catalogImportDialog.css): raio 14, sombra de popover, cabecalho de 18/20 com
    titulo 17/600, apoio 12.5, corpo de 13.5, botoes e campos de 40 px, tabela com cabecalho 11/600 em caixa alta. So no desktop. */
 @media (min-width: 768px) {
-  .modal-overlay { background: rgba(3, 31, 41, .45); backdrop-filter: none; }
-
   /* Modais de confirmacao (exclusao, descarte) */
   .modal-card { border: 0; border-radius: 14px; box-shadow: var(--shadow-pop); background: var(--color-surface); }
   .modal-card .modal-header { min-height: 0; padding: 18px 20px; border-bottom: 1px solid var(--color-divider); }

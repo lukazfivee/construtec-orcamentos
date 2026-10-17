@@ -184,7 +184,7 @@
 .od-saverow > span { flex: 1; font-size: calc(13px * var(--fs, 1)); color: var(--muted); }
 
 /* Painel lateral (atualizar precos, usar kit) */
-.od-drawer-bg { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: flex-end; background: rgba(3, 31, 41, .38); animation: od-fade .15s ease both; }
+.od-drawer-bg { position: fixed; inset: 0; z-index: 90; display: flex; justify-content: flex-end; }
 .od-drawer { width: 460px; max-width: 100%; height: 100%; background: var(--surface); display: flex; flex-direction: column; box-shadow: -12px 0 32px rgba(3, 31, 41, .18); animation: od-slide .2s cubic-bezier(.2, .8, .2, 1) both; }
 .od-drawer-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
 .od-drawer-head .od-grow > b { font-size: calc(16px * var(--fs, 1)); }
@@ -197,7 +197,6 @@
 .od-pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border: 0; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-align: left; cursor: pointer; font-family: inherit; }
 .od-pick:hover:not(:disabled) { background: var(--od-accent-900); }
 .od-pick:disabled { opacity: .5; cursor: not-allowed; }
-@keyframes od-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes od-slide { from { transform: translateX(32px); opacity: .6; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .od-drawer, .od-drawer-bg { animation: none; } }
 
