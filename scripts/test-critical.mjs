@@ -63,6 +63,7 @@ const entryPoints = [
   'src/documents/mobile-listas.test.ts',
   'src/renderer/proposal-desktop-r23.test.ts',
   'src/renderer/desktop-polish.test.ts',
+  'src/renderer/vidro.test.ts',
   'src/renderer/no-emoji.test.ts',
   'src/renderer/theme.test.ts',
   'src/renderer/centro-parity.test.ts',

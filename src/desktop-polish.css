@@ -27,7 +27,6 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 /* Modais que usavam .modal-backdrop e .modal-dialog sem nenhuma regra: abriam colados no canto, sem fundo. */
 .modal-backdrop {
   position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 24px;
-  background: rgba(12, 23, 40, .58); backdrop-filter: blur(2px);
 }
 .modal-dialog {
   max-width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: hidden;

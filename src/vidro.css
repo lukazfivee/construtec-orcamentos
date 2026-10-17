@@ -1,0 +1,116 @@
+/* Vidro do Suíte (Orçamentos): tudo que sobrepõe a tela usa estes tokens, na mesma linguagem do ChamadoPro.
+   Cortina (fundo desfocado e escurecido), painel de diálogo e gaveta (azul-petróleo quase opaco, contorno ciano fino, brilho),
+   menu e popover (translúcidos, com desfoque próprio) e aviso rápido. Os mesmos valores estão em public/d/css/vidro.css do Centro.
+   Claro em :root, escuro em [data-theme="escuro"]. Carregado depois dos demais CSS; o PDF, o Word e a página do cliente não usam este arquivo. */
+
+/* Mesmos valores de public/d/css/vidro.css do Centro de Custos. */
+:root {
+  --vidro-blur: 14px;          /* cortina (tela inteira) */
+  --vidro-blur-painel: 12px;   /* menus, popovers e avisos */
+  --vidro-saturar: 1.2;
+  --vidro-filtro: blur(var(--vidro-blur)) saturate(var(--vidro-saturar));
+  --vidro-filtro-painel: blur(var(--vidro-blur-painel)) saturate(var(--vidro-saturar));
+  --vidro-cortina: rgba(206, 224, 232, .58);
+  --vidro-painel: rgba(254, 254, 254, .94);
+  --vidro-painel-forte: rgba(254, 254, 254, .94);
+  --vidro-borda: rgba(10, 120, 150, .32);
+  --vidro-brilho: 0 0 0 1px var(--vidro-borda), 0 18px 44px rgba(3, 31, 41, .2), 0 0 28px rgba(18, 169, 209, .1);
+  --vidro-aviso: rgba(3, 31, 41, .9);
+  --vidro-aviso-borda: rgba(95, 208, 238, .4);
+  --vidro-foco: 0 0 0 3px rgba(18, 169, 209, .22);
+}
+:root[data-theme="escuro"] {
+  --vidro-cortina: rgba(2, 13, 20, .55);
+  --vidro-painel: rgba(8, 42, 54, .9);
+  --vidro-painel-forte: rgba(8, 42, 54, .95);
+  --vidro-borda: rgba(95, 208, 238, .34);
+  --vidro-brilho: 0 0 0 1px var(--vidro-borda), 0 22px 56px rgba(0, 0, 0, .55), 0 0 32px rgba(18, 169, 209, .16);
+  --vidro-aviso: rgba(4, 30, 40, .9);
+  --vidro-foco: 0 0 0 3px rgba(95, 208, 238, .22);
+}
+/* Sem backdrop-filter: cortina e painéis ficam mais opacos, para o texto nunca brigar com o fundo. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --vidro-cortina: rgba(206, 224, 232, .88); --vidro-painel: rgba(254, 254, 254, .98); --vidro-painel-forte: rgba(254, 254, 254, .98); --vidro-aviso: rgba(3, 31, 41, .97); }
+  :root[data-theme="escuro"] { --vidro-cortina: rgba(2, 13, 20, .86); --vidro-painel: rgba(8, 42, 54, .98); --vidro-painel-forte: rgba(8, 42, 54, .98); --vidro-aviso: rgba(4, 30, 40, .98); }
+}
+/* Pessoa que pediu menos transparência no sistema: sem desfoque e superfícies sólidas. */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --vidro-filtro: none; --vidro-filtro-painel: none; --vidro-cortina: rgba(206, 224, 232, .92); --vidro-painel: #fefefe; --vidro-painel-forte: #fefefe; --vidro-aviso: #031f29; }
+  :root[data-theme="escuro"] { --vidro-cortina: rgba(2, 13, 20, .9); --vidro-painel: #082a36; --vidro-painel-forte: #082a36; --vidro-aviso: #041e28; }
+}
+
+/* ---------- Cortina: tudo atrás do diálogo (menu, topo, conteúdo) desfocado e escurecido ---------- */
+.dialog-backdrop, .modal-overlay, .modal-backdrop, .cid-overlay, .od-drawer-bg, .side-drawer-scrim, .assistant-scrim {
+  background: var(--vidro-cortina);
+  -webkit-backdrop-filter: var(--vidro-filtro); backdrop-filter: var(--vidro-filtro);
+  animation: vidro-entra .16s ease both;
+}
+/* A barra de título do app (Windows) fica nítida acima de tudo. */
+html.com-barra :is(.dialog-backdrop, .modal-overlay, .modal-backdrop, .cid-overlay, .od-drawer-bg, .side-drawer-layer) { top: var(--tb-h); }
+@keyframes vidro-entra { from { opacity: 0; } to { opacity: 1; } }
+
+/* Painel de diálogo e gaveta: dentro da cortina não desfocam de novo (o fundo já está desfocado), só translúcidos, com contorno ciano e brilho. */
+:root :is(.modal-card, .modal-dialog, .new-proposal-dialog, .flow-confirm, .proposal-export-dialog, .proposal-share-dialog,
+  .proposal-diff-dialog, .proposal-import-dialog, .help-modal-dialog, .cid, .side-drawer, .od-drawer),
+:root .app-shell.cc :is(.side-drawer, .od-drawer) {
+  background: var(--vidro-painel); border: 1px solid var(--vidro-borda); box-shadow: var(--vidro-brilho);
+}
+/* Só no desktop: no celular os diálogos mantêm a geometria própria (tela cheia e folha de baixo). */
+@media (min-width: 768px) {
+  :root :is(.modal-card, .modal-dialog, .new-proposal-dialog, .flow-confirm, .proposal-export-dialog, .proposal-share-dialog,
+    .proposal-diff-dialog, .proposal-import-dialog, .help-modal-dialog, .cid) { border-radius: 18px; }
+}
+:root :is(.side-drawer, .od-drawer), :root .app-shell.cc :is(.side-drawer, .od-drawer) {
+  border-radius: 18px 0 0 18px; border-right: 0; box-shadow: -1px 0 0 var(--vidro-borda), -24px 0 60px rgba(2, 13, 20, .3), 0 0 32px rgba(18, 169, 209, .12);
+}
+/* Cabeçalho, abas e rodapé deixam o vidro aparecer e se separam por linha fina. */
+:root :is(.modal-header, .modal-footer, .new-proposal-dialog > header, .new-proposal-dialog form > footer, .side-drawer > header, .side-drawer > footer,
+  .od-drawer-head, .od-drawer-foot, .cid-head, .export-dialog-header, .export-dialog-footer, .share-dialog-footer,
+  .help-modal-footer, .diff-header, .diff-footer, .proposal-import-tabs),
+:root .app-shell.cc :is(.side-drawer > header, .side-drawer > footer, .od-drawer-head, .od-drawer-foot),
+:root .modal-card :is(.modal-header, .modal-footer) {
+  background: transparent; border-color: var(--vidro-borda);
+}
+:root .cid-tabs { border-color: var(--vidro-borda); }
+
+/* Campo com foco: contorno ciano e brilho suave. */
+:root :is(.modal-card, .modal-dialog, .new-proposal-dialog, .proposal-export-dialog, .proposal-share-dialog, .proposal-import-dialog, .side-drawer, .od-drawer, .cid)
+  :is(input, select, textarea):focus {
+  box-shadow: inset 0 0 0 2px var(--color-focus), var(--vidro-foco); outline: none;
+}
+/* Botão principal em degradê ciano no tema escuro (o de exclusão fica vermelho; no claro segue o azul da marca, que já passa de 4,5:1). */
+:root[data-theme="escuro"] :is(.new-proposal-dialog form > footer, .side-drawer > footer, .proposal-export-dialog, .proposal-share-dialog, .proposal-import-dialog, .cid)
+  :is(button.primary, .btn.primary, .flow-btn.primary):not(.danger):not(:disabled) {
+  background: linear-gradient(180deg, #2bc0e4 0%, #0f93b7 100%) !important; color: #00141b !important; border-color: transparent !important;
+  box-shadow: 0 6px 18px rgba(18, 169, 209, .28) !important;
+}
+
+/* ---------- Menus, popovers e painéis soltos: fundo translúcido com desfoque próprio ---------- */
+:root :is(.pop, .share-menu, .notifications-popover, .user-profile-popover, .columns-popover, .catalog-popover, .context-popover,
+  .suite-dropdown-menu, .assistant-panel) {
+  background: var(--vidro-painel-forte); border: 1px solid var(--vidro-borda); box-shadow: var(--vidro-brilho);
+  -webkit-backdrop-filter: var(--vidro-filtro-painel); backdrop-filter: var(--vidro-filtro-painel);
+}
+:root .side .menu-dica {
+  background: var(--vidro-aviso); box-shadow: 0 0 0 1px var(--vidro-aviso-borda), 0 8px 20px rgba(2, 13, 20, .3);
+  -webkit-backdrop-filter: var(--vidro-filtro-painel); backdrop-filter: var(--vidro-filtro-painel);
+}
+/* Aviso rápido: vidro escuro nos dois temas (texto claro), com contorno ciano fino. */
+:root .toast {
+  background: var(--vidro-aviso); color: #fefefe; box-shadow: 0 0 0 1px var(--vidro-aviso-borda), 0 14px 34px rgba(2, 13, 20, .4);
+  -webkit-backdrop-filter: var(--vidro-filtro-painel); backdrop-filter: var(--vidro-filtro-painel);
+}
+
+/* ---------- Menu lateral e topo: leve brilho ciano e translucidez, sem desfoque (nada rola por baixo deles) ---------- */
+@media (min-width: 768px) {
+  :root .app-shell.cc > .side { background: linear-gradient(180deg, #05303e 0%, var(--side-bg) 55%); box-shadow: 1px 0 0 rgba(95, 208, 238, .16), 4px 0 24px rgba(3, 31, 41, .18); }
+  :root .app-shell.cc .side .nav[aria-current="page"] { box-shadow: inset 0 0 0 1px rgba(95, 208, 238, .22), 0 0 18px rgba(18, 169, 209, .16); }
+  :root .app-shell.cc > .top { background: color-mix(in srgb, var(--color-surface) 90%, transparent); box-shadow: 0 1px 0 var(--vidro-borda); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-backdrop, .modal-overlay, .modal-backdrop, .cid-overlay, .od-drawer-bg, .side-drawer-scrim, .assistant-scrim { animation: none; }
+}
+@media print {
+  .dialog-backdrop, .modal-overlay, .modal-backdrop, .cid-overlay, .od-drawer-bg, .side-drawer-scrim { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

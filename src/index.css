@@ -159,7 +159,7 @@ kbd {
 .proposal-tabs button.selected::after { content: ""; position: absolute; inset: auto 10px 0; height: 2px; background: var(--blue); }
 .proposal-tabs .new-tab { min-width: 145px; color: var(--tx-cool-39); }
 
-.dialog-backdrop { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(12, 23, 40, .56); backdrop-filter: blur(2px); }
+.dialog-backdrop { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; padding: 24px; }
 .new-proposal-dialog { width: min(640px, 100%); color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 24px 60px rgba(8, 18, 35, .28); animation: popover-in 180ms cubic-bezier(.2, .8, .2, 1); }
 .new-proposal-dialog > header { display: flex; align-items: center; justify-content: space-between; min-height: 78px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
 .new-proposal-dialog > header > div { display: flex; align-items: center; gap: 12px; }
@@ -1433,8 +1433,6 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(12, 23, 40, .56);
-  backdrop-filter: blur(2px);
 }
 
 .modal-card {

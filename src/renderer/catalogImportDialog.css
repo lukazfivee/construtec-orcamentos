@@ -1,6 +1,6 @@
 /* Importar itens em lote no padrao do Centro (.dialogo): raio 14, cabecalho com eyebrow, abas com sublinhado, cartoes e tabela de 48 px.
    Um unico corpo rola (.cid-body); a tabela so rola na horizontal em telas estreitas. Usa os tokens do tema, claro e escuro. */
-.cid-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; background: rgba(3, 31, 41, .45); }
+.cid-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px; }
 .cid { display: flex; flex-direction: column; width: min(1120px, 100%); max-height: min(820px, 100%); min-height: 0; overflow: hidden; background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: var(--shadow-pop, 0 24px 60px rgba(3, 31, 41, .28)); font-size: calc(13.5px * var(--fs, 1)); }
 .cid-grow { flex: 1; min-width: 0; }
 .cid-head { flex: none; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; }
