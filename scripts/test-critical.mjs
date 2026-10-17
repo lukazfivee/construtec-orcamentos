@@ -9,6 +9,7 @@ const outdir = path.join(root, '.vite', 'critical-tests');
 await mkdir(outdir, { recursive: true });
 const entryPoints = [
   'src/server/cloud-runtime.test.ts',
+'src/server/securityHeaders.test.ts',
   'src/server/services/postgres-critical.test.ts',
   'src/shared/financial-critical.test.ts',
   'src/server/services/proposal-critical.test.ts',
