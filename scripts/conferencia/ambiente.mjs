@@ -1,4 +1,4 @@
-﻿// Ambiente de teste do kit: servidor (API + Centro falso) sobre banco temporario, renderer compilado, servidor estatico com proxy
+// Ambiente de teste do kit: servidor (API + Centro falso) sobre banco temporario, renderer compilado, servidor estatico com proxy
 // para /api e dados de teste. Tudo local, em portas da faixa recebida, e tudo encerrado em fechar().
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -174,10 +174,11 @@ export async function subirAmbiente({ portaApi, portaCentro, portaSite, log = ()
         proxy.catch(() => { res.writeHead(502); res.end('proxy'); });
         return;
       }
-      let relativo = decodeURIComponent(url.pathname);
+      let relativo;
+      try { relativo = decodeURIComponent(url.pathname); } catch { res.writeHead(400); res.end(); return; }
       if (relativo.endsWith('/')) relativo += 'index.html';
       let arquivo = path.join(dist, relativo);
-      if (!arquivo.startsWith(dist)) { res.writeHead(403); res.end(); return; }
+      if (arquivo !== dist && !arquivo.startsWith(dist + path.sep)) { res.writeHead(403); res.end(); return; }
       if (!existsSync(arquivo) || !statSync(arquivo).isFile()) {
         if (/^\/(m|c)(\/|$)/.test(url.pathname)) { res.writeHead(404); res.end(); return; }
         arquivo = path.join(dist, 'index.html');
