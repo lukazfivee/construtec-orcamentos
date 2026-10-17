@@ -28,7 +28,12 @@ test('fora da API so o nosniff (arquivos estaticos tem o proprio cache)', () => 
   assert.equal(headers['cache-control'], undefined);
 });
 test('arquivos estaticos: nenhuma tela pode ser embutida em outro site', () => {
-  const regras = readFileSync(path.join(process.cwd(), 'public', '_headers'), 'utf8');
-  assert.match(regras, /^\/\*\s*\n(?:\s+.+\n)*?\s+Content-Security-Policy: frame-ancestors 'self'/m);
-  assert.match(regras, /X-Content-Type-Options: nosniff/);
+  const linhas = readFileSync(path.join(process.cwd(), 'public', '_headers'), 'utf8').split(/\r?\n/);
+  const inicio = linhas.indexOf('/*');
+  assert.notEqual(inicio, -1, 'regra geral /* ausente em public/_headers');
+  // Cabecalhos da regra: as linhas indentadas logo abaixo, ate a proxima regra.
+  const regra: string[] = [];
+  for (const linha of linhas.slice(inicio + 1)) { if (!/^\s+\S/.test(linha)) break; regra.push(linha.trim()); }
+  assert.ok(regra.includes("Content-Security-Policy: frame-ancestors 'self'"), regra.join(' | '));
+  assert.ok(regra.includes('X-Content-Type-Options: nosniff'), regra.join(' | '));
 });
