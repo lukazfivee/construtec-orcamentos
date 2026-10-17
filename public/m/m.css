@@ -299,5 +299,7 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
    da tela; com a barra de acoes fixa, o botao sobe acima dela e a sobra fica antes da barra. */
 #view:not(:has(.actions)) { padding-bottom: var(--fab-clear); }
 #view :has(+ .actions) { margin-bottom: var(--fab-clear); }
+/* WebView sem :has(): folga em todas as telas (com a barra de acoes sobra um pouco a mais, o que e inofensivo). */
+@supports not selector(:has(a)) { #view { padding-bottom: var(--fab-clear); } }
 /* Filtros de situacao (lista de propostas) quebram linha em vez de rolar de lado e cortar o ultimo chip; os demais .chips (ex.: categorias do Catalogo) seguem rolando de lado. */
 #p-chips { flex-wrap: wrap; overflow-x: visible; }
