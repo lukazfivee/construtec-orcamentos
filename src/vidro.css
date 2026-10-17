@@ -55,8 +55,11 @@ html.com-barra :is(.dialog-backdrop, .modal-overlay, .modal-backdrop, .cid-overl
 :root .app-shell.cc :is(.side-drawer, .od-drawer) {
   background: var(--vidro-painel); border: 1px solid var(--vidro-borda); box-shadow: var(--vidro-brilho);
 }
-:root :is(.modal-card, .modal-dialog, .new-proposal-dialog, .flow-confirm, .proposal-export-dialog, .proposal-share-dialog,
-  .proposal-diff-dialog, .proposal-import-dialog, .help-modal-dialog, .cid) { border-radius: 18px; }
+/* Só no desktop: no celular os diálogos mantêm a geometria própria (tela cheia e folha de baixo). */
+@media (min-width: 768px) {
+  :root :is(.modal-card, .modal-dialog, .new-proposal-dialog, .flow-confirm, .proposal-export-dialog, .proposal-share-dialog,
+    .proposal-diff-dialog, .proposal-import-dialog, .help-modal-dialog, .cid) { border-radius: 18px; }
+}
 :root :is(.side-drawer, .od-drawer), :root .app-shell.cc :is(.side-drawer, .od-drawer) {
   border-radius: 18px 0 0 18px; border-right: 0; box-shadow: -1px 0 0 var(--vidro-borda), -24px 0 60px rgba(2, 13, 20, .3), 0 0 32px rgba(18, 169, 209, .12);
 }
