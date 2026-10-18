@@ -18,7 +18,7 @@ declare global {
         /** true dentro do app Suíte unificado: o Centro é a outra tela da mesma janela. */
         suite?: boolean;
       }>;
-      suiteSwitch?: (target: 'centro' | 'orcamentos', hash?: string) => Promise<{ switched: boolean }>;
+      suiteSwitch?: (target: 'centro' | 'orcamentos' | 'chamados', hash?: string) => Promise<{ switched: boolean }>;
       openExternal?: (url: string) => Promise<{ opened: boolean }>;
       openWebmail?: (composeData?: { to?: string; subject?: string; body?: string }) => Promise<{ opened: boolean }>;
       webmailStatus?: () => Promise<{ connected: boolean }>;

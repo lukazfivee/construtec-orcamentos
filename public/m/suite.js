@@ -4,7 +4,8 @@
 (function (OC) {
   const { esc, icon } = OC;
   const CENTRO_URL = 'https://centro-custos-api.construtec-reports.workers.dev/m/';
-  const CHAMADOPRO_URL = 'https://chamadopro-app.lucas-coelho5923.workers.dev/';
+  // Entrada central: o Centro inicia o login unico ja direcionado ao Chamados e O.S.
+  const CHAMADOS_URL = 'https://centro-custos-api.construtec-reports.workers.dev/chamados/entrar';
   const inApp = () => /SuiteConstrutec\//.test(navigator.userAgent);
   const centroLink = (obra) => {
     const id = Number(obra) > 0 ? String(Number(obra)) : '';
@@ -38,7 +39,7 @@
       <p class="sheet-sec">Sistemas</p>
       <div class="suite-item current" aria-current="page">${icon('receipt', 22)}<span><small>Etapa 01</small><b>Orçamentos</b></span><em>Atual</em></div>
       <a class="suite-item" href="${esc(centroLink())}"${other}>${icon('buildings', 22)}<span><small>Etapa 02</small><b>Centro de Custos</b></span>${icon('caret-right', 18)}</a>
-      <a class="suite-item" href="${CHAMADOPRO_URL}" target="_blank" rel="noopener">${icon('check-circle', 22)}<span><small>Etapa 03</small><b>ChamadoPro</b><small>Abre no navegador</small></span>${icon('arrow-right', 18)}</a>
+      <a class="suite-item" href="${CHAMADOS_URL}"${other}>${icon('wrench', 22)}<span><small>Etapa 03</small><b>Chamados e O.S.</b></span>${icon('arrow-right', 18)}</a>
     </div>`;
     el.addEventListener('click', (event) => {
       if (event.target === el || event.target.closest('.sheet-x')) close();

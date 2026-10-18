@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import path from 'node:path';
-import { CHAMADOPRO_URL, SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL, WEBMAIL_URL } from './suiteMenu';
+import { SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL, WEBMAIL_URL, chamadosEntradaUrl } from './suiteMenu';
 import { NAV_GROUPS } from './navSections';
 
 // Igualdade visual com o desktop do Centro de Custos: medidas e tokens estaticos da casca e das paginas,
@@ -25,11 +25,12 @@ const rule = (css: string, selector: string): string => {
 test('menu Suite: mesmos destinos e textos do Centro, sem Portal Hub', () => {
   assert.equal(SUITE_MENU_TITLE, 'Suíte Construtec');
   assert.deepEqual(SUITE_APPS.map((item) => item.title), ['Orçamentos', 'Centro de Custos', 'Chamados e O.S.']);
-  assert.deepEqual(SUITE_APPS.map((item) => item.subtitle), ['Etapa 01 · propostas e BDI', 'Etapa 02 · gestão das obras', 'Etapa 03 · ChamadoPro']);
+  assert.deepEqual(SUITE_APPS.map((item) => item.subtitle), ['Etapa 01 · propostas e BDI', 'Etapa 02 · gestão das obras', 'Etapa 03 · atendimento e manutenção']);
   assert.equal(SUITE_WEBMAIL.title, 'Webmail');
   assert.equal(SUITE_WEBMAIL.subtitle, 'E-mail corporativo UOL');
   assert.equal(SUITE_WEBMAIL.url, WEBMAIL_URL);
-  assert.equal(SUITE_APPS[2].url, CHAMADOPRO_URL);
+  assert.equal(SUITE_APPS[2].id, 'chamados');
+  assert.equal(SUITE_APPS[2].url, null, 'o destino vem da entrada central, nao de endereco fixo');
   assert.equal(SUITE_APPS.length + 1, 4);
   const popover = read('src/renderer/SuiteSwitcherPopover.tsx');
   assert.match(popover, /<span className="chip ok">Atual<\/span>/);
