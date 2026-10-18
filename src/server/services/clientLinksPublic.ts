@@ -32,16 +32,18 @@ const findLink = async (database: LocalDatabase, token: string, secret: string):
 };
 
 // Documento e dados completos so enquanto o link esta ativo ou, depois de respondido, por 30 dias.
+// Link ativo de proposta que voltou a rascunho ou foi recusada nao mostra mais nada ao cliente.
 const documentAvailable = (row: LinkRow) => {
   const state = linkState(row);
-  if (state === 'active') return true;
+  if (state === 'active') return row.proposal_status !== 'draft' && row.proposal_status !== 'rejected';
   return (state === 'approved' || state === 'adjust' || state === 'confirmed') && closedWindowOpen(row);
 };
 
 const view = async (database: LocalDatabase, row: LinkRow): Promise<PublicLinkView> => {
   const settings = await getAppSettings(database);
   const company = { name: settings.tradeName || settings.companyName || 'Construtec', phone: settings.phone || '', email: settings.email || '' };
-  const state = linkState(row);
+  const linkSt = linkState(row);
+  const state: LinkState = linkSt === 'active' && !documentAvailable(row) ? 'disabled' : linkSt;
   if (!documentAvailable(row)) return { state, proposal: { number: row.proposal_number }, company };
   const proposal = await getProposalById(database, row.proposal_id);
   if (!proposal) throw new ClientLinkError('LINK_INVALID', 404, 'Este link não existe.');

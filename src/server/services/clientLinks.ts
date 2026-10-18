@@ -10,13 +10,13 @@ export const MAX_LINK_DAYS = 90;
 
 export type LinkRow = {
   id: string; proposal_id: string; status: LinkStatus; require_identity: boolean; expires_at: string; created_at: string; closed_at: string | null;
-  created_by: string | null; superseded: boolean; proposal_number: string; revision: number;
+  created_by: string | null; superseded: boolean; proposal_number: string; revision: number; proposal_status: string;
 };
 type EventRow = { kind: string; occurred_at: string; actor_name: string | null; actor_role: string | null; message: string | null; code: string | null; device: string | null };
 
 export const LINK_SELECT = `
   SELECT l.id, l.proposal_id, l.status, l.require_identity, l.expires_at::text, l.created_at::text, l.closed_at::text, l.created_by,
-    p.proposal_number, p.revision,
+    p.proposal_number, p.revision, p.status AS proposal_status,
     EXISTS (SELECT 1 FROM proposals n WHERE n.proposal_number = p.proposal_number AND n.revision > p.revision) AS superseded
   FROM proposal_client_links l JOIN proposals p ON p.id = l.proposal_id`;
 
