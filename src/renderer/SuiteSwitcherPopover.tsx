@@ -3,9 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { ChartColumn, FileText, Mail, SquareArrowOutUpRight, Wrench } from 'lucide-react';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
 import type { SuiteAppId, SuiteMenuEntry } from './suiteMenu';
-import { SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL } from './suiteMenu';
-
-export { CHAMADOPRO_URL } from './suiteMenu';
+import { SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL, chamadosEntradaUrl } from './suiteMenu';
 
 interface SuiteSwitcherPopoverProps {
   activeApp?: 'orcamentos' | 'centro-custos';
@@ -17,7 +15,7 @@ interface SuiteSwitcherPopoverProps {
 const ICONS: Record<SuiteAppId, LucideIcon> = {
   orcamentos: FileText,
   'centro-custos': ChartColumn,
-  chamadopro: Wrench,
+  chamados: Wrench,
   webmail: Mail,
 };
 
@@ -86,6 +84,17 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
         onClose();
       } else {
         handleOpenUrl(centroUrl);
+      }
+    } else if (entry.id === 'chamados') {
+      // Login unico: o Centro emite o handoff; a negacao de acesso aparece na pagina de entrada central.
+      if (window.construtec?.suiteSwitch && suiteApp) {
+        // Host sem suporte ao Chamados (ou falha na entrada): cai no login central pelo navegador.
+        window.construtec.suiteSwitch('chamados')
+          .then((result) => { if (!result?.switched) handleOpenUrl(chamadosEntradaUrl(centroUrl)); })
+          .catch(() => handleOpenUrl(chamadosEntradaUrl(centroUrl)));
+        onClose();
+      } else {
+        handleOpenUrl(chamadosEntradaUrl(centroUrl));
       }
     } else if (entry.id === 'orcamentos') {
       onSelectApp?.('orcamentos');

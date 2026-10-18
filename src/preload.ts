@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('construtec', {
   runtime: () => ipcRenderer.invoke('app:runtime'),
   openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
   // Só responde no app Suíte unificado; no app avulso o canal não existe e o menu abre o Centro no navegador.
-  suiteSwitch: (target: 'centro' | 'orcamentos', hash?: string) => ipcRenderer.invoke('suite:switch', target, hash),
+  suiteSwitch: (target: 'centro' | 'orcamentos' | 'chamados', hash?: string) => ipcRenderer.invoke('suite:switch', target, hash),
   openWebmail: (composeData?: unknown) => ipcRenderer.invoke('webmail:open', composeData),
   webmailStatus: () => ipcRenderer.invoke('webmail:status'),
   webmailLogout: () => ipcRenderer.invoke('webmail:logout'),

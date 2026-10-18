@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom';
 import { ArrowUpRight, Building2, ChevronRight, CornerDownRight, FileText, Layers, Wrench, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
-import { CHAMADOPRO_URL, SUITE_MENU_TITLE } from './suiteMenu';
+import { SUITE_MENU_TITLE, chamadosEntradaUrl } from './suiteMenu';
 
 // Seletor "Suite" no celular (Fase 4 da Suite mobile): folha inferior com os
 // apps da esteira. Dentro do app Android, Orcamentos e Centro de Custos trocam
-// de WebView por suite://app/<id>; o ChamadoPro sempre abre no navegador.
+// de WebView por suite://app/<id>; o Chamados e O.S. abre pela entrada central (login unico).
 const inSuiteApp = typeof navigator !== 'undefined' && /SuiteConstrutec\//.test(navigator.userAgent);
 
 const go = (url: string, external = false) => {
@@ -70,9 +70,9 @@ export function MobileSuiteSheet({ proposal, onClose }: Props) {
           <span><small>Etapa 02</small><b>Centro de Custos</b></span>
           <ChevronRight size={16} />
         </button>
-        <button type="button" className="suite-sheet-item" onClick={() => { onClose(); go(CHAMADOPRO_URL, true); }}>
+        <button type="button" className="suite-sheet-item" onClick={() => { onClose(); go(chamadosEntradaUrl(centroUrl), true); }}>
           <Wrench size={20} />
-          <span><small>Etapa 03</small><b>ChamadoPro</b><small>Abre no navegador</small></span>
+          <span><small>Etapa 03</small><b>Chamados e O.S.</b></span>
           <ArrowUpRight size={16} />
         </button>
       </div>

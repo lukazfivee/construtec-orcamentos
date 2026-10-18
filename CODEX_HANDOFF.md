@@ -1,5 +1,13 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-17 BRT - Chamados e O.S. no lugar do ChamadoPro nos menus de troca (Claude Code)
+
+- Base: `origin/main` em `88c9335`, branch `feat/chamados-suite-integracao`. Menu Suite do desktop (`SuiteSwitcherPopover`), folha do celular React (`MobileSuiteSheet`) e `public/m/suite.js` agora levam ao Chamados e O.S. (texto igual ao do Centro: `Etapa 03 · atendimento e manutencao`, icone wrench). Id do item: `chamados`.
+- Login unico: a sessao do Orcamentos nao e do Centro e nao pode pedir handoff direto (`POST /api/auth/suite-handoff` exige o token do Centro). Navegador/celular abrem `<Centro>/chamados/entrar` na mesma aba/ao tocar: a pagina usa a sessao do Centro (ou pede o login central) e redireciona para `<Chamados>/#handoff=`. Sem login paralelo e sem segredo no Orcamentos. Dentro do app Suite do Windows chama `window.construtec.suiteSwitch('chamados')` (o handler `suite:switch` vive no repo do Centro e precisa aceitar o alvo `chamados`).
+- Sem como saber o acesso da conta ao Chamados, o item aparece sempre; a negacao e mostrada pela entrada central.
+- Pendente: publicar o Centro com `/chamados/entrar` e o alvo `chamados` no app Suite; teste em janela Windows real e celular fisico.
+
+
 ## 2026-10-17 BRT - Vidro translucido nos overlays do desktop (Claude Code)
 
 - Base: `origin/main` em `796d150`, branch `feat/vidro-translucido`. Pedido do Lucas: o mesmo efeito de vidro do ChamadoPro em tudo que sobrepoe a tela do desktop, igual ao do Centro (`public/d/css/vidro.css` do Centro, mesmos valores de token).

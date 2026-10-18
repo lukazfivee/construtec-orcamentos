@@ -45,7 +45,7 @@ O app do celular:
 - Proposta aberta: abas Resumo (valor final, situação, validade, ações como enviar, aprovar, PDF e link para o cliente), Itens (editar quantidade e preço, adicionar do catálogo ou de um kit) e Revisões (histórico e comparativo). Há também a mão de obra.
 - Kits: conjuntos de itens que entram de uma vez na proposta.
 - Menu: Configurações da empresa (BDI e validade padrão, só o administrador altera), Catálogo, Clientes e obras, Propostas descartadas (só administrador), Segurança, modo claro ou escuro, Versão completa e Sair.
-- Sino no topo: notificações. Botão Suíte no topo: troca para o Centro de Custos e o ChamadoPro; numa proposta com obra gerada mostra "Obra desta proposta".
+- Sino no topo: notificações. Botão Suíte no topo: troca para o Centro de Custos e o Chamados e O.S.; numa proposta com obra gerada mostra "Obra desta proposta".
 
 Conceitos:
 - Proposta: em edição, em revisão, enviada, aprovada ou recusada. Cada alteração enviada vira uma nova revisão (REV 00, 01...); a última é a atual e as anteriores ficam só para consulta.
