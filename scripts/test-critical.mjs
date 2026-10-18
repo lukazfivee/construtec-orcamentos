@@ -29,6 +29,7 @@ const entryPoints = [
   'src/server/suiteGuard.test.ts',
   'src/server/services/client-links.test.ts',
   'src/server/services/client-links-hardening.test.ts',
+  'src/server/routes/authLimiter.test.ts',
   'src/server/services/priceDrift.test.ts',
   'src/server/services/catalogOverview.test.ts',
   'src/renderer/catalogImportFlow.test.ts',

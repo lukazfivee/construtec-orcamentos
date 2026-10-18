@@ -32,19 +32,24 @@ const findLink = async (database: LocalDatabase, token: string, secret: string):
 };
 
 // Documento e dados completos so enquanto o link esta ativo ou, depois de respondido, por 30 dias.
+// Link ativo de proposta que voltou a rascunho ou foi recusada nao mostra mais nada ao cliente.
+const hiddenFromClient = (status: string) => status === 'draft' || status === 'rejected';
 const documentAvailable = (row: LinkRow) => {
   const state = linkState(row);
-  if (state === 'active') return true;
+  if (state === 'active') return !hiddenFromClient(row.proposal_status);
   return (state === 'approved' || state === 'adjust' || state === 'confirmed') && closedWindowOpen(row);
 };
 
 const view = async (database: LocalDatabase, row: LinkRow): Promise<PublicLinkView> => {
   const settings = await getAppSettings(database);
   const company = { name: settings.tradeName || settings.companyName || 'Construtec', phone: settings.phone || '', email: settings.email || '' };
-  const state = linkState(row);
+  const linkSt = linkState(row);
+  const state: LinkState = linkSt === 'active' && !documentAvailable(row) ? 'disabled' : linkSt;
   if (!documentAvailable(row)) return { state, proposal: { number: row.proposal_number }, company };
   const proposal = await getProposalById(database, row.proposal_id);
   if (!proposal) throw new ClientLinkError('LINK_INVALID', 404, 'Este link não existe.');
+  // Revalida no mesmo registro usado na resposta: o status pode ter mudado depois do LINK_SELECT.
+  if (linkSt === 'active' && hiddenFromClient(proposal.status)) return { state: 'disabled', proposal: { number: row.proposal_number }, company };
   const reply = (await database.query<{ kind: 'approved' | 'adjust'; actor_name: string | null; message: string | null; code: string | null; occurred_at: string }>(
     "SELECT kind, actor_name, message, code, occurred_at::text FROM proposal_client_link_events WHERE link_id = $1 AND kind IN ('approved','adjust') ORDER BY occurred_at DESC LIMIT 1", [row.id],
   )).rows[0];
@@ -79,6 +84,7 @@ export const publicDocumentHtml = async (database: LocalDatabase, token: string,
   if (!documentAvailable(row)) throw new ClientLinkError('LINK_CLOSED', 410, 'Este link não está mais disponível.');
   const proposal = await getProposalById(database, row.proposal_id);
   if (!proposal) throw new ClientLinkError('LINK_INVALID', 404, 'Este link não existe.');
+  if (linkState(row) === 'active' && hiddenFromClient(proposal.status)) throw new ClientLinkError('LINK_CLOSED', 410, 'Este link não está mais disponível.');
   return buildMobileProposalHtml(proposal, await getAppSettings(database), parseMobileDocumentChoices({}));
 };
 

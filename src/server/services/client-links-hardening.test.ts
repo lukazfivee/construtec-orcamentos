@@ -82,6 +82,22 @@ test('link do cliente: endurecimento da revisao de seguranca', async context => 
     await assert.rejects(approvePublicLink(database, link.token, { accept: true }, ctx), failsWith('LINK_NOT_ACTIVE'));
   });
 
+  await context.test('link ativo de proposta em rascunho ou recusada nao mostra dados nem documento', async () => {
+    const id = await ready();
+    const link = await newLink(id);
+    assert.equal((await openPublicLink(database, link.token, ctx)).proposal.total, 1250);
+    for (const status of ['rejected', 'draft']) {
+      await database.query('UPDATE proposals SET status = $2 WHERE id = $1', [id, status]);
+      const closed = await openPublicLink(database, link.token, ctx);
+      assert.equal(closed.state, 'disabled');
+      assert.deepEqual(Object.keys(closed.proposal), ['number']);
+      await assert.rejects(publicDocumentHtml(database, link.token, SECRET), failsWith('LINK_CLOSED'));
+    }
+    await database.query("UPDATE proposals SET status = 'sent' WHERE id = $1", [id]);
+    assert.equal((await openPublicLink(database, link.token, ctx)).proposal.total, 1250);
+    assert.match(await publicDocumentHtml(database, link.token, SECRET), /<html/i);
+  });
+
   await context.test('pedido de ajuste e transacional: falha na revisao nao fecha o link', async () => {
     const id = await ready();
     await addLabor(id);

@@ -24,8 +24,37 @@ const clientIp = (request: { headers: Record<string, unknown>; ip?: string }) =>
   return typeof value === 'string' && value ? value : undefined;
 };
 
+// Limite local de tentativas na nuvem, alem do limite do diretorio central: janela fixa por IP (cf-connecting-ip).
+// Sem IP confiavel todos dividem um balde maior. No app local (sem DATABASE_URL) nao limita.
+const AUTH_WINDOW_MS = 10 * 60_000;
+const AUTH_MAX_PER_IP = 20;
+const AUTH_MAX_NO_IP = 120;
+
+export const createAuthLimiter = (now: () => number = Date.now) => {
+  const buckets = new Map<string, { count: number; resetAt: number }>();
+  return (ip: string | undefined): boolean => {
+    const key = ip ?? 'sem-ip-confiavel';
+    const max = ip ? AUTH_MAX_PER_IP : AUTH_MAX_NO_IP;
+    const time = now();
+    const bucket = buckets.get(key);
+    if (!bucket || bucket.resetAt <= time) {
+      if (buckets.size > 5000) for (const [k, b] of buckets) if (b.resetAt <= time) buckets.delete(k);
+      buckets.set(key, { count: 1, resetAt: time + AUTH_WINDOW_MS });
+      return false;
+    }
+    bucket.count += 1;
+    return bucket.count > max;
+  };
+};
+
 export const createAuthRouter = (database: LocalDatabase) => {
   const router = Router();
+  const authLimited = createAuthLimiter();
+  const tooMany = (request: { headers: Record<string, unknown> }, response: { status: (code: number) => { json: (body: unknown) => unknown } }) => {
+    if (!process.env.DATABASE_URL || !authLimited(clientIp(request))) return false;
+    response.status(429).json({ error: 'Muitas tentativas. Aguarde alguns minutos.' });
+    return true;
+  };
 
   router.get('/setup-status', async (_request, response, next) => {
     try {
@@ -40,6 +69,7 @@ export const createAuthRouter = (database: LocalDatabase) => {
 
   router.post('/login', async (request, response, next) => {
     try {
+      if (tooMany(request, response)) return;
       const input = credentialsSchema.parse(request.body);
       response.json(await loginUser(database, input.email, input.password, clientIp(request)));
     } catch (error) { next(error); }
@@ -48,6 +78,7 @@ export const createAuthRouter = (database: LocalDatabase) => {
   // Codigo de uso unico entregue pelo app Suite Construtec (#handoff=).
   router.post('/handoff', async (request, response, next) => {
     try {
+      if (tooMany(request, response)) return;
       const input = handoffSchema.parse(request.body);
       response.json(await consumeHandoff(database, input.code));
     } catch (error) { next(error); }
