@@ -128,8 +128,6 @@ kbd {
 .suite-dropdown-sep { height: 1px; background: rgba(255, 255, 255, 0.08); margin: 3px 0; }
 .suite-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; text-decoration: none; background: transparent; border: 0; color: #b9d4dd; font-family: inherit; font-size: calc(12px * var(--fs, 1)); text-align: left; transition: background 0.15s ease, color 0.15s ease; cursor: pointer; width: 100%; }
 .suite-dropdown-item:hover:not(.disabled-system):not(.current-system) { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.suite-dropdown-item.hub-link { background: rgba(13, 127, 159, 0.15); color: #fff; border: 1px solid rgba(13, 127, 159, 0.25); }
-.suite-dropdown-item.hub-link:hover { background: rgba(13, 127, 159, 0.3); border-color: #12a9d1; }
 .suite-dropdown-item.current-system { background: rgba(22, 131, 93, 0.18); color: var(--tx-green-52); cursor: default; }
 .suite-dropdown-item.disabled-system { opacity: 0.55; cursor: not-allowed; }
 .suite-item-icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; text-align: center; flex-shrink: 0; }

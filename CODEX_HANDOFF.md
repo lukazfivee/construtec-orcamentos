@@ -372,7 +372,6 @@ Dois bugs de especificidade CSS pegos e corrigidos durante a verificação (mesm
 - Neon permanente criado na conta Lucas Free: projeto gentle-shape-68513699, PostgreSQL 17. Conexão TLS verificada; 10 migrações aplicadas pelo container; zero usuários e nenhum dado local importado.
 - API e interface: https://construtec-orcamentos-cloud.construtec-reports.workers.dev . Health HTTP 200 storage postgresql; propostas anônimas HTTP 401; setup-status requer primeiro administrador.
 - Container Cloudflare publicado; digest sha256:1648c11467fa1542aa3bdd2a21a9927f32be9941ab8a484abf10d83868dc68d5. Quatro segredos registrados por CLI sem valores versionados.
-- Hub atualizado para URL cloud e health real; 12 testes aprovados e deploy concluído.
 - Pendente: provisionar primeiro administrador por canal protegido (setup token não está no frontend), corrigir textos local/cloud na tela de acesso e validar fluxo autenticado remoto. Não declarar suíte completamente concluída.
 
 ## 2026-09-15 08:15 BRT — PostgreSQL e preparação Neon
