@@ -88,7 +88,10 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
     } else if (entry.id === 'chamados') {
       // Login unico: o Centro emite o handoff; a negacao de acesso aparece na pagina de entrada central.
       if (window.construtec?.suiteSwitch && suiteApp) {
-        void window.construtec.suiteSwitch('chamados');
+        // Host sem suporte ao Chamados (ou falha na entrada): cai no login central pelo navegador.
+        window.construtec.suiteSwitch('chamados')
+          .then((result) => { if (!result?.switched) handleOpenUrl(chamadosEntradaUrl(centroUrl)); })
+          .catch(() => handleOpenUrl(chamadosEntradaUrl(centroUrl)));
         onClose();
       } else {
         handleOpenUrl(chamadosEntradaUrl(centroUrl));
