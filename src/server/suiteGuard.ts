@@ -11,12 +11,16 @@ export const COST_KEYS = new Set([
   'currentCost', 'totalEstimatedCost', 'defaultBdi',
 ]);
 
-export const maskCosts = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(maskCosts);
+// No painel, qualquer campo cujo nome lembre custo, margem, BDI ou lucro tambem zera: campo novo nao vaza por falta de entrada na lista.
+const COST_NAME = /cost|margin|bdi|profit|gross/i;
+
+export const maskCosts = (value: unknown, byName = false): unknown => {
+  if (Array.isArray(value)) return value.map((item) => maskCosts(item, byName));
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {};
     for (const [key, inner] of Object.entries(value)) {
-      out[key] = COST_KEYS.has(key) && (typeof inner === 'number' || inner === null) ? (inner === null ? null : 0) : maskCosts(inner);
+      const isCost = COST_KEYS.has(key) || (byName && COST_NAME.test(key));
+      out[key] = isCost && (typeof inner === 'number' || inner === null) ? (inner === null ? null : 0) : maskCosts(inner, byName);
     }
     return out;
   }
@@ -41,9 +45,9 @@ const costFieldsWritten = (body: unknown, ignoreZero: boolean): string[] => {
 
 const deny = (response: Response, error: string) => response.status(403).json({ error });
 
-const maskJson = (response: Response) => {
+const maskJson = (response: Response, byName = false) => {
   const json = response.json.bind(response);
-  response.json = ((body?: unknown) => json(maskCosts(body))) as Response['json'];
+  response.json = ((body?: unknown) => json(maskCosts(body, byName))) as Response['json'];
 };
 
 export const suiteGuard = (request: Request, response: Response, next: NextFunction) => {
@@ -67,7 +71,7 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
     return next();
   }
   // BDI padrao das configuracoes e totais de custo do painel (Inicio): so quem ve custo e BDI.
-  if ((path.startsWith('/api/settings') || path.startsWith('/api/dashboard')) && !canSee && request.method === 'GET') maskJson(response);
+  if ((path.startsWith('/api/settings') || path.startsWith('/api/dashboard')) && !canSee && request.method === 'GET') maskJson(response, path.startsWith('/api/dashboard'));
   if (!path.startsWith('/api/proposals')) return next();
 
   const write = request.method !== 'GET';

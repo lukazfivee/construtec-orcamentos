@@ -205,5 +205,9 @@ test('painel (/api/dashboard) esconde custo de quem nao tem p10 (passada S-O)', 
   assert.equal(semCusto.recentProposals[0].totalCost, 0);
   assert.equal(semCusto.recentProposals[0].totalSale, 100);
   assert.equal(semCusto.totalApproved, 900);
+  // Campo de custo que ninguem listou ainda: o painel zera pelo nome.
+  const novo = run(user('tecnico'), 'GET', '/api/dashboard', undefined, { netMargin: 12, totalSale: 100 }).sent as unknown as { netMargin: number; totalSale: number };
+  assert.equal(novo.netMargin, 0);
+  assert.equal(novo.totalSale, 100);
   assert.equal((run(user('comercial'), 'GET', '/api/dashboard', undefined, painel).sent as unknown as Painel).recentProposals[0].totalCost, 60);
 });
