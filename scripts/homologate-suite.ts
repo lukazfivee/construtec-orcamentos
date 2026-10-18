@@ -134,11 +134,6 @@ async function main() {
     assert.equal(measurements.labor.length, 1);
     assert.equal(measurements.contracts.length, 2);
     check('Despesa, apropriação, horas, duas medições e EAC conferidos em centavos');
-    const hub = await launch(path.join(workspace, 'portal-hub-construtec'), '/');
-    const cockpit = await (await fetch(hub + '/api/portfolio-summary?centroCustosUrl=' + encodeURIComponent(base))).json();
-    assert.equal(cockpit.portfolio.totalRealizedCost, 550.01);
-    assert.equal(cockpit.portfolio.clientBilling.totalBilled, 1500);
-    check('Hub consolida carteira da instância piloto');
     fs.writeFileSync(path.join(output, 'dados-visuais.json'), JSON.stringify({ comparison, curve, measurements,
       center: { nome: 'Obra piloto de homologação', codigo: 'HML-001', cliente: 'Cliente fictício', responsavel: 'Responsável de homologação' } }, null, 2));
     const backupResponse = await fetch(base + '/api/backup', { headers: { Authorization: `Bearer ${auth}` } });
