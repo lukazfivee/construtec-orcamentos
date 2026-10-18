@@ -77,7 +77,7 @@ Validado ao vivo com um mock HTTP local no lugar do Centro de Custos real (nunca
 
 ### Correcao: iframe do Centro de Custos bloqueado por CORS na nuvem
 
-Usuario testou "Ir para Centro de Custo" na nuvem real e caiu na tela "Centro de Custos nao iniciado" (mensagem de `.bat`/Portal Hub, feita pro desktop local). Causa: `CentroCustosWorkspace` gateava o iframe atras de um `fetch('/api/health')` entre origens -- sempre bloqueado por CORS na nuvem (cada app e' um Worker independente), mesmo com o outro servico rodando normalmente. Corrigido usando `isCloudRuntime()` (ja existente) pra pular esse gate fora do desktop Electron; o iframe (que nao sofre CORS, diferente de fetch) carrega direto com o deep link certo. Validado ao vivo (nuvem simulada): iframe renderiza a URL correta em vez da tela de bloqueio. Desktop local inalterado. Commit `0aafb82`.
+Usuario testou "Ir para Centro de Custo" na nuvem real e caiu na tela "Centro de Custos nao iniciado" (mensagem de `.bat`, feita pro desktop local). Causa: `CentroCustosWorkspace` gateava o iframe atras de um `fetch('/api/health')` entre origens -- sempre bloqueado por CORS na nuvem (cada app e' um Worker independente), mesmo com o outro servico rodando normalmente. Corrigido usando `isCloudRuntime()` (ja existente) pra pular esse gate fora do desktop Electron; o iframe (que nao sofre CORS, diferente de fetch) carrega direto com o deep link certo. Validado ao vivo (nuvem simulada): iframe renderiza a URL correta em vez da tela de bloqueio. Desktop local inalterado. Commit `0aafb82`.
 
 ### Correcao (outro repo): CSP `frame-ancestors` bloqueava o iframe na nuvem
 
