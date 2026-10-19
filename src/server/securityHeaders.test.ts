@@ -41,3 +41,8 @@ test('arquivos estaticos: nenhuma tela pode ser embutida em outro site', () => {
   assert.doesNotMatch(csp, /\*|http:/, csp);
   assert.ok(regra.includes('X-Content-Type-Options: nosniff'), regra.join(' | '));
 });
+test('arquivos com hash do build: cache de um ano; HTML e rotas fora disso nao', () => {
+  const texto = readFileSync(path.join(process.cwd(), 'public', '_headers'), 'utf8');
+  assert.match(texto, /^\/assets\/\*\r?\n\s+Cache-Control: public, max-age=31536000, immutable/m);
+  assert.doesNotMatch(texto, /^\/(\*|c|c\/\*)\r?\n(\s+\S.*\r?\n)*?\s+Cache-Control:/m);
+});

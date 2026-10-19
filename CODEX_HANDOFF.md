@@ -1,5 +1,15 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-19 BRT - Otimizacao fase 1: cache dos arquivos e Cron menos frequente (Claude Code)
+
+- Base: `origin/main` em `0133dd0`, branch `perf/fase1-cache-cron`. Pedido: reduzir atraso do app e do site e o custo na Cloudflare. Plano completo na conversa (fases 0 a 5); esta e so a fase 1, sem medicao em producao.
+- `public/_headers`: `/assets/*` com `Cache-Control: public, max-age=31536000, immutable` (arquivos com hash do Vite). `/m/*` nao entra: nomes sem hash.
+- `public/sw.js`: cache `v2`; `/assets/*` sai do cache primeiro (hash no nome, nunca fica velho); o resto continua rede primeiro.
+- `wrangler.jsonc` do container: Cron de `0 * * * *` para `0 */3 * * *` (menos despertares do Container e do Neon) e `invocation_logs` desligado (logs de erro continuam). `CRON_MAX_ATTEMPTS` 72 para 24 (mesmos 3 dias de tentativas). Efeito: reenvio da outbox e atualizacao do acompanhamento da obra sem ninguem usando o app passam a ocorrer a cada 3 h.
+- Nao feito de proposito: cache de leitura nas rotas `/api/*` (risco de dado velho apos edicao; decidir com a medicao da fase 0) e pre-aquecimento no login (o AuthGate ja chama a API de sessao, que acorda o Container).
+- Validacao: `tsc` sem erros, eslint sem erros, `test:critical` 353 passam, 0 falham (1 ignorado). Teste novo em `securityHeaders.test.ts` para a regra de `/assets/*`.
+- Proximo passo: fase 0 (medir `Server-Timing`, custos Cloudflare e Neon) e, ao publicar, conferir `Cache-Control` de `/assets/*` em producao. Confirmar com o Lucas se 3 h e aceitavel para a outbox.
+
 ## 2026-10-17 BRT - Chamados e O.S. no lugar do ChamadoPro nos menus de troca (Claude Code)
 
 - Base: `origin/main` em `88c9335`, branch `feat/chamados-suite-integracao`. Menu Suite do desktop (`SuiteSwitcherPopover`), folha do celular React (`MobileSuiteSheet`) e `public/m/suite.js` agora levam ao Chamados e O.S. (texto igual ao do Centro: `Etapa 03 · atendimento e manutencao`, icone wrench). Id do item: `chamados`.

@@ -42,7 +42,7 @@ test('passada do Cron considera pendencias que o laco de 30s esgotou', async () 
   const database = { query: async (_sql: string, params: unknown[]) => { seen.push(params); return { rows: [] }; }, exec: async () => undefined } as unknown as LocalDatabase;
   await runOutboxRetryPass(database);
   await runOutboxRetryPass(database, CRON_MAX_ATTEMPTS);
-  assert.deepEqual(seen.map(params => params[0]), [5, 72]);
+  assert.deepEqual(seen.map(params => params[0]), [5, 24]);
 });
 
 test('reserva da outbox e atomica: duas passadas nao pegam a mesma linha; esgotadas viram failed', async context => {
@@ -70,7 +70,7 @@ test('reserva da outbox e atomica: duas passadas nao pegam a mesma linha; esgota
   await database.query("UPDATE integration_outbox SET claimed_at = now() - interval '10 minutes' WHERE id = $1", [all[0]]);
   assert.deepEqual((await claimOutboxBatch(database, 5)).map(row => row.outbox_id), [all[0]]);
 
-  // Esgotadas: 72 tentativas -> failed; abaixo disso continua pending.
+  // Esgotadas: 24 tentativas -> failed; abaixo disso continua pending.
   await database.query('UPDATE integration_outbox SET attempts = $2 WHERE id = $1', [all[1], CRON_MAX_ATTEMPTS]);
   await database.query('UPDATE integration_outbox SET attempts = $2 WHERE id = $1', [all[2], CRON_MAX_ATTEMPTS - 1]);
   assert.equal(await failExhaustedOutbox(database), 1);
