@@ -3,8 +3,9 @@ import { refreshCenterTracking } from './integration/centerTracking';
 import { syncProposalDirectly } from './integration/proposalSync';
 
 const MAX_ATTEMPTS = 5;
-// O Cron de hora em hora continua tentando o que o laco de 30s esgotou
-// (indisponibilidade longa do Centro): ate 3 dias de tentativas horarias.
+// O Cron de 3 em 3 horas continua tentando o que o laco de 30s esgotou
+// (indisponibilidade longa do Centro): ate 72 tentativas, cerca de 9 dias. O limite nao baixou junto com a
+// frequencia do Cron para nao encerrar de uma vez as linhas pendentes que ja passaram de 24 tentativas.
 export const CRON_MAX_ATTEMPTS = 72;
 const RETRY_INTERVAL_MS = 30_000;
 

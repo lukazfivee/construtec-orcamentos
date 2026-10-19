@@ -3,8 +3,8 @@
   "main": "index.js",
   "compatibility_date": "2026-09-15",
   "workers_dev": true,
-  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": true } },
-  "triggers": { "crons": ["0 * * * *"] },
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+  "triggers": { "crons": ["0 */3 * * *"] },
   "assets": {
     "directory": "../../dist",
     "binding": "ASSETS",

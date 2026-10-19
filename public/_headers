@@ -9,3 +9,6 @@
   Content-Security-Policy: frame-ancestors 'self'
 /c/*
   Content-Security-Policy: frame-ancestors 'self'
+# Arquivos do build do Vite levam hash no nome: o conteudo de um endereco nunca muda.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

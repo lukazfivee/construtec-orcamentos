@@ -1,4 +1,4 @@
-const CACHE_NAME = 'construtec-cache-v1';
+const CACHE_NAME = 'construtec-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -26,6 +26,20 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   if (url.pathname.startsWith('/api/') || event.request.method !== 'GET') {
+    return;
+  }
+
+  // /assets/ e o build com hash no nome: o que esta no cache nunca fica velho, entao nao passa pela rede.
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request).then(async (response) => {
+        if (response.status === 200) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(event.request, response.clone());
+        }
+        return response;
+      }))
+    );
     return;
   }
 
