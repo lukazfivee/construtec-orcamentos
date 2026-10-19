@@ -4,8 +4,9 @@ import { syncProposalDirectly } from './integration/proposalSync';
 
 const MAX_ATTEMPTS = 5;
 // O Cron de 3 em 3 horas continua tentando o que o laco de 30s esgotou
-// (indisponibilidade longa do Centro): ate 3 dias de tentativas.
-export const CRON_MAX_ATTEMPTS = 24;
+// (indisponibilidade longa do Centro): ate 72 tentativas, cerca de 9 dias. O limite nao baixou junto com a
+// frequencia do Cron para nao encerrar de uma vez as linhas pendentes que ja passaram de 24 tentativas.
+export const CRON_MAX_ATTEMPTS = 72;
 const RETRY_INTERVAL_MS = 30_000;
 
 // Lease da reserva: se o processo cair no meio do envio, a linha volta a ser elegivel depois disso.
@@ -71,7 +72,7 @@ export const runOutboxRetryPass = async (
 // Passada completa do Cron: reenvio pendente e atualizacao do acompanhamento.
 export const runScheduledIntegrationPass = async (database: Pick<LocalDatabase, 'query' | 'exec'>, maxAttempts = MAX_ATTEMPTS) => {
   const attempted = await runOutboxRetryPass(database, maxAttempts);
-  // So o Cron (limite de 24) encerra linhas: o laco de 30s para em 5 e deixa o resto para o Cron.
+  // So o Cron (limite de 72) encerra linhas: o laco de 30s para em 5 e deixa o resto para o Cron.
   if (maxAttempts >= CRON_MAX_ATTEMPTS) await failExhaustedOutbox(database, CRON_MAX_ATTEMPTS);
   return { attempted, refreshed: await refreshCenterTracking(database) };
 };

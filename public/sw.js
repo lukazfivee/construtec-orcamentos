@@ -32,10 +32,10 @@ self.addEventListener('fetch', (event) => {
   // /assets/ e o build com hash no nome: o que esta no cache nunca fica velho, entao nao passa pela rede.
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
+      caches.match(event.request).then((cached) => cached || fetch(event.request).then(async (response) => {
         if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(event.request, response.clone());
         }
         return response;
       }))
