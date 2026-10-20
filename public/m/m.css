@@ -303,3 +303,14 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 @supports not selector(:has(a)) { #view { padding-bottom: var(--fab-clear); } }
 /* Filtros de situacao (lista de propostas) quebram linha em vez de rolar de lado e cortar o ultimo chip; os demais .chips (ex.: categorias do Catalogo) seguem rolando de lado. */
 #p-chips { flex-wrap: wrap; overflow-x: visible; }
+
+/* Cartao de confirmacao da proposta montada pela IA (igual ao do computador) */
+.ia-card { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 12px; background: var(--bg); border: 1px solid var(--divider); border-radius: 12px; }
+.ia-card b { color: var(--text); font-size: 14px; }
+.ia-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; }
+.ia-card dt { color: var(--n300); font-size: 12.5px; } .ia-card dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+.ia-card em { color: var(--n300); font-style: normal; font-size: 12.5px; }
+.ia-card ul { margin: 0; padding-left: 18px; } .ia-card small { color: var(--n300); font-size: 12px; line-height: 1.4; }
+.ia-card .ia-card-note { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; }
+.ia-card-actions { display: flex; flex-direction: column; gap: 8px; } .ia-card-actions .ia-go { margin-top: 0; justify-content: center; }
+.ia-card button:disabled { opacity: .55; }

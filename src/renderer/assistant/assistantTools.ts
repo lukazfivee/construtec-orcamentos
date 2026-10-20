@@ -4,6 +4,8 @@
 // Tudo que toca o app entra por `deps` (API, permissoes, navegacao), para testar sem rede nem tela.
 import type { CatalogProduct, CenterTracking, ClientRecord, DashboardMetrics, KitSummary, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../../shared/contracts';
 import type { NavSection } from '../navSections';
+import { addItems, emptyDraft, missing, removeItems, setFields, summary, withClient, withWork } from './proposalDraft';
+import type { CatalogHit, ItemInput, ProposalDraft } from './proposalDraft';
 
 export interface AssistantApi {
   proposals(): Promise<{ proposals: ProposalSummary[] }>;
@@ -41,6 +43,9 @@ export interface SchemaBuilder {
   string(spec?: Spec): unknown;
   enumString(spec: Spec & { enum: string[] }): unknown;
   integer(spec?: Spec): unknown;
+  number(spec?: Spec): unknown;
+  boolean(spec?: Spec): unknown;
+  array(spec: Spec & { items: unknown }): unknown;
 }
 
 type Args = Record<string, unknown>;
@@ -58,6 +63,10 @@ const sale = (p: ProposalSummary) => Number(p.totalSale) || 0;
 
 export function createAssistantTools(deps: ToolDeps) {
   let pending: PendingNav | null = null;
+  // Rascunho de proposta da conversa (so memoria). `confirm` liga quando a IA pede o cartao de confirmacao.
+  let draft: ProposalDraft = emptyDraft();
+  let confirm = false;
+  let known: ClientRecord | null = null; // cadastro do cliente escolhido (para casar a obra pelo nome)
   const cost = (v: unknown) => (deps.seesCost() ? n(v) : undefined); // undefined some do JSON
 
   function resumo(p: ProposalSummary) {
@@ -82,6 +91,36 @@ export function createAssistantTools(deps: ToolDeps) {
       return Number.isInteger(id) && id > 0 ? { label: 'a obra no Centro de Custos', run: () => deps.nav().openCentroCustos(id) } : 'Informe obra_id (vem de ver_proposta, centro_custo_id).';
     }
     return 'Tela desconhecida.';
+  }
+
+
+  const NO_EDIT = { erro: 'Seu perfil só consulta; não cria propostas.' };
+  const nameOf = (c: ClientRecord) => c.tradeName || c.legalName;
+
+  // Cliente pelo nome digitado: um so resultado vira o escolhido; varios pedem desempate; nenhum so cria se a pessoa quis.
+  async function pickClient(name: string, create: boolean): Promise<Record<string, unknown> | null> {
+    const wanted = plain(name).trim();
+    if (wanted.length < 2) return { erro: 'Informe o nome do cliente.' };
+    const found = (await deps.api.clients(name.slice(0, 60))).clients;
+    const exact = found.filter((c) => plain(c.legalName).trim() === wanted || plain(c.tradeName || '').trim() === wanted);
+    const pool = exact.length ? exact : found;
+    if (pool.length === 1) { draft = withClient(draft, { id: pool[0].id, name: nameOf(pool[0]) }); known = pool[0]; return null; }
+    if (pool.length > 1) return { cliente_ambiguo: pool.slice(0, 8).map(nameOf), aviso: 'Pergunte qual destes é o cliente.' };
+    if (create) { draft = withClient(draft, { newName: name.trim().slice(0, 160) }); known = null; return null; }
+    return { cliente_nao_encontrado: name, aviso: 'Não há cliente com esse nome. Pergunte se a pessoa quer cadastrar um cliente novo; se sim, chame de novo com cliente_novo verdadeiro.' };
+  }
+
+  function pickWork(name: string, address: string): void {
+    const wanted = plain(name).trim();
+    const hit = known?.works?.find((w) => w.active !== false && plain(w.name).trim() === wanted);
+    draft = hit ? withWork(draft, { id: hit.id, name: hit.name }) : withWork(draft, { newName: name.trim().slice(0, 160), address: address.trim().slice(0, 240) });
+  }
+
+  async function catalogHit(code: string): Promise<CatalogHit | undefined> {
+    const wanted = plain(code).trim();
+    const list = (await deps.api.catalog(code.slice(0, 60))).products.filter((x) => x.active !== false);
+    const hit = list.find((x) => plain(x.code).trim() === wanted);
+    return hit && { code: hit.code, description: hit.description, unit: hit.unit };
   }
 
   const RUN: Record<string, (a: Args) => Promise<unknown>> = {
@@ -155,6 +194,55 @@ export function createAssistantTools(deps: ToolDeps) {
       const list = (await deps.api.kits()).kits.filter((k) => k.active !== false && (!term || plain(`${k.name} ${k.category} ${k.description || ''}`).includes(term)));
       return { total: list.length, kits: list.slice(0, 25).map((k) => ({ id: k.id, nome: k.name, categoria: k.category, itens: k.itemCount, referencia: k.description || null, custo_estimado: cost(k.totalEstimatedCost) })) };
     },
+    async rascunho_atualizar(a) {
+      if (!deps.canEdit()) return NO_EDIT;
+      const avisos: Record<string, unknown> = {};
+      // Escopo, prazo etc. entram primeiro: se o cliente nao for achado, o resto dito junto nao se perde.
+      const result = setFields(draft, { escopo: a.escopo, prazo_execucao: a.prazo_execucao, pagamento: a.pagamento, garantia: a.garantia, validade_dias: a.validade_dias, modelo: a.modelo });
+      draft = result.draft;
+      confirm = false;
+      if (str(a.cliente).trim()) {
+        const problem = await pickClient(str(a.cliente), a.cliente_novo === true);
+        if (problem) return problem;
+      }
+      if (str(a.obra).trim()) {
+        if (!draft.clientName) return { erro: 'Defina o cliente antes da obra.' };
+        pickWork(str(a.obra), str(a.obra_endereco));
+        if (draft.newWork) avisos.obra_nova = 'Esta obra ainda não existe para o cliente e será cadastrada junto com a proposta; confirme com a pessoa.';
+      }
+      return { ok: true, ...avisos, ...(result.erros.length ? { erros: result.erros } : {}), rascunho: summary(draft) };
+    },
+    async rascunho_itens(a) {
+      if (!deps.canEdit()) return NO_EDIT;
+      confirm = false;
+      const erros: string[] = [];
+      const wanted: Array<{ input: ItemInput; hit?: CatalogHit }> = [];
+      for (const raw of Array.isArray(a.adicionar) ? a.adicionar.slice(0, 30) : []) {
+        const input = (raw && typeof raw === 'object' ? raw : {}) as ItemInput;
+        const code = str(input.codigo).trim();
+        if (!code) { wanted.push({ input }); continue; }
+        const hit = await catalogHit(code);
+        if (hit) wanted.push({ input, hit }); else erros.push(`Código "${code}" não existe no catálogo. Use buscar_catalogo ou envie só a descrição para entrar como item avulso sem preço.`);
+      }
+      const added = addItems(draft, wanted);
+      const removed = removeItems(added.draft, Array.isArray(a.remover) ? a.remover.slice(0, 30) : []);
+      draft = removed.draft;
+      return { ok: true, removidos: removed.removidos, ...(erros.length || added.erros.length ? { erros: [...erros, ...added.erros] } : {}), rascunho: summary(draft) };
+    },
+    async rascunho_ver() {
+      return { rascunho: summary(draft) };
+    },
+    async rascunho_descartar() {
+      draft = emptyDraft(); known = null; confirm = false;
+      return { ok: true };
+    },
+    async finalizar_rascunho() {
+      if (!deps.canEdit()) return NO_EDIT;
+      const falta = missing(draft);
+      if (falta.length) return { erro: `Ainda falta: ${falta.join(', ')}. Pergunte à pessoa.` };
+      confirm = true;
+      return { ok: true, aviso: 'A proposta AINDA NÃO foi criada. Um cartão de confirmação aparece quando você terminar de responder. Peça que a pessoa confira e toque em Criar proposta.' };
+    },
     async buscar_catalogo(a) {
       const q = str(a.busca).trim().slice(0, 60);
       if (q.length < 2) return { erro: 'Informe ao menos 2 letras para buscar no catálogo.' };
@@ -197,6 +285,25 @@ export function createAssistantTools(deps: ToolDeps) {
       { name: 'resumo_comercial', description: 'Resumo comercial: propostas abertas e aprovadas, total em negociação e aprovado, taxa de conversão, ticket médio, funil e principais clientes.', parameters: S.object({ properties: {} }) },
       { name: 'listar_clientes', description: 'Clientes e suas obras (e contato). Sem busca, lista os primeiros.', parameters: busca('parte do nome, nome fantasia ou documento') },
       { name: 'listar_kits', description: 'Kits de itens que entram de uma vez na proposta.', parameters: busca('parte do nome ou da categoria') },
+      { name: 'rascunho_atualizar', description: 'Monta o rascunho de uma nova proposta (nada é gravado ainda). Passe só o que a pessoa disse. cliente e obra são nomes: o cliente é procurado nos cadastros. Nunca invente prazo, pagamento ou garantia.',
+        parameters: S.object({ properties: {
+          cliente: S.string({ description: 'nome do cliente (procurado nos cadastros)' }), cliente_novo: S.boolean({ description: 'true só depois de a pessoa confirmar que é um cliente novo' }),
+          obra: S.string({ description: 'nome da obra' }), obra_endereco: S.string({ description: 'endereço da obra, se informado' }),
+          escopo: S.string({ description: 'escopo em 1 ou 2 frases, com as palavras da pessoa (3 a 1200 letras)' }), prazo_execucao: S.string({ description: 'prazo de execução, ex.: 30 dias' }),
+          pagamento: S.string({ description: 'condição de pagamento, ex.: 50% na entrada e 50% na entrega' }), garantia: S.string({ description: 'garantia, ex.: 12 meses' }),
+          validade_dias: S.integer({ description: 'validade da proposta em dias (1 a 365)' }), modelo: S.enumString({ enum: ['servico', 'fornecimento'], description: 'servico = mão de obra; fornecimento = material' }),
+        }, optionalProperties: ['cliente', 'cliente_novo', 'obra', 'obra_endereco', 'escopo', 'prazo_execucao', 'pagamento', 'garantia', 'validade_dias', 'modelo'] }) },
+      { name: 'rascunho_itens', description: 'Adiciona ou remove itens do rascunho. Com codigo, o item vem do catálogo (confira antes com buscar_catalogo). Sem codigo entra como item avulso SEM preço. Item que já está no rascunho tem a quantidade substituída pela nova. Nunca informe preço.',
+        parameters: S.object({ properties: {
+          adicionar: S.array({ description: 'itens a adicionar', items: S.object({ properties: {
+            codigo: S.string({ description: 'código exato do catálogo' }), descricao: S.string({ description: 'descrição (obrigatória sem codigo)' }),
+            unidade: S.string({ description: 'un, m, m², etc.' }), quantidade: S.number({ description: 'quantidade maior que zero' }),
+          }, optionalProperties: ['codigo', 'descricao', 'unidade'] }) }),
+          remover: S.array({ description: 'número do item (1, 2...) ou trecho da descrição', items: S.string() }),
+        }, optionalProperties: ['adicionar', 'remover'] }) },
+      { name: 'rascunho_ver', description: 'Mostra o rascunho atual da proposta e o que ainda falta.', parameters: S.object({ properties: {} }) },
+      { name: 'rascunho_descartar', description: 'Apaga o rascunho de proposta (quando a pessoa desistir ou quiser recomeçar).', parameters: S.object({ properties: {} }) },
+      { name: 'finalizar_rascunho', description: 'Pede a confirmação da pessoa para criar a proposta. Só depois de cliente, obra e escopo definidos. Não cria nada: aparece um botão para ela.', parameters: S.object({ properties: {} }) },
       { name: 'buscar_catalogo', description: 'Procura itens no catálogo por código, descrição ou fabricante. Mostra até 10.',
         parameters: S.object({ properties: { busca: S.string({ description: 'ao menos 2 letras' }) } }) },
     ] }];
@@ -207,7 +314,12 @@ export function createAssistantTools(deps: ToolDeps) {
     declarations,
     /** Entrega (e esquece) a tela que a IA pediu para abrir. */
     takePending(): PendingNav | null { const found = pending; pending = null; return found; },
-    clearPending() { pending = null; },
+    clearPending() { pending = null; confirm = false; },
+    /** Rascunho para o cartao de confirmacao (so quando a IA chamou finalizar_rascunho e nada mudou depois). */
+    takeConfirm(): ProposalDraft | null { const out = confirm ? draft : null; confirm = false; return out; },
+    getDraft(): ProposalDraft { return draft; },
+    /** Depois do commit: guarda os ids criados (nova tentativa nao duplica) ou, com `done`, zera para a proxima proposta. */
+    setDraft(next: ProposalDraft, done = false) { draft = done ? emptyDraft() : next; if (done) known = null; },
     toolNames: Object.keys(RUN),
   };
 }

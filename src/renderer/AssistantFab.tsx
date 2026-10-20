@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { SendHorizontal, Sparkles, X } from 'lucide-react';
-import type { AuthUser } from '../shared/contracts';
-import { liveAssistantApi } from './assistant/assistantApi';
+import type { AuthUser, ProposalDetail } from '../shared/contracts';
+import { proposalApi } from './api';
+import { liveAssistantApi, liveCommitApi } from './assistant/assistantApi';
+import { commitDraft } from './assistant/assistantCommit';
 import { createAssistantChat, friendlyError, isOffline } from './assistant/assistantChat';
 import { appCheckAllowed, buildPrompt } from './assistant/assistantConfig';
 import { createAssistantTools } from './assistant/assistantTools';
 import type { AssistantNav, PendingNav } from './assistant/assistantTools';
 import { AssistantLog } from './AssistantLog';
-import type { AssistantMsg } from './AssistantLog';
+import type { AssistantMsg, DraftCard } from './AssistantLog';
 import { seesCost, useCanEdit } from './SuitePermissions';
 
 // Assistente de IA: botao flutuante em todas as telas depois do login (o App so monta depois dele) e
@@ -17,11 +19,13 @@ interface Props extends AssistantNav {
   user?: AuthUser | null;
   /** Tela aberta agora, em texto: entra nas instrucoes da IA. */
   screen: string;
+  /** Proposta criada pelo cartao do assistente: o App abre o editor e atualiza as abas. */
+  onProposalCreated: (created: ProposalDetail) => void;
 }
 
 const NAV_DELAY = 900; // a tela abre depois que a pessoa le a resposta curta
 const LONG_REPLY = 160; // resposta longa fica para ler, com o botao da tela
-const SUGGESTIONS = ['Quais propostas estão em andamento?', 'Quanto temos aprovado e em negociação?', 'Quais propostas vencem a validade esta semana?', 'Como crio uma nova proposta?'];
+const SUGGESTIONS = ['Quais propostas estão em andamento?', 'Quanto temos aprovado e em negociação?', 'Quais propostas vencem a validade esta semana?', 'Quero criar uma proposta'];
 const COST_SUGGESTION = 'Como está a obra da proposta aprovada mais recente?';
 
 export function AssistantFab(props: Props) {
@@ -81,7 +85,13 @@ export function AssistantFab(props: Props) {
       let pending = tools.takePending();
       const reply: AssistantMsg = { who: 'ia', text: answer || (pending ? 'Abrindo.' : 'Não tenho uma resposta para isso. Pode explicar de outro jeito?') };
       if (pending && reply.text.length > LONG_REPLY) { reply.go = pending; pending = null; }
-      push(reply);
+      const confirm = tools.takeConfirm();
+      if (confirm) {
+        reply.card = { draft: { ...confirm, items: confirm.items.map((item) => ({ ...item })) }, state: 'open' };
+        pending = null; // com o cartao na tela a IA nao abre outra tela por cima
+        // So o cartao mais novo vale: os anteriores nao podem criar uma proposta ja superada.
+        setLog((list) => [...list.map((msg) => (msg.card?.state === 'open' ? { ...msg, card: { ...msg.card, state: 'dismissed' as const } } : msg)), reply]);
+      } else push(reply);
       if (pending) { const target = pending; navTimer.current = window.setTimeout(() => go(target), NAV_DELAY); }
     } catch (error) {
       tools.clearPending();
@@ -102,9 +112,35 @@ export function AssistantFab(props: Props) {
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) submit(event);
   };
+  const setCard = (index: number, patch: Partial<DraftCard>) => setLog((list) => list.map((msg, i) => (i === index && msg.card ? { ...msg, card: { ...msg.card, ...patch } } : msg)));
+  const dismissCard = (index: number) => { if (!working.current) setCard(index, { state: 'dismissed' }); };
+  const createFromCard = async (index: number) => {
+    const card = log[index]?.card;
+    if (!card || card.state !== 'open' || working.current) return;
+    working.current = true;
+    setCard(index, { state: 'busy', note: undefined });
+    try {
+      const result = await commitDraft(liveCommitApi, card.draft);
+      if (!result.proposalId) { tools.setDraft(result.draft); setCard(index, { state: 'open', draft: result.draft, note: result.erro ?? 'Não consegui criar a proposta.' }); return; }
+      // Daqui em diante a proposta existe: o cartao nunca volta a "aberta" (outro clique criaria uma segunda proposta).
+      tools.setDraft(result.draft, true);
+      setCard(index, { state: 'done', note: result.aviso });
+      try {
+        const created = await proposalApi.byId(result.proposalId);
+        setOpen(false);
+        latest.current.props.onProposalCreated(created.proposal);
+      } catch {
+        setCard(index, { state: 'done', note: [result.aviso, 'Não consegui abrir a proposta agora; ela está na lista de Propostas.'].filter(Boolean).join(' ') });
+      }
+    } catch (error) {
+      setCard(index, { state: 'open', note: friendlyError(error) });
+    } finally {
+      working.current = false;
+    }
+  };
   const newChat = () => {
     if (working.current) return;
-    setLog([]); chat.reset(); input.current?.focus();
+    setLog([]); chat.reset(); tools.setDraft({ items: [] }, true); input.current?.focus();
   };
   const suggestions = seesCost() ? [...SUGGESTIONS.slice(0, 2), COST_SUGGESTION, ...SUGGESTIONS.slice(2)] : SUGGESTIONS;
 
@@ -121,9 +157,9 @@ export function AssistantFab(props: Props) {
           <button type="button" className="assistant-new" onClick={newChat} disabled={busy || log.length === 0}>Nova conversa</button>
           <button type="button" className="assistant-x" aria-label="Fechar" onClick={() => setOpen(false)}><X size={18} aria-hidden="true" /></button>
         </header>
-        <AssistantLog log={log} busy={busy} live={live} step={step} suggestions={suggestions} onAsk={(text) => void ask(text)} onGo={go} />
+        <AssistantLog log={log} busy={busy} live={live} step={step} suggestions={suggestions} onAsk={(text) => void ask(text)} onGo={go} onCreate={(index) => void createFromCard(index)} onDismiss={dismissCard} />
         <form className="assistant-input" onSubmit={submit}>
-          <textarea ref={input} rows={1} maxLength={1500} value={draft} placeholder="Pergunte ou peça uma tela" aria-label="Mensagem para o assistente"
+          <textarea ref={input} rows={1} maxLength={1500} value={draft} placeholder="Pergunte, peça uma tela ou uma proposta" aria-label="Mensagem para o assistente"
             onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} />
           <button type="submit" className="assistant-send" aria-label="Enviar" disabled={busy || !draft.trim()}><SendHorizontal size={18} aria-hidden="true" /></button>
         </form>
@@ -149,7 +185,7 @@ function makeEngine(latest: Latest) {
   const chat = createAssistantChat({
     tools,
     screen: () => latest.current.props.screen,
-    prompt: () => buildPrompt({ name: latest.current.props.user?.name, role: latest.current.props.user?.role, screen: latest.current.props.screen, seesCost: seesCost() }),
+    prompt: () => buildPrompt({ name: latest.current.props.user?.name, role: latest.current.props.user?.role, screen: latest.current.props.screen, seesCost: seesCost(), canEdit: latest.current.canEdit }),
   });
   return { tools, chat };
 }

@@ -6,9 +6,10 @@
 (function (OC) {
   const { esc, icon } = OC;
   const IA = OC.ia = OC.ia || {};
-  const SUGESTOES = ['Quais propostas estão em andamento?', 'Quanto temos aprovado e em negociação?', 'Como está a obra da proposta aprovada mais recente?', 'Quais propostas vencem a validade esta semana?', 'Como crio uma nova proposta?'];
+  const SUGESTOES = ['Quais propostas estão em andamento?', 'Quanto temos aprovado e em negociação?', 'Como está a obra da proposta aprovada mais recente?', 'Quais propostas vencem a validade esta semana?', 'Quero criar uma proposta'];
   const PASSOS = { listar_propostas: 'Procurando as propostas', ver_proposta: 'Abrindo a proposta', historico_revisoes: 'Lendo as revisões', acompanhamento_obra: 'Consultando a obra no Centro de Custos',
-    resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela' };
+    resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela',
+    rascunho_atualizar: 'Anotando na proposta', rascunho_itens: 'Anotando os itens', rascunho_ver: 'Relendo o rascunho', rascunho_descartar: 'Limpando o rascunho', finalizar_rascunho: 'Preparando a conferência' };
   const state = { chat: null, sdk: null, model: 0, busy: false, log: [], live: '', screen: '' };
   const offline = () => navigator.onLine === false;
 
@@ -126,16 +127,65 @@
     return out.join('');
   }
 
+  // Cartao de confirmacao da proposta montada pela IA: so o botao cria (a IA nao grava nada).
+  function cardHtml(m, i) {
+    const c = m.card;
+    if (!c || c.state === 'dismissed') return '';
+    const v = IA.draft.summary(c.draft);
+    const row = (k, val) => (val ? `<dt>${k}</dt><dd>${val}</dd>` : '');
+    const items = v.itens.length ? `<ul>${v.itens.map((it) => `<li>${esc(String(it.quantidade))} ${esc(it.unidade)} · ${esc(it.descricao)}${it.codigo ? '' : ' <em>(sem preço)</em>'}</li>`).join('')}</ul>` : '';
+    const open = c.state === 'open' || c.state === 'busy';
+    return `<div class="ia-card ${c.state}"><b>Proposta para conferir</b><dl>
+      ${row('Cliente', esc(v.cliente.nome) + (v.cliente.situacao === 'novo cadastro' ? ' <em>(novo cadastro)</em>' : ''))}
+      ${row('Obra', esc(v.obra.nome) + (v.obra.situacao === 'nova obra' ? ' <em>(nova)</em>' : ''))}
+      ${row('Escopo', esc(v.escopo))}${row('Prazo', esc(v.prazo_execucao))}${row('Pagamento', esc(v.pagamento))}${row('Garantia', esc(v.garantia))}${row('Validade', v.validade_dias ? `${v.validade_dias} dias` : '')}
+      </dl>${items}<small>Os preços vêm do catálogo; BDI e impostos, dos padrões da empresa. Itens sem preço você completa na proposta.</small>
+      ${c.note ? `<p class="ia-card-note">${esc(c.note)}</p>` : ''}
+      ${open ? `<div class="ia-card-actions"><button type="button" class="chip-act ia-go" data-card-create="${i}"${c.state === 'busy' ? ' disabled' : ''}>${icon('check', 16)}${c.state === 'busy' ? 'Criando' : 'Criar proposta'}</button>
+        <button type="button" class="chip-act" data-card-keep="${i}"${c.state === 'busy' ? ' disabled' : ''}>Continuar conversando</button></div>` : ''}
+      ${c.state === 'done' ? `<p class="ia-card-note">${icon('check', 16)}Proposta criada.</p>` : ''}</div>`;
+  }
+
+  async function createFromCard(i) {
+    const m = state.log[i];
+    if (!m || !m.card || m.card.state !== 'open' || state.busy) return;
+    state.busy = true; m.card.state = 'busy'; m.card.note = '';
+    paint();
+    try {
+      const r = await IA.draft.commit(m.card.draft);
+      if (!r.proposalId) {
+        IA.setDraft(r.draft);
+        m.card.state = 'open'; m.card.draft = r.draft; m.card.note = r.erro || 'Não consegui criar a proposta.';
+      } else {
+        IA.setDraft(r.draft, true);
+        // Daqui em diante a proposta existe: o cartao nunca volta a "aberta" (outro toque criaria uma segunda proposta).
+        m.card.state = 'done'; m.card.note = r.aviso || '';
+        try {
+          OC.toast('Proposta criada');
+          close();
+          OC.go('prop', { id: r.proposalId, tab: 'itens' }, { back: true });
+        } catch { m.card.note = [m.card.note, 'Não consegui abrir a proposta agora; ela está na lista de Propostas.'].filter(Boolean).join(' '); }
+      }
+    } catch (error) {
+      if (m.card.state === 'busy') { m.card.state = 'open'; m.card.note = friendly(error); }
+    } finally {
+      state.busy = false;
+      paint();
+    }
+  }
+
   const body = () => OC.$('#ia-log');
   function paint() {
     const el = body();
     if (!el) return;
-    el.innerHTML = state.log.length ? state.log.map((m, i) => `<div class="ia-msg ${m.who}">${m.who === 'ia' ? md(m.text) : esc(m.text)}${m.go ? `<button type="button" class="chip-act ia-go" data-go-ia="${i}">${icon('arrow-right', 16)}Ir para ${esc(m.label || 'a tela')}</button>` : ''}</div>`).join('')
+    el.innerHTML = state.log.length ? state.log.map((m, i) => `<div class="ia-msg ${m.who}">${m.who === 'ia' ? md(m.text) : esc(m.text)}${cardHtml(m, i)}${m.go ? `<button type="button" class="chip-act ia-go" data-go-ia="${i}">${icon('arrow-right', 16)}Ir para ${esc(m.label || 'a tela')}</button>` : ''}</div>`).join('')
       : `<div class="ia-hello">${icon('sparkle-fill', 28)}<b>Como posso ajudar?</b><span>Pergunte sobre propostas, clientes, kits, catálogo e a obra de cada proposta, ou peça para abrir uma tela.</span>
         <div class="ia-sug">${SUGESTOES.map((s) => `<button type="button" class="chip-act" data-sug="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`;
     if (state.busy && state.live) el.insertAdjacentHTML('beforeend', `<div class="ia-msg ia" id="ia-live">${md(state.live)}</div>`);
     else if (state.busy) el.insertAdjacentHTML('beforeend', `<div class="ia-msg ia busy" role="status"><span class="ia-dots"><i></i><i></i><i></i></span><small id="ia-step">${esc(state.step || 'Pensando')}</small></div>`);
     OC.$$('[data-sug]', el).forEach((b) => b.addEventListener('click', () => ask(b.dataset.sug)));
+    OC.$$('[data-card-create]', el).forEach((b) => b.addEventListener('click', () => createFromCard(Number(b.dataset.cardCreate))));
+    OC.$$('[data-card-keep]', el).forEach((b) => b.addEventListener('click', () => { const m = state.log[Number(b.dataset.cardKeep)]; if (m && m.card && !state.busy) { m.card.state = 'dismissed'; paint(); } }));
     OC.$$('[data-go-ia]', el).forEach((b) => b.addEventListener('click', () => { const m = state.log[Number(b.dataset.goIa)]; close(); if (m && m.go) m.go(); }));
     el.scrollTop = el.scrollHeight;
   }
@@ -152,7 +202,7 @@
     if (!q || state.busy) return;
     state.log.push({ who: 'eu', text: q });
     if (offline()) { state.log.push({ who: 'erro', text: 'O assistente precisa de internet.' }); return paint(); }
-    state.busy = true; state.step = 'Pensando'; IA.pendingNav = null;
+    state.busy = true; state.step = 'Pensando'; IA.pendingNav = null; IA.clearConfirm();
     paint();
     try {
       let result = await send(q);
@@ -171,6 +221,12 @@
       const reply = { who: 'ia', text: answer || (IA.pendingNav ? 'Abrindo.' : 'Não tenho uma resposta para isso. Pode explicar de outro jeito?') };
       // Resposta longa fica para ler, com o botao da tela; curta ("abrindo...") ja vai.
       if (IA.pendingNav && reply.text.length > 160) { reply.go = IA.pendingNav; reply.label = IA.pendingLabel; IA.pendingNav = null; }
+      const confirm = IA.takeConfirm();
+      if (confirm) {
+        reply.card = { draft: { ...confirm, items: confirm.items.map((item) => ({ ...item })) }, state: 'open' };
+        IA.pendingNav = null; // com o cartao na tela a IA nao abre outra tela por cima
+        state.log.forEach((m) => { if (m.card && m.card.state === 'open') m.card.state = 'dismissed'; }); // so o cartao mais novo vale
+      }
       state.log.push(reply);
     } catch (error) {
       state.log.push({ who: 'erro', text: friendly(error) });
@@ -203,7 +259,7 @@
       <div class="sheet-head"><b id="ia-title">${icon('sparkle', 18)}Assistente</b><span class="grow"></span>
         <button type="button" class="chip-act" id="ia-new">Nova conversa</button><button type="button" class="sheet-x" aria-label="Fechar">${icon('x', 20)}</button></div>
       <div class="ia-log" id="ia-log" aria-live="polite"></div>
-      <form class="ia-input" id="ia-form"><textarea id="ia-q" rows="1" maxlength="1500" placeholder="Pergunte ou peça uma tela" aria-label="Mensagem para o assistente"></textarea>
+      <form class="ia-input" id="ia-form"><textarea id="ia-q" rows="1" maxlength="1500" placeholder="Pergunte, peça uma tela ou uma proposta" aria-label="Mensagem para o assistente"></textarea>
         <button class="ia-send" type="submit" aria-label="Enviar">${icon('paper-plane-right', 20)}</button></form>
       <small class="ia-note">A IA pode errar. Confira os valores nas telas.${OC.iaConfig.recaptcha ? ' Protegido pelo reCAPTCHA (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacidade</a>, <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Termos</a>).' : ''}</small></div>`;
     el.addEventListener('click', (event) => { if (event.target === el || event.target.closest('.sheet-x')) close(); });
@@ -214,13 +270,13 @@
     input.addEventListener('input', grow);
     input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); OC.$('#ia-form', el).requestSubmit(); } });
     OC.$('#ia-form', el).addEventListener('submit', (event) => { event.preventDefault(); const q = input.value; input.value = ''; grow(); ask(q); });
-    OC.$('#ia-new', el).addEventListener('click', () => { if (state.busy) return; state.log = []; state.chat = null; state.model = 0; paint(); input.focus(); });
+    OC.$('#ia-new', el).addEventListener('click', () => { if (state.busy) return; state.log = []; state.chat = null; state.model = 0; IA.resetDraft(); paint(); input.focus(); });
     paint();
     if (starter) ask(starter); else input.focus();
   };
 
   // A conversa pertence a conta: sair ou trocar de conta comeca do zero.
-  IA.reset = () => { state.log = []; state.chat = null; state.model = 0; close(); };
+  IA.reset = () => { state.log = []; state.chat = null; state.model = 0; IA.resetDraft(); close(); };
   ['logout', 'onUnauthorized'].forEach((name) => {
     const original = OC[name];
     if (typeof original === 'function') OC[name] = function (...args) { IA.reset(); return original.apply(this, args); };
