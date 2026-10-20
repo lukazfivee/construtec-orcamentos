@@ -133,13 +133,13 @@
     if (!c || c.state === 'dismissed') return '';
     const v = IA.draft.summary(c.draft);
     const row = (k, val) => (val ? `<dt>${k}</dt><dd>${val}</dd>` : '');
-    const items = v.itens.length ? `<ul>${v.itens.map((it) => `<li>${esc(String(it.quantidade))} ${esc(it.unidade)} · ${esc(it.descricao)}${it.codigo ? '' : ' <em>(sem preço)</em>'}</li>`).join('')}</ul>` : '';
+    const items = v.itens.length ? `<ul>${v.itens.map((it) => `<li>${esc(String(it.quantidade))} ${esc(it.unidade)} · ${esc(it.descricao)}${it.custo_unitario != null ? ` <em>(custo ${esc(Number(it.custo_unitario).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))})</em>` : ''}${it.preco === 'sem preço (avulso)' ? ' <em>(sem preço)</em>' : ''}</li>`).join('')}</ul>` : '';
     const open = c.state === 'open' || c.state === 'busy';
     return `<div class="ia-card ${c.state}"><b>Proposta para conferir</b><dl>
       ${row('Cliente', esc(v.cliente.nome) + (v.cliente.situacao === 'novo cadastro' ? ' <em>(novo cadastro)</em>' : ''))}
       ${row('Obra', esc(v.obra.nome) + (v.obra.situacao === 'nova obra' ? ' <em>(nova)</em>' : ''))}
-      ${row('Escopo', esc(v.escopo))}${row('Prazo', esc(v.prazo_execucao))}${row('Pagamento', esc(v.pagamento))}${row('Garantia', esc(v.garantia))}${row('Validade', v.validade_dias ? `${v.validade_dias} dias` : '')}
-      </dl>${items}<small>Os preços vêm do catálogo; BDI e impostos, dos padrões da empresa. Itens sem preço você completa na proposta.</small>
+      ${row('Escopo', esc(v.escopo))}${row('Prazo', esc(v.prazo_execucao))}${row('Pagamento', esc(v.pagamento))}${row('Garantia', esc(v.garantia))}${row('Validade', v.validade_dias ? `${v.validade_dias} dias` : '')}${row('BDI', v.bdi != null ? String(v.bdi).replace('.', ',') : '')}${row('Imposto', v.imposto_pct != null ? `${String(v.imposto_pct).replace('.', ',')}%` : '')}
+      </dl>${items}<small>Itens do catálogo usam o custo do catálogo; BDI e imposto, os padrões da empresa (ou o que você informou). Itens sem preço você completa na proposta.</small>
       ${c.note ? `<p class="ia-card-note">${esc(c.note)}</p>` : ''}
       ${open ? `<div class="ia-card-actions"><button type="button" class="chip-act ia-go" data-card-create="${i}"${c.state === 'busy' ? ' disabled' : ''}>${icon('check', 16)}${c.state === 'busy' ? 'Criando' : 'Criar proposta'}</button>
         <button type="button" class="chip-act" data-card-keep="${i}"${c.state === 'busy' ? ' disabled' : ''}>Continuar conversando</button></div>` : ''}

@@ -42,6 +42,7 @@
   const D = IA.draft;
   const ST = IA.state = { draft: D.empty(), confirm: false, known: null };
   const NO_EDIT = { erro: 'Seu perfil só consulta; não cria propostas.' };
+  const NO_COST = 'Seu perfil não vê nem define custo, BDI e imposto; esses valores se informam no editor depois de criar a proposta.';
   const nameOf = (c) => c.tradeName || c.legalName;
 
   // Cliente pelo nome digitado: um so resultado vira o escolhido; varios pedem desempate; nenhum so cria se a pessoa quis.
@@ -151,9 +152,10 @@
     },
     async rascunho_atualizar(a) {
       if (!OC.canEdit()) return NO_EDIT;
+      if ((a.bdi !== undefined || a.imposto_pct !== undefined) && !OC.can('p10')) return { erro: NO_COST };
       const avisos = {};
       // Escopo, prazo etc. entram primeiro: se o cliente nao for achado, o resto dito junto nao se perde.
-      const result = D.setFields(ST.draft, { escopo: a.escopo, prazo_execucao: a.prazo_execucao, pagamento: a.pagamento, garantia: a.garantia, validade_dias: a.validade_dias, modelo: a.modelo });
+      const result = D.setFields(ST.draft, { escopo: a.escopo, prazo_execucao: a.prazo_execucao, pagamento: a.pagamento, garantia: a.garantia, validade_dias: a.validade_dias, modelo: a.modelo, bdi: a.bdi, imposto_pct: a.imposto_pct });
       ST.draft = result.draft;
       ST.confirm = false;
       if (String(a.cliente || '').trim()) {
@@ -169,6 +171,7 @@
     },
     async rascunho_itens(a) {
       if (!OC.canEdit()) return NO_EDIT;
+      if (Array.isArray(a.adicionar) && a.adicionar.some((raw) => raw && typeof raw === 'object' && raw.custo_unitario != null) && !OC.can('p10')) return { erro: NO_COST };
       ST.confirm = false;
       const erros = [];
       const wanted = [];
@@ -246,13 +249,15 @@
         escopo: S.string({ description: 'escopo em 1 ou 2 frases, com as palavras da pessoa (3 a 1200 letras)' }), prazo_execucao: S.string({ description: 'prazo de execução, ex.: 30 dias' }),
         pagamento: S.string({ description: 'condição de pagamento, ex.: 50% na entrada e 50% na entrega' }), garantia: S.string({ description: 'garantia, ex.: 12 meses' }),
         validade_dias: S.integer({ description: 'validade da proposta em dias (1 a 365)' }), modelo: S.enumString({ enum: ['servico', 'fornecimento'], description: 'servico = mão de obra; fornecimento = material' }),
-      }, optionalProperties: ['cliente', 'cliente_novo', 'obra', 'obra_endereco', 'escopo', 'prazo_execucao', 'pagamento', 'garantia', 'validade_dias', 'modelo'] }) },
-    { name: 'rascunho_itens', description: 'Adiciona ou remove itens do rascunho. Com codigo, o item vem do catálogo (confira antes com buscar_catalogo). Sem codigo entra como item avulso SEM preço. Item que já está no rascunho tem a quantidade substituída pela nova. Nunca informe preço.',
+        bdi: S.number({ description: 'BDI como multiplicador: 25% vira 1,25. Só se a pessoa pediu e pode ver custo' }), imposto_pct: S.number({ description: 'imposto em %, ex.: 8. Só se a pessoa pediu e pode ver custo' }),
+      }, optionalProperties: ['cliente', 'cliente_novo', 'obra', 'obra_endereco', 'escopo', 'prazo_execucao', 'pagamento', 'garantia', 'validade_dias', 'modelo', 'bdi', 'imposto_pct'] }) },
+    { name: 'rascunho_itens', description: 'Adiciona ou remove itens do rascunho. Com codigo, o item vem do catálogo (confira antes com buscar_catalogo). Sem codigo entra como item avulso SEM preço. Item que já está no rascunho tem a quantidade substituída pela nova. Só anote custo_unitario se a pessoa disse o valor; nunca invente.',
       parameters: S.object({ properties: {
         adicionar: S.array({ description: 'itens a adicionar', items: S.object({ properties: {
           codigo: S.string({ description: 'código exato do catálogo' }), descricao: S.string({ description: 'descrição (obrigatória sem codigo)' }),
           unidade: S.string({ description: 'un, m, m², etc.' }), quantidade: S.number({ description: 'quantidade maior que zero' }),
-        }, optionalProperties: ['codigo', 'descricao', 'unidade'] }) }),
+          custo_unitario: S.number({ description: 'custo unitário em reais que a pessoa informou, só para item avulso (sem codigo); o preço de venda sai do BDI e do imposto' }),
+        }, optionalProperties: ['codigo', 'descricao', 'unidade', 'custo_unitario'] }) }),
         remover: S.array({ description: 'número do item (1, 2...) ou trecho da descrição', items: S.string() }),
       }, optionalProperties: ['adicionar', 'remover'] }) },
     { name: 'rascunho_ver', description: 'Mostra o rascunho atual da proposta e o que ainda falta.', parameters: S.object({ properties: {} }) },

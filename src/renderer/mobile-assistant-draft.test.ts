@@ -22,11 +22,11 @@ const CLIENTS = [
 ];
 const PRODUCTS = [{ code: 'CAM-1', description: 'Câmera IP 2MP', unit: 'un', category: 'CFTV', active: true, currentCost: 300 }];
 
-function load(options: { edit?: boolean; fail?: string } = {}) {
+function load(options: { edit?: boolean; fail?: string; p10?: boolean } = {}) {
   const calls: Calls = [];
   const OC: Record<string, unknown> = {
     cents: (v: number) => Math.round(v * 100) / 100,
-    can: () => false,
+    can: () => options.p10 ?? false,
     canEdit: () => options.edit ?? true,
     api: async (p: string, init?: { method?: string; body?: unknown }) => {
       calls.push({ path: p, method: init?.method ?? 'GET', body: init?.body });
@@ -167,9 +167,41 @@ test('celular: cartao so cria pelo botao, o mais novo vale, e o prompt segue o p
   assert.match(chat, /IA\.draft\.commit\(m\.card\.draft\)/);
   assert.equal((chat.match(/IA\.draft\.commit/g) ?? []).length, 1, 'so o botao chama o commit');
   assert.match(chat, /IA\.resetDraft\(\)/);
-  assert.match(config, /OC\.canEdit\(\) \? DRAFTING : SO_CONSULTA/);
+  assert.match(config, /OC\.canEdit\(\) \? drafting\(OC\.can\('p10'\)\) : SO_CONSULTA/);
   assert.match(config, /AINDA NÃO foi criada/);
-  assert.match(config, /NUNCA informe preço, custo, BDI nem imposto/);
+  assert.match(config, /Esta pessoa não vê custo: não anote preço, custo, BDI nem imposto/);
+  assert.match(config, /anote como custo unitário \(custo_unitario\)/);
+  assert.match(config, /drafting\(OC\.can\('p10'\)\)/);
   assert.ok(html.indexOf('ia-draft.js') > 0 && html.indexOf('ia-draft.js') < html.indexOf('ia-tools.js'), 'ia-draft.js carrega antes das ferramentas');
   assert.doesNotMatch(read('ia-draft.js') + read('ia-tools.js'), /indexedDB|localStorage|sessionStorage/, 'rascunho so na memoria');
+});
+
+test('celular: valores so com p10; custo vira custo unitario e BDI/imposto entram antes dos itens (igual ao computador)', async () => {
+  const blind = load();
+  assert.match((await blind.run('rascunho_atualizar', { bdi: 1.25 })).erro, /não vê nem define custo/);
+  assert.match((await blind.run('rascunho_itens', { adicionar: [{ descricao: 'Correção', quantidade: 2, custo_unitario: 1500 }] })).erro, /não vê nem define custo/);
+  assert.equal((await blind.run('rascunho_ver')).rascunho.itens.length, 0);
+
+  const { run, ia, calls } = load({ p10: true });
+  await run('rascunho_atualizar', { cliente: 'Condomínio Alfa', obra: 'Bloco A', escopo: 'Correção de 2 eletroímãs', bdi: 1.25, imposto_pct: 8 });
+  assert.equal((await run('rascunho_atualizar', { bdi: 0.5 })).erros.length, 1);
+  const items = await run('rascunho_itens', { adicionar: [{ descricao: 'Correção de eletroímã', unidade: 'un', quantidade: 2, custo_unitario: 1500.456 }, { codigo: 'CAM-1', quantidade: 1, custo_unitario: 1 }] });
+  assert.equal(items.rascunho.itens[0].custo_unitario, 1500.46);
+  assert.equal(items.erros.length, 1);
+  const draft = ia.state.draft;
+  const tsDraft = JSON.parse(JSON.stringify(draft));
+  assert.deepEqual(clean(ia.draft.summary(draft)), clean(summary(tsDraft)), 'resumo igual ao do computador');
+  await ia.draft.commit(draft);
+  assert.deepEqual(calls.filter((c) => c.method !== 'GET').map((c) => `${c.method} ${c.path}`), ['POST /proposals', 'PATCH /proposals/p-1/bdi', 'PATCH /proposals/p-1/tax', 'POST /proposals/p-1/items/import-batch']);
+  assert.deepEqual(clean(calls.find((c) => c.path.endsWith('/bdi'))?.body), { bdiMultiplier: 1.25 });
+  assert.deepEqual(clean(calls.find((c) => c.path.endsWith('/tax'))?.body), { taxPercentage: 8 });
+  assert.deepEqual(clean((calls.at(-1)?.body as Out).items), [
+    { description: 'Correção de eletroímã', unit: 'un', quantity: 2, unitCost: 1500.46 },
+    { code: 'CAM-1', description: 'Câmera IP 2MP', quantity: 1 },
+  ]);
+  const failing = load({ p10: true, fail: '/bdi' });
+  const partial = await failing.ia.draft.commit(draft);
+  assert.equal(partial.proposalId, 'p-1');
+  assert.match(partial.aviso, /BDI ou o imposto não foram aplicados/);
+  assert.equal(failing.calls.some((c) => c.path.endsWith('import-batch')), false);
 });
