@@ -35,13 +35,25 @@ export function AppSidebar(props: AppSidebarProps) {
 
 function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProposals = 0 }: AppSidebarProps) {
   const [recolhido, setRecolhido] = useState(initialCollapsed);
+  const [espia, setEspia] = useState(false);
   const [dica, setDica] = useState<{ text: string; left: number; top: number } | null>(null);
   const navRef = useRef<HTMLElement>(null);
+  const timer = useRef(0);
+  /* Depois de recolher no botao com o mouse em cima, so volta a espiar depois que o mouse sair. */
+  const travado = useRef(false);
 
-  /* A largura da coluna fica no .app-shell; o atributo na raiz evita passar estado por props. */
+  /* A largura da coluna fica no .app-shell; o atributo na raiz evita passar estado por props.
+     Espiando, o menu abre por cima da pagina (data-menu-espia) e a coluna segue recolhida. */
   useEffect(() => {
-    document.documentElement.toggleAttribute('data-menu-recolhido', recolhido);
-  }, [recolhido]);
+    const raiz = document.documentElement;
+    raiz.toggleAttribute('data-menu-recolhido', recolhido && !espia);
+    raiz.toggleAttribute('data-menu-espia', recolhido && espia);
+  }, [recolhido, espia]);
+
+  useEffect(() => () => {
+    window.clearTimeout(timer.current);
+    document.documentElement.removeAttribute('data-menu-espia');
+  }, []);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => document.documentElement.classList.add('menu-anima'));
@@ -49,11 +61,27 @@ function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProp
   }, []);
 
   const alternar = () => {
+    window.clearTimeout(timer.current);
     setRecolhido((atual) => {
       try { localStorage.setItem(MENU_KEY, atual ? 'aberto' : 'recolhido'); } catch { /* segue sem guardar */ }
+      travado.current = !atual && !!document.getElementById('menu-lateral')?.matches(':hover');
       return !atual;
     });
+    setEspia(false);
     setDica(null);
+  };
+
+  const entrou = () => {
+    window.clearTimeout(timer.current);
+    if (!recolhido || travado.current || espia) return;
+    timer.current = window.setTimeout(() => { setDica(null); setEspia(true); }, 140);
+  };
+
+  const saiu = () => {
+    window.clearTimeout(timer.current);
+    travado.current = false;
+    if (!espia) return;
+    timer.current = window.setTimeout(() => setEspia(false), 220);
   };
 
   useEffect(() => {
@@ -70,7 +98,7 @@ function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProp
   /* Nome do item ao lado do icone com o menu recolhido (fora do menu, para a lista poder rolar). */
   const mostrarDica = (event: SyntheticEvent) => {
     const item = (event.target as HTMLElement).closest<HTMLElement>('[data-rot]');
-    if (!item || !recolhido) { setDica(null); return; }
+    if (!item || !recolhido || espia) { setDica(null); return; }
     const r = item.getBoundingClientRect();
     setDica({ text: item.dataset.rot ?? '', left: r.right + 14, top: r.top + r.height / 2 });
   };
@@ -80,7 +108,7 @@ function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProp
   const badges: Partial<Record<string, number>> = { Propostas: pendingProposals };
 
   return (
-    <aside className="side" id="menu-lateral" aria-label="Navegação principal">
+    <aside className="side" id="menu-lateral" aria-label="Navegação principal" onMouseEnter={entrou} onMouseLeave={saiu}>
       <button type="button" className="marca" onClick={() => onSelectNav('Início')} aria-label="Construtec Orçamentos, ir para Início">
         <img className="logo" src={brandLogo} alt="Construtec" />
         <img className="simb" src={brandIcon} alt="" />
