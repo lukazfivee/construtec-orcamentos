@@ -26,7 +26,7 @@ test('o preload expõe a troca de tela e o menu Suíte a usa só dentro da Suít
   const menu = read('src/renderer/SuiteSwitcherPopover.tsx');
   assert.match(menu, /runtime\.suite === true/);
   assert.match(menu, /suiteSwitch\('centro'\)/);
-  assert.match(menu, /handleOpenUrl\(centroUrl\)/, 'fora da Suíte o Centro continua abrindo no navegador');
+  assert.match(menu, /handleOpenUrl\(`\$\{centroUrl\.replace\([^)]*\)\}\/d\/`\)/, 'fora da Suíte o Centro abre direto o app (/d/), não a raiz que é o seletor de apps');
   assert.match(menu, /suiteSwitch\('chamados'\)/);
   assert.match(menu, /handleOpenUrl\(chamadosEntradaUrl\(centroUrl\)\)/, 'fora da Suíte o Chamados abre pela entrada central');
 });

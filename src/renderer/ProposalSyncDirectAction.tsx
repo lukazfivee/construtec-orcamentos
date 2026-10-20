@@ -127,7 +127,8 @@ export function ProposalSyncDirectAction({
 
   const centerDeepLinkUrl = () => {
     const base = syncState.centerUrl || centroUrl;
-    return syncState.costCenterId ? `${base.replace(/\/$/, '')}/#obra=${syncState.costCenterId}` : base;
+    const root = `${base.replace(/\/$/, '')}/d/`;
+    return syncState.costCenterId ? `${root}#/obras/${syncState.costCenterId}` : root;
   };
 
   // Acao principal: sem iframe, navega a mesma janela direto pro Centro de

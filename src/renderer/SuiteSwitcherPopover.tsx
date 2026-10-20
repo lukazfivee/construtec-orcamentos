@@ -83,7 +83,7 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
         void window.construtec.suiteSwitch('centro');
         onClose();
       } else {
-        handleOpenUrl(centroUrl);
+        handleOpenUrl(`${centroUrl.replace(/\/+$/, '')}/d/`);
       }
     } else if (entry.id === 'chamados') {
       // Login unico: o Centro emite o handoff; a negacao de acesso aparece na pagina de entrada central.

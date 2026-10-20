@@ -232,7 +232,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         onLogout={onLogout}
         onSelectApp={(app) => {
           if (app === 'centro-custos') {
-            if (window.location.pathname.startsWith('/orcamentos')) window.location.assign('/');
+            if (window.location.pathname.startsWith('/orcamentos')) window.location.assign('/d/');
             else setActiveNav('Centro de Custos');
           } else if (app === 'orcamentos') {
             setActiveNav('Propostas');
