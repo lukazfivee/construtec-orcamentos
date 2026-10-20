@@ -45,7 +45,7 @@
   .app-shell.cc .proposal-items-table .col-quantity { width: 60px; min-width: 0; max-width: none; }
   .app-shell.cc .proposal-items-table .col-unit { width: 46px; min-width: 0; max-width: none; }
   .app-shell.cc .proposal-items-table th.col-cost, .app-shell.cc .proposal-items-table td.col-cost, .app-shell.cc .proposal-items-table th.col-total-cost, .app-shell.cc .proposal-items-table td.col-total-cost,
-  .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table td.col-sale { width: 84px; min-width: 0; max-width: none; }
+  .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table td.col-sale { width: 92px; min-width: 0; max-width: none; }
   .app-shell.cc .proposal-items-table th.col-total-sale, .app-shell.cc .proposal-items-table td.col-total-sale { width: 92px; min-width: 0; max-width: none; }
   .app-shell.cc .proposal-items-table .number, .app-shell.cc .proposal-items-table th.col-quantity, .app-shell.cc .proposal-items-table th.col-cost, .app-shell.cc .proposal-items-table th.col-total-cost,
   .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table th.col-total-sale { text-align: right; font-variant-numeric: tabular-nums; }
@@ -129,7 +129,7 @@
   .app-shell.cc .proposal-items-table .col-quantity { width: 64px; }
   .app-shell.cc .proposal-items-table .col-unit { width: 50px; }
   .app-shell.cc .proposal-items-table th.col-cost, .app-shell.cc .proposal-items-table td.col-cost, .app-shell.cc .proposal-items-table th.col-total-cost, .app-shell.cc .proposal-items-table td.col-total-cost,
-  .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table td.col-sale { width: 96px; }
+  .app-shell.cc .proposal-items-table th.col-sale, .app-shell.cc .proposal-items-table td.col-sale { width: 108px; }
   .app-shell.cc .proposal-items-table th.col-total-sale, .app-shell.cc .proposal-items-table td.col-total-sale { width: 104px; }
 }
 
