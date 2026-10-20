@@ -63,7 +63,7 @@
   .app-shell.cc .proposal-items-table tbody tr:hover td { background: var(--color-accent-900); }
   .app-shell.cc .proposal-items-table tbody tr.selected td, .app-shell.cc .proposal-items-table tbody tr[aria-selected="true"] td { background: var(--color-accent-900); }
   .app-shell.cc .proposal-items-table .cost-cell { position: relative; }
-  .app-shell.cc .proposal-items-table .catalog-cost-badge { position: absolute; right: 8px; bottom: 1px; height: 14px; padding: 0 4px; font-size: calc(10px * var(--fs, 1)); line-height: 14px; border-radius: 7px; }
+  .app-shell.cc .proposal-items-table .catalog-cost-badge { position: absolute; right: 6px; bottom: 0; box-sizing: border-box; max-width: calc(100% - 8px); height: 17px; padding: 0 5px; font-size: calc(9.5px * var(--fs, 1)); line-height: 17px; white-space: nowrap; border-radius: 8px; }
   .app-shell.cc .proposal-items-panel .empty-row td { height: 96px; text-align: center; color: var(--color-neutral-300); }
 
   /* "Adicionar linha" fica a esquerda, fora do centro onde o aviso rapido aparece */
@@ -88,6 +88,13 @@
   .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 112px; height: 40px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); font-size: calc(13px * var(--fs, 1)); color: var(--color-text); }
   .app-shell.cc .commercial-panel .editable-parameter:focus-within { box-shadow: inset 0 0 0 2px var(--color-focus); }
   .app-shell.cc .commercial-panel .editable-parameter input { font-size: calc(13px * var(--fs, 1)); }
+  /* Coluna do resumo estreita: rotulos quebram em vez de passar da borda do cartao ou cobrir o campo ao lado. */
+  .app-shell.cc .commercial-panel .panel-card, .app-shell.cc .commercial-panel .amount { min-width: 0; }
+  .app-shell.cc .commercial-panel .amount.blue span { white-space: normal; overflow-wrap: anywhere; letter-spacing: .02em; }
+  .app-shell.cc .commercial-panel .amount.blue strong { white-space: normal; overflow-wrap: anywhere; }
+  .app-shell.cc .commercial-panel .panel-section label { gap: 8px; line-height: 1.3; }
+  .app-shell.cc .commercial-panel .panel-section label > .editable-parameter, .app-shell.cc .commercial-panel .panel-section label > .locked-input { flex: none; }
+  .app-shell.cc .commercial-panel .panel-section-toggle h2, .app-shell.cc .commercial-panel .panel-title b { min-width: 0; overflow-wrap: anywhere; }
   .app-shell.cc .commercial-panel .panel-section.actions { gap: 10px; }
   .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { width: 100%; justify-content: flex-start; }
   .app-shell.cc .commercial-panel .panel-section-toggle { height: auto; min-height: 0; padding: 0; border: 0; box-shadow: none; background: transparent; justify-content: space-between; }
@@ -107,8 +114,8 @@
   .app-shell.cc .meta-field button > svg:first-child { display: none; }
   .app-shell.cc .commercial-panel { padding: 16px 12px 20px; }
   .app-shell.cc .commercial-panel .panel-card { padding: 14px; }
-  .app-shell.cc .commercial-panel .amount span, .app-shell.cc .commercial-panel .panel-section label { white-space: nowrap; }
-  .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 96px; }
+  .app-shell.cc .commercial-panel .amount span { white-space: nowrap; }
+  .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 88px; }
   /* Coluna do resumo estreita (1280): o valor desce para baixo do rotulo em vez de ser cortado (as acoes ficam uma por linha em editor-layout-centro.css). */
   .app-shell.cc .commercial-panel .amount:not(.blue) { flex-wrap: wrap; row-gap: 0; }
   .app-shell.cc .commercial-panel .amount:not(.blue) strong { margin-left: auto; }
