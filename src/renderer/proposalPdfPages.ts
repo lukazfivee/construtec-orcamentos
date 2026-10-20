@@ -143,7 +143,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
   const flow: FlowAtom[] = [];
   let text: BodyPart[] = [];
-  const flushText = () => { flow.push(...bodyTextAtoms(text, showSignature)); text = []; };
+  const flushText = (endsDocument = false) => { flow.push(...bodyTextAtoms(text, showSignature, endsDocument)); text = []; };
   if (!bodyParts) {
     flow.push(...itemAtoms(completo ? 'Itens da proposta' : 'Resumo por sistema'));
     if (choices.condicoes) flow.push(...conditionAtoms('Condições comerciais'));
@@ -153,7 +153,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
       else if (part.kind === 'condicoes') { flushText(); if (choices.condicoes) flow.push(...conditionAtoms(part.title)); }
       else text.push(part);
     }
-    flushText();
+    flushText(true);
   }
   if (showSignature && (!bodyParts || !bodyParts.some((part) => part.kind === 'fechamento')) && flow.length) {
     flow.push({ kind: 'block', label: flow[flow.length - 1].label, html: `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` });

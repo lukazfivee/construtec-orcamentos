@@ -168,3 +168,21 @@ test('marca d agua: logo colorida bem clara no meio de cada pagina, sem o fundo 
     assert.doesNotMatch(buildProposalHtml(proposal, { ...on, pdfWatermark: false } as AppSettings), /<div class="watermark"/);
   }
 });
+
+test('PDF: a ultima secao de texto (ex.: Validade) vai junto do fechamento, nunca o fechamento sozinho numa pagina', async () => {
+  const { closingGroupStart } = await import('./proposalClosingEnd');
+  assert.equal(closingGroupStart([{ kind: 'itens' }, { kind: 'heading' }, { kind: 'paragraph' }, { kind: 'fechamento' }]), 1);
+  assert.equal(closingGroupStart([{ kind: 'heading' }, { kind: 'paragraph' }, { kind: 'list' }, { kind: 'fechamento' }]), 0);
+  assert.equal(closingGroupStart([{ kind: 'condicoes' }, { kind: 'paragraph' }, { kind: 'fechamento' }]), 2);
+  assert.equal(closingGroupStart([{ kind: 'heading' }, { kind: 'paragraph' }, { kind: 'paragraph' }, { kind: 'paragraph' }, { kind: 'paragraph' }, { kind: 'fechamento' }]), 5);
+  const html = buildProposalHtml(make(letterBlocks()), settings);
+  const group = html.slice(html.indexOf('class="closing-end"'));
+  assert.match(group, /<h2>[^<]+<\/h2>[\s\S]*No aguardo de breve pronunciamento/, 'o titulo da secao anterior entra no grupo do fechamento');
+});
+
+test('pre-visualizacao: so o ultimo trecho de texto do documento agrupa a secao com o fechamento (igual ao PDF)', async () => {
+  const { bodyTextAtoms } = await import('../renderer/proposalPdfBodyPages');
+  const parts = [{ kind: 'heading', text: '11. Validade', sub: false }, { kind: 'paragraph', lines: ['Valida ate hoje.'] }, { kind: 'fechamento', paragraphs: [['No aguardo.']], signer: 'Lucas', role: '' }] as never;
+  assert.equal(bodyTextAtoms(parts, true, true).filter((atom) => atom.group === 'fechamento').length, 3);
+  assert.equal(bodyTextAtoms(parts, true, false).filter((atom) => atom.group).length, 0);
+});
