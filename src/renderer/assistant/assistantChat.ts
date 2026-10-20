@@ -31,7 +31,8 @@ export interface AssistantChat {
 }
 
 const PASSOS: Record<string, string> = { listar_propostas: 'Procurando as propostas', ver_proposta: 'Abrindo a proposta', historico_revisoes: 'Lendo as revisões', acompanhamento_obra: 'Consultando a obra no Centro de Custos',
-  resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela' };
+  resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela',
+  rascunho_atualizar: 'Anotando na proposta', rascunho_itens: 'Anotando os itens', rascunho_ver: 'Relendo o rascunho', rascunho_descartar: 'Limpando o rascunho', finalizar_rascunho: 'Preparando a conferência' };
 const MAX_ROUNDS = 6;
 
 export const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;

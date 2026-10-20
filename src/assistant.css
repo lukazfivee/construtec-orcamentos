@@ -117,3 +117,19 @@
   .assistant-msg { max-width: 92%; }
 }
 @keyframes assistant-sheet { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+/* Cartao de confirmacao da proposta montada pela IA */
+.assistant-card { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
+.assistant-card b { color: var(--ink); font-size: calc(13px * var(--fs, 1)); }
+.assistant-card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+.assistant-card dt { color: var(--muted); font-size: calc(12px * var(--fs, 1)); }
+.assistant-card dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.assistant-card em { color: var(--muted); font-style: normal; font-size: calc(12px * var(--fs, 1)); }
+.assistant-card ul { margin: 0; padding-left: 18px; }
+.assistant-card small { color: var(--muted); font-size: calc(11.5px * var(--fs, 1)); line-height: 1.4; }
+.assistant-card .assistant-card-note { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink); font-size: calc(12px * var(--fs, 1)); }
+.assistant-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.assistant-card-actions .assistant-go { margin-top: 0; }
+.assistant-panel .assistant-card-keep { height: 32px; padding: 0 12px; color: var(--ink); background: transparent; border: 1px solid var(--line-strong); border-radius: 7px; font-size: calc(12px * var(--fs, 1)); cursor: pointer; }
+.assistant-panel .assistant-card-keep:hover:not(:disabled), .assistant-panel .assistant-go:hover:not(:disabled) { border-color: var(--blue); }
+.assistant-card button:disabled { opacity: .55; cursor: default; }

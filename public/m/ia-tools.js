@@ -38,6 +38,45 @@
       itens: p.itemCount, atualizada_em: p.updatedAt, validade: p.validUntil || null, tem_revisao_aprovada: Boolean(p.hasApprovedRevision) };
   }
 
+  // Rascunho de proposta da conversa (so memoria; ia-draft.js). `confirm` liga quando a IA pede o cartao de confirmacao.
+  const D = IA.draft;
+  const ST = IA.state = { draft: D.empty(), confirm: false, known: null };
+  const NO_EDIT = { erro: 'Seu perfil só consulta; não cria propostas.' };
+  const nameOf = (c) => c.tradeName || c.legalName;
+
+  // Cliente pelo nome digitado: um so resultado vira o escolhido; varios pedem desempate; nenhum so cria se a pessoa quis.
+  async function pickClient(name, create) {
+    const wanted = plain(name).trim();
+    if (wanted.length < 2) return { erro: 'Informe o nome do cliente.' };
+    // A busca do servidor tambem casa nome de obra: so vale quem tem o nome (ou documento) no proprio cadastro do cliente.
+    const found = ((await OC.api(`/clients?q=${encodeURIComponent(name.slice(0, 60))}`)).clients || []).filter((c) => plain(`${c.legalName} ${c.tradeName || ''} ${c.document || ''}`).includes(wanted));
+    const exact = found.filter((c) => plain(c.legalName).trim() === wanted || plain(c.tradeName || '').trim() === wanted);
+    const pool = exact.length ? exact : found;
+    if (pool.length === 1) { ST.draft = D.withClient(ST.draft, { id: pool[0].id, name: nameOf(pool[0]) }); ST.known = pool[0]; return null; }
+    if (pool.length > 1) return { cliente_ambiguo: pool.slice(0, 8).map(nameOf), aviso: 'Pergunte qual destes é o cliente.' };
+    if (create) { ST.draft = D.withClient(ST.draft, { newName: name.trim().slice(0, 160) }); ST.known = null; return null; }
+    return { cliente_nao_encontrado: name, aviso: 'Não há cliente com esse nome. Pergunte se a pessoa quer cadastrar um cliente novo; se sim, chame de novo com cliente_novo verdadeiro.' };
+  }
+
+  function pickWork(name, address) {
+    const wanted = plain(name).trim();
+    const hit = ((ST.known && ST.known.works) || []).find((w) => w.active !== false && plain(w.name).trim() === wanted);
+    ST.draft = hit ? D.withWork(ST.draft, { id: hit.id, name: hit.name }) : D.withWork(ST.draft, { newName: name.trim().slice(0, 160), address: address.trim().slice(0, 240) });
+  }
+
+  async function catalogHit(code) {
+    const wanted = plain(code).trim();
+    const list = ((await OC.api(`/catalog?q=${encodeURIComponent(code.slice(0, 60))}&limit=20`)).products || []).filter((x) => x.active !== false);
+    const hit = list.find((x) => plain(x.code).trim() === wanted);
+    return hit && { code: hit.code, description: hit.description, unit: hit.unit };
+  }
+
+  // A IA nao cria nada: ela so liga `confirm`; quem cria e o botao do cartao (ia-chat.js).
+  IA.takeConfirm = () => { const out = ST.confirm ? ST.draft : null; ST.confirm = false; return out; };
+  IA.clearConfirm = () => { ST.confirm = false; };
+  IA.setDraft = (next, done) => { ST.draft = done ? D.empty() : next; if (done) ST.known = null; };
+  IA.resetDraft = () => { ST.draft = D.empty(); ST.known = null; ST.confirm = false; };
+
   const RUN = {
     async abrir_tela(a) {
       const make = TELAS[a.tela];
@@ -110,6 +149,55 @@
       const list = ((await OC.api('/kits')).kits || []).filter((k) => k.active !== false && (!term || plain(`${k.name} ${k.category} ${k.description || ''}`).includes(term)));
       return { total: list.length, kits: list.slice(0, 25).map((k) => ({ id: k.id, nome: k.name, categoria: k.category, itens: k.itemCount, referencia: k.description || null, custo_estimado: cost(k.totalEstimatedCost) })) };
     },
+    async rascunho_atualizar(a) {
+      if (!OC.canEdit()) return NO_EDIT;
+      const avisos = {};
+      // Escopo, prazo etc. entram primeiro: se o cliente nao for achado, o resto dito junto nao se perde.
+      const result = D.setFields(ST.draft, { escopo: a.escopo, prazo_execucao: a.prazo_execucao, pagamento: a.pagamento, garantia: a.garantia, validade_dias: a.validade_dias, modelo: a.modelo });
+      ST.draft = result.draft;
+      ST.confirm = false;
+      if (String(a.cliente || '').trim()) {
+        const problem = await pickClient(String(a.cliente), a.cliente_novo === true);
+        if (problem) return problem;
+      }
+      if (String(a.obra || '').trim()) {
+        if (!ST.draft.clientName) return { erro: 'Defina o cliente antes da obra.' };
+        pickWork(String(a.obra), String(a.obra_endereco || ''));
+        if (ST.draft.newWork) avisos.obra_nova = 'Esta obra ainda não existe para o cliente e será cadastrada junto com a proposta; confirme com a pessoa.';
+      }
+      return { ok: true, ...avisos, ...(result.erros.length ? { erros: result.erros } : {}), rascunho: D.summary(ST.draft) };
+    },
+    async rascunho_itens(a) {
+      if (!OC.canEdit()) return NO_EDIT;
+      ST.confirm = false;
+      const erros = [];
+      const wanted = [];
+      for (const raw of Array.isArray(a.adicionar) ? a.adicionar.slice(0, 30) : []) {
+        const input = raw && typeof raw === 'object' ? raw : {};
+        const code = String(input.codigo || '').trim();
+        if (!code) { wanted.push({ input }); continue; }
+        const hit = await catalogHit(code);
+        if (hit) wanted.push({ input, hit }); else erros.push(`Código "${code}" não existe no catálogo. Use buscar_catalogo ou envie só a descrição para entrar como item avulso sem preço.`);
+      }
+      const added = D.addItems(ST.draft, wanted);
+      const removed = D.removeItems(added.draft, Array.isArray(a.remover) ? a.remover.slice(0, 30) : []);
+      ST.draft = removed.draft;
+      return { ok: true, removidos: removed.removidos, ...(erros.length || added.erros.length ? { erros: [...erros, ...added.erros] } : {}), rascunho: D.summary(ST.draft) };
+    },
+    async rascunho_ver() {
+      return { rascunho: D.summary(ST.draft) };
+    },
+    async rascunho_descartar() {
+      ST.draft = D.empty(); ST.known = null; ST.confirm = false;
+      return { ok: true };
+    },
+    async finalizar_rascunho() {
+      if (!OC.canEdit()) return NO_EDIT;
+      const falta = D.missing(ST.draft);
+      if (falta.length) return { erro: `Ainda falta: ${falta.join(', ')}. Pergunte à pessoa.` };
+      ST.confirm = true;
+      return { ok: true, aviso: 'A proposta AINDA NÃO foi criada. Um cartão de confirmação aparece quando você terminar de responder. Peça que a pessoa confira e toque em Criar proposta.' };
+    },
     async buscar_catalogo(a) {
       const q = String(a.busca || '').trim().slice(0, 60);
       if (q.length < 2) return { erro: 'Informe ao menos 2 letras para buscar no catálogo.' };
@@ -151,6 +239,25 @@
       parameters: S.object({ properties: { busca: S.string({ description: 'parte do nome, nome fantasia ou documento' }) }, optionalProperties: ['busca'] }) },
     { name: 'listar_kits', description: 'Kits de itens que entram de uma vez na proposta.',
       parameters: S.object({ properties: { busca: S.string({ description: 'parte do nome ou da categoria' }) }, optionalProperties: ['busca'] }) },
+    { name: 'rascunho_atualizar', description: 'Monta o rascunho de uma nova proposta (nada é gravado ainda). Passe só o que a pessoa disse. cliente e obra são nomes: o cliente é procurado nos cadastros. Nunca invente prazo, pagamento ou garantia.',
+      parameters: S.object({ properties: {
+        cliente: S.string({ description: 'nome do cliente (procurado nos cadastros)' }), cliente_novo: S.boolean({ description: 'true só depois de a pessoa confirmar que é um cliente novo' }),
+        obra: S.string({ description: 'nome da obra' }), obra_endereco: S.string({ description: 'endereço da obra, se informado' }),
+        escopo: S.string({ description: 'escopo em 1 ou 2 frases, com as palavras da pessoa (3 a 1200 letras)' }), prazo_execucao: S.string({ description: 'prazo de execução, ex.: 30 dias' }),
+        pagamento: S.string({ description: 'condição de pagamento, ex.: 50% na entrada e 50% na entrega' }), garantia: S.string({ description: 'garantia, ex.: 12 meses' }),
+        validade_dias: S.integer({ description: 'validade da proposta em dias (1 a 365)' }), modelo: S.enumString({ enum: ['servico', 'fornecimento'], description: 'servico = mão de obra; fornecimento = material' }),
+      }, optionalProperties: ['cliente', 'cliente_novo', 'obra', 'obra_endereco', 'escopo', 'prazo_execucao', 'pagamento', 'garantia', 'validade_dias', 'modelo'] }) },
+    { name: 'rascunho_itens', description: 'Adiciona ou remove itens do rascunho. Com codigo, o item vem do catálogo (confira antes com buscar_catalogo). Sem codigo entra como item avulso SEM preço. Item que já está no rascunho tem a quantidade substituída pela nova. Nunca informe preço.',
+      parameters: S.object({ properties: {
+        adicionar: S.array({ description: 'itens a adicionar', items: S.object({ properties: {
+          codigo: S.string({ description: 'código exato do catálogo' }), descricao: S.string({ description: 'descrição (obrigatória sem codigo)' }),
+          unidade: S.string({ description: 'un, m, m², etc.' }), quantidade: S.number({ description: 'quantidade maior que zero' }),
+        }, optionalProperties: ['codigo', 'descricao', 'unidade'] }) }),
+        remover: S.array({ description: 'número do item (1, 2...) ou trecho da descrição', items: S.string() }),
+      }, optionalProperties: ['adicionar', 'remover'] }) },
+    { name: 'rascunho_ver', description: 'Mostra o rascunho atual da proposta e o que ainda falta.', parameters: S.object({ properties: {} }) },
+    { name: 'rascunho_descartar', description: 'Apaga o rascunho de proposta (quando a pessoa desistir ou quiser recomeçar).', parameters: S.object({ properties: {} }) },
+    { name: 'finalizar_rascunho', description: 'Pede a confirmação da pessoa para criar a proposta. Só depois de cliente, obra e escopo definidos. Não cria nada: aparece um botão para ela.', parameters: S.object({ properties: {} }) },
     { name: 'buscar_catalogo', description: 'Procura itens no catálogo por código, descrição ou fabricante. Mostra até 20.',
       parameters: S.object({ properties: { busca: S.string({ description: 'ao menos 2 letras' }) } }) },
   ] }];

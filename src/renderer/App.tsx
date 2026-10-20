@@ -394,6 +394,7 @@ export function App({ user, onLogout }: AppProps = {}) {
       <AssistantFab
         user={user}
         screen={assistantScreen}
+        onProposalCreated={(created) => { setActiveNav('Propostas'); void proposalCreated(created); }}
         openProposal={(id) => void openProposalFromList(id)}
         navigate={selectNav}
         newProposal={() => { setError(''); setNewProposalOpen(true); }}

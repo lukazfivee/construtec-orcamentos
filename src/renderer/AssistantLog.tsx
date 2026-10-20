@@ -1,14 +1,49 @@
 import { useEffect, useRef } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { parseMarkdown } from './assistant/assistantMarkdown';
 import type { Inline } from './assistant/assistantMarkdown';
 import type { PendingNav } from './assistant/assistantTools';
+import { summary } from './assistant/proposalDraft';
+import type { ProposalDraft } from './assistant/proposalDraft';
 
-export type AssistantMsg = { who: 'eu' | 'ia' | 'erro'; text: string; go?: PendingNav };
+/** Cartao de confirmacao da proposta montada pela IA: so o botao cria (a IA nao grava nada). */
+export type DraftCard = { draft: ProposalDraft; state: 'open' | 'busy' | 'done' | 'dismissed'; note?: string };
+export type AssistantMsg = { who: 'eu' | 'ia' | 'erro'; text: string; go?: PendingNav; card?: DraftCard };
 
 // Texto da IA vira elementos do React (que escapam sozinhos); nunca HTML cru.
 function Parts({ parts }: { parts: Inline[] }) {
   return <>{parts.map((part, i) => (part.bold ? <b key={i}>{part.text}</b> : part.text))}</>;
+}
+
+function DraftCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreate: () => void; onDismiss: () => void }) {
+  const view = summary(card.draft);
+  const open = card.state === 'open' || card.state === 'busy';
+  return (
+    <div className={`assistant-card ${card.state}`}>
+      <b>Proposta para conferir</b>
+      <dl>
+        <dt>Cliente</dt><dd>{view.cliente?.nome}{view.cliente?.situacao === 'novo cadastro' && <em> (novo cadastro)</em>}</dd>
+        <dt>Obra</dt><dd>{view.obra?.nome}{view.obra?.situacao === 'nova obra' && <em> (nova)</em>}</dd>
+        <dt>Escopo</dt><dd>{view.escopo}</dd>
+        {view.prazo_execucao && <><dt>Prazo</dt><dd>{view.prazo_execucao}</dd></>}
+        {view.pagamento && <><dt>Pagamento</dt><dd>{view.pagamento}</dd></>}
+        {view.garantia && <><dt>Garantia</dt><dd>{view.garantia}</dd></>}
+        {view.validade_dias && <><dt>Validade</dt><dd>{view.validade_dias} dias</dd></>}
+      </dl>
+      {view.itens.length > 0 && (
+        <ul>{view.itens.map((item) => <li key={item.numero}>{item.quantidade} {item.unidade} · {item.descricao}{!item.codigo && <em> (sem preço)</em>}</li>)}</ul>
+      )}
+      <small>Os preços vêm do catálogo; BDI e impostos, dos padrões da empresa. Itens sem preço você completa no editor.</small>
+      {card.note && <p className="assistant-card-note">{card.note}</p>}
+      {open && (
+        <div className="assistant-card-actions">
+          <button type="button" className="assistant-go" disabled={card.state === 'busy'} onClick={onCreate}><Check size={15} aria-hidden="true" />{card.state === 'busy' ? 'Criando' : 'Criar proposta'}</button>
+          <button type="button" className="assistant-card-keep" disabled={card.state === 'busy'} onClick={onDismiss}>Continuar conversando</button>
+        </div>
+      )}
+      {card.state === 'done' && <p className="assistant-card-note"><Check size={14} aria-hidden="true" /> Proposta criada.</p>}
+    </div>
+  );
 }
 
 function Markdown({ text }: { text: string }) {
@@ -29,9 +64,11 @@ interface Props {
   suggestions: string[];
   onAsk: (text: string) => void;
   onGo: (go: PendingNav) => void;
+  onCreate: (index: number) => void;
+  onDismiss: (index: number) => void;
 }
 
-export function AssistantLog({ log, busy, live, step, suggestions, onAsk, onGo }: Props) {
+export function AssistantLog({ log, busy, live, step, suggestions, onAsk, onGo, onCreate, onDismiss }: Props) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [log, live, busy, step]);
   return (
@@ -49,6 +86,7 @@ export function AssistantLog({ log, busy, live, step, suggestions, onAsk, onGo }
       {log.map((msg, i) => (
         <div key={i} className={`assistant-msg ${msg.who}`}>
           {msg.who === 'ia' ? <Markdown text={msg.text} /> : msg.text}
+          {msg.card && msg.card.state !== 'dismissed' && <DraftCardView card={msg.card} onCreate={() => onCreate(i)} onDismiss={() => onDismiss(i)} />}
           {msg.go && <button type="button" className="assistant-go" onClick={() => msg.go && onGo(msg.go)}><ArrowRight size={15} aria-hidden="true" />Ir para {msg.go.label}</button>}
         </div>
       ))}
