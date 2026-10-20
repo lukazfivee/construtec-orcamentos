@@ -5,9 +5,11 @@ import type { Inline } from './assistant/assistantMarkdown';
 import type { PendingNav } from './assistant/assistantTools';
 import { summary } from './assistant/proposalDraft';
 import type { ProposalDraft } from './assistant/proposalDraft';
+import { describePlan } from './assistant/proposalEdit';
+import type { EditPlan } from './assistant/proposalEdit';
 
 /** Cartao de confirmacao da proposta montada pela IA: so o botao cria (a IA nao grava nada). */
-export type DraftCard = { draft: ProposalDraft; state: 'open' | 'busy' | 'done' | 'dismissed'; note?: string };
+export type DraftCard = { draft?: ProposalDraft; plan?: EditPlan; state: 'open' | 'busy' | 'done' | 'dismissed'; note?: string };
 export type AssistantMsg = { who: 'eu' | 'ia' | 'erro'; text: string; go?: PendingNav; card?: DraftCard };
 
 // Texto da IA vira elementos do React (que escapam sozinhos); nunca HTML cru.
@@ -15,8 +17,29 @@ function Parts({ parts }: { parts: Inline[] }) {
   return <>{parts.map((part, i) => (part.bold ? <b key={i}>{part.text}</b> : part.text))}</>;
 }
 
+function EditCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreate: () => void; onDismiss: () => void }) {
+  const plan = card.plan as EditPlan;
+  const open = card.state === 'open' || card.state === 'busy';
+  return (
+    <div className={`assistant-card ${card.state}`}>
+      <b>Alterações na proposta {plan.base.number} · REV {String(plan.base.revision).padStart(2, '0')}</b>
+      <ul>{describePlan(plan).map((line, index) => <li key={index}>{line}</li>)}</ul>
+      <small>Nada foi alterado ainda. Os valores seguem as regras do editor (BDI e imposto da proposta).</small>
+      {card.note && <p className="assistant-card-note">{card.note}</p>}
+      {open && (
+        <div className="assistant-card-actions">
+          <button type="button" className="assistant-go" disabled={card.state === 'busy'} onClick={onCreate}><Check size={15} aria-hidden="true" />{card.state === 'busy' ? 'Aplicando' : 'Aplicar alterações'}</button>
+          <button type="button" className="assistant-card-keep" disabled={card.state === 'busy'} onClick={onDismiss}>Continuar conversando</button>
+        </div>
+      )}
+      {card.state === 'done' && <p className="assistant-card-note"><Check size={14} aria-hidden="true" /> Alterações aplicadas.</p>}
+    </div>
+  );
+}
+
 function DraftCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreate: () => void; onDismiss: () => void }) {
-  const view = summary(card.draft);
+  if (card.plan) return <EditCardView card={card} onCreate={onCreate} onDismiss={onDismiss} />;
+  const view = summary(card.draft as ProposalDraft);
   const open = card.state === 'open' || card.state === 'busy';
   return (
     <div className={`assistant-card ${card.state}`}>
@@ -32,6 +55,9 @@ function DraftCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreat
         {view.bdi != null && <><dt>BDI</dt><dd>{String(view.bdi).replace('.', ',')}</dd></>}
         {view.imposto_pct != null && <><dt>Imposto</dt><dd>{String(view.imposto_pct).replace('.', ',')}%</dd></>}
       </dl>
+      {view.mao_de_obra.length > 0 && (
+        <ul>{view.mao_de_obra.map((l) => <li key={l.numero}>Mão de obra: {l.profissionais} {l.descricao} · {l.horas_por_profissional} h cada</li>)}</ul>
+      )}
       {view.itens.length > 0 && (
         <ul>{view.itens.map((item) => <li key={item.numero}>{item.quantidade} {item.unidade} · {item.descricao}{item.custo_unitario != null && <em> (custo {item.custo_unitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</em>}{item.preco === 'sem preço (avulso)' && <em> (sem preço)</em>}</li>)}</ul>
       )}

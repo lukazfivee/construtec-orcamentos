@@ -9,7 +9,8 @@
   const SUGESTOES = ['Quais propostas estão em andamento?', 'Quanto temos aprovado e em negociação?', 'Como está a obra da proposta aprovada mais recente?', 'Quais propostas vencem a validade esta semana?', 'Quero criar uma proposta'];
   const PASSOS = { listar_propostas: 'Procurando as propostas', ver_proposta: 'Abrindo a proposta', historico_revisoes: 'Lendo as revisões', acompanhamento_obra: 'Consultando a obra no Centro de Custos',
     resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela',
-    rascunho_atualizar: 'Anotando na proposta', rascunho_itens: 'Anotando os itens', rascunho_ver: 'Relendo o rascunho', rascunho_descartar: 'Limpando o rascunho', finalizar_rascunho: 'Preparando a conferência' };
+    rascunho_atualizar: 'Anotando na proposta', rascunho_itens: 'Anotando os itens', rascunho_ver: 'Relendo o rascunho', rascunho_descartar: 'Limpando o rascunho', finalizar_rascunho: 'Preparando a conferência', rascunho_mao_de_obra: 'Anotando a mão de obra',
+    editar_abrir: 'Abrindo a proposta', editar_campos: 'Anotando as mudanças', editar_itens: 'Anotando os itens', editar_mao_de_obra: 'Anotando a mão de obra', editar_ver: 'Relendo as mudanças', editar_descartar: 'Descartando as mudanças', finalizar_edicao: 'Preparando a conferência' };
   const state = { chat: null, sdk: null, model: 0, busy: false, log: [], live: '', screen: '' };
   const offline = () => navigator.onLine === false;
 
@@ -131,7 +132,18 @@
   function cardHtml(m, i) {
     const c = m.card;
     if (!c || c.state === 'dismissed') return '';
+    if (c.plan) {
+      const busy = c.state === 'busy';
+      const lines = IA.edit.describePlan(c.plan).map((line) => `<li>${esc(line)}</li>`).join('');
+      return `<div class="ia-card ${c.state}"><b>Alterações na proposta ${esc(c.plan.base.number)} · REV ${esc(String(c.plan.base.revision).padStart(2, '0'))}</b><ul>${lines}</ul>
+        <small>Nada foi alterado ainda. Os valores seguem as regras do editor (BDI e imposto da proposta).</small>
+        ${c.note ? `<p class="ia-card-note">${esc(c.note)}</p>` : ''}
+        ${c.state === 'open' || busy ? `<div class="ia-card-actions"><button type="button" class="chip-act ia-go" data-card-create="${i}"${busy ? ' disabled' : ''}>${icon('check', 16)}${busy ? 'Aplicando' : 'Aplicar alterações'}</button>
+          <button type="button" class="chip-act" data-card-keep="${i}"${busy ? ' disabled' : ''}>Continuar conversando</button></div>` : ''}
+        ${c.state === 'done' ? `<p class="ia-card-note">${icon('check', 16)}Alterações aplicadas.</p>` : ''}</div>`;
+    }
     const v = IA.draft.summary(c.draft);
+    const labor = v.mao_de_obra.length ? `<ul>${v.mao_de_obra.map((l) => `<li>Mão de obra: ${esc(String(l.profissionais))} ${esc(l.descricao)} · ${esc(String(l.horas_por_profissional))} h cada</li>`).join('')}</ul>` : '';
     const row = (k, val) => (val ? `<dt>${k}</dt><dd>${val}</dd>` : '');
     const items = v.itens.length ? `<ul>${v.itens.map((it) => `<li>${esc(String(it.quantidade))} ${esc(it.unidade)} · ${esc(it.descricao)}${it.custo_unitario != null ? ` <em>(custo ${esc(Number(it.custo_unitario).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }))})</em>` : ''}${it.preco === 'sem preço (avulso)' ? ' <em>(sem preço)</em>' : ''}</li>`).join('')}</ul>` : '';
     const open = c.state === 'open' || c.state === 'busy';
@@ -139,7 +151,7 @@
       ${row('Cliente', esc(v.cliente.nome) + (v.cliente.situacao === 'novo cadastro' ? ' <em>(novo cadastro)</em>' : ''))}
       ${row('Obra', esc(v.obra.nome) + (v.obra.situacao === 'nova obra' ? ' <em>(nova)</em>' : ''))}
       ${row('Escopo', esc(v.escopo))}${row('Prazo', esc(v.prazo_execucao))}${row('Pagamento', esc(v.pagamento))}${row('Garantia', esc(v.garantia))}${row('Validade', v.validade_dias ? `${v.validade_dias} dias` : '')}${row('BDI', v.bdi != null ? String(v.bdi).replace('.', ',') : '')}${row('Imposto', v.imposto_pct != null ? `${String(v.imposto_pct).replace('.', ',')}%` : '')}
-      </dl>${items}<small>Itens do catálogo usam o custo do catálogo; BDI e imposto, os padrões da empresa (ou o que você informou). Itens sem preço você completa na proposta.</small>
+      </dl>${labor}${items}<small>Itens do catálogo usam o custo do catálogo; BDI e imposto, os padrões da empresa (ou o que você informou). Itens sem preço você completa na proposta.</small>
       ${c.note ? `<p class="ia-card-note">${esc(c.note)}</p>` : ''}
       ${open ? `<div class="ia-card-actions"><button type="button" class="chip-act ia-go" data-card-create="${i}"${c.state === 'busy' ? ' disabled' : ''}>${icon('check', 16)}${c.state === 'busy' ? 'Criando' : 'Criar proposta'}</button>
         <button type="button" class="chip-act" data-card-keep="${i}"${c.state === 'busy' ? ' disabled' : ''}>Continuar conversando</button></div>` : ''}
@@ -152,6 +164,19 @@
     state.busy = true; m.card.state = 'busy'; m.card.note = '';
     paint();
     try {
+      if (m.card.plan) {
+        // Alterar proposta existente: grava na ordem do editor; se parar no meio, o cartao guarda so o que falta (nova tentativa nao repete).
+        const applied = await IA.edit.applyPlan(m.card.plan);
+        if (applied.erro) { IA.setPlan(applied.plan); m.card.state = 'open'; m.card.plan = applied.plan; m.card.note = applied.erro; return; }
+        IA.setPlan(null, true);
+        m.card.state = 'done'; m.card.note = '';
+        try {
+          OC.toast('Alterações aplicadas');
+          close();
+          OC.go('prop', { id: m.card.plan.base.id, tab: 'itens' }, { back: true });
+        } catch { m.card.note = 'Não consegui abrir a proposta agora; as alterações foram aplicadas.'; }
+        return;
+      }
       const r = await IA.draft.commit(m.card.draft);
       if (!r.proposalId) {
         IA.setDraft(r.draft);
@@ -222,8 +247,9 @@
       // Resposta longa fica para ler, com o botao da tela; curta ("abrindo...") ja vai.
       if (IA.pendingNav && reply.text.length > 160) { reply.go = IA.pendingNav; reply.label = IA.pendingLabel; IA.pendingNav = null; }
       const confirm = IA.takeConfirm();
-      if (confirm) {
-        reply.card = { draft: { ...confirm, items: confirm.items.map((item) => ({ ...item })) }, state: 'open' };
+      const editConfirm = IA.takeEditConfirm();
+      if (editConfirm || confirm) {
+        reply.card = editConfirm ? { plan: editConfirm, state: 'open' } : { draft: { ...confirm, items: confirm.items.map((item) => ({ ...item })) }, state: 'open' };
         IA.pendingNav = null; // com o cartao na tela a IA nao abre outra tela por cima
         state.log.forEach((m) => { if (m.card && m.card.state === 'open') m.card.state = 'dismissed'; }); // so o cartao mais novo vale
       }

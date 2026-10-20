@@ -3,8 +3,9 @@ import type { KeyboardEvent } from 'react';
 import { SendHorizontal, Sparkles, X } from 'lucide-react';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
 import { proposalApi } from './api';
-import { liveAssistantApi, liveCommitApi } from './assistant/assistantApi';
+import { liveAssistantApi, liveCommitApi, liveEditApi } from './assistant/assistantApi';
 import { commitDraft } from './assistant/assistantCommit';
+import { applyPlan } from './assistant/proposalEdit';
 import { createAssistantChat, friendlyError, isOffline } from './assistant/assistantChat';
 import { appCheckAllowed, buildPrompt } from './assistant/assistantConfig';
 import { createAssistantTools } from './assistant/assistantTools';
@@ -86,8 +87,9 @@ export function AssistantFab(props: Props) {
       const reply: AssistantMsg = { who: 'ia', text: answer || (pending ? 'Abrindo.' : 'Não tenho uma resposta para isso. Pode explicar de outro jeito?') };
       if (pending && reply.text.length > LONG_REPLY) { reply.go = pending; pending = null; }
       const confirm = tools.takeConfirm();
-      if (confirm) {
-        reply.card = { draft: { ...confirm, items: confirm.items.map((item) => ({ ...item })) }, state: 'open' };
+      const editConfirm = tools.takeEditConfirm();
+      if (editConfirm || confirm) {
+        reply.card = editConfirm ? { plan: editConfirm, state: 'open' } : { draft: { ...(confirm as NonNullable<typeof confirm>), items: (confirm as NonNullable<typeof confirm>).items.map((item) => ({ ...item })) }, state: 'open' };
         pending = null; // com o cartao na tela a IA nao abre outra tela por cima
         // So o cartao mais novo vale: os anteriores nao podem criar uma proposta ja superada.
         setLog((list) => [...list.map((msg) => (msg.card?.state === 'open' ? { ...msg, card: { ...msg.card, state: 'dismissed' as const } } : msg)), reply]);
@@ -120,7 +122,17 @@ export function AssistantFab(props: Props) {
     working.current = true;
     setCard(index, { state: 'busy', note: undefined });
     try {
-      const result = await commitDraft(liveCommitApi, card.draft);
+      if (card.plan) {
+        // Alterar proposta existente: grava na ordem do editor; se parar no meio, o cartao guarda so o que falta (nova tentativa nao repete).
+        const applied = await applyPlan(liveEditApi, card.plan);
+        if (applied.erro) { tools.setPlan(applied.plan); setCard(index, { state: 'open', plan: applied.plan, note: applied.erro }); return; }
+        tools.setPlan(null, true);
+        setCard(index, { state: 'done' });
+        setOpen(false);
+        latest.current.props.openProposal(card.plan.base.id);
+        return;
+      }
+      const result = await commitDraft(liveCommitApi, card.draft as NonNullable<typeof card.draft>);
       if (!result.proposalId) { tools.setDraft(result.draft); setCard(index, { state: 'open', draft: result.draft, note: result.erro ?? 'Não consegui criar a proposta.' }); return; }
       // Daqui em diante a proposta existe: o cartao nunca volta a "aberta" (outro clique criaria uma segunda proposta).
       tools.setDraft(result.draft, true);
@@ -140,7 +152,7 @@ export function AssistantFab(props: Props) {
   };
   const newChat = () => {
     if (working.current) return;
-    setLog([]); chat.reset(); tools.setDraft({ items: [] }, true); input.current?.focus();
+    setLog([]); chat.reset(); tools.setDraft({ items: [] }, true); tools.resetEdit(); input.current?.focus();
   };
   const suggestions = seesCost() ? [...SUGGESTIONS.slice(0, 2), COST_SUGGESTION, ...SUGGESTIONS.slice(2)] : SUGGESTIONS;
 

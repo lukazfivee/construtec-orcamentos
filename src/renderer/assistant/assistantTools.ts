@@ -4,8 +4,9 @@
 // Tudo que toca o app entra por `deps` (API, permissoes, navegacao), para testar sem rede nem tela.
 import type { CatalogProduct, CenterTracking, ClientRecord, DashboardMetrics, KitSummary, ProposalDetail, ProposalRevisionSummary, ProposalSummary } from '../../shared/contracts';
 import type { NavSection } from '../navSections';
-import { addItems, emptyDraft, missing, removeItems, setFields, summary, withClient, withWork } from './proposalDraft';
-import type { CatalogHit, ItemInput, ProposalDraft } from './proposalDraft';
+import { createEditTools } from './assistantEditTools';
+import { addItems, addLabor, emptyDraft, missing, removeItems, removeLabor, setFields, summary, withClient, withWork } from './proposalDraft';
+import type { CatalogHit, ItemInput, LaborInput, ProposalDraft } from './proposalDraft';
 
 export interface AssistantApi {
   proposals(): Promise<{ proposals: ProposalSummary[] }>;
@@ -95,6 +96,7 @@ export function createAssistantTools(deps: ToolDeps) {
 
 
   const NO_EDIT = { erro: 'Seu perfil só consulta; não cria propostas.' };
+  const NO_LABOR = 'Seu perfil não vê nem define custo, e a mão de obra é custo; ela se cadastra no editor depois de criar a proposta.';
   const NO_COST = 'Seu perfil não vê nem define custo, BDI e imposto; esses valores se informam no editor depois de criar a proposta.';
   const nameOf = (c: ClientRecord) => c.tradeName || c.legalName;
 
@@ -124,6 +126,9 @@ export function createAssistantTools(deps: ToolDeps) {
     const hit = list.find((x) => plain(x.code).trim() === wanted);
     return hit && { code: hit.code, description: hit.description, unit: hit.unit };
   }
+
+  // Edicao de proposta existente (plano em memoria + cartao de confirmacao), em assistantEditTools.ts.
+  const edit = createEditTools({ proposal: (id) => deps.api.proposal(id), catalogHit, seesCost: () => deps.seesCost(), canEdit: () => deps.canEdit() });
 
   const RUN: Record<string, (a: Args) => Promise<unknown>> = {
     async abrir_tela(a) {
@@ -233,6 +238,16 @@ export function createAssistantTools(deps: ToolDeps) {
       draft = removed.draft;
       return { ok: true, removidos: removed.removidos, ...(erros.length || added.erros.length ? { erros: [...erros, ...added.erros] } : {}), rascunho: summary(draft) };
     },
+    async rascunho_mao_de_obra(a) {
+      if (!deps.canEdit()) return NO_EDIT;
+      if (!deps.seesCost()) return { erro: NO_LABOR };
+      confirm = false;
+      const list = (value: unknown) => (Array.isArray(value) ? value.slice(0, 20) : []);
+      const added = addLabor(draft, list(a.adicionar) as LaborInput[]);
+      const removed = removeLabor(added.draft, list(a.remover));
+      draft = removed.draft;
+      return { ok: true, removidos: removed.removidos, ...(added.erros.length ? { erros: added.erros } : {}), rascunho: summary(draft) };
+    },
     async rascunho_ver() {
       return { rascunho: summary(draft) };
     },
@@ -254,6 +269,8 @@ export function createAssistantTools(deps: ToolDeps) {
       return { total: list.length, itens: list.map((x) => ({ codigo: x.code, descricao: x.description, categoria: x.category, unidade: x.unit, fabricante: x.manufacturer || null, custo_unitario: cost(x.currentCost) })) };
     },
   };
+
+  Object.assign(RUN, edit.run);
 
   // Executa uma chamada do modelo; erros viram texto para a IA explicar.
   async function run(call: ToolCall): Promise<unknown> {
@@ -307,11 +324,22 @@ export function createAssistantTools(deps: ToolDeps) {
           }, optionalProperties: ['codigo', 'descricao', 'unidade', 'custo_unitario'] }) }),
           remover: S.array({ description: 'número do item (1, 2...) ou trecho da descrição', items: S.string() }),
         }, optionalProperties: ['adicionar', 'remover'] }) },
+      { name: 'rascunho_mao_de_obra', description: 'Adiciona ou remove mão de obra do rascunho (só para quem vê custo). Nova exige descricao, profissionais, salario_mensal e horas_por_profissional (pergunte o que faltar); alimentação, transporte e outros custos são opcionais. Nunca invente valores.',
+        parameters: S.object({ properties: {
+          adicionar: S.array({ description: 'mão de obra nova', items: S.object({ properties: {
+            descricao: S.string({ description: 'função, ex.: Eletricista' }), profissionais: S.number({ description: 'quantidade de profissionais' }),
+            salario_mensal: S.number({ description: 'salário mensal de cada profissional, em reais' }), alimentacao_mensal: S.number({ description: 'alimentação mensal' }),
+            transporte_mensal: S.number({ description: 'transporte mensal' }), outros_custos_mensais: S.number({ description: 'outros custos mensais' }),
+            horas_por_profissional: S.number({ description: 'horas previstas por profissional na obra' }),
+          }, optionalProperties: ['alimentacao_mensal', 'transporte_mensal', 'outros_custos_mensais'] }) }),
+          remover: S.array({ description: 'número da mão de obra (1, 2...) ou trecho da descrição', items: S.string() }),
+        }, optionalProperties: ['adicionar', 'remover'] }) },
       { name: 'rascunho_ver', description: 'Mostra o rascunho atual da proposta e o que ainda falta.', parameters: S.object({ properties: {} }) },
       { name: 'rascunho_descartar', description: 'Apaga o rascunho de proposta (quando a pessoa desistir ou quiser recomeçar).', parameters: S.object({ properties: {} }) },
       { name: 'finalizar_rascunho', description: 'Pede a confirmação da pessoa para criar a proposta. Só depois de cliente, obra e escopo definidos. Não cria nada: aparece um botão para ela.', parameters: S.object({ properties: {} }) },
       { name: 'buscar_catalogo', description: 'Procura itens no catálogo por código, descrição ou fabricante. Mostra até 10.',
         parameters: S.object({ properties: { busca: S.string({ description: 'ao menos 2 letras' }) } }) },
+      ...edit.declarations(S),
     ] }];
   }
 
@@ -320,7 +348,9 @@ export function createAssistantTools(deps: ToolDeps) {
     declarations,
     /** Entrega (e esquece) a tela que a IA pediu para abrir. */
     takePending(): PendingNav | null { const found = pending; pending = null; return found; },
-    clearPending() { pending = null; confirm = false; },
+    clearPending() { pending = null; confirm = false; edit.clearConfirm(); },
+    /** Edicao de proposta existente: plano pendente de confirmacao, plano atual e fechamento (ver assistantEditTools.ts). */
+    takeEditConfirm: edit.takeConfirm, getPlan: edit.getPlan, setPlan: edit.setPlan, resetEdit: edit.reset,
     /** Rascunho para o cartao de confirmacao (so quando a IA chamou finalizar_rascunho e nada mudou depois). */
     takeConfirm(): ProposalDraft | null { const out = confirm ? draft : null; confirm = false; return out; },
     getDraft(): ProposalDraft { return draft; },

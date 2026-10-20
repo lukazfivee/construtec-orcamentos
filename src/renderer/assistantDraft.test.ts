@@ -178,6 +178,8 @@ function fakeCommit(fail: { client?: boolean; work?: boolean; proposal?: boolean
     createProposal: async (input) => { calls.push(['proposal', input]); if (fail.proposal) throw new Error('Falhou.'); return { proposal: { id: 'p-1' } }; },
     updateBdi: async (id, bdi) => { calls.push(['bdi', { id, bdi }]); if (fail.bdi) throw new Error('BDI recusado.'); return {}; },
     updateTax: async (id, tax) => { calls.push(['tax', { id, tax }]); return {}; },
+    standardMonthlyHours: async () => 176,
+    addLabor: async (id, input) => { calls.push(['labor', { id, input }]); return {}; },
     importItems: async (id, items) => { calls.push(['items', { id, items }]); if (fail.items) throw new Error('Importação recusada.'); return {}; },
   };
   return { api, calls };
@@ -241,7 +243,7 @@ test('prompt: perfil que edita monta rascunho sem prometer criacao; perfil de co
   const edit = buildPrompt({ role: 'commercial', screen: 'Propostas', seesCost: false, canEdit: true });
   assert.match(edit, /RASCUNHO de uma nova proposta/);
   assert.match(edit, /AINDA NÃO foi criada/);
-  assert.match(edit, /Esta pessoa não vê custo: não anote preço, custo, BDI nem imposto/);
+  assert.match(edit, /Esta pessoa não vê custo: não anote preço, custo, BDI, imposto nem mão de obra/);
   const withCost = buildPrompt({ role: 'admin', screen: 'Propostas', seesCost: true, canEdit: true });
   assert.match(withCost, /anote como custo unitário \(custo_unitario\)/);
   assert.match(withCost, /nunca invente valor, BDI nem imposto/);

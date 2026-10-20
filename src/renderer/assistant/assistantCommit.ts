@@ -4,6 +4,7 @@
 // (a segunda tentativa nao duplica cadastro).
 import { missing, scopeForSave, validUntil } from './proposalDraft';
 import type { ProposalDraft } from './proposalDraft';
+import type { LaborApiInput } from './proposalEdit';
 
 export interface CommitApi {
   createClient(input: { legalName: string; tradeName: string | null; document: string | null }): Promise<{ clientId: string }>;
@@ -11,6 +12,9 @@ export interface CommitApi {
   createProposal(input: { clientId: string; workId: string; scope: string; validUntil: string | null; bodyModel?: string }): Promise<{ proposal: { id: string } }>;
   updateBdi(proposalId: string, bdiMultiplier: number): Promise<unknown>;
   updateTax(proposalId: string, taxPercentage: number): Promise<unknown>;
+  /** Horas-padrao por mes da proposta (a mao de obra nova usa a mesma). */
+  standardMonthlyHours(proposalId: string): Promise<number>;
+  addLabor(proposalId: string, input: LaborApiInput): Promise<unknown>;
   importItems(proposalId: string, items: Array<{ code?: string; description: string; unit?: string; quantity: number; unitCost?: number; unitSale?: number }>): Promise<unknown>;
 }
 
@@ -58,7 +62,7 @@ export async function commitDraft(api: CommitApi, input: ProposalDraft, now: Dat
   } catch (error) {
     return { draft, proposalId, aviso: `A proposta foi criada, mas o BDI ou o imposto não foram aplicados e os itens não entraram (${message(error, 'erro')}). Ajuste no editor.` };
   }
-  if (draft.items.length === 0) return { draft, proposalId };
+  if (draft.items.length) {
   try {
     // Item do catalogo vai so com o codigo (o servidor traz descricao, unidade e custo do catalogo). Avulso com custo dito pela
     // pessoa vai so com o custo (o preco de venda sai do BDI da proposta); sem custo vai sem preco.
@@ -69,6 +73,25 @@ export async function commitDraft(api: CommitApi, input: ProposalDraft, now: Dat
         : { description: item.description, unit: item.unit, quantity: item.quantity, unitCost: 0, unitSale: 0 })));
   } catch (error) {
     return { draft, proposalId, aviso: `A proposta foi criada, mas os itens não entraram (${message(error, 'erro ao importar')}). Adicione-os no editor.` };
+  }
+  }
+  // Mao de obra por ultimo, com as horas-padrao da proposta; se falhar, a proposta e os itens ja existem.
+  if (draft.labor?.length) {
+    // Cada uma e gravada separada: se uma falhar, o aviso diz quais ja entraram e quais faltam (adicionar todas de novo duplicaria custo).
+    const saved: string[] = [];
+    let current = draft.labor[0]?.description ?? '';
+    try {
+      const hours = await api.standardMonthlyHours(proposalId);
+      for (const l of draft.labor) {
+        current = l.description;
+        await api.addLabor(proposalId, { description: l.description, professionalCount: l.professionalCount, monthlySalary: l.monthlySalary, monthlyFood: l.monthlyFood,
+          monthlyTransport: l.monthlyTransport, monthlyOtherCosts: l.monthlyOtherCosts, standardMonthlyHours: hours, plannedHours: l.plannedHours });
+        saved.push(l.description);
+      }
+    } catch (error) {
+      const pending = draft.labor.filter((l) => !saved.includes(l.description)).map((l) => l.description);
+      return { draft, proposalId, aviso: `A proposta foi criada, mas a mão de obra não entrou por completo (${current}: ${message(error, 'erro')}).${saved.length ? ` Já gravada: ${saved.join(', ')}.` : ''} Falta adicionar na aba Mão de obra: ${pending.join(', ')}.` };
+    }
   }
   return { draft, proposalId };
 }

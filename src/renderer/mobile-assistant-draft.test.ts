@@ -41,6 +41,7 @@ function load(options: { edit?: boolean; fail?: string; p10?: boolean } = {}) {
   };
   const sandbox = { window: { OC }, JSON, Number, String, Object, Math, Array, Set, Date, encodeURIComponent, decodeURIComponent };
   runInNewContext(read('ia-draft.js'), sandbox);
+  runInNewContext(read('ia-edit.js'), sandbox);
   runInNewContext(read('ia-tools.js'), sandbox);
   const ia = (OC as { ia: Out }).ia;
   const run = async (name: string, args: Record<string, unknown> = {}) => JSON.parse(JSON.stringify(await ia.run({ name, args } as Call))) as Out;
@@ -114,7 +115,7 @@ test('celular: ferramentas resolvem cliente e obra, itens por codigo exato, e so
   assert.equal(ia.takeConfirm(), null, 'o cartao entrega uma vez so');
   assert.equal(calls.filter((c) => c.method === 'POST').length, 0, 'conversar nao grava nada na API');
   const names = ia.declarations({ object: (s: object) => s, string: (s: object) => s, enumString: (s: object) => s, integer: (s: object) => s, number: (s: object) => s, boolean: (s: object) => s, array: (s: object) => s })[0].functionDeclarations.map((d: { name: string }) => d.name);
-  assert.equal(names.length, 14);
+  assert.equal(names.length, 22);
   assert.equal(names.some((n: string) => /enviar|aprovar|excluir|preco|bdi|criar_proposta/.test(n)), false);
 });
 
@@ -169,10 +170,10 @@ test('celular: cartao so cria pelo botao, o mais novo vale, e o prompt segue o p
   assert.match(chat, /IA\.resetDraft\(\)/);
   assert.match(config, /OC\.canEdit\(\) \? drafting\(OC\.can\('p10'\)\) : SO_CONSULTA/);
   assert.match(config, /AINDA NÃO foi criada/);
-  assert.match(config, /Esta pessoa não vê custo: não anote preço, custo, BDI nem imposto/);
+  assert.match(config, /Esta pessoa não vê custo: não anote preço, custo, BDI, imposto nem mão de obra/);
   assert.match(config, /anote como custo unitário \(custo_unitario\)/);
   assert.match(config, /drafting\(OC\.can\('p10'\)\)/);
-  assert.ok(html.indexOf('ia-draft.js') > 0 && html.indexOf('ia-draft.js') < html.indexOf('ia-tools.js'), 'ia-draft.js carrega antes das ferramentas');
+  assert.ok(html.indexOf('ia-draft.js') > 0 && html.indexOf('ia-draft.js') < html.indexOf('ia-edit.js') && html.indexOf('ia-edit.js') < html.indexOf('ia-tools.js'), 'ia-draft.js e ia-edit.js carregam antes das ferramentas');
   assert.doesNotMatch(read('ia-draft.js') + read('ia-tools.js'), /indexedDB|localStorage|sessionStorage/, 'rascunho so na memoria');
 });
 
