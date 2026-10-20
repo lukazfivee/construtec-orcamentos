@@ -1,6 +1,7 @@
 // Texto do corpo montado da proposta na pre-visualizacao do PDF, quebrado em pedacos (a quebra em paginas e do fluxo).
 import type { BodyPart } from '../shared/proposalBody';
 import { escapeHtml } from '../documents/proposalDocumentCommon';
+import { closingGroupStart } from '../documents/proposalClosingEnd';
 import type { FlowAtom } from './proposalPdfFlow';
 
 export const TEXT_CHARS_PER_LINE = 60;
@@ -74,5 +75,8 @@ const atomsOf = (part: BodyPart, showSignature: boolean): Atom[] => {
 };
 
 // Pedacos do texto do corpo para o fluxo continuo das paginas (titulo, paragrafo, item de lista, carta e fechamento).
-export const bodyTextAtoms = (parts: BodyPart[], showSignature = true): FlowAtom[] =>
-  parts.flatMap((part) => atomsOf(part, showSignature)).map((atom) => ({ kind: atom.kind, label: 'Texto' as const, html: atom.html }));
+// Com o fechamento por ultimo, a secao de texto antes dele (ex.: Validade) forma um grupo com ele: vao juntos para a mesma pagina.
+export const bodyTextAtoms = (parts: BodyPart[], showSignature = true): FlowAtom[] => {
+  const start = parts[parts.length - 1]?.kind === 'fechamento' ? closingGroupStart(parts) : parts.length;
+  return parts.flatMap((part, index) => atomsOf(part, showSignature).map((atom) => ({ kind: atom.kind, label: 'Texto' as const, html: atom.html, ...(index >= start ? { group: 'fechamento' } : {}) })));
+};

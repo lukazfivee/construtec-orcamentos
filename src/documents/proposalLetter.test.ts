@@ -168,3 +168,14 @@ test('marca d agua: logo colorida bem clara no meio de cada pagina, sem o fundo 
     assert.doesNotMatch(buildProposalHtml(proposal, { ...on, pdfWatermark: false } as AppSettings), /<div class="watermark"/);
   }
 });
+
+test('PDF: a ultima secao de texto (ex.: Validade) vai junto do fechamento, nunca o fechamento sozinho numa pagina', async () => {
+  const { closingGroupStart } = await import('./proposalClosingEnd');
+  assert.equal(closingGroupStart([{ kind: 'itens' }, { kind: 'heading' }, { kind: 'paragraph' }, { kind: 'fechamento' }]), 1);
+  assert.equal(closingGroupStart([{ kind: 'heading' }, { kind: 'paragraph' }, { kind: 'list' }, { kind: 'fechamento' }]), 0);
+  assert.equal(closingGroupStart([{ kind: 'condicoes' }, { kind: 'paragraph' }, { kind: 'fechamento' }]), 2);
+  assert.equal(closingGroupStart([{ kind: 'heading' }, { kind: 'paragraph' }, { kind: 'paragraph' }, { kind: 'paragraph' }, { kind: 'paragraph' }, { kind: 'fechamento' }]), 5);
+  const html = buildProposalHtml(make(letterBlocks()), settings);
+  const group = html.slice(html.indexOf('class="closing-end"'));
+  assert.match(group, /<h2>[^<]+<\/h2>[\s\S]*No aguardo de breve pronunciamento/, 'o titulo da secao anterior entra no grupo do fechamento');
+});
