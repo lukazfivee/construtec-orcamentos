@@ -73,10 +73,15 @@
   }
 
   // A IA nao cria nada: ela so liga `confirm`; quem cria e o botao do cartao (ia-chat.js).
+  // Edicao de proposta existente (plano em memoria + cartao de confirmacao), em ia-edit.js.
+  const EDIT = IA.edit.tools({ catalogHit, seesCost: () => OC.can('p10'), canEdit: () => OC.canEdit() });
+  IA.takeEditConfirm = EDIT.takeConfirm; IA.getPlan = EDIT.getPlan; IA.setPlan = EDIT.setPlan;
+  const NO_LABOR = 'Seu perfil não vê nem define custo, e a mão de obra é custo; ela se cadastra no editor depois de criar a proposta.';
+
   IA.takeConfirm = () => { const out = ST.confirm ? ST.draft : null; ST.confirm = false; return out; };
-  IA.clearConfirm = () => { ST.confirm = false; };
+  IA.clearConfirm = () => { ST.confirm = false; EDIT.clearConfirm(); };
   IA.setDraft = (next, done) => { ST.draft = done ? D.empty() : next; if (done) ST.known = null; };
-  IA.resetDraft = () => { ST.draft = D.empty(); ST.known = null; ST.confirm = false; };
+  IA.resetDraft = () => { ST.draft = D.empty(); ST.known = null; ST.confirm = false; EDIT.reset(); };
 
   const RUN = {
     async abrir_tela(a) {
@@ -187,6 +192,16 @@
       ST.draft = removed.draft;
       return { ok: true, removidos: removed.removidos, ...(erros.length || added.erros.length ? { erros: [...erros, ...added.erros] } : {}), rascunho: D.summary(ST.draft) };
     },
+    async rascunho_mao_de_obra(a) {
+      if (!OC.canEdit()) return NO_EDIT;
+      if (!OC.can('p10')) return { erro: NO_LABOR };
+      ST.confirm = false;
+      const list = (value) => (Array.isArray(value) ? value.slice(0, 20) : []);
+      const added = D.addLabor(ST.draft, list(a.adicionar));
+      const removed = D.removeLabor(added.draft, list(a.remover));
+      ST.draft = removed.draft;
+      return { ok: true, removidos: removed.removidos, ...(added.erros.length ? { erros: added.erros } : {}), rascunho: D.summary(ST.draft) };
+    },
     async rascunho_ver() {
       return { rascunho: D.summary(ST.draft) };
     },
@@ -208,6 +223,8 @@
       return { total: list.length, itens: list.map((x) => ({ codigo: x.code, descricao: x.description, categoria: x.category, unidade: x.unit, fabricante: x.manufacturer || null, custo_unitario: cost(x.currentCost) })) };
     },
   };
+
+  Object.assign(RUN, EDIT.run);
 
   // Executa uma chamada do modelo; erros viram texto para a IA explicar.
   IA.run = async function (call) {
@@ -260,10 +277,21 @@
         }, optionalProperties: ['codigo', 'descricao', 'unidade', 'custo_unitario'] }) }),
         remover: S.array({ description: 'número do item (1, 2...) ou trecho da descrição', items: S.string() }),
       }, optionalProperties: ['adicionar', 'remover'] }) },
+    { name: 'rascunho_mao_de_obra', description: 'Adiciona ou remove mão de obra do rascunho (só para quem vê custo). Nova exige descricao, profissionais, salario_mensal e horas_por_profissional (pergunte o que faltar); alimentação, transporte e outros custos são opcionais. Nunca invente valores.',
+      parameters: S.object({ properties: {
+        adicionar: S.array({ description: 'mão de obra nova', items: S.object({ properties: {
+          descricao: S.string({ description: 'função, ex.: Eletricista' }), profissionais: S.number({ description: 'quantidade de profissionais' }),
+          salario_mensal: S.number({ description: 'salário mensal de cada profissional, em reais' }), alimentacao_mensal: S.number({ description: 'alimentação mensal' }),
+          transporte_mensal: S.number({ description: 'transporte mensal' }), outros_custos_mensais: S.number({ description: 'outros custos mensais' }),
+          horas_por_profissional: S.number({ description: 'horas previstas por profissional na obra' }),
+        }, optionalProperties: ['alimentacao_mensal', 'transporte_mensal', 'outros_custos_mensais'] }) }),
+        remover: S.array({ description: 'número da mão de obra (1, 2...) ou trecho da descrição', items: S.string() }),
+      }, optionalProperties: ['adicionar', 'remover'] }) },
     { name: 'rascunho_ver', description: 'Mostra o rascunho atual da proposta e o que ainda falta.', parameters: S.object({ properties: {} }) },
     { name: 'rascunho_descartar', description: 'Apaga o rascunho de proposta (quando a pessoa desistir ou quiser recomeçar).', parameters: S.object({ properties: {} }) },
     { name: 'finalizar_rascunho', description: 'Pede a confirmação da pessoa para criar a proposta. Só depois de cliente, obra e escopo definidos. Não cria nada: aparece um botão para ela.', parameters: S.object({ properties: {} }) },
     { name: 'buscar_catalogo', description: 'Procura itens no catálogo por código, descrição ou fabricante. Mostra até 20.',
       parameters: S.object({ properties: { busca: S.string({ description: 'ao menos 2 letras' }) } }) },
+    ...EDIT.declarations(S),
   ] }];
 })(window.OC = window.OC || {});

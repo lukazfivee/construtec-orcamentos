@@ -171,7 +171,7 @@ test('assistente: declaracoes cobrem todas as ferramentas e o prompt segue a per
   const schema = new Proxy({}, { get: (_, kind) => (spec: object) => ({ kind, ...spec }) }) as SchemaBuilder;
   const names = tools.declarations(schema)[0].functionDeclarations.map((d) => d.name).sort();
   assert.deepEqual(names, [...tools.toolNames].sort());
-  assert.equal(names.length, 14);
+  assert.equal(names.length, 22);
 
   const withCost = buildPrompt({ name: 'Ana', role: 'admin', screen: 'Propostas', seesCost: true, now: new Date('2026-10-10T15:00:00Z') });
   assert.match(withCost, /Ana, perfil administrador\. Tela aberta agora: Propostas\. Esta pessoa pode ver custo/);

@@ -28,6 +28,7 @@ function loadTools(api: (p: string) => Promise<unknown>, permissions?: string[])
   };
   const sandbox = { window: { OC }, location, JSON, Number, String, Object, Math, Array, Set, Date, encodeURIComponent };
   runInNewContext(read('ia-draft.js'), sandbox); // o rascunho de proposta carrega antes das ferramentas (index.html)
+  runInNewContext(read('ia-edit.js'), sandbox);
   runInNewContext(read('ia-tools.js'), sandbox);
   return { OC, location } as unknown as Tools & { location: { href: string } };
 }
@@ -144,5 +145,7 @@ test('assistente: declaracoes cobrem todas as ferramentas', () => {
   const names = Array.from(OC.ia.declarations(schema)[0].functionDeclarations, (d) => d.name).sort(); // Array.from: a lista nasce em outro contexto do vm
   const source = read('ia-tools.js');
   const runs = [...source.slice(source.indexOf('const RUN = {'), source.indexOf('IA.run =')).matchAll(/^ {4}async (\w+)\(/gm)].map((m) => m[1]).sort();
-  assert.deepEqual(names, runs);
+  const edits = read('ia-edit.js'); // as ferramentas de edicao de proposta existente moram em ia-edit.js
+  const editRuns = [...edits.slice(edits.indexOf('const run = {'), edits.indexOf('const declarations')).matchAll(/^ {6}async (\w+)\(/gm)].map((m) => m[1]);
+  assert.deepEqual(names, [...runs, ...editRuns].sort());
 });
