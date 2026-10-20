@@ -63,3 +63,10 @@ Alternativa descartada: ler preço público de URL sem login (podia importar pre
 - Cliente novo e obra nova só são cadastrados junto da proposta, depois da confirmação da pessoa no chat e no cartão. Falha no meio não duplica cadastro (o rascunho guarda os ids já criados). Prazo, pagamento e garantia entram no JSON de `scope` (mesmo formato do painel de condições); não existe campo de desconto e a IA não inventa um.
 - Perfil de consulta não monta rascunho. O desktop e o celular têm implementações paralelas; `mobile-assistant-draft.test.ts` compara as duas nas mesmas entradas para não divergirem.
 - Fora desta versão: editar proposta existente, mão de obra, anexos, preço sugerido pela IA. Os dados digitados na conversa seguem para o Gemini (plano gratuito do Firebase AI Logic, como as consultas que o assistente já fazia): não escrever dado sensível de cliente além do nome e da obra.
+
+## 2026-10-20 (tarde) — Assistente: valor, BDI e imposto ditos pela pessoa
+
+- Primeiro uso real: o Lucas deu o valor de um serviço (2 eletroímãs), pediu BDI e imposto, e o item entrou sem valor, porque a primeira versão proibia a IA de anotar qualquer valor. Mudança, só para quem tem a permissão de custo (p10), igual ao editor e ao `suiteGuard`:
+- O valor dito entra como **custo unitário** do item avulso (`custo_unitario`); o preço de venda sai do BDI e do imposto da proposta. Item do catálogo continua usando o custo do catálogo (custo informado é ignorado com aviso). Sem valor, o item segue entrando sem preço.
+- `bdi` (multiplicador: 25% vira 1,25) e `imposto_pct` entram em `rascunho_atualizar` só quando a pessoa pedir; sem pedido valem os padrões da empresa. O commit aplica BDI e imposto (`PATCH /bdi`, `/tax`) **antes** de importar os itens, porque o preço de venda de cada item nasce com o BDI da proposta; se isso falhar, a proposta existe, os itens não entram e o cartão avisa.
+- Sem p10 a IA recusa custo, BDI e imposto (nada entra no rascunho) e o prompt manda dizer que se informam no editor. A IA continua sem ferramenta de envio, aprovação ou exclusão, e a criação continua só pelo botão do cartão.

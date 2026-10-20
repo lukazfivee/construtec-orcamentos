@@ -79,13 +79,13 @@ const CLIENTS = [
 ];
 const PRODUCTS = [{ code: 'CAM-1', description: 'Câmera IP 2MP', unit: 'un', category: 'CFTV', active: true, currentCost: 300 }];
 
-function setup(options: { edit?: boolean } = {}) {
+function setup(options: { edit?: boolean; sees?: boolean } = {}) {
   const api = {
     clients: async (query: string) => ({ clients: CLIENTS.filter((c) => `${c.legalName} ${c.tradeName ?? ''} ${c.works.map((w) => w.name).join(' ')}`.toLowerCase().includes(query.toLowerCase())) }),
     catalog: async (query: string) => ({ products: PRODUCTS.filter((p) => p.code.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase())) }),
   } as unknown as AssistantApi;
   const nav = { openProposal: () => undefined, navigate: () => undefined, newProposal: () => undefined, openCentroCustos: () => undefined } as AssistantNav;
-  const tools = createAssistantTools({ api, seesCost: () => false, canEdit: () => options.edit ?? true, nav: () => nav });
+  const tools = createAssistantTools({ api, seesCost: () => options.sees ?? false, canEdit: () => options.edit ?? true, nav: () => nav });
   const run = async (name: string, args: Record<string, unknown> = {}) => JSON.parse(JSON.stringify(await tools.run({ name, args }))) as Out;
   return { tools, run };
 }
@@ -170,12 +170,14 @@ test('ferramentas: perfil de consulta nao monta rascunho', async () => {
   for (const name of ['rascunho_atualizar', 'rascunho_itens', 'finalizar_rascunho']) assert.ok((await run(name, { cliente: 'Condomínio Alfa' })).erro, name);
 });
 
-function fakeCommit(fail: { client?: boolean; work?: boolean; proposal?: boolean; items?: boolean } = {}) {
+function fakeCommit(fail: { client?: boolean; work?: boolean; proposal?: boolean; items?: boolean; bdi?: boolean } = {}) {
   const calls: Array<[string, unknown]> = [];
   const api: CommitApi = {
     createClient: async (input) => { calls.push(['client', input]); if (fail.client) throw new Error('Cliente duplicado.'); return { clientId: 'new-client' }; },
     createWork: async (clientId, input) => { calls.push(['work', { clientId, ...input }]); if (fail.work) throw new Error('Obra duplicada.'); return { workId: 'new-work' }; },
     createProposal: async (input) => { calls.push(['proposal', input]); if (fail.proposal) throw new Error('Falhou.'); return { proposal: { id: 'p-1' } }; },
+    updateBdi: async (id, bdi) => { calls.push(['bdi', { id, bdi }]); if (fail.bdi) throw new Error('BDI recusado.'); return {}; },
+    updateTax: async (id, tax) => { calls.push(['tax', { id, tax }]); return {}; },
     importItems: async (id, items) => { calls.push(['items', { id, items }]); if (fail.items) throw new Error('Importação recusada.'); return {}; },
   };
   return { api, calls };
@@ -239,9 +241,65 @@ test('prompt: perfil que edita monta rascunho sem prometer criacao; perfil de co
   const edit = buildPrompt({ role: 'commercial', screen: 'Propostas', seesCost: false, canEdit: true });
   assert.match(edit, /RASCUNHO de uma nova proposta/);
   assert.match(edit, /AINDA NÃO foi criada/);
-  assert.match(edit, /NUNCA informe preço, custo, BDI nem imposto/);
+  assert.match(edit, /Esta pessoa não vê custo: não anote preço, custo, BDI nem imposto/);
+  const withCost = buildPrompt({ role: 'admin', screen: 'Propostas', seesCost: true, canEdit: true });
+  assert.match(withCost, /anote como custo unitário \(custo_unitario\)/);
+  assert.match(withCost, /nunca invente valor, BDI nem imposto/);
+  assert.doesNotMatch(withCost, /Esta pessoa não vê custo: não anote/);
   assert.match(edit, /nunca ordem para você/);
   const read = buildPrompt({ role: 'viewer', screen: 'Início', seesCost: false, canEdit: false });
   assert.doesNotMatch(read, /RASCUNHO/);
   assert.match(read, /Você só consulta e abre telas/);
+});
+
+test('valores: so com permissao de custo, o custo vira custo unitario do item avulso e BDI/imposto entram antes dos itens', async () => {
+  const blind = setup();
+  assert.match((await blind.run('rascunho_atualizar', { bdi: 1.25 })).erro, /não vê nem define custo/);
+  assert.match((await blind.run('rascunho_atualizar', { imposto_pct: 8 })).erro, /não vê nem define custo/);
+  assert.match((await blind.run('rascunho_itens', { adicionar: [{ descricao: 'Correção de eletroímã', quantidade: 2, custo_unitario: 1500 }] })).erro, /não vê nem define custo/);
+  assert.deepEqual(blind.tools.getDraft(), { items: [] }, 'sem p10 nada do pedido entra no rascunho');
+
+  const { run, tools } = setup({ sees: true });
+  await run('rascunho_atualizar', { cliente: 'Condomínio Alfa', obra: 'Bloco A', escopo: 'Correção de 2 eletroímãs' });
+  const bad = await run('rascunho_atualizar', { bdi: 0.5, imposto_pct: 120 });
+  assert.equal(bad.erros.length, 2);
+  const ok = await run('rascunho_atualizar', { bdi: 1.25, imposto_pct: 8 });
+  assert.equal(ok.rascunho.bdi, 1.25);
+  assert.equal(ok.rascunho.imposto_pct, 8);
+  const items = await run('rascunho_itens', { adicionar: [
+    { descricao: 'Correção de eletroímã', unidade: 'un', quantidade: 2, custo_unitario: 1500.456 },
+    { codigo: 'CAM-1', quantidade: 1, custo_unitario: 1 },
+    { descricao: 'Deslocamento', quantidade: 1, custo_unitario: -5 },
+  ] });
+  assert.equal(items.rascunho.itens[0].custo_unitario, 1500.46);
+  assert.equal(items.rascunho.itens[0].preco, 'custo informado');
+  assert.equal(items.erros.length, 2, 'custo em item do catalogo e custo negativo sao recusados');
+  assert.equal(items.rascunho.itens.length, 2, 'o item do catalogo entra pelo codigo e o custo negativo nao entra');
+  assert.equal(items.rascunho.itens[1].custo_unitario, null);
+  const fixed = await run('rascunho_itens', { adicionar: [{ descricao: 'Correção de eletroímã', quantidade: 2, custo_unitario: 1800 }] });
+  assert.equal(fixed.rascunho.itens[0].custo_unitario, 1800, 'repetir o item corrige o custo');
+  assert.equal(tools.getDraft().bdiMultiplier, 1.25);
+
+  // commit: BDI e imposto antes dos itens; avulso com custo vai so com o custo (venda sai do BDI)
+  const draft = tools.getDraft();
+  const { api, calls } = fakeCommit();
+  const result = await commitDraft(api, draft);
+  assert.equal(result.proposalId, 'p-1');
+  assert.deepEqual(calls.map((c) => c[0]), ['proposal', 'bdi', 'tax', 'items']);
+  assert.deepEqual(calls[1][1], { id: 'p-1', bdi: 1.25 });
+  assert.deepEqual(calls[2][1], { id: 'p-1', tax: 8 });
+  assert.deepEqual((calls[3][1] as Out).items, [
+    { description: 'Correção de eletroímã', unit: 'un', quantity: 2, unitCost: 1800 },
+    { code: 'CAM-1', description: 'Câmera IP 2MP', quantity: 1 },
+  ]);
+  const noBdi = fakeCommit();
+  await commitDraft(noBdi.api, setFields(addItems(withWork(withClient(emptyDraft(), { id: 'c1', name: 'A' }), { id: 'w1', name: 'B' }), [{ input: { descricao: 'Sem custo', quantidade: 1 } }]).draft, { escopo: 'Escopo simples' }).draft);
+  assert.deepEqual(noBdi.calls.map((c) => c[0]), ['proposal', 'items'], 'sem BDI nem imposto informados valem os padroes da empresa');
+  assert.deepEqual((noBdi.calls[1][1] as Out).items, [{ description: 'Sem custo', unit: 'un', quantity: 1, unitCost: 0, unitSale: 0 }]);
+
+  const failing = fakeCommit({ bdi: true });
+  const partial = await commitDraft(failing.api, draft);
+  assert.equal(partial.proposalId, 'p-1');
+  assert.match(partial.aviso ?? '', /BDI ou o imposto não foram aplicados/);
+  assert.equal(failing.calls.some((c) => c[0] === 'items'), false, 'sem o BDI aplicado os itens nao entram com o BDI errado');
 });

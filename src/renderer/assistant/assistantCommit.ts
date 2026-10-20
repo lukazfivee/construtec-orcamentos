@@ -9,6 +9,8 @@ export interface CommitApi {
   createClient(input: { legalName: string; tradeName: string | null; document: string | null }): Promise<{ clientId: string }>;
   createWork(clientId: string, input: { name: string; address: string | null }): Promise<{ workId: string }>;
   createProposal(input: { clientId: string; workId: string; scope: string; validUntil: string | null; bodyModel?: string }): Promise<{ proposal: { id: string } }>;
+  updateBdi(proposalId: string, bdiMultiplier: number): Promise<unknown>;
+  updateTax(proposalId: string, taxPercentage: number): Promise<unknown>;
   importItems(proposalId: string, items: Array<{ code?: string; description: string; unit?: string; quantity: number; unitCost?: number; unitSale?: number }>): Promise<unknown>;
 }
 
@@ -49,12 +51,22 @@ export async function commitDraft(api: CommitApi, input: ProposalDraft, now: Dat
   } catch (error) {
     return { draft, erro: message(error, 'Não consegui criar a proposta.') };
   }
+  // BDI e imposto antes dos itens: o preco de venda de cada item nasce com o BDI da proposta.
+  try {
+    if (draft.bdiMultiplier !== undefined) await api.updateBdi(proposalId, draft.bdiMultiplier);
+    if (draft.taxPercentage !== undefined) await api.updateTax(proposalId, draft.taxPercentage);
+  } catch (error) {
+    return { draft, proposalId, aviso: `A proposta foi criada, mas o BDI ou o imposto não foram aplicados e os itens não entraram (${message(error, 'erro')}). Ajuste no editor.` };
+  }
   if (draft.items.length === 0) return { draft, proposalId };
   try {
-    // Item do catalogo vai so com o codigo (o servidor traz descricao, unidade e custo do catalogo); avulso vai sem preco.
+    // Item do catalogo vai so com o codigo (o servidor traz descricao, unidade e custo do catalogo). Avulso com custo dito pela
+    // pessoa vai so com o custo (o preco de venda sai do BDI da proposta); sem custo vai sem preco.
     await api.importItems(proposalId, draft.items.map((item) => (item.code
       ? { code: item.code, description: item.description, quantity: item.quantity }
-      : { description: item.description, unit: item.unit, quantity: item.quantity, unitCost: 0, unitSale: 0 })));
+      : item.unitCost !== undefined
+        ? { description: item.description, unit: item.unit, quantity: item.quantity, unitCost: item.unitCost }
+        : { description: item.description, unit: item.unit, quantity: item.quantity, unitCost: 0, unitSale: 0 })));
   } catch (error) {
     return { draft, proposalId, aviso: `A proposta foi criada, mas os itens não entraram (${message(error, 'erro ao importar')}). Adicione-os no editor.` };
   }

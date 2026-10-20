@@ -9,6 +9,8 @@ export interface DraftItem {
   description: string;
   unit: string;
   quantity: number;
+  /** Custo unitario dito pela pessoa (so item avulso, so com permissao de custo); o preco de venda sai do BDI e do imposto. */
+  unitCost?: number;
 }
 
 export interface ProposalDraft {
@@ -25,6 +27,9 @@ export interface ProposalDraft {
   warranty?: string;
   validityDays?: number;
   model?: DraftModel;
+  /** Multiplicador (25% = 1,25) e imposto em %; so quando a pessoa informa e pode ver custo. Sem eles valem os padroes da empresa. */
+  bdiMultiplier?: number;
+  taxPercentage?: number;
   items: DraftItem[];
 }
 
@@ -41,6 +46,7 @@ const plain = (value: string): string => value.normalize('NFD').replace(/[̀-ͯ]
 
 export interface FieldsInput {
   escopo?: unknown; prazo_execucao?: unknown; pagamento?: unknown; garantia?: unknown; validade_dias?: unknown; modelo?: unknown;
+  bdi?: unknown; imposto_pct?: unknown;
 }
 
 export function setFields(draft: ProposalDraft, input: FieldsInput): { draft: ProposalDraft; erros: string[] } {
@@ -60,6 +66,14 @@ export function setFields(draft: ProposalDraft, input: FieldsInput): { draft: Pr
   if (input.modelo !== undefined) {
     if (input.modelo === 'servico' || input.modelo === 'fornecimento') next.model = input.modelo; else erros.push('O modelo é "servico" ou "fornecimento".');
   }
+  if (input.bdi !== undefined) {
+    const bdi = Number(input.bdi);
+    if (Number.isFinite(bdi) && bdi >= 1 && bdi <= 100) next.bdiMultiplier = Math.round(bdi * 10000) / 10000; else erros.push('O BDI é um multiplicador de 1 a 100 (25% vira 1,25).');
+  }
+  if (input.imposto_pct !== undefined) {
+    const tax = Number(input.imposto_pct);
+    if (Number.isFinite(tax) && tax >= 0 && tax <= 100) next.taxPercentage = Math.round(tax * 100) / 100; else erros.push('O imposto vai de 0 a 100 (em %).');
+  }
   return { draft: next, erros };
 }
 
@@ -77,7 +91,7 @@ export function withWork(draft: ProposalDraft, work: { id: string; name: string 
   return 'id' in work ? { ...base, workId: work.id, workName: work.name } : { ...base, workName: work.newName, workAddress: work.address || undefined, newWork: true };
 }
 
-export interface ItemInput { codigo?: unknown; descricao?: unknown; unidade?: unknown; quantidade?: unknown }
+export interface ItemInput { codigo?: unknown; descricao?: unknown; unidade?: unknown; quantidade?: unknown; custo_unitario?: unknown }
 /** Item ja resolvido no catalogo (a ferramenta consulta a API e passa o que achou). */
 export interface CatalogHit { code: string; description: string; unit: string }
 
@@ -93,11 +107,17 @@ export function addItems(draft: ProposalDraft, inputs: Array<{ input: ItemInput;
     if (description.length < 2) { erros.push(`Informe a descrição de "${label}".`); continue; }
     const unit = (hit?.unit ?? text(input.unidade, 24)) || DEFAULT_UNIT;
     const code = hit?.code;
+    let unitCost: number | undefined;
+    if (input.custo_unitario !== undefined && input.custo_unitario !== null) {
+      const cost = Number(input.custo_unitario);
+      if (hit) { erros.push(`"${label}" é do catálogo e usa o custo do catálogo; o custo informado foi ignorado.`); } else if (Number.isFinite(cost) && cost >= 0 && cost <= 100_000_000) unitCost = Math.round(cost * 100) / 100;
+      else { erros.push(`Custo inválido em "${label}".`); continue; }
+    }
     const same = items.findIndex((item) => (code ? item.code === code : !item.code && plain(item.description) === plain(description)));
     // Item que ja esta no rascunho: a quantidade dita agora vale ("na verdade sao 6"), nao soma com a anterior.
-    if (same >= 0) { items[same] = { ...items[same], quantity: qty }; continue; }
+    if (same >= 0) { items[same] = { ...items[same], quantity: qty, ...(unitCost !== undefined ? { unitCost } : {}) }; continue; }
     if (items.length >= MAX_ITEMS) { erros.push(`Limite de ${MAX_ITEMS} itens por rascunho.`); break; }
-    items.push({ code, description, unit, quantity: qty });
+    items.push({ code, description, unit, quantity: qty, ...(unitCost !== undefined ? { unitCost } : {}) });
   }
   return { draft: { ...draft, items }, erros };
 }
@@ -162,7 +182,12 @@ export function summary(draft: ProposalDraft) {
     garantia: draft.warranty ?? null,
     validade_dias: draft.validityDays ?? null,
     modelo: draft.model ?? null,
-    itens: draft.items.map((item, index) => ({ numero: index + 1, codigo: item.code ?? null, descricao: item.description, unidade: item.unit, quantidade: item.quantity, preco: item.code ? 'do catálogo' : 'sem preço (avulso)' })),
+    bdi: draft.bdiMultiplier ?? null,
+    imposto_pct: draft.taxPercentage ?? null,
+    itens: draft.items.map((item, index) => ({
+      numero: index + 1, codigo: item.code ?? null, descricao: item.description, unidade: item.unit, quantidade: item.quantity,
+      custo_unitario: item.unitCost ?? null, preco: item.code ? 'do catálogo' : item.unitCost !== undefined ? 'custo informado' : 'sem preço (avulso)',
+    })),
     falta: missing(draft),
   };
 }

@@ -29,11 +29,13 @@ function DraftCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreat
         {view.pagamento && <><dt>Pagamento</dt><dd>{view.pagamento}</dd></>}
         {view.garantia && <><dt>Garantia</dt><dd>{view.garantia}</dd></>}
         {view.validade_dias && <><dt>Validade</dt><dd>{view.validade_dias} dias</dd></>}
+        {view.bdi != null && <><dt>BDI</dt><dd>{String(view.bdi).replace('.', ',')}</dd></>}
+        {view.imposto_pct != null && <><dt>Imposto</dt><dd>{String(view.imposto_pct).replace('.', ',')}%</dd></>}
       </dl>
       {view.itens.length > 0 && (
-        <ul>{view.itens.map((item) => <li key={item.numero}>{item.quantidade} {item.unidade} · {item.descricao}{!item.codigo && <em> (sem preço)</em>}</li>)}</ul>
+        <ul>{view.itens.map((item) => <li key={item.numero}>{item.quantidade} {item.unidade} · {item.descricao}{item.custo_unitario != null && <em> (custo {item.custo_unitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</em>}{item.preco === 'sem preço (avulso)' && <em> (sem preço)</em>}</li>)}</ul>
       )}
-      <small>Os preços vêm do catálogo; BDI e impostos, dos padrões da empresa. Itens sem preço você completa no editor.</small>
+      <small>Itens do catálogo usam o custo do catálogo; BDI e imposto, os padrões da empresa (ou o que você informou). Itens sem preço você completa no editor.</small>
       {card.note && <p className="assistant-card-note">{card.note}</p>}
       {open && (
         <div className="assistant-card-actions">

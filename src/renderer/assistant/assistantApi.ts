@@ -19,5 +19,7 @@ export const liveCommitApi: CommitApi = {
   createClient: (input) => clientsApi.create(input),
   createWork: (clientId, input) => clientsApi.createWork(clientId, input),
   createProposal: (input) => proposalApi.create(input),
+  updateBdi: (proposalId, bdi) => proposalApi.updateBdi(proposalId, bdi),
+  updateTax: (proposalId, tax) => proposalApi.updateTax(proposalId, tax),
   importItems: (proposalId, items) => proposalApi.importBatch(proposalId, items),
 };
