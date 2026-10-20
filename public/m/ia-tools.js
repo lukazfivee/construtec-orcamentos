@@ -48,7 +48,8 @@
   async function pickClient(name, create) {
     const wanted = plain(name).trim();
     if (wanted.length < 2) return { erro: 'Informe o nome do cliente.' };
-    const found = (await OC.api(`/clients?q=${encodeURIComponent(name.slice(0, 60))}`)).clients || [];
+    // A busca do servidor tambem casa nome de obra: so vale quem tem o nome (ou documento) no proprio cadastro do cliente.
+    const found = ((await OC.api(`/clients?q=${encodeURIComponent(name.slice(0, 60))}`)).clients || []).filter((c) => plain(`${c.legalName} ${c.tradeName || ''} ${c.document || ''}`).includes(wanted));
     const exact = found.filter((c) => plain(c.legalName).trim() === wanted || plain(c.tradeName || '').trim() === wanted);
     const pool = exact.length ? exact : found;
     if (pool.length === 1) { ST.draft = D.withClient(ST.draft, { id: pool[0].id, name: nameOf(pool[0]) }); ST.known = pool[0]; return null; }

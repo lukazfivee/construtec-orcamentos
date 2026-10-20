@@ -91,11 +91,17 @@
   D.scopeForSave = function (draft) {
     const scope = draft.scope || '';
     if (!draft.executionTerm && !draft.paymentTerms && !draft.warranty) return scope;
-    const pack = (s) => JSON.stringify({ scope: s, executionTerm: draft.executionTerm || '', paymentTerms: draft.paymentTerms || '', warranty: draft.warranty || '', notes: '' });
-    const json = pack(scope);
-    if (json.length <= SCOPE_MAX) return json;
-    const room = SCOPE_MAX - (json.length - JSON.stringify(scope).length) - 4;
-    return pack(scope.slice(0, Math.max(SCOPE_MIN, room)));
+    const parts = { scope, executionTerm: draft.executionTerm || '', paymentTerms: draft.paymentTerms || '', warranty: draft.warranty || '', notes: '' };
+    // O campo guarda ate 1200 caracteres do JSON JA escapado (aspas e barras crescem): corta o maior texto ate caber.
+    // O escopo nunca passa de SCOPE_MIN letras; as condicoes podem ir a zero.
+    for (let json = JSON.stringify(parts); json.length > SCOPE_MAX; json = JSON.stringify(parts)) {
+      const cut = Math.max(1, Math.ceil((json.length - SCOPE_MAX) / 2));
+      const longest = ['scope', 'executionTerm', 'paymentTerms', 'warranty']
+        .filter((key) => parts[key].length > (key === 'scope' ? SCOPE_MIN : 0))
+        .sort((a, b) => parts[b].length - parts[a].length)[0];
+      parts[longest] = parts[longest].slice(0, Math.max(longest === 'scope' ? SCOPE_MIN : 0, parts[longest].length - cut));
+    }
+    return JSON.stringify(parts);
   };
 
   D.validUntil = function (draft, now) {

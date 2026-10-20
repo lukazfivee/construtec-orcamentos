@@ -129,11 +129,18 @@ export function missing(draft: ProposalDraft): string[] {
 export function scopeForSave(draft: ProposalDraft): string {
   const scope = draft.scope ?? '';
   if (!draft.executionTerm && !draft.paymentTerms && !draft.warranty) return scope;
-  const json = JSON.stringify({ scope, executionTerm: draft.executionTerm ?? '', paymentTerms: draft.paymentTerms ?? '', warranty: draft.warranty ?? '', notes: '' });
-  // O campo guarda ate 1200 caracteres: se o JSON estourar, o escopo encurta (as condicoes sao mais curtas que o escopo).
-  if (json.length <= SCOPE_MAX) return json;
-  const room = SCOPE_MAX - (json.length - JSON.stringify(scope).length) - 4;
-  return JSON.stringify({ scope: scope.slice(0, Math.max(SCOPE_MIN, room)), executionTerm: draft.executionTerm ?? '', paymentTerms: draft.paymentTerms ?? '', warranty: draft.warranty ?? '', notes: '' });
+  const parts = { scope, executionTerm: draft.executionTerm ?? '', paymentTerms: draft.paymentTerms ?? '', warranty: draft.warranty ?? '', notes: '' };
+  // O campo guarda ate 1200 caracteres do JSON JA escapado (aspas e barras crescem): corta o maior texto ate caber.
+  // O escopo nunca passa de SCOPE_MIN letras; as condicoes podem ir a zero.
+  for (let json = JSON.stringify(parts); json.length > SCOPE_MAX; json = JSON.stringify(parts)) {
+    const overflow = json.length - SCOPE_MAX;
+    const cut = Math.max(1, Math.ceil(overflow / 2));
+    const longest = (['scope', 'executionTerm', 'paymentTerms', 'warranty'] as const)
+      .filter((key) => parts[key].length > (key === 'scope' ? SCOPE_MIN : 0))
+      .sort((a, b) => parts[b].length - parts[a].length)[0];
+    parts[longest] = parts[longest].slice(0, Math.max(longest === 'scope' ? SCOPE_MIN : 0, parts[longest].length - cut));
+  }
+  return JSON.stringify(parts);
 }
 
 /** Data de validade (yyyy-mm-dd, horario de Brasilia) ou null se a pessoa nao informou dias. */

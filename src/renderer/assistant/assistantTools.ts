@@ -101,7 +101,8 @@ export function createAssistantTools(deps: ToolDeps) {
   async function pickClient(name: string, create: boolean): Promise<Record<string, unknown> | null> {
     const wanted = plain(name).trim();
     if (wanted.length < 2) return { erro: 'Informe o nome do cliente.' };
-    const found = (await deps.api.clients(name.slice(0, 60))).clients;
+    // A busca do servidor tambem casa nome de obra: so vale quem tem o nome (ou documento) no proprio cadastro do cliente.
+    const found = (await deps.api.clients(name.slice(0, 60))).clients.filter((c) => plain(`${c.legalName} ${c.tradeName || ''} ${c.document || ''}`).includes(wanted));
     const exact = found.filter((c) => plain(c.legalName).trim() === wanted || plain(c.tradeName || '').trim() === wanted);
     const pool = exact.length ? exact : found;
     if (pool.length === 1) { draft = withClient(draft, { id: pool[0].id, name: nameOf(pool[0]) }); known = pool[0]; return null; }

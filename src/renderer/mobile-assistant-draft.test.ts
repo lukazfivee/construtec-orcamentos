@@ -31,7 +31,7 @@ function load(options: { edit?: boolean; fail?: string } = {}) {
     api: async (p: string, init?: { method?: string; body?: unknown }) => {
       calls.push({ path: p, method: init?.method ?? 'GET', body: init?.body });
       if (options.fail && p.includes(options.fail)) throw new Error(`falhou ${options.fail}`);
-      if (p.startsWith('/clients?q=')) { const q = decodeURIComponent(p.slice(11)).toLowerCase(); return { clients: CLIENTS.filter((c) => `${c.legalName} ${c.tradeName ?? ''}`.toLowerCase().includes(q)) }; }
+      if (p.startsWith('/clients?q=')) { const q = decodeURIComponent(p.slice(11)).toLowerCase(); return { clients: CLIENTS.filter((c) => `${c.legalName} ${c.tradeName ?? ''} ${c.works.map((w) => w.name).join(' ')}`.toLowerCase().includes(q)) }; }
       if (p.startsWith('/catalog?q=')) { const q = decodeURIComponent(p.slice(11).split('&')[0]).toLowerCase(); return { products: PRODUCTS.filter((x) => x.code.toLowerCase().includes(q) || x.description.toLowerCase().includes(q)) }; }
       if (p === '/clients' && init?.method === 'POST') return { clientId: 'new-client' };
       if (p.endsWith('/works') && init?.method === 'POST') return { workId: 'new-work' };
@@ -65,6 +65,10 @@ test('celular: rascunho e o espelho exato do computador (mesmos resultados nas m
   }
   const long = { escopo: 'x'.repeat(1200), pagamento: 'p'.repeat(300), garantia: 'g'.repeat(300) };
   assert.equal(D.scopeForSave(D.setFields(D.empty(), long).draft), scopeForSave(setFields(emptyDraft(), long).draft));
+  const quotes = { escopo: '"'.repeat(1200), pagamento: '"'.repeat(300), garantia: '\\'.repeat(300), prazo_execucao: '"'.repeat(300) };
+  const jsQuotes = D.scopeForSave(D.setFields(D.empty(), quotes).draft);
+  assert.ok(jsQuotes.length <= 1200, 'o limite vale para o JSON ja escapado');
+  assert.equal(jsQuotes, scopeForSave(setFields(emptyDraft(), quotes).draft));
 
   const items = [
     { input: { codigo: 'CAM-1', quantidade: 4 }, hit: { code: 'CAM-1', description: 'Câmera IP', unit: 'un' } },
@@ -93,6 +97,7 @@ test('celular: ferramentas resolvem cliente e obra, itens por codigo exato, e so
   assert.equal((await amb.run('rascunho_ver')).rascunho.escopo, 'Instalar alarme', 'o escopo dito junto nao se perde');
   assert.equal((await amb.run('rascunho_atualizar', { cliente: 'Gama', cliente_novo: true, obra: 'Sede' })).rascunho.obra.situacao, 'nova obra');
   assert.ok((await load().run('rascunho_atualizar', { obra: 'Sede' })).erro, 'obra antes do cliente');
+  assert.ok((await load().run('rascunho_atualizar', { cliente: 'Bloco A' })).cliente_nao_encontrado, 'nome de obra nao vira cliente');
 
   const it = await run('rascunho_itens', { adicionar: [{ codigo: 'cam-1', quantidade: 8 }, { codigo: 'XYZ', quantidade: 1 }, { descricao: 'Instalação', unidade: 'vb', quantidade: 1, preco: 9999 }] });
   assert.equal(it.erros.length, 1);

@@ -29,6 +29,11 @@ test('rascunho: campos validados, condicoes e validade', () => {
   const long = setFields(emptyDraft(), { escopo: 'x'.repeat(1200), pagamento: 'p'.repeat(300), garantia: 'g'.repeat(300) }).draft;
   assert.ok(scopeForSave(long).length <= 1200, 'JSON nunca passa do limite do campo');
   assert.ok(JSON.parse(scopeForSave(long)).scope.length >= 3);
+  const quotes = { ...setFields(emptyDraft(), { escopo: '"'.repeat(1200), pagamento: '"'.repeat(300), garantia: '\\'.repeat(300), prazo_execucao: '"'.repeat(300) }).draft };
+  assert.ok(scopeForSave(quotes).length <= 1200, 'aspas e barras crescem no JSON: o limite vale para o texto ja escapado');
+  assert.ok(JSON.parse(scopeForSave(quotes)).scope.length >= 3);
+  const onlyScope = setFields(emptyDraft(), { escopo: '"'.repeat(1200), prazo_execucao: 'x' }).draft;
+  assert.ok(scopeForSave(onlyScope).length <= 1200);
 
   assert.equal(validUntil(ok.draft, new Date('2026-10-20T12:00:00Z')), '2026-11-19');
   assert.equal(validUntil(emptyDraft()), null);
@@ -76,7 +81,7 @@ const PRODUCTS = [{ code: 'CAM-1', description: 'Câmera IP 2MP', unit: 'un', ca
 
 function setup(options: { edit?: boolean } = {}) {
   const api = {
-    clients: async (query: string) => ({ clients: CLIENTS.filter((c) => `${c.legalName} ${c.tradeName ?? ''}`.toLowerCase().includes(query.toLowerCase())) }),
+    clients: async (query: string) => ({ clients: CLIENTS.filter((c) => `${c.legalName} ${c.tradeName ?? ''} ${c.works.map((w) => w.name).join(' ')}`.toLowerCase().includes(query.toLowerCase())) }),
     catalog: async (query: string) => ({ products: PRODUCTS.filter((p) => p.code.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase())) }),
   } as unknown as AssistantApi;
   const nav = { openProposal: () => undefined, navigate: () => undefined, newProposal: () => undefined, openCentroCustos: () => undefined } as AssistantNav;
@@ -109,6 +114,10 @@ test('ferramentas: cliente existente, ambiguo, inexistente e novo (so com confir
   assert.equal(created.rascunho.obra.situacao, 'nova obra');
   assert.ok(created.obra_nova);
 
+  const byWork = setup();
+  const wrong = await byWork.run('rascunho_atualizar', { cliente: 'Bloco A' });
+  assert.ok(wrong.cliente_nao_encontrado, 'nome de obra nao vira cliente (a busca do servidor tambem casa obras)');
+  assert.equal(byWork.tools.getDraft().clientName, undefined);
   const fresh = setup();
   assert.ok((await fresh.run('rascunho_atualizar', { obra: 'Sede' })).erro, 'obra antes do cliente');
   const inactive = await fresh.run('rascunho_atualizar', { cliente: 'Condomínio Alfa', obra: 'Antiga' });
