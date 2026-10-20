@@ -11,3 +11,15 @@ export const CLOSING_END_MARK = '<!--closing-end-->';
 // Fim do corpo do documento com carta (dentro do grupo do meio da tabela de cabecalho e rodape): sem fechamento ancorado,
 // o aviso de validade do celular entra aqui, antes do rodape repetido.
 export const SHEET_END_MARK = '<!--sheet-end-->';
+
+// Onde comeca o grupo do fechamento: o fechamento (ultimo bloco) mais a secao de texto logo antes dele (titulo e ate 3 blocos
+// de texto ou lista). Sem titulo nesse trecho, so o fechamento fica no grupo.
+export const closingGroupStart = (parts: ReadonlyArray<{ kind: string }>): number => {
+  const last = parts.length - 1;
+  for (let index = last - 1; index >= 0 && index >= last - 4; index -= 1) {
+    const kind = parts[index].kind;
+    if (kind === 'heading') return index;
+    if (kind !== 'paragraph' && kind !== 'list') break;
+  }
+  return last;
+};

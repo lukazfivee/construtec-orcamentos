@@ -1,6 +1,6 @@
 import type { AppSettings, ProposalDetail, ProposalExportOptions, ProposalLine } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
-import { CLOSING_END_MARK, SHEET_END_MARK, closingEndCss } from './proposalClosingEnd';
+import { CLOSING_END_MARK, SHEET_END_MARK, closingEndCss, closingGroupStart } from './proposalClosingEnd';
 import { BODY_HTML_CSS, SHEET_CSS, bodyTextPartHtml, letterHtmlCss } from './proposalBodyHtml';
 import { escapeHtml, groupItemsByCategory, money, proposalFileBaseName, quantity } from './proposalDocumentCommon';
 import { proposalLogoBase64, proposalPresentation, watermarkEnabled } from './proposalPresentation';
@@ -134,8 +134,11 @@ ${conditionsHtml('2. Condições Comerciais')}
   // Fechamento por ultimo: fica num bloco proprio, inteiro na mesma pagina, com o aviso de validade do celular dentro (proposalClosingEnd).
   const closingLast = bodyParts?.[bodyParts.length - 1]?.kind === 'fechamento';
   const renderPart = (part: BodyPart) => (part.kind === 'itens' ? pricingHtml(part.title, part.caption) : part.kind === 'condicoes' ? conditionsHtml(part.title) : bodyTextPartHtml(part, textContext));
-  const bodyMain = (closingLast ? bodyParts!.slice(0, -1) : bodyParts ?? []).map(renderPart).join('\n');
-  const closingBlock = closingLast ? renderPart(bodyParts![bodyParts!.length - 1]) : '';
+  // A ultima secao de texto (titulo + paragrafos, ex.: Validade da proposta) viaja junto do fechamento: se o bloco nao cabe no
+  // resto da pagina, vai com ela para a seguinte, em vez de deixar so a frase final e a assinatura sozinhas numa folha.
+  const closingStart = closingLast ? closingGroupStart(bodyParts!) : 0;
+  const bodyMain = (closingLast ? bodyParts!.slice(0, closingStart) : bodyParts ?? []).map(renderPart).join('\n');
+  const closingBlock = closingLast ? bodyParts!.slice(closingStart).map(renderPart).join('\n') : '';
   const main = bodyParts ? bodyMain : legacyMain;
   // Carta de abertura: cabecalho com logo em todas as paginas no lugar do timbrado e do quadro de identificacao.
   const runReference = `${proposal.number} • Revisão ${String(proposal.revision).padStart(2, '0')}`;
