@@ -179,3 +179,10 @@ test('PDF: a ultima secao de texto (ex.: Validade) vai junto do fechamento, nunc
   const group = html.slice(html.indexOf('class="closing-end"'));
   assert.match(group, /<h2>[^<]+<\/h2>[\s\S]*No aguardo de breve pronunciamento/, 'o titulo da secao anterior entra no grupo do fechamento');
 });
+
+test('pre-visualizacao: so o ultimo trecho de texto do documento agrupa a secao com o fechamento (igual ao PDF)', async () => {
+  const { bodyTextAtoms } = await import('../renderer/proposalPdfBodyPages');
+  const parts = [{ kind: 'heading', text: '11. Validade', sub: false }, { kind: 'paragraph', lines: ['Valida ate hoje.'] }, { kind: 'fechamento', paragraphs: [['No aguardo.']], signer: 'Lucas', role: '' }] as never;
+  assert.equal(bodyTextAtoms(parts, true, true).filter((atom) => atom.group === 'fechamento').length, 3);
+  assert.equal(bodyTextAtoms(parts, true, false).filter((atom) => atom.group).length, 0);
+});

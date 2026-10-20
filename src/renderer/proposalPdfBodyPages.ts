@@ -75,8 +75,8 @@ const atomsOf = (part: BodyPart, showSignature: boolean): Atom[] => {
 };
 
 // Pedacos do texto do corpo para o fluxo continuo das paginas (titulo, paragrafo, item de lista, carta e fechamento).
-// Com o fechamento por ultimo, a secao de texto antes dele (ex.: Validade) forma um grupo com ele: vao juntos para a mesma pagina.
-export const bodyTextAtoms = (parts: BodyPart[], showSignature = true): FlowAtom[] => {
-  const start = parts[parts.length - 1]?.kind === 'fechamento' ? closingGroupStart(parts) : parts.length;
+// Com o fechamento por ultimo no documento inteiro (endsDocument: este e o ultimo trecho de texto, como no PDF), a secao de texto antes dele (ex.: Validade) forma um grupo com ele: vao juntos para a mesma pagina.
+export const bodyTextAtoms = (parts: BodyPart[], showSignature = true, endsDocument = true): FlowAtom[] => {
+  const start = endsDocument && parts[parts.length - 1]?.kind === 'fechamento' ? closingGroupStart(parts) : parts.length;
   return parts.flatMap((part, index) => atomsOf(part, showSignature).map((atom) => ({ kind: atom.kind, label: 'Texto' as const, html: atom.html, ...(index >= start ? { group: 'fechamento' } : {}) })));
 };
