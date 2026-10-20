@@ -40,6 +40,7 @@ export interface EditPlan {
 }
 
 const DEFAULT_STANDARD_HOURS = 176;
+const LABOR_ADD_MAX = 20;
 
 /** So a ultima revisao, em edicao ou em revisao, aceita mudanca (mesma regra do servidor e do editor). */
 export const isEditable = (p: Pick<ProposalDetail, 'status' | 'isLatest'>): boolean => p.isLatest !== false && (p.status === 'draft' || p.status === 'review');
@@ -132,7 +133,7 @@ export function planLabor(plan: EditPlan, input: { adicionar?: LaborInput[]; alt
   const erros: string[] = [];
   const updates = plan.laborUpdates.map((u) => ({ id: u.id, labor: { ...u.labor } }));
   let removals = [...plan.laborRemovals];
-  let adds = [...plan.laborAdds];
+  const adds = [...plan.laborAdds];
   const text = (l: { description: string }) => l.description;
   for (const change of input.alterar ?? []) {
     const found = findOne(plan.base.labor, change.item, text, 'mão de obra');
@@ -154,9 +155,11 @@ export function planLabor(plan: EditPlan, input: { adicionar?: LaborInput[]; alt
     if (!result.labor) { erros.push(result.erro as string); continue; }
     const key = result.labor.description.toLowerCase();
     const same = adds.findIndex((l) => l.description.toLowerCase() === key);
-    if (same >= 0) adds[same] = result.labor; else adds.push(result.labor);
+    if (same >= 0) { adds[same] = result.labor; continue; }
+    // O limite avisa em vez de descartar em silencio: o cartao final nao pode omitir trabalho pedido.
+    if (adds.length >= LABOR_ADD_MAX) { erros.push(`Limite de ${LABOR_ADD_MAX} inclusões de mão de obra por alteração; "${result.labor.description}" não entrou.`); continue; }
+    adds.push(result.labor);
   }
-  adds = adds.slice(0, 20);
   return { plan: { ...plan, laborUpdates: updates.filter((u) => !removals.includes(u.id)), laborRemovals: removals, laborAdds: adds }, erros };
 }
 

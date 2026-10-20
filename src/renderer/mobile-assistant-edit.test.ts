@@ -28,8 +28,9 @@ const PROPOSAL = {
 const PRODUCTS = [{ code: 'DVR-8', description: 'DVR 8 canais', unit: 'un', category: 'CFTV', active: true, currentCost: 900 }];
 const CLIENTS = [{ id: 'c1', legalName: 'Condomínio Alfa Ltda', tradeName: 'Condomínio Alfa', works: [{ id: 'w1', name: 'Bloco A', active: true }] }];
 
-function load(options: { p10?: boolean; edit?: boolean; proposal?: Partial<ProposalDetail>; fail?: string } = {}) {
+function load(options: { p10?: boolean; edit?: boolean; proposal?: Partial<ProposalDetail>; fail?: string; laborPostFail?: number } = {}) {
   const calls: Calls = [];
+  let laborPosts = 0;
   const OC: Record<string, unknown> = {
     cents: (v: number) => Math.round(v * 100) / 100,
     can: () => options.p10 ?? false,
@@ -37,6 +38,7 @@ function load(options: { p10?: boolean; edit?: boolean; proposal?: Partial<Propo
     api: async (p: string, init?: { method?: string; body?: unknown }) => {
       calls.push({ path: p, method: init?.method ?? 'GET', body: init?.body });
       if (options.fail && p.includes(options.fail)) throw new Error(`falhou ${options.fail}`);
+      if (options.laborPostFail && p.endsWith('/labor') && init?.method === 'POST') { laborPosts += 1; if (laborPosts === options.laborPostFail) throw new Error('recusada'); }
       if (p === '/proposals/p1') return { proposal: { ...PROPOSAL, ...options.proposal } };
       if (p.startsWith('/clients?q=')) { const q = decodeURIComponent(p.slice(11)).toLowerCase(); return { clients: CLIENTS.filter((c) => c.legalName.toLowerCase().includes(q)) }; }
       if (p.startsWith('/catalog?q=')) { const q = decodeURIComponent(p.slice(11).split('&')[0]).toLowerCase(); return { products: PRODUCTS.filter((x) => x.code.toLowerCase().includes(q)) }; }
@@ -188,6 +190,13 @@ test('celular: rascunho com mao de obra e commit por ultimo com as horas-padrao 
   assert.equal(result.proposalId, 'p-9');
   assert.deepEqual(calls.filter((c) => c.method !== 'GET').map((c) => `${c.method} ${c.path}`), ['POST /proposals', 'POST /proposals/p-9/items/import-batch', 'POST /proposals/p-9/labor']);
   assert.deepEqual(clean(calls.at(-1)?.body), { description: 'Eletricista', professionalCount: 2, monthlySalary: 3000, monthlyFood: 0, monthlyTransport: 0, monthlyOtherCosts: 0, standardMonthlyHours: 168, plannedHours: 40 });
+  // varias maos de obra e a segunda falha: o aviso diz o que ja entrou e o que falta
+  const two = ia.draft.addLabor(ia.draft.addLabor(ia.draft.empty(), [{ descricao: 'Eletricista', profissionais: 2, salario_mensal: 3000, horas_por_profissional: 40 }]).draft, [{ descricao: 'Ajudante', profissionais: 1, salario_mensal: 2000, horas_por_profissional: 40 }]).draft;
+  const half = load({ p10: true, laborPostFail: 2 });
+  const halfDraft = half.ia.draft.withWork(half.ia.draft.withClient({ ...two, scope: 'Escopo simples' }, { id: 'c1', name: 'A' }), { id: 'w1', name: 'B' });
+  const halfResult = await half.ia.draft.commit(halfDraft);
+  assert.match(halfResult.aviso, /Já gravada: Eletricista\./);
+  assert.match(halfResult.aviso, /Falta adicionar na aba Mão de obra: Ajudante\./);
   const failing = load({ p10: true, fail: '/labor' });
   const draft = ia.draft.addLabor(ia.draft.empty(), [{ descricao: 'Eletricista', profissionais: 2, salario_mensal: 3000, horas_por_profissional: 40 }]).draft;
   const partial = await failing.ia.draft.commit(ia.draft.withWork(ia.draft.withClient({ ...draft, scope: 'Escopo simples' }, { id: 'c1', name: 'A' }), { id: 'w1', name: 'B' }));

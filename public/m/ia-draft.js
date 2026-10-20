@@ -280,14 +280,20 @@
     }
     // Mao de obra por ultimo, com as horas-padrao da proposta; se falhar, a proposta e os itens ja existem.
     if (draft.labor && draft.labor.length) {
+      // Cada uma e gravada separada: se uma falhar, o aviso diz quais ja entraram e quais faltam (adicionar todas de novo duplicaria custo).
+      const saved = [];
+      let current = draft.labor[0].description;
       try {
         const hours = (await OC.api(`/proposals/${proposalId}/labor`)).standardMonthlyHours;
         for (const l of draft.labor) {
+          current = l.description;
           await OC.api(`/proposals/${proposalId}/labor`, { method: 'POST', body: { description: l.description, professionalCount: l.professionalCount, monthlySalary: l.monthlySalary,
             monthlyFood: l.monthlyFood, monthlyTransport: l.monthlyTransport, monthlyOtherCosts: l.monthlyOtherCosts, standardMonthlyHours: hours, plannedHours: l.plannedHours } });
+          saved.push(l.description);
         }
       } catch (error) {
-        return { draft, proposalId, aviso: `A proposta foi criada, mas a mão de obra não entrou (${msg(error, 'erro')}). Adicione na aba Mão de obra.` };
+        const pending = draft.labor.filter((l) => !saved.includes(l.description)).map((l) => l.description);
+        return { draft, proposalId, aviso: `A proposta foi criada, mas a mão de obra não entrou por completo (${current}: ${msg(error, 'erro')}).${saved.length ? ` Já gravada: ${saved.join(', ')}.` : ''} Falta adicionar na aba Mão de obra: ${pending.join(', ')}.` };
       }
     }
     return { draft, proposalId };

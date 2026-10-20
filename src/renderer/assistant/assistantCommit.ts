@@ -77,14 +77,20 @@ export async function commitDraft(api: CommitApi, input: ProposalDraft, now: Dat
   }
   // Mao de obra por ultimo, com as horas-padrao da proposta; se falhar, a proposta e os itens ja existem.
   if (draft.labor?.length) {
+    // Cada uma e gravada separada: se uma falhar, o aviso diz quais ja entraram e quais faltam (adicionar todas de novo duplicaria custo).
+    const saved: string[] = [];
+    let current = draft.labor[0]?.description ?? '';
     try {
       const hours = await api.standardMonthlyHours(proposalId);
       for (const l of draft.labor) {
+        current = l.description;
         await api.addLabor(proposalId, { description: l.description, professionalCount: l.professionalCount, monthlySalary: l.monthlySalary, monthlyFood: l.monthlyFood,
           monthlyTransport: l.monthlyTransport, monthlyOtherCosts: l.monthlyOtherCosts, standardMonthlyHours: hours, plannedHours: l.plannedHours });
+        saved.push(l.description);
       }
     } catch (error) {
-      return { draft, proposalId, aviso: `A proposta foi criada, mas a mão de obra não entrou (${message(error, 'erro')}). Adicione na aba Mão de obra.` };
+      const pending = draft.labor.filter((l) => !saved.includes(l.description)).map((l) => l.description);
+      return { draft, proposalId, aviso: `A proposta foi criada, mas a mão de obra não entrou por completo (${current}: ${message(error, 'erro')}).${saved.length ? ` Já gravada: ${saved.join(', ')}.` : ''} Falta adicionar na aba Mão de obra: ${pending.join(', ')}.` };
     }
   }
   return { draft, proposalId };

@@ -104,6 +104,12 @@ test('mao de obra: nova exige os campos, alteracao so troca o que veio, remocao 
   assert.deepEqual(planLabor(plan.plan, { remover: ['eletric'] }).plan.laborRemovals, ['l1']);
   assert.equal(planLabor(plan.plan, { remover: ['eletric'] }).plan.laborUpdates.length, 0, 'removida perde as alteracoes');
   assert.match(planLabor(startPlan(base()), { alterar: [{ item: 'pintor', profissionais: 1 }] }).erros[0], /Não achei mão de obra/);
+  const many = planLabor(startPlan(base()), { adicionar: Array.from({ length: 21 }, (_, i) => ({ descricao: `Função ${i}`, profissionais: 1, salario_mensal: 1000, horas_por_profissional: 8 })) });
+  assert.equal(many.plan.laborAdds.length, 20);
+  assert.match(many.erros[0], /Limite de 20 inclusões.*"Função 20" não entrou/, 'o limite avisa em vez de descartar em silencio');
+  const again = planLabor(many.plan, { adicionar: [{ descricao: 'Função 20', profissionais: 1, salario_mensal: 1000, horas_por_profissional: 8 }, { descricao: 'função 3', profissionais: 2, salario_mensal: 1000, horas_por_profissional: 8 }] });
+  assert.equal(again.erros.length, 1, 'so a nova e recusada; repetir uma existente corrige os valores');
+  assert.equal(again.plan.laborAdds.find((l) => l.description === 'função 3')?.professionalCount, 2);
   assert.ok(describePlan(plan.plan).some((l) => l.startsWith('Alterar mão de obra 1 (Eletricista): Eletricista, 3 prof.')));
 });
 
@@ -261,5 +267,11 @@ test('rascunho: mao de obra entra pela ferramenta e o commit a grava por ultimo 
   assert.equal(failing.proposalId, 'p-9');
   assert.match(failing.aviso ?? '', /mão de obra não entrou/);
   void withClient; void withWork;
+  // varias mãos de obra e a segunda falha: o aviso diz o que ja entrou e o que falta (adicionar tudo de novo duplicaria custo)
+  const two = addLabor(addLabor(emptyDraft(), [{ descricao: 'Eletricista', profissionais: 2, salario_mensal: 3000, horas_por_profissional: 40 }]).draft, [{ descricao: 'Ajudante', profissionais: 1, salario_mensal: 2000, horas_por_profissional: 40 }]).draft;
+  let n = 0;
+  const half = await commitDraft({ ...api, addLabor: async () => { n += 1; if (n === 2) throw new Error('recusada'); return {}; } }, { ...two, ...tools.getDraft(), labor: two.labor });
+  assert.match(half.aviso ?? '', /Já gravada: Eletricista\./);
+  assert.match(half.aviso ?? '', /Falta adicionar na aba Mão de obra: Ajudante\./);
   assert.equal(describeBase(base(), false).mao_de_obra[0].salario_mensal, undefined);
 });

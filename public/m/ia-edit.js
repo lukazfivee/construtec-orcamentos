@@ -7,6 +7,7 @@
   const D = IA.draft;
   const E = IA.edit = {};
   const DEFAULT_STANDARD_HOURS = 176;
+  const LABOR_ADD_MAX = 20;
   const STATUS = { draft: 'em edição', review: 'em revisão', sent: 'enviada', approved: 'aprovada', rejected: 'recusada' };
   const ID = /^[A-Za-z0-9-]{1,64}$/;
 
@@ -119,9 +120,11 @@
       if (!result.labor) { erros.push(result.erro); continue; }
       const key = result.labor.description.toLowerCase();
       const same = adds.findIndex((l) => l.description.toLowerCase() === key);
-      if (same >= 0) adds[same] = result.labor; else adds.push(result.labor);
+      if (same >= 0) { adds[same] = result.labor; continue; }
+      // O limite avisa em vez de descartar em silencio: o cartao final nao pode omitir trabalho pedido.
+      if (adds.length >= LABOR_ADD_MAX) { erros.push(`Limite de ${LABOR_ADD_MAX} inclusões de mão de obra por alteração; "${result.labor.description}" não entrou.`); continue; }
+      adds.push(result.labor);
     }
-    adds = adds.slice(0, 20);
     return { plan: { ...plan, laborUpdates: updates.filter((u) => !removals.includes(u.id)), laborRemovals: removals, laborAdds: adds }, erros };
   };
 
