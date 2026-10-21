@@ -1,0 +1,27 @@
+.cc-offline-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media print {
+  body {
+    background: var(--surface) !important;
+  }
+  .app-shell,
+  .topbar,
+  .app-sidebar,
+  .nav-group,
+  .dialog-backdrop,
+  .modal-overlay,
+  .export-settings-panel,
+  .export-dialog-header,
+  .export-dialog-footer,
+  .btn-preview,
+  .btn-export {
+    display: none !important;
+  }
+}
+
+

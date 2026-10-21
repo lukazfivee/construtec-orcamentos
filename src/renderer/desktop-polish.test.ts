@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import path from 'node:path';
+import { readIndexCss } from './readIndexCss';
 
 // Auditoria visual do desktop: classes usadas pelo React precisam ter regra, e barras fixas/sticky nunca ficam translucidas.
 const root = process.cwd();
-const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
+const read = (file: string) => (file === 'src/index.css' ? readIndexCss(root) : readFileSync(path.join(root, file), 'utf8'));
 const allCss = ['src/index.css', 'src/desktop-polish.css', 'src/impeccable-audit.css', 'src/proposal-pages.css']
   .map(read).join('\n');
 
