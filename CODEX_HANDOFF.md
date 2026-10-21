@@ -1,5 +1,13 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-21 BRT - Centro de Custos no navegador abre o app, não o seletor (Claude Code)
+
+- Base: `origin/main` em `5d40842`, branch `fix/centro-direto` (PR #222). A raiz do Centro na nuvem (`/`) serve a página "Escolha seu aplicativo" (`suite-launcher.js` do Centro, feita com o Chamados); o Orçamentos abria essa raiz ao escolher Centro de Custos. Agora o contrato é: abrir `<Centro>/d/` (obra: `<Centro>/d/#/obras/<id>`); o celular já usava `/m/`.
+- Mudou: `SuiteSwitcherPopover.tsx` (navegador abre `/d/`), `CentroCustosWorkspace.tsx` (quadro embutido em `/d/` e `/d/#/obras/<id>`), `ProposalSyncDirectAction.tsx` (link da obra), `App.tsx` (`assign('/d/')`), `suite-bundle.test.ts` (trava o `/d/`). No app do Windows nada muda (`suiteSwitch('centro')`).
+- Validação: `tsc` sem erros; `npm run verify` 386 passam, 0 falham; reproduzido com `curl` que a raiz do Centro devolve o seletor.
+- Próximo passo: após o merge, publicar o Orçamentos (`npm run deploy:cloud`, clone limpo em `origin/main`) e conferir no navegador.
+- Bloqueios: não corrigido o menu Suíte do Centro/Chamados, onde "Centro de Custos" é "Atual" e não clica (não é o seletor). Dar o Centro de Custos direto no Chamados exigiria mudar aquele repositório.
+
 ## 2026-10-19 BRT - Otimizacao fase 1: cache dos arquivos e Cron menos frequente (Claude Code)
 
 - Base: `origin/main` em `0133dd0`, branch `perf/fase1-cache-cron`. Pedido: reduzir atraso do app e do site e o custo na Cloudflare. Plano completo na conversa (fases 0 a 5); esta e so a fase 1, sem medicao em producao.

@@ -36,8 +36,8 @@ export function CentroCustosWorkspace({
     });
   }, []);
   const iframeUrl = targetCostCenterId
-    ? `${baseAppUrl}/#obra=${targetCostCenterId}`
-    : `${baseAppUrl}/`;
+    ? `${baseAppUrl}/d/#/obras/${targetCostCenterId}`
+    : `${baseAppUrl}/d/`;
 
   const checkHealth = async () => {
     try {
