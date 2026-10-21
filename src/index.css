@@ -2018,8 +2018,9 @@ tfoot td.number { text-align: right; font-variant-numeric: tabular-nums; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* A barra lateral mantem o efeito mesmo com "reduzir movimento" do Windows (pedido do Lucas). */
-  :not(.side):not(.side *):not(.app-shell.cc), :not(.side):not(.side *):not(.app-shell.cc)::before, :not(.side):not(.side *):not(.app-shell.cc)::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  /* A barra lateral mantem o efeito mesmo com "reduzir movimento" do Windows (pedido do Lucas). Sem deslocamento nem laco, mas a
+     troca de estado continua visivel (cor, fundo, contorno e opacidade em 150 ms), igual ao Centro (public/d/css/base.css). */
+  :not(.side):not(.side *):not(.app-shell.cc), :not(.side):not(.side *):not(.app-shell.cc)::before, :not(.side):not(.side *):not(.app-shell.cc)::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-property: color, background-color, border-color, box-shadow, opacity !important; transition-duration: .15s !important; transition-delay: 0s !important; }
 }
 
 /* ==========================================================================
