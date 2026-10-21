@@ -1,0 +1,337 @@
+.contact-field label {
+  font-size: calc(11px * var(--fs, 1));
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.contact-field input {
+  height: 34px;
+  padding: 0 10px;
+  font-size: calc(12px * var(--fs, 1));
+  color: var(--ink);
+  background: var(--surface-subtle);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.contact-field input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: #12a9d1;
+  box-shadow: 0 0 0 2px rgba(18, 169, 209, 0.15);
+}
+
+.share-template-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.template-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: calc(12px * var(--fs, 1));
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.template-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.template-chip {
+  padding: 6px 12px;
+  font-size: calc(11.5px * var(--fs, 1));
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.template-chip:hover {
+  background: var(--bg-cool-95-2);
+  color: var(--ink);
+}
+
+.template-chip.active {
+  background: #0b4a5c;
+  color: #ffffff;
+  border-color: #0b4a5c;
+  font-weight: 600;
+}
+
+.share-message-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.message-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: calc(11.5px * var(--fs, 1));
+  color: var(--muted);
+}
+
+.btn-copy-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: calc(11px * var(--fs, 1));
+  font-weight: 600;
+  color: var(--tx-cool-31-2);
+  background: var(--status-review-bg);
+  border: 1px solid var(--status-review-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-inline:hover {
+  background: var(--status-review-bg);
+}
+
+.share-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: calc(12px * var(--fs, 1));
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 180px;
+  box-sizing: border-box;
+}
+
+.share-textarea:focus {
+  outline: none;
+  border-color: #12a9d1;
+  box-shadow: 0 0 0 2px rgba(18, 169, 209, 0.15);
+}
+
+.share-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  font-size: calc(12px * var(--fs, 1));
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cancel {
+  background: var(--surface-subtle);
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+}
+
+.btn-cancel:hover {
+  background: var(--bg-cool-95-2);
+  color: var(--ink);
+}
+
+.btn-action-email {
+  background: var(--status-review-bg);
+  color: var(--tx-cool-31-2);
+  border: 1px solid var(--status-review-border);
+}
+
+.btn-action-email:hover {
+  background: var(--status-review-bg);
+  color: var(--tx-cool-34-2);
+}
+
+.btn-action-whatsapp {
+  background: #16a34a;
+  color: #ffffff;
+  border: 1px solid #15803d;
+}
+
+.btn-action-whatsapp:hover {
+  background: #15803d;
+}
+
+/* ==========================================================================
+   Monitoramento de Validade Comercial das Propostas
+   ========================================================================== */
+
+.proposal-validity-cell {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.validity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: calc(11px * var(--fs, 1));
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.validity-badge svg {
+  flex-shrink: 0;
+}
+
+.validity-badge.validity-expired {
+  background: var(--bg-red-97);
+  color: var(--tx-red-42);
+  border: 1px solid var(--bd-red-89);
+}
+
+.validity-badge.validity-expired:hover {
+  background: var(--bg-red-94);
+  border-color: var(--bd-red-82);
+  transform: translateY(-1px);
+}
+
+.validity-badge.validity-urgent {
+  background: var(--bg-red-97);
+  color: var(--tx-red-41);
+  border: 1px solid var(--bd-red-90);
+  animation: pulse-badge 2s infinite ease-in-out;
+}
+
+.validity-badge.validity-urgent:hover {
+  background: var(--bg-red-95);
+  border-color: var(--bd-red-82-2);
+  transform: translateY(-1px);
+}
+
+.validity-badge.validity-warning {
+  background: var(--bg-amber-96-2);
+  color: var(--tx-amber-37);
+  border: 1px solid var(--bd-amber-89);
+}
+
+.validity-badge.validity-warning:hover {
+  background: var(--bg-amber-89);
+  border-color: var(--bd-amber-77);
+  transform: translateY(-1px);
+}
+
+.validity-badge.validity-ok {
+  background: var(--bg-green-97);
+  color: var(--tx-green-29);
+  border: 1px solid var(--bd-green-93);
+}
+
+.validity-badge.validity-ok:hover {
+  background: var(--bg-green-93);
+  border-color: var(--bd-green-85);
+  transform: translateY(-1px);
+}
+
+.validity-badge.validity-none {
+  background: var(--surface-subtle);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.validity-badge.validity-none:hover {
+  background: var(--bg-cool-95-2);
+  border-color: var(--line-strong);
+}
+
+.validity-badge.validity-closed {
+  background: var(--bg-cool-95-2);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  opacity: 0.85;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0);
+  }
+}
+
+/* ==========================================================================
+   Sync Badge (integration status)
+   ========================================================================== */
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: calc(10px * var(--fs, 1));
+  font-weight: 600;
+  margin-top: 4px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.sync-badge svg {
+  flex-shrink: 0;
+}
+
+.sync-delivered {
+  background: var(--bg-green-97);
+  color: var(--tx-green-29);
+  border: 1px solid var(--bd-green-93);
+}
+
+.sync-pending {
+  background: var(--bg-amber-96-2);
+  color: var(--tx-amber-37);
+  border: 1px solid var(--bd-amber-89);
+}
+
+.sync-failed {
+  background: var(--bg-red-97);
+  color: var(--tx-red-42);
+  border: 1px solid var(--bd-red-89);
+}
+
+/* ==========================================================================
+   Home Commercial Intelligence & ABC Curve Styles
+   ========================================================================== */
+
+.home-view-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+

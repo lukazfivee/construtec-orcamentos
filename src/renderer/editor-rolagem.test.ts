@@ -2,13 +2,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import path from 'node:path';
+import { readIndexCss } from './readIndexCss';
 
 // Editor da proposta: a coluna central tem UMA rolagem vertical; os paineis das abas crescem com o conteudo. Antes um
 // `.labor-panel { overflow: hidden }` do index.css vencia o `overflow: auto` da propria aba e cortava Mao de obra.
 const root = process.cwd();
 const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
 const layout = read('src/editor-layout-centro.css');
-const base = read('src/index.css');
+const base = readIndexCss(root);
 
 const bodyOf = (css: string, selector: string) => {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

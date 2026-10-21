@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import path from 'node:path';
+import { readIndexCss } from './readIndexCss';
 
 // Vidro: a cortina, o painel e o desfoque ficam so em src/vidro.css, com os tokens do Centro de Custos.
 const root = process.cwd();
-const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
+const read = (file: string) => (file === 'src/index.css' ? readIndexCss(root) : readFileSync(path.join(root, file), 'utf8'));
 const vidro = read('src/vidro.css');
 const scrims = ['dialog-backdrop', 'modal-overlay', 'modal-backdrop', 'cid-overlay', 'od-drawer-bg', 'side-drawer-scrim'];
 

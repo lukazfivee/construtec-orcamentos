@@ -5,9 +5,10 @@ import { test } from 'node:test';
 import { exsatErrorMessage, exsatPanelKind, isImportableRow } from './catalogImportDialogModel';
 import { newRow } from './catalogImportHelpers';
 import { ignoredText, jobPercent } from './ExsatAccountCard';
+import { readIndexCss } from './readIndexCss';
 
 const root = process.cwd();
-const read = (file: string) => readFileSync(path.join(root, file), 'utf8');
+const read = (file: string) => (file === 'src/index.css' ? readIndexCss(root) : readFileSync(path.join(root, file), 'utf8'));
 const css = read('src/renderer/catalogImportDialog.css');
 const dialog = read('src/renderer/CatalogImportDialog.tsx');
 const exsatPanel = read('src/renderer/CatalogImportExsat.tsx');
