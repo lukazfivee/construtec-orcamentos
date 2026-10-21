@@ -62,6 +62,7 @@ const entryPoints = [
   'src/renderer/assistantEdit.test.ts',
   'src/renderer/mobile-assistant-draft.test.ts',
   'src/renderer/mobile-assistant-edit.test.ts',
+  'src/server/assistant-e2e.test.ts',
   'src/renderer/mobile-prop-itens.test.ts',
   'src/documents/mobile-conditions.test.ts',
   'src/documents/mobile-body.test.ts',
