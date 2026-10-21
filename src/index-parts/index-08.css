@@ -158,8 +158,9 @@
 .help-formula-box {
   padding: 8px 12px;
   background: var(--bg-cool-95-2);
-  border-left: 3px solid #12a9d1;
-  border-radius: 0 6px 6px 0;
+  outline: 1px solid rgba(18, 169, 209, 0.35);
+  outline-offset: -1px;
+  border-radius: 10px;
 }
 
 .help-formula-box code {

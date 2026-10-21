@@ -302,11 +302,13 @@
 }
 
 .kpi-card.highlight-blue {
-  border-left: 4px solid var(--bd-cool-30);
+  outline: 1px solid var(--bd-cool-30);
+  outline-offset: -1px;
 }
 
 .kpi-card.highlight-green {
-  border-left: 4px solid var(--green);
+  outline: 1px solid var(--green);
+  outline-offset: -1px;
 }
 
 .kpi-icon {

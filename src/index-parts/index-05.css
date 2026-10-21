@@ -198,8 +198,9 @@
   margin-top: 12px;
   padding: 12px 14px;
   background: var(--bg-red-97);
-  border-left: 3px solid #dc2626;
-  border-radius: 4px;
+  outline: 1px solid rgba(220, 38, 38, 0.35);
+  outline-offset: -1px;
+  border-radius: 12px;
   font-size: calc(12px * var(--fs, 1));
   color: var(--tx-red-35);
   line-height: 1.4;
