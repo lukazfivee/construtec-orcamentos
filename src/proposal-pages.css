@@ -35,7 +35,7 @@
 .flow-confirm footer { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* ---------- aviso de preço novo (23e) e painéis laterais ---------- */
-.drift-banner { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; margin: 10px 26px 0; padding: 10px 12px; background: var(--amber-soft); border: 1px solid var(--status-draft-border); border-left: 4px solid #e0a33a; border-radius: 6px; }
+.drift-banner { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; margin: 10px 26px 0; padding: 10px 12px; background: var(--amber-soft); border: 1px solid var(--status-draft-border); border-radius: 12px; }
 .drift-banner-icon { display: grid; place-items: center; width: 32px; height: 32px; flex: none; color: var(--tx-amber-30); background: var(--surface); border-radius: 50%; }
 .drift-banner > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .drift-banner b { font-size: calc(12.5px * var(--fs, 1)); }
