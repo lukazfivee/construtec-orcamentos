@@ -17,6 +17,10 @@ colors:
   surface: "#fefefe"
   surface-subtle: "#f2f8fa"
   focus: "#12a9d1"
+  primary-brand: "#0a7896"
+  primary-mid: "#0d7f9f"
+  primary-deep: "#0b4a5c"
+  primary-light-dark-theme: "#5fd0ee"
   status-draft-text: "#8a4e00"
   status-draft-bg: "#fef3e6"
   status-draft-border: "#f1d693"
@@ -62,6 +66,9 @@ rounded:
   sm: "5px"
   md: "6px"
   lg: "7px"
+  control: "10px"
+  chip: "12px"
+  card: "14px"
   full: "50%"
 spacing:
   xs: "4px"
@@ -148,6 +155,8 @@ components:
 ---
 
 # Design System: Construtec Orçamentos
+
+> Este sistema e o do Centro compartilham marca, tokens de cor e fonte; a regra do produto é que os dois sejam iguais, medidos lado a lado. Em dúvida sobre raio, sombra ou movimento, vale o `DESIGN.md` do Centro (desktop novo): anel de 1 px em vez de sombra, `reduzir movimento` mantendo a troca de estado em 150 ms e foco do teclado com contorno de 2 px.
 
 ## Overview
 
@@ -240,7 +249,7 @@ O sistema é plano por padrão. Profundidade nasce de contraste tonal, divisores
 
 ## Shapes
 
-As formas são discretamente arredondadas: controles usam raios de 5–7px, etiquetas compactas podem cair para 3px e avatares ou indicadores circulares usam 50%. Painéis estruturais permanecem ortogonais e definidos por borda. Essa diferença preserva a sensação de bancada contínua, enquanto controles continuam claramente clicáveis.
+As formas são discretamente arredondadas. Na casca do desktop atual (a mesma do Centro) botões, campos e itens de menu usam 10px, chips e faixas 12px e cartões 14px; controles do editor de proposta usam 5–7px, etiquetas compactas podem cair para 3px e avatares ou indicadores circulares usam 50%. Os valores de 8, 9 e 16px que aparecem no CSS são variações locais, e a referência para tudo que for novo é a escala do Centro. Painéis estruturais permanecem ortogonais e definidos por borda. Essa diferença preserva a sensação de bancada contínua, enquanto controles continuam claramente clicáveis.
 
 **The Structure Before Softness Rule.** Não arredonde a casca, a tabela ou os grandes painéis; reserve cantos suaves para controles, estados e superfícies flutuantes.
 
