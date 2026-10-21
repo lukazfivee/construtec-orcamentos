@@ -19,15 +19,15 @@
   --surface-subtle: #f2f8fa;
   --line: #d6e4e9;
   --line-strong: #bad0d8;
-  --bg-line: #d6e4e9;
-  --bg-line-strong: #bad0d8;
+  --bg-line: var(--line);
+  --bg-line-strong: var(--line-strong);
   --focus: #12a9d1;
 
   /* Acento (preenchimentos mantêm o valor nos dois temas; texto usa os tokens --tx-*) */
   --blue: #0a7896;
   --blue-hover: #0b4a5c;
-  --blue-ink: #0a7896;
-  --blue-soft: #e8f8fc;
+  --blue-ink: var(--blue);
+  --blue-soft: var(--od-accent-900);
   --green: #178442;
   --green-ink: #1d7a4f;
   --green-soft: #f0f9f2;
@@ -37,42 +37,42 @@
   --danger-soft: #fdecea;
 
   /* Preenchimentos escuros com texto claro por cima */
-  --fill-ink: #0b2530;
-  --fill-ink-2: #34505a;
-  --fill-muted: #5d7480;
-  --on-fill: #fefefe;
-  --bd-ink: #0b2530;
-  --bd-surface: #fefefe;
-  --bd-muted: #5d7480;
+  --fill-ink: var(--ink);
+  --fill-ink-2: var(--ink-secondary);
+  --fill-muted: var(--muted);
+  --on-fill: var(--surface);
+  --bd-ink: var(--ink);
+  --bd-surface: var(--surface);
+  --bd-muted: var(--muted);
 
   /* Status das propostas */
   --status-draft-text: #8a5200;
-  --status-draft-bg: #fff5d9;
+  --status-draft-bg: var(--amber-soft);
   --status-draft-border: #e0a33a;
-  --status-review-text: #0a7896;
-  --status-review-bg: #e8f8fc;
+  --status-review-text: var(--blue);
+  --status-review-bg: var(--od-accent-900);
   --status-review-border: #b6e8f5;
   --status-sent-text: #55278c;
   --status-sent-bg: #f4ecfc;
   --status-sent-border: #dec3f5;
-  --status-approved-text: #1d7a4f;
+  --status-approved-text: var(--green-ink);
   --status-approved-bg: #e3f6ec;
   --status-approved-border: #94d3a8;
-  --status-rejected-text: #b8452c;
-  --status-rejected-bg: #fdecea;
+  --status-rejected-text: var(--danger);
+  --status-rejected-bg: var(--danger-soft);
   --status-rejected-border: #f9bebe;
 
   /* Catálogo, importação e kits (.od-) */
-  --od-accent: #12a9d1;
+  --od-accent: var(--focus);
   --od-accent-300: #0a7896;
-  --od-accent-700: #0b4a5c;
+  --od-accent-700: var(--blue-hover);
   --od-accent-900: #e8f8fc;
-  --od-ok-bg: #e3f6ec;
-  --od-ok-fg: #1d7a4f;
-  --od-warn-bg: #fff5d9;
+  --od-ok-bg: var(--status-approved-bg);
+  --od-ok-fg: var(--green-ink);
+  --od-warn-bg: var(--amber-soft);
   --od-warn-fg: #8a5a00;
-  --od-bad-bg: #fdecea;
-  --od-bad-fg: #b8452c;
+  --od-bad-bg: var(--danger-soft);
+  --od-bad-fg: var(--danger);
   --od-neu-bg: #eef1f3;
   --od-neu-fg: #3f5a66;
 
@@ -93,7 +93,7 @@
   --bg-amber-96: #fff8e9;
   --bg-red-94: #fee2e2;
   --bg-cool-95: #eef1f5;
-  --bg-cool-88: #d6e4e9;
+  --bg-cool-88: var(--line);
   --bg-cool-90: #d3f0f8;
   --bg-amber-96-2: #fffbeb;
   --bg-amber-89: #fef3c7;
@@ -118,26 +118,26 @@
   --bg-cool-90-3: #dfe9ed;
   --bg-cool-89: #cdeef7;
   --bg-cool-92-2: #e3edf1;
-  --bg-green-70: #94d3a8;
-  --bg-cool-79: #bad0d8;
+  --bg-green-70: var(--status-approved-border);
+  --bg-cool-79: var(--line-strong);
   --tx-cool-40: #5b6472;
   --tx-cool-53: #7a8594;
-  --tx-cool-45: #12a9d1;
+  --tx-cool-45: var(--focus);
   --tx-green-52: #34d399;
   --tx-amber-50: #f59e0b;
   --tx-cool-15: #132038;
   --tx-cool-39: #536074;
-  --tx-cool-30: #0a7896;
+  --tx-cool-30: var(--blue);
   --tx-cool-33: #445064;
   --tx-red-46: #bd2f2f;
-  --tx-amber-30: #9a5b00;
+  --tx-amber-30: var(--amber);
   --tx-cool-42: #5e6979;
   --tx-cool-49: #6f7b8c;
   --tx-cool-21: #263246;
   --tx-cool-27: #344055;
   --tx-cool-46: #677286;
   --tx-cool-45-2: #647083;
-  --tx-green-30: #178442;
+  --tx-green-30: var(--green);
   --tx-cool-40-2: #53647b;
   --tx-red-42: #b91c1c;
   --tx-cool-35: #4b5668;
@@ -156,13 +156,13 @@
   --tx-cool-22: #0a5568;
   --tx-amber-37: #b45309;
   --tx-green-29: #15803d;
-  --tx-cool-31-2: #0a7896;
+  --tx-cool-31-2: var(--blue);
   --tx-green-24: #166534;
   --tx-red-51: #dc2626;
   --tx-red-35: #991b1b;
   --tx-cool-30-2: #125488;
   --tx-cool-34-2: #0d7f9f;
-  --tx-cool-9-2: #031f29;
+  --tx-cool-9-2: var(--nav);
   --tx-amber-44: #d97706;
   --tx-green-36: #16a34a;
   --tx-cool-63: #8fa6b0;
@@ -186,17 +186,17 @@
   --tx-cool-28-3: #0a6b86;
   --tx-cool-65: #5fd0ee;
   --tx-amber-23-2: #5b4a1c;
-  --tx-amber-27: #8a5a00;
+  --tx-amber-27: var(--od-warn-fg);
   --tx-amber-47: #eab308;
   --tx-cool-29-3: #09738a;
   --tx-red-51-2: #d13438;
   --tx-green-30-2: #059669;
   --tx-cool-16: #1f2a33;
-  --bd-cool-97: #f5f6f8;
+  --bd-cool-97: var(--bg-cool-97);
   --bd-cool-86: #d7dbe1;
   --bd-cool-30: #0b7690;
-  --bd-cool-63: #8fa6b0;
-  --bd-cool-65: #94a8b8;
+  --bd-cool-63: var(--tx-cool-63);
+  --bd-cool-65: var(--bg-cool-65);
   --bd-cool-83: #cbd2dc;
   --bd-cool-94: #edf0f3;
   --bd-cool-87: #c5d8f9;
@@ -209,13 +209,13 @@
   --bd-green-53: #5eaf79;
   --bd-amber-83: #fed7aa;
   --bd-green-85: #bbf7d0;
-  --bd-amber-89: #fef3c7;
+  --bd-amber-89: var(--bg-amber-89);
   --bd-cool-83-2: #b8e2ed;
   --bd-red-82: #fca5a5;
   --bd-cool-82-2: #c5d0de;
   --bd-cool-95: #edf2f7;
   --bd-amber-77: #fde68a;
-  --bd-cool-95-2: #eef5f7;
+  --bd-cool-95-2: var(--bg-cool-95-2);
   --bd-cool-78: #93c5fd;
   --bd-cool-75: #8fd8f0;
   --bd-cool-92: #e1edf2;
@@ -224,7 +224,7 @@
   --bd-cool-87-2: #d4e2e7;
   --bd-red-90: #fecdd3;
   --bd-red-82-2: #fda4af;
-  --bd-green-93: #dcfce7;
+  --bd-green-93: var(--bg-green-93);
   --bd-green-80: #a7f3d0;
   --bd-cool-40: #556176;
   --bd-red-71: #f87171;
@@ -249,22 +249,22 @@
   --ink: #f2f8fa;
   --ink-secondary: #d6e8ee;
   --muted: #b9d4dd;
-  --muted-ink: #b9d4dd;
+  --muted-ink: var(--nav-muted);
 
   /* Superfícies e linhas */
   --surface: #0b2f3b;
   --surface-subtle: #031f29;
   --line: #164656;
   --line-strong: #5a8493;
-  --bg-line: #164656;
-  --bg-line-strong: #5a8493;
+  --bg-line: var(--line);
+  --bg-line-strong: var(--line-strong);
   --focus: #5fd0ee;
 
   /* Acento (preenchimentos mantêm o valor nos dois temas; texto usa os tokens --tx-*) */
   --blue: #0a7896;
   --blue-hover: #0b4a5c;
-  --blue-ink: #5fd0ee;
-  --blue-soft: #0a3a48;
+  --blue-ink: var(--focus);
+  --blue-soft: var(--od-accent-900);
   --green: #178442;
   --green-ink: #3ccf8e;
   --green-soft: #124547;
@@ -279,24 +279,24 @@
   --fill-muted: #3a6071;
   --on-fill: #fefefe;
   --bd-ink: #9cb9c4;
-  --bd-surface: #0b2f3b;
+  --bd-surface: var(--surface);
   --bd-muted: #6f909d;
 
   /* Status das propostas */
   --status-draft-text: #f2b544;
-  --status-draft-bg: #2b423c;
+  --status-draft-bg: var(--amber-soft);
   --status-draft-border: #6b5320;
-  --status-review-text: #5fd0ee;
-  --status-review-bg: #0a3a48;
+  --status-review-text: var(--focus);
+  --status-review-bg: var(--od-accent-900);
   --status-review-border: #1e6479;
   --status-sent-text: #d2b4f5;
   --status-sent-bg: #2c1d42;
   --status-sent-border: #573a85;
-  --status-approved-text: #3ccf8e;
-  --status-approved-bg: #124547;
+  --status-approved-text: var(--green-ink);
+  --status-approved-bg: var(--green-soft);
   --status-approved-border: #27694a;
-  --status-rejected-text: #ff9d8a;
-  --status-rejected-bg: #323b42;
+  --status-rejected-text: var(--danger);
+  --status-rejected-bg: var(--danger-soft);
   --status-rejected-border: #7a3434;
 
   /* Catálogo, importação e kits (.od-) */
@@ -304,14 +304,14 @@
   --od-accent-300: #5fd0ee;
   --od-accent-700: #0b5a70;
   --od-accent-900: #0a3a48;
-  --od-ok-bg: #124547;
-  --od-ok-fg: #3ccf8e;
-  --od-warn-bg: #2b423c;
-  --od-warn-fg: #f2b544;
-  --od-bad-bg: #323b42;
-  --od-bad-fg: #ff9d8a;
+  --od-ok-bg: var(--green-soft);
+  --od-ok-fg: var(--green-ink);
+  --od-warn-bg: var(--amber-soft);
+  --od-warn-fg: var(--status-draft-text);
+  --od-bad-bg: var(--danger-soft);
+  --od-bad-fg: var(--danger);
   --od-neu-bg: #20434e;
-  --od-neu-fg: #b9d4dd;
+  --od-neu-fg: var(--nav-muted);
 
   /* Sombras */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, .35);
@@ -344,7 +344,7 @@
   --bg-amber-88: #3e3a19;
   --bg-cool-94: #091c26;
   --bg-cool-94-2: #092027;
-  --bg-cool-90-2: #18323a;
+  --bg-cool-90-2: var(--bg-cool-90);
   --bg-red-95: #341518;
   --bg-green-96: #153325;
   --bg-cool-97-4: #0e2538;
@@ -355,7 +355,7 @@
   --bg-cool-89: #19343c;
   --bg-cool-92-2: #162f37;
   --bg-green-70: #265d38;
-  --bg-cool-79: #20434e;
+  --bg-cool-79: var(--od-neu-bg);
   --tx-cool-40: #95b3c6;
   --tx-cool-53: #7ca2b9;
   --tx-cool-45: #71d6f2;

@@ -36,8 +36,18 @@ const declarations = (block: string) => {
   for (const m of block.matchAll(/(--[\w-]+):\s*([^;]+);/g)) out.set(m[1], m[2].trim());
   return out;
 };
-const light = declarations(tokensCss.slice(0, split));
-const darkOnly = declarations(tokensCss.slice(split));
+// Tokens podem ser alias (var(--outro)); os testes comparam o valor ja resolvido no contexto de cada tema.
+const resolveVars = (value: string, ctx: Map<string, string>, depth = 0): string => {
+  const m = /^var\((--[\w-]+)\)$/.exec(value);
+  if (!m) return value;
+  assert.ok(depth < 10 && ctx.has(m[1]), `alias sem destino: ${value}`);
+  return resolveVars(ctx.get(m[1])!, ctx, depth + 1);
+};
+const resolveAll = (own: Map<string, string>, ctx: Map<string, string>) => new Map([...own].map(([k, v]) => [k, resolveVars(v, ctx)] as [string, string]));
+const lightRaw = declarations(tokensCss.slice(0, split));
+const darkRaw = declarations(tokensCss.slice(split));
+const light = resolveAll(lightRaw, lightRaw);
+const darkOnly = resolveAll(darkRaw, new Map([...lightRaw, ...darkRaw]));
 const dark = new Map([...light, ...darkOnly]);
 
 test('todo token tem valor nos dois temas', () => {
