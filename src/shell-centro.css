@@ -84,11 +84,11 @@
   /* ---------- Estrutura (layout.css): menu a esquerda de ponta a ponta, barra do topo e conteudo a direita ---------- */
   .app-shell.cc { --side-w: 236px; display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); grid-template-rows: var(--top-h) minmax(0, 1fr); width: 100%; height: 100%; overflow: hidden; background: var(--color-bg); }
   :root[data-menu-recolhido] .app-shell.cc { --side-w: 72px; }
-  .menu-anima .app-shell.cc { transition: grid-template-columns .28s cubic-bezier(.2, .8, .2, 1); }
+  .menu-anima .app-shell.cc { transition: grid-template-columns .38s cubic-bezier(.2, .8, .2, 1); }
 
   .app-shell.cc > .side { grid-column: 1; grid-row: 1 / -1; position: relative; z-index: 30; width: 100%; min-width: 0; height: 100%; background: var(--side-bg); color: #fefefe; display: flex; flex-direction: column; padding: 18px 14px 14px; gap: 18px; box-shadow: 4px 0 24px rgba(3, 31, 41, .18), 1px 0 0 rgba(3, 31, 41, .06); }
   :root[data-theme="escuro"] .app-shell.cc > .side { box-shadow: 4px 0 28px rgba(0, 0, 0, .55), 1px 0 0 rgba(255, 255, 255, .04); }
-  .menu-anima .app-shell.cc > .side { transition: padding .28s cubic-bezier(.2, .8, .2, 1), width .28s cubic-bezier(.2, .8, .2, 1), margin-right .28s cubic-bezier(.2, .8, .2, 1), box-shadow .28s ease; }
+  .menu-anima .app-shell.cc > .side { transition: padding .38s cubic-bezier(.2, .8, .2, 1), width .38s cubic-bezier(.2, .8, .2, 1), margin-right .38s cubic-bezier(.2, .8, .2, 1), box-shadow .38s ease; }
   .side .marca { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 4px 8px 10px; margin: 0; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .08); background: transparent; text-align: left; text-decoration: none; cursor: pointer; font: inherit; }
   .side .marca img { height: 28px; width: auto; align-self: flex-start; }
   .side .marca span { font-size: calc(11px * var(--fs, 1)); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #5fd0ee; }
@@ -104,7 +104,7 @@
   .side .nav .ph { flex: none; color: #6f8f9b; transition: transform .22s cubic-bezier(.3, 1.6, .5, 1), color .15s ease; }
   .side .nav:hover .ph { transform: scale(1.18) translateX(1px); color: #5fd0ee; }
   .side .nav:active .ph { transform: scale(.94); }
-  .side .nav .rot { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .18s ease; }
+  .side .nav .rot { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; transition: opacity .2s ease, max-width .38s cubic-bezier(.2, .8, .2, 1), transform .32s cubic-bezier(.2, .8, .2, 1); }
   .side .nav[aria-current="page"] { background: rgba(18, 169, 209, .16); color: #fefefe; }
   .side .nav[aria-current="page"] .ph { color: #5fd0ee; }
   .side .nav[aria-current="page"]::after { content: ''; position: absolute; left: -14px; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: #12a9d1; box-shadow: 0 0 10px rgba(18, 169, 209, .7); animation: cc-menu-barra .3s cubic-bezier(.2, .8, .2, 1) both; }
@@ -132,7 +132,7 @@
   :root[data-menu-recolhido] .side .grupo > span { opacity: 0; max-height: 0; padding-bottom: 0; }
   :root[data-menu-recolhido] .side .grupo { gap: 4px; }
   :root[data-menu-recolhido] .side .nav { padding: 0 15px; gap: 0; }
-  :root[data-menu-recolhido] .side .nav .rot { width: 0; flex: 0 0 0; }
+  :root[data-menu-recolhido] .side .nav .rot { max-width: 0; transform: translateX(-14px); transition-delay: calc((7 - var(--n, 0)) * 16ms); }
   :root[data-menu-recolhido] .side .nav .badge { position: absolute; top: 2px; right: 4px; min-width: 16px; height: 16px; font-size: calc(10px * var(--fs, 1)); padding: 0 4px; }
   :root[data-menu-recolhido] .side .nav[aria-current="page"]::after { left: -10px; }
   :root[data-menu-recolhido] .side nav { margin: 0 -10px; padding: 0 10px; }
@@ -142,6 +142,8 @@
   :root[data-menu-recolhido] .side .quem { flex-direction: column; padding: 10px 0 0; }
   :root[data-menu-recolhido] .side .quem .nome { display: none; }
   .side .menu-dica { position: fixed; z-index: 60; transform: translateY(-50%); padding: 7px 11px; border-radius: 8px; background: #0b3544; color: #fefefe; font: 500 calc(12.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; white-space: nowrap; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); pointer-events: none; animation: cc-menu-dica .18s cubic-bezier(.2, .8, .2, 1) both; }
+
+  .side nav { overflow-x: hidden; }
 
   /* Espiar: com o menu recolhido, o mouse em cima abre o menu por cima da pagina (sem empurrar o conteudo) e ele recolhe ao sair.
      O React tira data-menu-recolhido e poe data-menu-espia; a coluna segue em 72 px (margem negativa) e os itens entram em cascata. */
@@ -197,7 +199,3 @@
 /* Abaixo de 1280 px o espacamento do topo encurta (igual ao Centro). */
 @media (min-width: 768px) and (max-width: 1279px) { .app-shell.cc > .top { gap: 12px; padding: 0 20px 0 24px; } }
 
-@media (prefers-reduced-motion: reduce) {
-  .menu-anima .app-shell.cc, .menu-anima .app-shell.cc > .side, .side .nav, .side .nav::before, .side .nav .ph, .side .nav .rot, .side .recolher, .side .recolher .ph, .side .marca .simb { transition: none; }
-  .side .nav[aria-current="page"]::after, .side .menu-dica, .side .nav .rot, .side .quem .nome, .side .marca .logo, .side .marca span { animation: none; }
-}
