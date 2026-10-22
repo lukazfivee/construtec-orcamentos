@@ -1,11 +1,11 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeftRight, Check, ChevronLeft, ChevronDown, ChevronUp, History, Loader2, Minus, Pencil, Plus, RefreshCw, WifiOff, Equal } from 'lucide-react';
 import type { ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import { brl as brlFmt, mult } from '../shared/formatoBr';
 import { proposalApi } from './api';
 import { compareProposals, deltaDirection, rowDirection, rowTag, type CompareLine, type CompareRow } from './proposalCompare';
 import { revLabel } from './proposalPdfPages';
 import { useSuitePermission } from './SuitePermissions';
-import { brl as brlFmt, mult } from '../shared/formatoBr';
 
 // Valores com centavos, como no resto do app (formatador unico pt-BR).
 const brl = { format: brlFmt };
