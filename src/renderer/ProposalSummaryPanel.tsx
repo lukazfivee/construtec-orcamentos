@@ -117,14 +117,15 @@ export function ProposalSummaryPanel({
           <>
             {canSeeCost && (
               <>
-                <Amount label="Materiais" value={`R$ ${money.format(materialsTotal)}`} />
-                <Amount label="Mão de obra" value={`R$ ${money.format(laborTotal)}`} />
-                <Amount label="Custo base" value={`R$ ${money.format(baseCost)}`} />
-                <Amount label="BDI" value={`R$ ${money.format(bdiAdditions)}`} />
+                {/* Valores em R$ sem o simbolo: cabem ao lado do rotulo na coluna de 260 px (o valor final mantem o R$). */}
+                <Amount label="Materiais" value={money.format(materialsTotal)} />
+                <Amount label="Mão de obra" value={money.format(laborTotal)} />
+                <Amount label="Custo base" value={money.format(baseCost)} />
+                <Amount label="BDI" value={money.format(bdiAdditions)} />
               </>
             )}
             {taxAmount > 0 && (
-              <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
+              <Amount label={`Impostos ${String(taxPercentage).replace('.', ',')}%`} value={money.format(taxAmount)} />
             )}
           </>
         )}

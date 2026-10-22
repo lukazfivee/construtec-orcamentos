@@ -183,11 +183,11 @@ export function ProposalSyncDirectAction({
         title={isSuccess ? 'Ir para o Centro de Custo desta obra' : 'Aprovar proposta e gerar o Centro de Custo no aplicativo de gestão de obras (Etapa 02)'}
       >
         {isSyncing ? (
-          <><RefreshCw size={17} className="spinning" /> <span>Gerando Centro de Custo...</span></>
+          <><RefreshCw size={17} className="spinning" /> <span>Gerando…</span></>
         ) : isSuccess ? (
-          <><CheckCircle2 size={17} /> <span>Ir para Centro de Custo</span></>
+          <><CheckCircle2 size={17} /> <span>Abrir no Centro</span></>
         ) : (
-          <><Building2 size={17} /> <span>Gerar Centro de Custo</span></>
+          <><Building2 size={17} /> <span>Centro de Custo</span></>
         )}
       </button>
 

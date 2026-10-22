@@ -26,7 +26,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
   const cloud = isCloudRuntime();
   const tabs: Array<[TabKey, typeof Command, string]> = [
     ['shortcuts', Command, 'Atalhos'],
-    ['calculations', Calculator, 'Como o preço é calculado'],
+    ['calculations', Calculator, 'Cálculo'],
     ['privacy', Lock, 'Sigilo e revisões'],
     ['about', Info, 'Sobre'],
     ['report', MessageSquareWarning, 'Reportar problema'],
