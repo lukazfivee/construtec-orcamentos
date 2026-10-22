@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Layers3, Search, Send } from 'lucide-react';
 import type { KitDetail, KitSummary } from '../shared/contracts';
+import { mult } from '../shared/formatoBr';
 import { costText } from './SuitePermissions';
 import { kitsApi } from './api';
-import { mult } from '../shared/formatoBr';
 
 type ProposalKitsPanelProps = {
   proposalId: string;

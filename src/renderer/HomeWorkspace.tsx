@@ -13,8 +13,8 @@ import {
   Users,
 } from 'lucide-react';
 import type { DashboardMetrics, ProposalDetail, ProposalSummary } from '../shared/contracts';
-import { dashboardApi } from './api';
 import { plural } from '../shared/formatoBr';
+import { dashboardApi } from './api';
 import { HomePipelineCard } from './HomePipelineCard';
 import { HomeAbcItemsCard } from './HomeAbcItemsCard';
 import { HomeTopClientsCard } from './HomeTopClientsCard';

@@ -1,9 +1,9 @@
-import { isCloudRuntime } from './api';
 import {
   CheckCircle2,
   Clock,
   FileText,
 } from 'lucide-react';
+import { isCloudRuntime } from './api';
 
 type ProposalsListKpiBarProps = {
   stats: {

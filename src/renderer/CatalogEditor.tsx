@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowLeft, Box, CircleDollarSign, Import, PackagePlus, Save, Search, Trash2 } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { brl, dinheiro } from '../shared/formatoBr';
 import { costText, seesCost } from './SuitePermissions';
 import { catalogApi } from './api';
-import { brl, dinheiro } from '../shared/formatoBr';
 import { CatalogImportDialog } from './CatalogImportDialog';
 
 type Props = { onNotice: (message: string) => void; onError: (message: string) => void; onBack?: () => void; onOpenWizard?: () => void; onOpenExsat?: () => void };
