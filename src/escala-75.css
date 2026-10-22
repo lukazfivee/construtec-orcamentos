@@ -17,13 +17,8 @@
   .app-shell.cc .proposal-items-table .col-unit { width: 58px; }
   .app-shell.cc .proposal-items-table .col-code { width: 128px; }
   .app-shell.cc .proposal-meta { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) 184px 150px minmax(0, 1fr); }
-  .modal-dialog { max-width: calc((100vw - 48px) / .75); max-height: calc((100vh - 48px) / .75); }
   .modal-card { width: min(520px, calc((100vw - 48px) / .75)); max-height: calc((100vh - 48px) / .75); }
-  .help-modal-dialog { width: min(720px, calc(92vw / .75)); max-height: calc(88vh / .75); }
-  .proposal-import-dialog { width: min(840px, calc(94vw / .75)); max-height: calc(88vh / .75); }
   .proposal-diff-dialog { width: min(1280px, calc(96vw / .75)); height: min(860px, calc(92vh / .75)); }
-  .proposal-export-dialog { width: min(1200px, calc(96vw / .75)); height: min(860px, calc(92vh / .75)); }
-  .proposal-share-dialog { width: min(680px, calc(90vw / .75)); max-height: calc(90vh / .75); }
   .catalog-popover { top: calc(12vh / .75); max-height: calc(76vh / .75); }
   .app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh / .75 - 330px), 940px); }
 }

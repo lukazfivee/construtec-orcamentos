@@ -306,35 +306,4 @@
   text-align: center;
 }
 
-.help-modal-backdrop {
-  z-index: 120;
-}
-
-.help-modal-dialog {
-  width: min(720px, 92vw);
-  max-height: 88vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border-radius: 10px;
-  border: 1px solid var(--line-strong, var(--line-strong));
-  box-shadow: 0 24px 60px rgba(10, 20, 38, 0.35);
-  overflow: hidden;
-  animation: popover-fade-in 180ms ease-out;
-}
-
-.help-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: var(--nav, #132038);
-  color: #ffffff;
-}
-
-.help-modal-title-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
 

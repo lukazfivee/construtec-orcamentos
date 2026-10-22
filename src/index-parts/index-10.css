@@ -1,27 +1,3 @@
-.clone-summary-box ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.clone-summary-box li {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: calc(11px * var(--fs, 1));
-  color: var(--tx-green-29);
-  line-height: 1.4;
-}
-
-.clone-summary-box .check-icon {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--tx-green-36);
-}
-
 /* ==========================================================================
    Proposal Revision Diff Modal
    ========================================================================== */

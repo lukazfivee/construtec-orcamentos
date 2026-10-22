@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, Copy, Mail, MessageCircle, Share2, Sparkles, X } from 'lucide-react';
+import { Check, Copy, Mail, MessageCircle, Share2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import {
   commercialLaborTotal,
@@ -9,6 +9,7 @@ import {
   money,
   parseCommercialConditions,
 } from '../documents/proposalDocumentCommon';
+import { Dialogo, Seg } from './orcDeskUi';
 
 interface ProposalShareDialogProps {
   open: boolean;
@@ -50,15 +51,6 @@ export function ProposalShareDialog({
   const [email, setEmail] = useState('');
   const [customText, setCustomText] = useState('');
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
-
   const conditions = useMemo(() => {
     return proposal ? parseCommercialConditions(proposal.scope) : null;
   }, [proposal]);
@@ -75,7 +67,8 @@ export function ProposalShareDialog({
   // Generate default message based on mode
   const generatedTemplate = useMemo(() => {
     if (!proposal) return '';
-    const greetingName = proposal.responsibleName?.trim() || proposal.clientName;
+    // Cumprimenta o contato do cliente (nunca o responsavel interno); sem contato, o nome do cliente.
+    const greetingName = proposal.clientContact?.name?.trim() || proposal.clientName;
     const workInfo = proposal.workName ? `\n*Obra / Local:* ${proposal.workName}` : '';
     const executionInfo = conditions?.executionTerm ? `\n*Prazo de Execução:* ${conditions.executionTerm}` : '';
     const paymentInfo = conditions?.paymentTerms ? `\n*Condição de Pagamento:* ${conditions.paymentTerms}` : '';
@@ -206,124 +199,51 @@ Contato: (71) 99294-1099 • supervisao@rcconstrutec.com.br`;
   };
 
   return (
-    <div className="dialog-backdrop" role="presentation" onClick={onClose}>
-      <section
-        className="proposal-share-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="share-dialog-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="share-dialog-header">
-          <div className="title-area">
-            <Share2 size={22} className="share-icon" />
-            <div>
-              <h2 id="share-dialog-title">Compartilhar Proposta Comercial</h2>
-              <p>
-                <b>{proposal.number}</b> · REV.{String(proposal.revision).padStart(2, '0')} — {proposal.clientName}
-              </p>
-            </div>
-          </div>
-          <button type="button" className="dialog-close" aria-label="Fechar" onClick={onClose}>
-            <X size={18} />
+    <Dialogo
+      id="share-dialog"
+      icon={Share2}
+      title="Compartilhar proposta"
+      sub={`${proposal.number} · REV.${String(proposal.revision).padStart(2, '0')} · ${proposal.clientName}`}
+      className="share-dlg"
+      onClose={onClose}
+      footer={(
+        <>
+          <button type="button" onClick={onClose}>Cancelar</button>
+          <button type="button" onClick={handleEmail} title="Abre o webmail com a mensagem copiada">
+            <Mail size={16} /> Enviar por e-mail
           </button>
-        </header>
+          <button type="button" className="primary" onClick={handleWhatsApp}>
+            <MessageCircle size={16} /> Enviar pelo WhatsApp
+          </button>
+        </>
+      )}
+    >
+      <div className="share-contacts">
+        <label htmlFor="share-phone">
+          <span className="dlg-label">WhatsApp do cliente</span>
+          <input id="share-phone" className="od-inp" type="tel" placeholder="(71) 99999-9999" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+        <label htmlFor="share-email">
+          <span className="dlg-label">E-mail do cliente</span>
+          <input id="share-email" className="od-inp" type="email" placeholder="responsavel@cliente.com.br" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+      </div>
 
-        <div className="share-dialog-body">
-          {/* Contatos opcionais de destino */}
-          <div className="share-contacts-bar">
-            <div className="contact-field">
-              <label htmlFor="share-phone">WhatsApp / Celular do Cliente:</label>
-              <input
-                id="share-phone"
-                type="tel"
-                placeholder="(71) 99999-9999"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-            <div className="contact-field">
-              <label htmlFor="share-email">E-mail do Cliente:</label>
-              <input
-                id="share-email"
-                type="email"
-                placeholder="responsavel@cliente.com.br"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
+      <div>
+        <span className="dlg-label">Modelo da mensagem</span>
+        <Seg label="Modelo da mensagem" value={mode} onChange={setMode} options={[['full', 'Formal'], ['compact', 'Curta'], ['followup', 'Lembrete de validade']] as const} />
+      </div>
 
-          {/* Seletor de Modelo de Mensagem */}
-          <div className="share-template-selector">
-            <span className="template-label">
-              <Sparkles size={14} /> Modelo de Mensagem:
-            </span>
-            <div className="template-chips">
-              <button
-                type="button"
-                className={`template-chip ${mode === 'full' ? 'active' : ''}`}
-                onClick={() => setMode('full')}
-              >
-                Formal & Completo
-              </button>
-              <button
-                type="button"
-                className={`template-chip ${mode === 'compact' ? 'active' : ''}`}
-                onClick={() => setMode('compact')}
-              >
-                Direto / WhatsApp
-              </button>
-              <button
-                type="button"
-                className={`template-chip ${mode === 'followup' ? 'active' : ''}`}
-                onClick={() => setMode('followup')}
-              >
-                Follow-up / Validade
-              </button>
-            </div>
-          </div>
-
-          {/* Área de edição do texto */}
-          <div className="share-message-wrapper">
-            <div className="message-label">
-              <span>Texto da Mensagem (editável antes de enviar):</span>
-              <button type="button" className="btn-copy-inline" onClick={handleCopy}>
-                {copied ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
-                {copied ? 'Copiado!' : 'Copiar texto'}
-              </button>
-            </div>
-            <textarea
-              className="share-textarea"
-              rows={11}
-              value={customText}
-              onChange={(e) => setCustomText(e.target.value)}
-            />
-          </div>
+      <div>
+        <div className="share-message-head">
+          <label className="dlg-label" htmlFor="share-text">Mensagem (dá para editar antes de enviar)</label>
+          <button type="button" className="od-btn g sm" onClick={handleCopy}>
+            {copied ? <Check size={15} /> : <Copy size={15} />}
+            {copied ? 'Copiado' : 'Copiar texto'}
+          </button>
         </div>
-
-        <footer className="share-dialog-footer">
-          <div className="footer-tip">
-            Envie com 1 clique pelo WhatsApp ou pelo UOL Webmail Pro corporativo.
-          </div>
-          <div className="footer-actions">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn-action-email"
-              onClick={handleEmail}
-              title="Abre o UOL Webmail Pro com login salvo e proposta copiada para envio"
-            >
-              <Mail size={16} /> Enviar Webmail Pro
-            </button>
-            <button type="button" className="btn-action-whatsapp" onClick={handleWhatsApp}>
-              <MessageCircle size={16} /> Enviar WhatsApp
-            </button>
-          </div>
-        </footer>
-      </section>
-    </div>
+        <textarea id="share-text" className="od-inp share-textarea" value={customText} onChange={(e) => setCustomText(e.target.value)} />
+      </div>
+    </Dialogo>
   );
 }

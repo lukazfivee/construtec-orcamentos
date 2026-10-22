@@ -15,11 +15,7 @@
   .nav-group,
   .dialog-backdrop,
   .modal-overlay,
-  .export-settings-panel,
-  .export-dialog-header,
-  .export-dialog-footer,
-  .btn-preview,
-  .btn-export {
+  .export-settings-panel {
     display: none !important;
   }
 }

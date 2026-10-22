@@ -136,10 +136,6 @@
   border-top: 1px solid var(--line);
 }
 
-.delete-modal {
-  width: min(560px, calc(100vw - 48px));
-}
-
 .tab-divider {
   display: inline-block;
   width: 1px;
@@ -186,43 +182,6 @@
 .danger-action-btn:hover {
   background: var(--bg-red-94);
   border-color: var(--bd-red-82);
-}
-
-.danger-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.danger-callout {
-  margin-top: 12px;
-  padding: 12px 14px;
-  background: var(--bg-red-97);
-  outline: 1px solid rgba(220, 38, 38, 0.35);
-  outline-offset: -1px;
-  border-radius: 12px;
-  font-size: calc(12px * var(--fs, 1));
-  color: var(--tx-red-35);
-  line-height: 1.4;
-}
-
-.danger-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 16px;
-  height: 38px;
-  border-radius: 6px;
-  font-size: calc(12px * var(--fs, 1));
-  font-weight: 600;
-  color: #fff;
-  background: #dc2626;
-  border: 0;
-  cursor: pointer;
-}
-
-.danger-btn:hover {
-  background: #b91c1c;
 }
 
 /* Toolbar icon-button and interactive tools */

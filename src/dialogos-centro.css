@@ -31,3 +31,156 @@
   .popover-heading small { font-size: calc(12.5px * var(--fs, 1)); color: var(--color-neutral-300); }
   .popover-footer { height: 40px; font-size: calc(12px * var(--fs, 1)); background: var(--color-bg); }
 }
+
+/* Casca unica das janelas (Dialogo em orcDeskUi.tsx): e a .new-proposal-dialog (cabecalho, raio, vidro) com corpo que
+   rola sozinho dentro da janela e rodape proprio. Ajuda, Compartilhar, Exportar, Importar, Prorrogar e Clonar usam esta casca. */
+.new-proposal-dialog.dlg { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); overflow: hidden; }
+.new-proposal-dialog.dlg.w-sm { width: min(480px, 100%); }
+.new-proposal-dialog.dlg.w-lg { width: min(760px, 100%); }
+.new-proposal-dialog.dlg.w-xl { width: min(1180px, 100%); }
+.new-proposal-dialog.dlg > header { flex: none; }
+.new-proposal-dialog.dlg .dlg-form { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 0; padding: 0; }
+.new-proposal-dialog.dlg .dlg-body { display: flex; flex-direction: column; gap: 16px; flex: 1; min-height: 0; overflow-y: auto; padding: 20px; color: var(--color-text); font-size: calc(13.5px * var(--fs, 1)); line-height: 1.5; }
+.new-proposal-dialog.dlg .dlg-foot { display: flex; flex: none; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--color-divider); }
+.new-proposal-dialog.dlg .dlg-foot button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; cursor: pointer; }
+.new-proposal-dialog.dlg .dlg-foot .dlg-tip { margin-right: auto; color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); }
+.new-proposal-dialog.dlg .dlg-ic.bad { color: var(--c-err); }
+/* Rotulo de campo, aviso e caixa de apoio dentro da casca: mesmos do resto da Suite (anel de 1 px, par semantico). */
+.dlg .dlg-label { display: block; margin: 0 0 6px; color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); font-weight: 600; }
+.dlg .dlg-note { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); font-size: calc(13px * var(--fs, 1)); }
+.dlg .dlg-note.bad { background: var(--c-err-soft); box-shadow: none; color: var(--c-err); }
+.dlg .od-inp { width: 100%; }
+.new-proposal-dialog.dlg textarea.od-inp { height: auto; min-height: 120px; padding: 10px 12px; line-height: 1.5; resize: vertical; font-family: inherit; }
+@media screen and (min-width: 1200px) {
+  .new-proposal-dialog.dlg { max-height: calc((100vh - 48px) / .75); }
+}
+
+/* Abas da janela (Ajuda, Importar itens) e conteudo da Ajuda: abas como as do editor (linha ciano de 2 px na ativa) e conteudo com anel de 1 px, sem fonte mono. */
+.dlg .dlg-tabs { display: flex; flex: none; flex-wrap: wrap; gap: 4px; padding: 0 16px; border-bottom: 1px solid var(--color-divider); }
+.dlg .dlg-tabs button { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--color-neutral-300); font: 500 calc(13px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; transition: color .15s ease, border-color .15s ease; }
+.dlg .dlg-tabs button:hover { color: var(--color-text); }
+.dlg .dlg-tabs button.active { color: var(--color-text); font-weight: 600; border-bottom-color: var(--color-accent-500); }
+.help-dlg .help-section { display: flex; flex-direction: column; gap: 12px; }
+.help-dlg .help-section-desc { margin: 0; color: var(--color-neutral-300); font-size: calc(13px * var(--fs, 1)); }
+.help-dlg .help-shortcuts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+.help-dlg .shortcut-card, .help-dlg .help-privacy-card, .help-dlg .about-row { border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
+.help-dlg .shortcut-card { display: flex; align-items: center; gap: 12px; padding: 12px; }
+.help-dlg .shortcut-keys { display: flex; align-items: center; gap: 4px; min-width: 88px; color: var(--color-neutral-300); }
+.help-dlg kbd { display: inline-block; padding: 2px 6px; border-radius: 5px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider), 0 1px 0 rgba(18, 32, 54, .08); color: var(--color-text); font: 600 calc(11.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
+.help-dlg .shortcut-info { display: flex; flex-direction: column; gap: 2px; }
+.help-dlg .shortcut-info strong { color: var(--color-text); font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
+.help-dlg .shortcut-info span, .help-dlg .help-calc-item p, .help-dlg .help-privacy-card p { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); line-height: 1.5; }
+.help-dlg .help-calc-item h3 { margin: 0 0 6px; color: var(--color-text); font-size: calc(14px * var(--fs, 1)); font-weight: 600; }
+.help-dlg .help-calc-item p { margin: 0 0 8px; }
+.help-dlg .help-formula-box { padding: 10px 12px; border-radius: 10px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
+.help-dlg code { color: var(--color-text); font: 600 calc(13px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.help-dlg .help-privacy-card { padding: 14px; }
+.help-dlg .help-privacy-card p { margin: 0 0 6px; }
+.help-dlg .privacy-badge { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
+.help-dlg .privacy-badge svg { color: var(--color-neutral-300); }
+.help-dlg .help-about-details { display: flex; flex-direction: column; gap: 8px; }
+.help-dlg .about-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 12px; font-size: calc(13px * var(--fs, 1)); }
+.help-dlg .about-row span { color: var(--color-neutral-300); }
+.help-dlg .about-row strong { color: var(--color-text); font-weight: 600; text-align: right; }
+
+/* Prorrogar validade */
+.extend-dlg .extend-now { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
+.extend-dlg .extend-now > span:first-child { display: flex; flex-direction: column; gap: 2px; }
+.extend-dlg .extend-now small { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); }
+.extend-dlg .extend-now strong { color: var(--color-text); font-size: calc(14px * var(--fs, 1)); font-weight: 600; }
+.extend-dlg .extend-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.extend-dlg .extend-presets .od-btn { padding: 0 8px; }
+
+/* Importar itens: colagem, previa e escolha de itens. As tabelas crescem com a janela (sem rolagem propria). */
+.import-dlg .import-tab-pane { display: flex; flex-direction: column; gap: 14px; }
+.import-dlg .paste-area-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--color-neutral-300); font-size: calc(12.5px * var(--fs, 1)); }
+.import-dlg .csv-upload-btn { flex: none; cursor: pointer; }
+.import-dlg .paste-textarea { min-height: 110px; }
+.import-dlg .parsed-preview, .import-dlg .proposal-items-picker { border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-divider); overflow: hidden; }
+.import-dlg .preview-header, .import-dlg .picker-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--color-divider); color: var(--color-neutral-300); font-size: calc(12.5px * var(--fs, 1)); }
+.import-dlg .preview-header strong { color: var(--color-text); font-weight: 600; }
+.import-dlg .preview-total { color: var(--color-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.import-dlg .picker-toggle-all { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--color-accent-300); font: 600 calc(12.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+.import-dlg .picker-toggle-all:hover { background: var(--color-accent-900); }
+.import-dlg .preview-table { width: 100%; border-collapse: collapse; font-size: calc(12.5px * var(--fs, 1)); text-align: left; }
+.import-dlg .preview-table th { height: 36px; padding: 0 10px; color: var(--color-neutral-300); font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-bottom: 1px solid var(--color-divider); }
+.import-dlg .preview-table td { padding: 8px 10px; color: var(--color-text); border-bottom: 1px solid var(--color-divider); }
+.import-dlg .preview-table tr:last-child td { border-bottom: 0; }
+.import-dlg .preview-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.import-dlg .preview-table .cod { color: var(--color-neutral-300); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.import-dlg .proposal-items-picker tbody tr { cursor: pointer; user-select: none; }
+.import-dlg .proposal-items-picker tbody tr:hover { background: var(--color-bg); }
+.import-dlg .proposal-items-picker tr.selected-row { background: var(--color-accent-900); }
+.import-dlg .select-label { display: flex; flex-direction: column; }
+.import-dlg .loading-state, .import-dlg .empty-picker { border: 0; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-divider); background: var(--color-bg); }
+
+/* Exportar documentos: opcoes a esquerda e previa da folha a direita, cada coluna rola sozinha lado a lado (nenhuma dentro da outra). */
+.new-proposal-dialog.dlg.export-dlg { height: min(860px, calc(100dvh - 48px)); }
+.new-proposal-dialog.dlg.export-dlg .dlg-body { padding: 0; overflow: hidden; }
+.export-dlg .export-dialog-body { display: grid; grid-template-columns: 1.15fr 1fr; flex: 1; min-height: 0; }
+.export-dlg .export-settings-panel { display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: 20px; overflow-y: auto; border-right: 1px solid var(--color-divider); }
+.export-dlg .export-settings-panel h3 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--color-text); font-size: calc(14px * var(--fs, 1)); font-weight: 600; }
+.export-dlg .export-settings-panel h3 svg { color: var(--color-neutral-300); }
+.export-dlg .format-options-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.new-proposal-dialog.dlg.export-dlg label.format-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); cursor: pointer; transition: background-color .15s ease, box-shadow .15s ease; }
+.new-proposal-dialog.dlg.export-dlg label.format-card:hover { background: var(--color-bg); }
+.new-proposal-dialog.dlg.export-dlg label.format-card.selected { background: var(--color-accent-900); box-shadow: inset 0 0 0 2px var(--color-accent-300); }
+.new-proposal-dialog.dlg.export-dlg label.format-card:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.new-proposal-dialog.dlg.export-dlg label.format-card input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.new-proposal-dialog.dlg.export-dlg label.format-card svg { color: var(--color-accent-300); }
+.new-proposal-dialog.dlg.export-dlg label.format-card strong { color: var(--color-text); font-size: calc(13.5px * var(--fs, 1)); font-weight: 600; }
+.new-proposal-dialog.dlg.export-dlg label.format-card small { display: block; font-weight: 400; margin-top: 2px; color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); line-height: 1.35; }
+.export-dlg .options-checkboxes { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); }
+.new-proposal-dialog.dlg.export-dlg label.checkbox-row { display: flex; flex-direction: row; align-items: center; gap: 10px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); font-weight: 400; cursor: pointer; }
+.export-dlg .custom-notes-area { display: flex; flex-direction: column; gap: 6px; }
+.export-dlg .custom-notes-area label { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); font-weight: 600; }
+.export-dlg .custom-notes-area textarea { min-height: 72px; padding: 10px 12px; border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--color-field); background: var(--color-surface); color: var(--color-text); font: calc(13.5px * var(--fs, 1))/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; resize: vertical; }
+.export-dlg .export-preview-panel { display: flex; flex-direction: column; gap: 8px; min-height: 0; padding: 16px 20px; overflow-y: auto; background: var(--color-bg); }
+.export-dlg .preview-label { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); font-weight: 600; }
+@media screen and (min-width: 1200px) {
+  .new-proposal-dialog.dlg.export-dlg { height: min(860px, calc((100vh - 48px) / .75)); }
+}
+@media (max-width: 767px) {
+  .new-proposal-dialog.dlg.export-dlg { height: auto; }
+  .new-proposal-dialog.dlg.export-dlg .dlg-body { overflow-y: auto; }
+  .export-dlg .export-dialog-body { grid-template-columns: minmax(0, 1fr); }
+  .export-dlg .export-settings-panel, .export-dlg .export-preview-panel { overflow: visible; border-right: 0; }
+  .export-dlg .format-options-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Compartilhar proposta: contatos lado a lado, modelo em controle segmentado e mensagem que cresce com o texto (sem rolagem propria). */
+.share-dlg .share-contacts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.share-dlg .share-message-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.share-dlg .share-message-head .dlg-label { margin: 0; }
+.share-dlg .share-textarea { min-height: 220px; field-sizing: content; resize: none; overflow: hidden; }
+@media (max-width: 767px) { .share-dlg .share-contacts { grid-template-columns: minmax(0, 1fr); } }
+
+/* Duplicar proposta: as duas opcoes e o resumo ocupam a largura toda; o radio e desenhado (anel de 1 px e ponto ciano). */
+.clone-proposal-dialog { width: min(620px, 100%); }
+.clone-proposal-dialog .clone-mode-selector { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.new-proposal-dialog.clone-proposal-dialog .clone-mode-selector label.radio-option { position: relative; display: flex; flex-direction: row; align-items: flex-start; gap: 10px; min-width: 0; padding: 12px 14px; border-radius: 12px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-divider); color: var(--color-text); font-weight: 400; cursor: pointer; transition: background-color .15s ease, box-shadow .15s ease; }
+.new-proposal-dialog.clone-proposal-dialog .clone-mode-selector label.radio-option:hover { background: var(--color-bg); }
+.new-proposal-dialog.clone-proposal-dialog .clone-mode-selector label.radio-option:has(input:checked) { background: var(--color-accent-900); box-shadow: inset 0 0 0 2px var(--color-accent-300); }
+.new-proposal-dialog.clone-proposal-dialog .clone-mode-selector label.radio-option:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.clone-proposal-dialog .radio-option input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.clone-proposal-dialog .radio-dot { flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--color-field); background: var(--color-surface); }
+.clone-proposal-dialog .radio-option:has(input:checked) .radio-dot { box-shadow: inset 0 0 0 1.5px var(--color-accent-300), inset 0 0 0 5px var(--color-surface); background: var(--color-accent-300); }
+.clone-proposal-dialog .radio-option > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.clone-proposal-dialog .radio-option strong { color: var(--color-text); font-size: calc(13.5px * var(--fs, 1)); font-weight: 600; }
+.clone-proposal-dialog .radio-option small { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); font-weight: 400; line-height: 1.4; }
+.clone-proposal-dialog .clone-summary-box { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
+.clone-proposal-dialog .clone-summary-title { display: flex; align-items: center; gap: 8px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
+.clone-proposal-dialog .clone-summary-title svg, .clone-proposal-dialog .clone-summary-box .check-icon { flex: none; color: var(--color-neutral-300); }
+.clone-proposal-dialog .clone-summary-box ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.clone-proposal-dialog .clone-summary-box li { display: flex; align-items: flex-start; gap: 8px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); line-height: 1.45; }
+.clone-proposal-dialog .clone-summary-box .check-icon { margin-top: 3px; }
+@media (max-width: 767px) { .clone-proposal-dialog .clone-mode-selector { grid-template-columns: minmax(0, 1fr); } }
+
+/* Excluir ou descartar proposta: pergunta, aviso no par de erro e botao vermelho fixo (#b8452c passa de 4,5:1 com branco nos dois temas). */
+.delete-dlg .delete-q { margin: 0; color: var(--color-text); }
+.new-proposal-dialog.dlg .dlg-foot button.danger, .dlg .danger-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #b8452c; color: #fefefe; box-shadow: none; font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
+.new-proposal-dialog.dlg .dlg-foot button.danger:hover:not(:disabled), .dlg .danger-btn:hover:not(:disabled) { background: #9a3a24; }
+.dlg .discard-open { margin: 0; }
+.dlg .discard-open .od-btn { padding: 0 8px; margin-left: -8px; }
+.dlg .discard-form { display: grid; gap: 12px; }
+.dlg .danger-callout { margin: 0; padding: 12px 14px; border-radius: 12px; outline: 0; background: var(--c-err-soft); color: var(--c-err); font-size: calc(13px * var(--fs, 1)); line-height: 1.45; }

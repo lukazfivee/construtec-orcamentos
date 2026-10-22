@@ -30,25 +30,24 @@ export function ProposalDiscardBox({ proposalId, number, approved }: Props) {
 
   if (!open) {
     return (
-      <p style={{ margin: '10px 0 0', fontSize: 'calc(0.8rem * var(--fs, 1))' }}>
-        {approved ? 'Proposta aprovada não pode ser excluída. ' : ''}
-        <button type="button" style={{ background: 'none', border: 0, padding: 0, color: 'var(--tx-cool-31-2)', cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }} onClick={() => setOpen(true)}>Descartar com registro (dá para recuperar)</button>
+      <p className="discard-open">
+        <button type="button" className="od-btn g sm" onClick={() => setOpen(true)}>Descartar com registro (dá para recuperar)</button>
       </p>
     );
   }
   return (
-    <form onSubmit={(event) => void submit(event)} style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
+    <form className="discard-form" onSubmit={(event) => void submit(event)}>
       <div className="danger-callout">
         Descartar tira {number} da lista, com todas as revisões, e guarda uma cópia em Configurações, onde ela pode ser restaurada. A obra no Centro de Custos, sem movimento, sai junto e volta se a proposta for restaurada. Se a obra tem lançamentos, notas ou medições, o descarte é recusado.
       </div>
-      <label style={{ display: 'grid', gap: '4px', fontSize: 'calc(0.8rem * var(--fs, 1))' }}>Motivo (opcional)
-        <input value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} />
+      <label><span className="dlg-label">Motivo (opcional)</span>
+        <input className="od-inp" value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} />
       </label>
-      <label style={{ display: 'grid', gap: '4px', fontSize: 'calc(0.8rem * var(--fs, 1))' }}>Digite {number} para confirmar
-        <input value={confirmNumber} onChange={(event) => setConfirmNumber(event.target.value)} autoComplete="off" />
+      <label><span className="dlg-label">Digite {number} para confirmar</span>
+        <input className="od-inp" value={confirmNumber} onChange={(event) => setConfirmNumber(event.target.value)} autoComplete="off" />
       </label>
-      {error && <div role="alert" style={{ color: 'var(--danger)', fontSize: 'calc(0.8rem * var(--fs, 1))' }}>{error}</div>}
-      <button type="submit" className="danger-btn" disabled={pending || !confirmNumber.trim()}>{pending ? 'Descartando...' : 'Descartar proposta'}</button>
+      {error && <div role="alert" className="dlg-note bad">{error}</div>}
+      <button type="submit" className="danger-btn" disabled={pending || !confirmNumber.trim()}>{pending ? 'Descartando…' : 'Descartar proposta'}</button>
     </form>
   );
 }

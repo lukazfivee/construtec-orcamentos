@@ -134,8 +134,8 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
           <div>
             <Copy size={22} />
             <span>
-              <h2 id="clone-proposal-title">Duplicar / Clonar Proposta</h2>
-              <p>Origem: <b>{sourceProposal.number}</b> (REV.{String(sourceProposal.revision).padStart(2, '0')}) — {sourceProposal.clientName}</p>
+              <h2 id="clone-proposal-title">Duplicar proposta</h2>
+              <p>Cópia de {sourceProposal.number} · REV.{String(sourceProposal.revision).padStart(2, '0')} · {sourceProposal.clientName}</p>
             </span>
           </div>
           <button type="button" className="dialog-close" aria-label="Fechar" onClick={onClose} disabled={submitting}>
@@ -147,17 +147,19 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
           <div className="clone-mode-selector wide">
             <label className="radio-option">
               <input type="radio" name="targetMode" value="same" checked={targetMode === 'same'} onChange={() => setTargetMode('same')} disabled={submitting} />
+              <i className="radio-dot" aria-hidden="true" />
               <span>
-                <strong>Manter mesmo cliente e obra</strong>
+                <strong>Mesmo cliente e obra</strong>
                 <small>{sourceProposal.clientName} • {sourceProposal.workName}</small>
               </span>
             </label>
 
             <label className="radio-option">
               <input type="radio" name="targetMode" value="change" checked={targetMode === 'change'} onChange={() => setTargetMode('change')} disabled={submitting} />
+              <i className="radio-dot" aria-hidden="true" />
               <span>
-                <strong>Selecionar outro cliente / obra</strong>
-                <small>Replicar itens e composição para um novo destinatário</small>
+                <strong>Outro cliente ou obra</strong>
+                <small>Leva os itens e a composição para outro destino</small>
               </span>
             </label>
           </div>
@@ -165,7 +167,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
           {targetMode === 'change' && (
             <>
               <label htmlFor="clone-client">
-                <span><Building2 size={15} /> Novo Cliente <b>*</b></span>
+                <span><Building2 size={15} /> Cliente <b>*</b></span>
                 <select
                   id="clone-client"
                   value={clientId}
@@ -186,7 +188,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
                     }
                   }}
                 >
-                  <option value="">Selecione um cliente...</option>
+                  <option value="">Selecione um cliente</option>
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>{c.tradeName || c.legalName}</option>
                   ))}
@@ -195,7 +197,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
 
               {activeWorks.length > 0 && !isCreatingWork ? (
                 <label htmlFor="clone-work">
-                  <span><MapPin size={15} /> Nova Obra <b>*</b></span>
+                  <span><MapPin size={15} /> Obra <b>*</b></span>
                   <select
                     id="clone-work"
                     value={workId}
@@ -212,7 +214,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
                       }
                     }}
                   >
-                    <option value="">Selecione uma obra...</option>
+                    <option value="">Selecione uma obra</option>
                     {activeWorks.map((w) => (
                       <option key={w.id} value={w.id}>{w.name}</option>
                     ))}
@@ -223,7 +225,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
                 <label htmlFor="clone-work-name">
                   <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <MapPin size={15} /> {activeWorks.length > 0 ? 'Nova Obra' : 'Obra'} <b>*</b>
+                      <MapPin size={15} /> {activeWorks.length > 0 ? 'Nova obra' : 'Obra'} <b>*</b>
                     </span>
                     {activeWorks.length > 0 && (
                       <button
@@ -270,24 +272,24 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
           <div className="clone-summary-box wide">
             <div className="clone-summary-title">
               <FileSpreadsheet size={15} />
-              <span>O que será gerado automaticamente:</span>
+              <span>A cópia leva</span>
             </div>
             <ul>
               <li>
                 <CheckCircle2 size={13} className="check-icon" />
-                Novo número oficial sequencial (ex: <b>PA-XXXX</b>) na revisão <b>00</b> em modo rascunho.
+                Número novo na sequência, revisão 00, em edição.
               </li>
               <li>
                 <CheckCircle2 size={13} className="check-icon" />
-                Todos os itens de materiais com descrições e custos unitários congelados.
+                Todos os itens, com descrição e custo unitário de hoje.
               </li>
               <li>
                 <CheckCircle2 size={13} className="check-icon" />
-                Toda a composição de mão de obra e taxa horária de encargos.
+                A mão de obra com o custo por hora.
               </li>
               <li>
                 <CheckCircle2 size={13} className="check-icon" />
-                BDI, condições comerciais e regras fiscais da proposta original.
+                BDI, impostos e condições comerciais da original.
               </li>
             </ul>
           </div>
@@ -296,7 +298,7 @@ export function CloneProposalDialog({ open, sourceProposal, onClose, onCloned, o
             <button type="button" disabled={submitting} onClick={onClose}>Cancelar</button>
             <button type="submit" className="primary" disabled={submitting || scope.trim().length < 3}>
               {submitting ? <Loader2 className="spinning" size={15} /> : <Copy size={15} />}
-              {submitting ? 'Duplicando…' : 'Criar Novo Orçamento'}
+              {submitting ? 'Duplicando…' : 'Criar cópia'}
             </button>
           </footer>
         </form>

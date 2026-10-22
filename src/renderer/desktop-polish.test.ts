@@ -10,18 +10,24 @@ const read = (file: string) => (file === 'src/index.css' ? readIndexCss(root) : 
 const allCss = ['src/index.css', 'src/desktop-polish.css', 'src/impeccable-audit.css', 'src/proposal-pages.css']
   .map(read).join('\n');
 
-test('modal-backdrop e modal-dialog tem regra (Ajuda, Prorrogar validade e Importar itens)', () => {
-  assert.match(allCss, /\.modal-backdrop\s*\{[^}]*position:\s*fixed[^}]*inset:\s*0/);
-  assert.match(allCss, /\.modal-dialog\s*\{[^}]*background:\s*var\(--surface\)/);
+test('janelas antigas usam a casca unica da Nova proposta (Dialogo), com regra de CSS', () => {
+  for (const file of ['HelpModal', 'ProposalShareDialog', 'ProposalExportDialog', 'ProposalImportDialog', 'ProposalExtendValidityDialog', 'ProposalDeleteModal']) {
+    const source = read(`src/renderer/${file}.tsx`);
+    assert.match(source, /<Dialogo\s/, `${file} deve usar <Dialogo>`);
+    assert.doesNotMatch(source, /className="modal-(?:backdrop|dialog)"/, `${file} ainda com casca antiga`);
+  }
+  assert.match(read('src/renderer/orcDeskUi.tsx'), /className=\{`new-proposal-dialog dlg/);
+  const dialogos = read('src/dialogos-centro.css');
+  for (const name of ['.new-proposal-dialog.dlg', '.dlg-body', '.dlg-foot']) assert.ok(dialogos.includes(name), `${name} sem regra`);
 });
 
 test('classes de layout usadas em componentes tem regra de CSS', () => {
   const renderer = path.join(root, 'src', 'renderer');
   const used = new Set<string>();
-  for (const file of readdirSync(renderer).filter((name) => /^(ProposalsListTable|ProposalImportDialog|ProposalExtendValidityDialog|HelpModal)\.tsx$/.test(name))) {
+  for (const file of readdirSync(renderer).filter((name) => /^(ProposalsListTable)\.tsx$/.test(name))) {
     for (const m of readFileSync(path.join(renderer, file), 'utf8').matchAll(/className="([^"]+)"/g)) m[1].split(/\s+/).forEach((c) => used.add(c));
   }
-  const required = ['modal-backdrop', 'modal-dialog', 'home-panel', 'empty-state', 'text-right'];
+  const required = ['home-panel', 'empty-state', 'text-right'];
   for (const name of required) {
     assert.ok(used.has(name) || name === 'text-right', `${name} deve ser usada`);
     assert.ok(allCss.includes(`.${name}`), `${name} sem regra de CSS`);
