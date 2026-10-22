@@ -20,7 +20,7 @@ export function HomeAbcItemsCard({ items = [] }: HomeAbcItemsCardProps) {
       <div className="home-intelligence-card-header">
         <div className="title-group">
           <BarChart3 size={18} className="text-amber" />
-          <h3>Curva ABC — Insumos e Materiais Mais Orçados</h3>
+          <h3>Curva ABC: materiais mais orçados</h3>
         </div>
         <div className="abc-legend">
           <span className="abc-badge abc-badge-a" title={abcBadgeConfig.A.desc}>A: 80%</span>

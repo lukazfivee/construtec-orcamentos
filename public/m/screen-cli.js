@@ -54,8 +54,10 @@
       ${OC.canEdit() ? `<button class="btn2" type="button" id="c-new">${icon('plus', 18)}Novo cliente</button>` : ''}`, true, params);
     const saved = (result) => { clients = result.clients.length ? result.clients : clients; open = result.id; paint(); };
     const paint = () => {
+      // Mesma contagem do computador: so a revisao atual de cada proposta.
       const works = clients.reduce((n, c) => n + (c.works || []).length, 0);
-      OC.$('#c-sub', el).textContent = `${clients.length} clientes · ${proposals.length} propostas · ${works} obras`;
+      const latest = proposals.filter((p) => p.isLatest !== false).length;
+      OC.$('#c-sub', el).textContent = `${clients.length} clientes · ${latest} propostas · ${works} obras`;
       const q = query.trim().toLowerCase();
       const rows = clients.filter((c) => !q || `${c.legalName} ${c.tradeName || ''} ${c.document || ''}`.toLowerCase().includes(q));
       OC.$('#c-list', el).innerHTML = rows.map((c) => {

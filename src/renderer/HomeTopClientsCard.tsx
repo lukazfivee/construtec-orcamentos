@@ -1,5 +1,6 @@
 import { Building2, Info } from 'lucide-react';
 import type { TopClientMetric } from '../shared/contracts';
+import { plural } from '../shared/formatoBr';
 
 type HomeTopClientsCardProps = {
   clients?: TopClientMetric[];
@@ -15,7 +16,7 @@ export function HomeTopClientsCard({ clients = [] }: HomeTopClientsCardProps) {
       <div className="home-intelligence-card-header">
         <div className="title-group">
           <Building2 size={18} className="text-primary" />
-          <h3>Principais Clientes & Obras por Volume</h3>
+          <h3>Principais clientes por volume</h3>
         </div>
         <span className="clients-count-badge">
           {clients.length} {clients.length === 1 ? 'cliente líder' : 'clientes líderes'}
@@ -35,12 +36,12 @@ export function HomeTopClientsCard({ clients = [] }: HomeTopClientsCardProps) {
 
             return (
               <div key={`${client.clientName}-${idx}`} className="top-client-row">
-                <div className="client-rank">#{idx + 1}</div>
+                <div className="client-rank" aria-label={`${idx + 1}º`}>{idx + 1}</div>
                 <div className="client-info">
                   <div className="client-name-line">
                     <strong className="client-name" title={client.clientName}>{client.clientName}</strong>
                     <span className="client-proposals-pill">
-                      {client.proposalsCount} {client.proposalsCount === 1 ? 'orçamento' : 'orçamentos'}
+                      {plural(client.proposalsCount, 'orçamento', 'orçamentos')}
                     </span>
                     <strong className="client-total-val">{money.format(client.totalValue)}</strong>
                   </div>

@@ -32,7 +32,7 @@ export function HomePipelineCard({
       <div className="home-intelligence-card-header">
         <div className="title-group">
           <TrendingUp size={18} className="text-primary" />
-          <h3>Funil Comercial & Pipeline de Vendas</h3>
+          <h3>Funil comercial</h3>
         </div>
         <div className="conversion-badge" title="Taxa de conversão sobre propostas decididas (Aprovadas / Decididas)">
           <Target size={14} />
@@ -43,12 +43,12 @@ export function HomePipelineCard({
       <div className="home-pipeline-tickets">
         <div className="ticket-item">
           <DollarSign size={14} className="text-green" />
-          <span>Ticket Médio Aprovado:</span>
+          <span>Ticket médio aprovado</span>
           <strong>{money.format(averageTicketApproved)}</strong>
         </div>
         <div className="ticket-item">
           <DollarSign size={14} className="text-amber" />
-          <span>Ticket Médio em Negociação:</span>
+          <span>Ticket médio em negociação</span>
           <strong>{money.format(averageTicketNegotiation)}</strong>
         </div>
       </div>

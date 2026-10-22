@@ -18,17 +18,19 @@
 .home-top-clients-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
+/* Linhas simples com divisoria (sem cartao dentro do cartao). */
 .top-client-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: var(--surface-subtle);
-  border: 1px solid var(--line);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.top-client-row:last-child {
+  border-bottom: 0;
 }
 
 .client-rank {
