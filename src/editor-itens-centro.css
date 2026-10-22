@@ -26,7 +26,6 @@
   .app-shell.cc .toolbar button.insert-toolbar-btn { padding: 0 14px; }
   .app-shell.cc .toolbar { gap: 8px; padding: 10px 32px; }
   .app-shell.cc .toolbar button svg { flex: none; }
-  .app-shell.cc .toolbar .icon-button[aria-disabled="true"] { display: none !important; }
   .app-shell.cc .toolbar button:not(.icon-button) { padding: 0 12px; }
 
   /* ---------- Tabela de itens (.tbl): cabecalho 11/600 em caixa alta, corpo 13, linha de 56 px, sem divisorias verticais ---------- */

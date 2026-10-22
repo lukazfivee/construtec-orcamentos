@@ -57,6 +57,8 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
 
   const changedCount = useMemo(() => (overview?.items ?? []).filter((item) => item.changePercent !== undefined).length, [overview]);
   const newCount = overview?.newCount ?? 0;
+  // Quando todo o catalogo e novo (primeira carga), o selo "Novo" em cada linha nao informa nada.
+  const allNew = newCount > 0 && newCount >= (overview?.productCount ?? 0);
   const matches = (row: CatalogOverviewNewItem) => {
     const q = query.trim().toLowerCase();
     return !q || row.code.toLowerCase().includes(q) || row.description.toLowerCase().includes(q) || row.category.toLowerCase().includes(q);
@@ -116,7 +118,7 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
                   <span className={`od-chip ${pct > 0 ? 'warn' : 'ok'}`}>{pct > 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{pctSigned(pct)}</span>
                   {seesCost && extra?.fromUnit !== undefined && <span className="od-small">antes {brl(extra.fromUnit)}</span>}
                 </span>}
-                {extra?.isNew && <span className="od-chip info">Novo</span>}
+                {extra?.isNew && !allNew && <span className="od-chip neu">Novo</span>}
               </td>
               <td className="od-small" style={{ fontSize: 'calc(12.5px * var(--fs, 1))' }}>{extra?.usedIn.length ? extra.usedIn.slice(0, 3).join(', ') + (extra.usedIn.length > 3 ? ` +${extra.usedIn.length - 3}` : '') : '—'}</td>
             </tr>;

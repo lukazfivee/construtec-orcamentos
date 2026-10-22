@@ -68,8 +68,7 @@ export function ProposalsListTable({
     <div className="home-panel table-panel">
       <div className="home-panel-header">
         <div>
-          <h3>Lista de Propostas ({proposals.length})</h3>
-          <p>Clique em uma proposta para abrir a mesa de edição e composição.</p>
+          <h2>Lista de propostas ({proposals.length})</h2>
         </div>
       </div>
 

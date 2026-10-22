@@ -28,7 +28,7 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .text-right { text-align: right; }
 .home-panel { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .home-panel-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--line); }
-.home-panel-header h3 { margin: 0; color: var(--ink); font-size: calc(14px * var(--fs, 1)); font-weight: 700; }
+.home-panel-header h2, .home-panel-header h3 { margin: 0; color: var(--ink); font-size: calc(14px * var(--fs, 1)); font-weight: 700; }
 .home-panel-header p { margin: 3px 0 0; color: var(--muted-ink); font-size: calc(11px * var(--fs, 1)); }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 20px; text-align: center; }
 .empty-state h4, .empty-state p { margin: 0; }
