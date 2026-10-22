@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Ph } from './Ph';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
+import { Ph } from './Ph';
 import { proposalApi } from './api';
 import { liveAssistantApi, liveCommitApi, liveEditApi } from './assistant/assistantApi';
 import { commitDraft } from './assistant/assistantCommit';

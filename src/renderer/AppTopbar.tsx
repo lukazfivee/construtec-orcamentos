@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import type { ProposalSummary } from '../shared/contracts';
 import { isCloudRuntime, proposalApi } from './api';
 import { Ph } from './Ph';
 import type { AppTopbarProps } from './AppTopbarMobile';
-import type { ProposalSummary } from '../shared/contracts';
 import { AppTopbarMobile } from './AppTopbarMobile';
 import { HelpModal } from './HelpModal';
 import { NotificationsPopover } from './NotificationsPopover';
@@ -76,7 +76,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onOpenSearchResult,
         <button
           type="button"
           id="btn-assistente"
-          className={`ibtn ${assistantOpen ? 'ativo' : ''}`}
+          className="ibtn"
           aria-label="Assistente"
           title="Assistente"
           aria-expanded={assistantOpen}
