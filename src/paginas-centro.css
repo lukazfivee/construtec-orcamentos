@@ -19,7 +19,7 @@
     min-height: 0; padding: 0; background: transparent; border: 0; box-shadow: none; width: 100%;
   }
   .app-shell.cc .cab > .tit, .app-shell.cc .od-head > div:first-child, .app-shell.cc .page-head > div:first-child { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
-  .app-shell.cc .cab .eyebrow, .app-shell.cc .od-eyebrow, .app-shell.cc .page-eyebrow, .app-shell.cc .app-badge { font-size: calc(11px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent-300); }
+  .app-shell.cc .cab .eyebrow, .app-shell.cc .od-eyebrow, .app-shell.cc .page-eyebrow, .app-shell.cc .app-badge { font-size: calc(11px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-300); }
   .app-shell.cc .cab h1, .app-shell.cc .od-head h1, .app-shell.cc .page-head h1, .app-shell.cc .home-header h1, .app-shell.cc .management-header h1 {
     margin: 0; font: 600 calc(26px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; color: var(--color-text);
   }

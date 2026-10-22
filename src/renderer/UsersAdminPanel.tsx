@@ -105,7 +105,7 @@ export function UsersAdminPanel({ currentUser, onNotice, onError }: Props) {
   };
 
   return (
-    <SettingsCard icon={Users} title="Usuários e Permissões" sub="As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.">
+    <SettingsCard icon={Users} title="Usuários e permissões" sub="As contas são as mesmas do Centro de Custos. O perfil abaixo vale só no Orçamentos; a senha é trocada pela própria pessoa no Centro de Custos.">
       {semCentro && <p className="muted">Este computador não está ligado ao Centro de Custos, onde ficam as contas. A lista de usuários aparece aqui quando a ligação estiver configurada.</p>}
       <form onSubmit={createUser} className="st-new-user">
         <label className="od-fld"><span>Nome</span><input className="od-inp" required minLength={2} value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} /></label>

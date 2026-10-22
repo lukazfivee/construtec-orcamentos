@@ -52,7 +52,7 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .table-action-btn.secondary.share-btn { color: var(--tx-cool-28-3); }
 .user-profile-logout-btn { color: var(--tx-red-42); }
 .notifications-footer { color: var(--muted-ink); }
-.page-back, .page-eyebrow { color: var(--tx-cool-28-3); }
+.page-back { color: var(--tx-cool-28-3); }
 
 /* Lista de propostas: Cliente/Obra ocupa a sobra e trunca com reticencias, acoes secundarias viram icones,
  * colunas de apoio cedem espaco e a coluna de acoes fica sempre visivel (sticky com fundo opaco). */
@@ -129,7 +129,6 @@ small.current-tag { color: var(--tx-green-24); }
 /* PDF da proposta: a pagina inteira cabe na area de visualizacao sem cortar. A altura do visor segue a janela
    (o preview se encaixa nela); as opcoes ficam na coluna ao lado e a pagina rola so se for maior que a janela. */
 .app-shell .pdf-page { gap: 10px; }
-.app-shell .pdf-page .page-eyebrow { display: none; }
 .app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh - 330px), 940px); align-items: start; min-height: 0; }
 .app-shell .pdf-layout .pdf-stage { flex: none; height: var(--pdf-stage-h); }
 .app-shell .pdf-layout .pdf-thumbs { max-height: calc(var(--pdf-stage-h) + 50px); }
