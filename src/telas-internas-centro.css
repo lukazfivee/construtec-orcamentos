@@ -123,9 +123,10 @@
 }
 /* Central de Propostas: filtros sem estourar em 1280 */
 @media (min-width: 768px) {
-  .app-shell.cc .search-box { flex: 1 1 200px; min-width: 200px; max-width: 260px; }
-  .app-shell.cc .filter-select-wrapper { flex: 1 1 150px; min-width: 150px; max-width: 200px; }
-  .app-shell.cc .filter-select { width: 100%; }
+  /* Filtros com largura pelo conteudo (decisao D5): o texto da opcao escolhida nunca fica cortado. */
+  .app-shell.cc .search-box { flex: 1 1 240px; min-width: 200px; max-width: 360px; }
+  .app-shell.cc .filter-select-wrapper { flex: 0 0 auto; min-width: 0; max-width: 100%; }
+  .app-shell.cc .filter-select { width: auto; min-width: calc(150px * var(--fs, 1)); max-width: 100%; }
   .app-shell.cc .btn-export-csv { flex: none; }
 }
 @media (min-width: 768px) {

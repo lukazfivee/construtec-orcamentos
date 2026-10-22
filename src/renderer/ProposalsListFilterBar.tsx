@@ -73,7 +73,7 @@ export function ProposalsListFilterBar({
           <input
             data-proposals-search
             type="text"
-            placeholder="Buscar por obra, cliente ou número"
+            placeholder="Buscar obra, cliente ou nº"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
           />
@@ -98,7 +98,7 @@ export function ProposalsListFilterBar({
               value={validityFilter}
               onChange={(e) => onValidityFilterChange(e.target.value as ValidityFilterOption)}
             >
-              <option value="all">Todas as validades</option>
+              <option value="all">Validade: todas</option>
               <option value="expiringSoon">Vencendo em breve (3d)</option>
               <option value="expired">Vencidas</option>
               <option value="valid">No prazo</option>
@@ -114,7 +114,7 @@ export function ProposalsListFilterBar({
               value={dateFilter}
               onChange={(e) => onDateFilterChange(e.target.value as DateFilterOption)}
             >
-              <option value="all">Todas as datas</option>
+              <option value="all">Data: todas</option>
               <option value="today">Hoje</option>
               <option value="month">Este mês</option>
               <option value="last30">Últimos 30 dias</option>
@@ -130,7 +130,7 @@ export function ProposalsListFilterBar({
               value={valueFilter}
               onChange={(e) => onValueFilterChange(e.target.value as ValueFilterOption)}
             >
-              <option value="all">Todas as faixas</option>
+              <option value="all">Valor: todos</option>
               <option value="under10k">Até R$ 10.000</option>
               <option value="10k-50k">R$ 10.000 a R$ 50.000</option>
               <option value="50k-100k">R$ 50.000 a R$ 100.000</option>

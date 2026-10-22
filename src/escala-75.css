@@ -12,8 +12,6 @@
   html:root { --side-aberto: 264px; }
   .app-shell.cc .side .grupo > span { max-height: 28px; }
   :root[data-menu-recolhido] .app-shell.cc .side .grupo > span { max-height: 0; }
-  .app-shell.cc .filter-select { width: 230px; }
-  .app-shell.cc .filter-select-wrapper { max-width: 230px; }
   .app-shell.cc .proposal-items-table .col-unit { width: 58px; }
   .app-shell.cc .proposal-items-table .col-code { width: 128px; }
   .app-shell.cc .proposal-meta { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr) 184px 150px minmax(0, 1fr); }
