@@ -15,14 +15,20 @@ export const noticesApi = {
 export const bellLabel = (unread: number) => `Notificações${unread ? `, ${unread} ${unread === 1 ? 'nova' : 'novas'}` : ''}`;
 export const bellCount = (unread: number) => (unread > 99 ? '99+' : String(unread));
 
-const dayKey = (iso: string) => new Date(iso).toLocaleDateString('en-CA');
+const dayKey = (iso: string) => {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-CA');
+};
 // Hoje, Ontem e Anteriores, como no celular.
 export const noticeGroup = (iso: string, now = new Date()) => {
   if (dayKey(iso) === now.toLocaleDateString('en-CA')) return 'Hoje';
   if (dayKey(iso) === new Date(now.getTime() - 86400000).toLocaleDateString('en-CA')) return 'Ontem';
   return 'Anteriores';
 };
-export const noticeHour = (iso: string) => new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+export const noticeHour = (iso: string) => {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+};
 
 // Contador do sino: le ao abrir o app, ao voltar para a janela e a cada 2 minutos; sem central, o sino fica sem numero.
 export function useNoticeCount() {

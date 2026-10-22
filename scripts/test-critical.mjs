@@ -76,6 +76,7 @@ const entryPoints = [
   'src/renderer/telas-internas-parity.test.ts',
   'src/renderer/editor-rolagem.test.ts',
   'src/renderer/proposal-nav-list.test.ts',
+  'src/renderer/notificationsFeed.test.ts',
   'src/server/services/integration/center-tracking.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',
