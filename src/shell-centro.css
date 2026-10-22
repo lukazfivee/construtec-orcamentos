@@ -96,12 +96,12 @@
   .side .marca .logo, .side .marca span { transition: opacity .18s ease; }
   .side nav { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 14px; margin: 0 -14px; padding: 0 14px; scrollbar-width: none; }
   .side .grupo { display: flex; flex-direction: column; gap: 2px; }
-  .side .grupo > span { padding: 0 12px 4px; font-size: calc(10.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6f8f9b; max-height: 20px; overflow: hidden; white-space: nowrap; transition: opacity .18s ease, max-height .28s ease, padding .28s ease; }
+  .side .grupo > span { padding: 0 12px 4px; font-size: calc(10.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #8fb3bf; max-height: 20px; overflow: hidden; white-space: nowrap; transition: opacity .18s ease, max-height .28s ease, padding .28s ease; }
   .side .nav { position: relative; overflow: visible; isolation: isolate; width: 100%; height: 40px; padding: 0 12px; border: 0; border-radius: 10px; display: flex; align-items: center; gap: 12px; font: 500 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; color: #b9d4dd; background: transparent; cursor: pointer; text-align: left; text-decoration: none; transition: background-color .15s ease, color .15s ease, padding .28s cubic-bezier(.2, .8, .2, 1), gap .28s ease; }
   .side .nav::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(90deg, rgba(18, 169, 209, .22), rgba(18, 169, 209, .04)); transform: scaleX(0); transform-origin: left; opacity: 0; transition: transform .25s cubic-bezier(.2, .8, .2, 1), opacity .25s ease; }
   .side .nav:hover { background: transparent; color: #fefefe; }
   .side .nav:hover::before { transform: scaleX(1); opacity: 1; }
-  .side .nav .ph { flex: none; color: #6f8f9b; transition: transform .22s cubic-bezier(.3, 1.3, .5, 1), color .15s ease; }
+  .side .nav .ph { flex: none; color: #6f8f9b; transition: transform .22s cubic-bezier(.2, .8, .2, 1), color .15s ease; }
   .side .nav:hover .ph { transform: scale(1.18) translateX(1px); color: #5fd0ee; }
   .side .nav:active .ph { transform: scale(.94); }
   .side .nav .rot { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; transition: opacity .2s ease, max-width .38s cubic-bezier(.2, .8, .2, 1), transform .32s cubic-bezier(.2, .8, .2, 1); }
