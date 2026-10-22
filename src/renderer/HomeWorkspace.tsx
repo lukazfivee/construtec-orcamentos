@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { DashboardMetrics, ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { dashboardApi } from './api';
+import { plural } from '../shared/formatoBr';
 import { HomePipelineCard } from './HomePipelineCard';
 import { HomeAbcItemsCard } from './HomeAbcItemsCard';
 import { HomeTopClientsCard } from './HomeTopClientsCard';
@@ -96,7 +97,7 @@ export function HomeWorkspace({
             <div className="kpi-content">
               <span>Em negociação</span>
               <strong>{money.format(metrics?.totalInNegotiation ?? 0)}</strong>
-              <small>{metrics?.activeProposalsCount ?? 0} propostas ativas</small>
+              <small>{plural(metrics?.activeProposalsCount ?? 0, 'proposta ativa', 'propostas ativas')}</small>
             </div>
           </div>
 
@@ -105,7 +106,7 @@ export function HomeWorkspace({
             <div className="kpi-content">
               <span>Propostas aprovadas</span>
               <strong>{money.format(metrics?.totalApproved ?? 0)}</strong>
-              <small>{metrics?.approvedProposalsCount ?? 0} propostas fechadas</small>
+              <small>{plural(metrics?.approvedProposalsCount ?? 0, 'proposta fechada', 'propostas fechadas')}</small>
             </div>
           </div>
 
@@ -113,8 +114,8 @@ export function HomeWorkspace({
             <div className="kpi-icon"><Box size={22} /></div>
             <div className="kpi-content">
               <span>Catálogo e kits</span>
-              <strong>{metrics?.totalProductsCount ?? 0} itens</strong>
-              <small>{metrics?.totalKitsCount ?? 0} kits cadastrados</small>
+              <strong>{plural(metrics?.totalProductsCount ?? 0, 'item', 'itens')}</strong>
+              <small>{plural(metrics?.totalKitsCount ?? 0, 'kit cadastrado', 'kits cadastrados')}</small>
             </div>
           </div>
 
@@ -122,8 +123,8 @@ export function HomeWorkspace({
             <div className="kpi-icon"><Users size={22} /></div>
             <div className="kpi-content">
               <span>Clientes cadastrados</span>
-              <strong>{metrics?.totalClientsCount ?? 0} empresas</strong>
-              <small>Base local de obras e contatos</small>
+              <strong>{plural(metrics?.totalClientsCount ?? 0, 'empresa', 'empresas')}</strong>
+              <small>Obras e contatos cadastrados</small>
             </div>
           </div>
         </section>
