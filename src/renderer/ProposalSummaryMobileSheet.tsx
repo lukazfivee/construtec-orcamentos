@@ -58,6 +58,7 @@ type Props = {
   bdiAdditions: number;
   taxAmount: number;
   taxPercentage: number;
+  manualSaleNote?: string | null;
   onClose: () => void;
   onRequestDelete: () => void;
 };
@@ -88,6 +89,7 @@ export function ProposalSummaryMobileSheet({
   bdiAdditions,
   taxAmount,
   taxPercentage,
+  manualSaleNote,
   onClose,
   onRequestDelete,
 }: Props) {
@@ -122,6 +124,7 @@ export function ProposalSummaryMobileSheet({
           <div className="proposal-summary-sheet-amount"><span>Impostos ({String(taxPercentage).replace('.', ',')}%)</span><b>R$ {money.format(taxAmount)}</b></div>
         )}
         <div className="proposal-summary-sheet-amount final"><span>Valor final da proposta</span><b>R$ {money.format(finalValue)}</b></div>
+        {manualSaleNote && <p className="summary-manual-note">{manualSaleNote}</p>}
 
         <div className="proposal-summary-sheet-params" style={canSeeCost ? undefined : { display: 'none' }}>
           <label>

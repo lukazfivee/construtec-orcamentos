@@ -132,6 +132,8 @@
 .amount strong { color: var(--tx-cool-9); font-size: calc(25px * var(--fs, 1)); line-height: 1; letter-spacing: -.025em; }
 .amount.blue strong { color: var(--tx-cool-30); }
 .amount.green strong { color: var(--tx-green-30); }
+/* Aviso discreto do resumo: o Valor final inclui venda digitada a mao (texto, sem cor de alerta). */
+.summary-manual-note { margin: 6px 0 0; color: var(--tx-cool-29); font-size: calc(11.5px * var(--fs, 1)); line-height: 1.35; }
 .amount.compact { padding-top: 12px; }
 .amount.compact strong { font-size: calc(21px * var(--fs, 1)); }
 .panel-section { margin-top: 22px; padding-top: 17px; border-top: 1px solid var(--line); }

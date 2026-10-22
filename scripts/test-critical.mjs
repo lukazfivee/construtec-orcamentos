@@ -77,6 +77,7 @@ const entryPoints = [
   'src/renderer/editor-rolagem.test.ts',
   'src/renderer/proposal-nav-list.test.ts',
   'src/server/services/integration/center-tracking.test.ts',
+  'src/server/services/proposal-sale-total.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',
   format: 'cjs', packages: 'external', outbase: 'src', outExtension: { '.js': '.cjs' } });

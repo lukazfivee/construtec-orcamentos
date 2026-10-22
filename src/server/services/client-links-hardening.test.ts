@@ -22,7 +22,7 @@ test('link do cliente: endurecimento da revisao de seguranca', async context => 
   context.after(() => database.close());
   const ready = async () => {
     const id = await makeProposal();
-    await addMaterial(id, '10', '100', '150');
+    await addMaterial(id, '10', '100', '125');
     await updateProposalStatus(database, id, 'review', userId);
     return id;
   };

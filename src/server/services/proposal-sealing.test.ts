@@ -141,6 +141,8 @@ test('F2.1 - Selo Canônico de Proposta e Outbox de Integração', async context
 
     // Definir BDI=30% e tax=15%
     await database.query('UPDATE proposals SET bdi_multiplier = 1.30, tax_percentage = 15 WHERE id = $1', [pId]);
+    // Como updateProposalBdi: a venda dos itens vira custo x BDI novo (venda automatica).
+    await database.query('UPDATE proposal_items SET sale_unit_price = round(snapshot_unit_cost * 1.30, 2) WHERE proposal_id = $1', [pId]);
     await updateProposalStatus(database, pId, 'approved', userId);
 
     const { envelope } = await exportProposalIntegration(database, pId, userId);
@@ -156,17 +158,16 @@ test('F2.1 - Selo Canônico de Proposta e Outbox de Integração', async context
     const baseCost = Number(totals.baseCost);
     assert.ok(baseCost > 0, 'baseCost deve ser positivo');
 
-    // contractValueBeforeTax = baseCost × 1.30
-    const expectedBeforeTax = Math.round(baseCost * 1.30 * 100) / 100;
-    assert.equal(Number(totals.contractValueBeforeTax), expectedBeforeTax);
-
-    // taxAmount = contractValueBeforeTax × 15%
-    const expectedTax = Math.round(expectedBeforeTax * 0.15 * 100) / 100;
-    assert.equal(Number(totals.taxAmount), expectedTax);
-
-    // contractValue = contractValueBeforeTax + taxAmount
-    const expectedContract = Math.round((expectedBeforeTax + expectedTax) * 100) / 100;
+    // contractValue = Valor final da proposta = round(venda dos itens (custo x 1,30) x 1,15)
+    const expectedContract = Math.round(baseCost * 1.30 * 1.15 * 100) / 100;
     assert.equal(Number(totals.contractValue), expectedContract);
+    assert.equal(Number(totals.contractValue), (await getProposalById(database, pId))?.totals.finalValue);
+
+    // contractValueBeforeTax = Valor final / 1,15; taxAmount = Valor final - contractValueBeforeTax
+    const expectedBeforeTax = Math.round(expectedContract / 1.15 * 100) / 100;
+    assert.equal(Number(totals.contractValueBeforeTax), expectedBeforeTax);
+    const expectedTax = Math.round((expectedContract - expectedBeforeTax) * 100) / 100;
+    assert.equal(Number(totals.taxAmount), expectedTax);
 
     // additions = BDI only (sem imposto)
     const expectedAdditions = Math.round((expectedBeforeTax - baseCost) * 100) / 100;
