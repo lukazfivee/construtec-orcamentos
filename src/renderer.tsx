@@ -30,6 +30,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthGate } from './renderer/AuthGate';
 import '@fontsource-variable/ibm-plex-sans';
+import './vendor/phosphor/regular.css';
+import './vendor/phosphor/fill.css';
 import './theme-tokens.css';
 import './suite-fonts.css';
 import './index.css';

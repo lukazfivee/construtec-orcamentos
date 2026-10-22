@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { SendHorizontal, Sparkles, X } from 'lucide-react';
+import { Ph } from './Ph';
 import type { AuthUser, ProposalDetail } from '../shared/contracts';
 import { proposalApi } from './api';
 import { liveAssistantApi, liveCommitApi, liveEditApi } from './assistant/assistantApi';
@@ -163,7 +163,7 @@ export function AssistantFab(props: Props) {
 
   if (!open) {
     if (!mobile) return null; // no desktop o assistente abre pelo botao da barra do topo
-    return <button ref={fab} type="button" className="assistant-fab" aria-label="Abrir o assistente" title="Assistente" onClick={() => setOpen(true)}><Sparkles size={24} aria-hidden="true" /></button>;
+    return <button ref={fab} type="button" className="assistant-fab" aria-label="Abrir o assistente" title="Assistente" onClick={() => setOpen(true)}><Ph name="sparkle-fill" size={24} /></button>;
   }
   return (
     <>
@@ -171,15 +171,15 @@ export function AssistantFab(props: Props) {
       <section className="assistant-panel" role="dialog" aria-labelledby="assistant-title">
         <div className="assistant-handle" aria-hidden="true" />
         <header className="assistant-head">
-          <b id="assistant-title"><Sparkles size={16} aria-hidden="true" />Assistente</b>
+          <b id="assistant-title"><Ph name="sparkle" size={18} />Assistente</b>
           <button type="button" className="assistant-new" onClick={newChat} disabled={busy || log.length === 0}>Nova conversa</button>
-          <button type="button" className="assistant-x" aria-label="Fechar" onClick={() => setOpen(false)}><X size={18} aria-hidden="true" /></button>
+          <button type="button" className="assistant-x" aria-label="Fechar" onClick={() => setOpen(false)}><Ph name="x" size={20} /></button>
         </header>
         <AssistantLog log={log} busy={busy} live={live} step={step} suggestions={suggestions} onAsk={(text) => void ask(text)} onGo={go} onCreate={(index) => void createFromCard(index)} onDismiss={dismissCard} />
         <form className="assistant-input" onSubmit={submit}>
           <textarea ref={input} rows={1} maxLength={1500} value={draft} placeholder="Pergunte, peça uma tela ou uma proposta" aria-label="Mensagem para o assistente"
             onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} />
-          <button type="submit" className="assistant-send" aria-label="Enviar" disabled={busy || !draft.trim()}><SendHorizontal size={18} aria-hidden="true" /></button>
+          <button type="submit" className="assistant-send" aria-label="Enviar" disabled={busy || !draft.trim()}><Ph name="paper-plane-right" size={20} /></button>
         </form>
         <small className="assistant-note">
           A IA pode errar. Confira os valores nas telas.

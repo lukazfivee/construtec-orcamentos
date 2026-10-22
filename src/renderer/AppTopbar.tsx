@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Bell, ChevronDown, CircleHelp, LayoutGrid, Mail, Moon, Search, Sparkles, Sun } from 'lucide-react';
 import { isCloudRuntime } from './api';
+import { Ph } from './Ph';
 import type { AppTopbarProps } from './AppTopbarMobile';
 import { AppTopbarMobile } from './AppTopbarMobile';
 import { HelpModal } from './HelpModal';
@@ -36,7 +36,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
     <>
       <header className="top">
         <div className="busca" role="search">
-          <Search className="ph" size={18} strokeWidth={1.5} />
+          <Ph name="magnifying-glass" />
           <input
             className="inp"
             type="search"
@@ -60,7 +60,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
           aria-expanded={assistantOpen}
           onClick={() => { onToggleAssistant?.(); setSuiteOpen(false); setNotificationsOpen(false); }}
         >
-          <Sparkles className="ph" size={20} strokeWidth={1.5} />
+          <Ph name="sparkle-fill" />
         </button>
         <div className="ancora">
           <button
@@ -72,7 +72,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
             aria-expanded={notificationsOpen}
             onClick={() => { setNotificationsOpen((prev) => !prev); setSuiteOpen(false); }}
           >
-            <Bell className="ph" size={20} strokeWidth={1.5} />
+            <Ph name="bell" />
             {notices.unread > 0 && <span className="bell-count" aria-hidden="true">{bellCount(notices.unread)}</span>}
           </button>
           {notificationsOpen && (
@@ -90,7 +90,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
           title="Central de Ajuda e Atalhos (Ctrl+H)"
           onClick={() => { setHelpOpen(true); setSuiteOpen(false); setNotificationsOpen(false); }}
         >
-          <CircleHelp className="ph" size={20} strokeWidth={1.5} />
+          <Ph name="question" />
         </button>
         <button
           type="button"
@@ -102,7 +102,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
             showNotice('Abrindo UOL Webmail Pro corporativo…');
           }}
         >
-          <Mail className="ph" size={20} strokeWidth={1.5} />
+          <Ph name="envelope-simple" />
         </button>
         <button
           type="button"
@@ -127,7 +127,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
             aria-expanded={suiteOpen}
             onClick={() => { setSuiteOpen((prev) => !prev); setNotificationsOpen(false); }}
           >
-            <LayoutGrid className="ph" size={17} strokeWidth={1.5} />Suíte<ChevronDown size={12} strokeWidth={1.5} />
+            <Ph name="squares-four" />Suíte<Ph name="caret-down" size={12} />
           </button>
           {suiteOpen && (
             <SuiteSwitcherPopover
@@ -144,7 +144,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
           title={escuro ? 'Usar tema claro' : 'Usar tema escuro'}
           onClick={theme.toggle}
         >
-          {escuro ? <Sun className="ph" size={20} strokeWidth={1.5} /> : <Moon className="ph" size={20} strokeWidth={1.5} />}
+          <Ph name={escuro ? 'sun' : 'moon'} />
         </button>
       </header>
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />

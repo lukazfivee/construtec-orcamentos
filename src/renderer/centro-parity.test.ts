@@ -127,3 +127,16 @@ test('a busca do topo abre com Ctrl K e o atalho aparece no campo', () => {
   assert.match(app, /action === 'k'/);
   assert.match(app, /openSearch\(\)/);
 });
+
+test('topo: botoes de icone e assistente usam Phosphor, como no Centro', () => {
+  const top = read('src/renderer/AppTopbar.tsx');
+  const assistant = read('src/renderer/AssistantFab.tsx');
+  assert.match(top, /import \{ Ph \} from '\.\/Ph';/);
+  assert.doesNotMatch(top, /from 'lucide-react'/);
+  for (const icon of ['magnifying-glass', 'sparkle-fill', 'bell', 'question', 'envelope-simple', 'squares-four', 'caret-down', 'sun', 'moon']) {
+    assert.match(top, new RegExp(`name=\\{?['\"]${icon}`), `icone ${icon} deve usar Phosphor`);
+  }
+  assert.match(assistant, /<Ph name="sparkle" size=\{18\}/);
+  assert.match(assistant, /<Ph name="paper-plane-right" size=\{20\}/);
+  assert.match(assistant, /document\.getElementById\('btn-assistente'\)/);
+});
