@@ -13,7 +13,7 @@
   .app-shell.cc .home-card-header, .app-shell.cc .home-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 6px; background: transparent; border: 0; }
   .app-shell.cc .home-card-header > div { display: flex; align-items: center; gap: 10px; }
   .app-shell.cc .home-card-header > div svg { width: 18px; height: 18px; stroke-width: 1.5; color: var(--color-accent-300); }
-  .app-shell.cc .home-card-header h2, .app-shell.cc .home-panel-header h3 { margin: 0; font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: 0; color: var(--color-text); }
+  .app-shell.cc .home-card-header h2, .app-shell.cc .home-panel-header :is(h2, h3) { margin: 0; font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: 0; color: var(--color-text); }
   .app-shell.cc .home-panel-header p { margin: 0; font-size: calc(12px * var(--fs, 1)); color: var(--color-neutral-300); }
   .app-shell.cc .home-card-header button { height: 32px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--color-accent-300); font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; cursor: pointer; }
   .app-shell.cc .home-card-header button:hover { background: var(--color-accent-900); }
@@ -45,7 +45,7 @@
   .app-shell.cc .filter-select-group { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 10px; flex: 1; min-width: 0; }
   .app-shell.cc .filter-select-wrapper { position: relative; display: inline-flex; align-items: center; }
   .app-shell.cc .filter-select-icon { left: 12px; width: 16px; height: 16px; stroke-width: 1.5; color: var(--color-neutral-300); }
-  .app-shell.cc .filter-select { width: 200px; padding: 0 32px 0 36px; cursor: pointer; text-overflow: ellipsis; }
+  .app-shell.cc .filter-select { padding: 0 32px 0 36px; cursor: pointer; text-overflow: ellipsis; }
   .app-shell.cc .filter-select:hover { box-shadow: inset 0 0 0 1px var(--color-field); }
   .app-shell.cc .btn-export-csv { margin-left: auto; }
   .app-shell.cc .btn-export-csv svg, .app-shell.cc .clear-filters-btn svg { width: 17px; height: 17px; stroke-width: 1.5; }

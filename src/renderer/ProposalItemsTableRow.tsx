@@ -1,4 +1,5 @@
 import type { ProposalDetail } from '../shared/contracts';
+import { dinheiro } from '../shared/formatoBr';
 import type { ProposalColumnsVisibility } from './ProposalColumnsPopover';
 
 type Item = ProposalDetail['items'][number];
@@ -126,14 +127,14 @@ export function ProposalItemsTableRow({
             className="quantity-input"
             type="text"
             inputMode="decimal"
-            defaultValue={formatDecimal(item.unitCost)}
+            defaultValue={dinheiro(item.unitCost)}
             disabled={!isEditable || mutationPending}
             aria-label={`Custo unitário de ${item.description}`}
             onBlur={(event) => onUpdateMoney(item.id, 'unitCost', event.currentTarget.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') event.currentTarget.blur();
               if (event.key === 'Escape') {
-                event.currentTarget.value = formatDecimal(item.unitCost);
+                event.currentTarget.value = dinheiro(item.unitCost);
                 event.currentTarget.blur();
               }
             }}
@@ -144,7 +145,7 @@ export function ProposalItemsTableRow({
               className={`catalog-cost-badge ${item.catalogCurrentCost > item.unitCost ? 'cost-up' : 'cost-down'}`}
               title={`Catálogo atual: R$ ${money.format(item.catalogCurrentCost)}. Clique para atualizar.`}
               disabled={mutationPending}
-              onClick={() => onUpdateMoney(item.id, 'unitCost', formatDecimal(item.catalogCurrentCost ?? item.unitCost))}
+              onClick={() => onUpdateMoney(item.id, 'unitCost', dinheiro(item.catalogCurrentCost ?? item.unitCost))}
             >
               {item.catalogCurrentCost > item.unitCost ? '▲' : '▼'} {money.format(item.catalogCurrentCost)}
             </button>
@@ -159,14 +160,14 @@ export function ProposalItemsTableRow({
             className="quantity-input"
             type="text"
             inputMode="decimal"
-            defaultValue={formatDecimal(item.unitSale)}
+            defaultValue={dinheiro(item.unitSale)}
             disabled={!isEditable || mutationPending}
             aria-label={`Venda unitária de ${item.description}`}
             onBlur={(event) => onUpdateMoney(item.id, 'unitSale', event.currentTarget.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') event.currentTarget.blur();
               if (event.key === 'Escape') {
-                event.currentTarget.value = formatDecimal(item.unitSale);
+                event.currentTarget.value = dinheiro(item.unitSale);
                 event.currentTarget.blur();
               }
             }}

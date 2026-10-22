@@ -94,6 +94,6 @@ test('planilha propria nas paginas do PDF do desktop: titulo, cabecalho uma vez 
   const pages = buildPdfPages(make(long), { ...defaultPdfChoices(), capa: false });
   const all = pages.map((page) => page.html).join('');
   assert.equal((all.match(/LINHA-\d+/g) ?? []).length, 120);
-  assert.equal((all.match(/<thead>/g) ?? []).length, 1);
+  assert.equal((all.match(/<table class="pg-grid"><thead>/g) ?? []).length, 1, "cabecalho da planilha propria so no primeiro pedaco");
   assert.ok(pages.filter((page) => /pg-grid/.test(page.html)).length >= 2, 'a tabela longa continua na pagina seguinte');
 });

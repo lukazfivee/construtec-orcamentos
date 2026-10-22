@@ -35,6 +35,7 @@ import './suite-fonts.css';
 import './index.css';
 import './impeccable-audit.css';
 import './auth.css';
+import './login.css';
 import './suite-bolder.css';
 import './kit-itens.css';
 import './desktop-polish.css';

@@ -37,3 +37,32 @@ html, body { margin: 0; overflow: hidden; }
 .pg-p.pg-cont { margin-top: -6px; }
 .pg-head { align-items: flex-end; }
 .pg-head-logo { display: block; height: 17px; width: auto; }
+/* Pecas do documento do servidor, iguais a previa do celular (public/m/corpo.css). */
+.pd-piece { display: flow-root; }
+.pd-h { margin: 8px 0 4px; font-size: 10.5px; font-weight: 700; color: #163d69; text-transform: uppercase; border-bottom: 1px solid #e8f0f3; padding-bottom: 2px; }
+.pd-p { margin: 0 0 5px; text-align: justify; overflow-wrap: anywhere; }
+.pd-lead { color: #3b4d58; }
+.pd-close { color: #485966; margin-top: 8px; }
+.pd-cap { margin: 2px 0 0; padding: 3px 6px; background: #eaf3f6; border-left: 3px solid #12a9d1; color: #163d69; font-weight: 700; text-align: center; }
+.pd-items { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 3px; font-size: 9px; line-height: 1.4; }
+.pd-items th { background: #163d69; color: #fff; text-align: left; padding: 3px; font-weight: 700; }
+.pd-items td { padding: 3px; border-bottom: 1px solid #d4e2e7; vertical-align: top; overflow-wrap: anywhere; }
+.pd-items th:first-child { width: 26px; }
+.pd-items th:nth-child(3) { width: 48px; }
+.pd-items th:nth-child(4), .pd-items th:nth-child(5) { width: 66px; }
+.pd-items td:nth-child(n+3), .pd-items th:nth-child(n+3) { text-align: right; }
+.pd-items td small { display: block; color: #60717a; font-size: 8px; }
+.pd-items .pg-cat td { text-align: left; }
+.pd-muted { color: #5d7480; text-align: center !important; }
+.pd-sum > div:not(.pg-total) { display: flex; justify-content: flex-end; gap: 12px; padding: 3px 6px; background: #eef7fa; border-bottom: 1px solid #d4e2e7; color: #52616b; }
+.pd-sum > div:not(.pg-total) b { color: #17252d; min-width: 70px; text-align: right; }
+.pd-sum .pg-total { margin-top: 0; background: #12a9d1; color: #fff; }
+.pd-sign { margin-top: 26px; width: 170px; color: #163d69; display: grid; gap: 1px; }
+.pd-sign i { display: block; border-top: 1px solid #163d69; margin-bottom: 3px; }
+.pd-sign span { color: #485966; }
+.pd-id { display: grid; gap: 2px; margin: 6px 0; padding: 5px 7px; background: #f4f9fb; border: 1px solid #d4e7ee; border-radius: 2px; }
+.pd-center { text-align: center; }
+.pg-cover > small { color: #0a6f8a; }
+.pg-total { padding: 8px; }
+.pg-total b { font-size: 13px; }
+.pg-note { margin: 8px 0 0; }

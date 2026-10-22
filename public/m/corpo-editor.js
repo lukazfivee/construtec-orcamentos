@@ -34,7 +34,7 @@
       host.innerHTML = `${addRow(0)}${blocks.map((b, i) => {
         const [title, sub] = preview(b, o);
         return `<article class="card bk${b.enabled ? '' : ' is-off'}${b.type === 'itens' || b.type === 'condicoes' ? ' is-special' : ''}" data-i="${i}" aria-label="${esc(B.LABELS[b.type])} ${i + 1} de ${blocks.length}">
-          <div class="bk-head"><span class="bk-kind">${esc(B.LABELS[b.type])}<small>${i + 1}</small></span>
+          <div class="bk-head"><span class="bk-kind">${esc(B.LABELS[b.type])}<small>${i + 1}</small></span>${b.type === 'itens' || b.type === 'condicoes' ? '<span class="bk-auto">Gerado pelo sistema</span>' : ''}
             ${B.canDisable(b) ? `<button class="bk-sw" type="button" role="switch" aria-checked="${b.enabled}" data-sw${o.editable ? '' : ' disabled'}><span>${b.enabled ? 'Ligado' : 'Desligado'}</span><i></i></button>` : ''}</div>
           <button class="bk-body" type="button" data-edit>${title ? `<b class="${b.sub ? 'is-sub' : ''}">${esc(title)}</b>` : ''}${sub ? `<span>${esc(sub)}</span>` : ''}</button>
           ${o.editable ? `<div class="bk-tools">

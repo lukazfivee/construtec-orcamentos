@@ -92,6 +92,7 @@ export function ProposalBodyCard(props: ProposalBodyCardProps) {
           ><GripVertical size={16} /></span>
         )}
         <span className="body-kind"><Icon size={16} /><b>{BLOCK_LABELS[block.type]}</b><small>{index + 1}</small></span>
+        {(block.type === 'itens' || block.type === 'condicoes') && <span className="body-auto">Gerado pelo sistema</span>}
         <span className="body-card-actions">
           {canDisableBlock(block) && (
             <button type="button" role="switch" aria-checked={block.enabled} className="body-switch" disabled={!editable} onClick={() => onChange({ enabled: !block.enabled })}>

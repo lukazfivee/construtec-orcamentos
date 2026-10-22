@@ -74,12 +74,12 @@
 .client-list { min-height: 0; border-top: 1px solid var(--line); overflow-y: auto; }
 .client-list > button { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 7px; width: 100%; min-height: 62px; padding: 8px 12px; text-align: left; background: var(--surface); border: 0; border-bottom: 1px solid var(--line); cursor: pointer; }
 .client-list > button:hover { background: var(--bg-cool-98-2); }
-.client-list > button.selected { background: var(--blue-soft); box-shadow: inset 3px 0 var(--bd-cool-30); }
+.client-list > button.selected { background: var(--blue-soft); }
 .client-list > button > svg { color: var(--tx-cool-40-2); }
 .client-list > button > span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.client-list b, .works-list b { overflow: hidden; font-size: calc(11px * var(--fs, 1)); text-overflow: ellipsis; white-space: nowrap; }
-.client-list small, .works-list small { color: var(--muted); font-size: calc(9px * var(--fs, 1)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.client-list em, .works-list em { color: var(--muted); font-size: calc(9px * var(--fs, 1)); font-style: normal; white-space: nowrap; }
+.client-list b, .works-list b { overflow: hidden; font-size: calc(13px * var(--fs, 1)); text-overflow: ellipsis; white-space: nowrap; }
+.client-list small, .works-list small { color: var(--muted); font-size: calc(12px * var(--fs, 1)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.client-list em, .works-list em { color: var(--muted); font-size: calc(12px * var(--fs, 1)); font-style: normal; white-space: nowrap; }
 .management-empty { margin: 0; padding: 28px 16px; color: var(--muted); font-size: calc(11px * var(--fs, 1)); text-align: center; }
 .client-editor { min-width: 0; min-height: 0; overflow-y: auto; }
 .client-form, .works-section { padding: 20px 24px 24px; }

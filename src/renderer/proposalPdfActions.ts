@@ -43,3 +43,39 @@ export const openExternalUrl = (url: string) => {
   if (window.construtec?.openExternal) void window.construtec.openExternal(url);
   else window.open(url, '_blank', 'noopener');
 };
+
+// Word (.docx) do documento do servidor: baixa com o nome da proposta (no app do Windows abre a janela de salvar).
+export const saveWordDocument = (proposal: ProposalDetail, bytes: Uint8Array) => {
+  const name = `${proposalFileBaseName(proposal)}.docx`;
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return name;
+};
+
+// Contatos do envio (Enviar ao cliente): WhatsApp com DDI 55 e e-mail opcional.
+export function sanitizeWhatsAppPhone(rawPhone: string): string {
+  let digits = rawPhone.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('0055')) digits = digits.slice(2);
+  if (digits.startsWith('0') && digits.length >= 11) {
+    digits = digits.replace(/^0+/, '');
+  }
+  if (digits.startsWith('550')) {
+    digits = `55${digits.slice(3)}`;
+  }
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith('55')) {
+    digits = `55${digits}`;
+  }
+  return digits;
+}
+
+export function isValidEmail(emailAddress: string): boolean {
+  if (!emailAddress.trim()) return true;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress.trim());
+}

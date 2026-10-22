@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { ArrowLeft, Box, CircleDollarSign, Import, PackagePlus, Save, Search, Trash2 } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { brl, dinheiro } from '../shared/formatoBr';
 import { costText, seesCost } from './SuitePermissions';
 import { catalogApi } from './api';
 import { CatalogImportDialog } from './CatalogImportDialog';
@@ -11,7 +12,7 @@ const emptyDraft: Draft = { code: '', manufacturer: '', model: '', description: 
 
 const toDraft = (product: CatalogProduct): Draft => ({
   code: product.code, manufacturer: product.manufacturer ?? '', model: product.model ?? '', description: product.description,
-  category: product.category, unit: product.unit, currentCost: product.currentCost.toFixed(2).replace('.', ','), source: product.source, active: product.active,
+  category: product.category, unit: product.unit, currentCost: dinheiro(product.currentCost), source: product.source, active: product.active,
 });
 
 export function CatalogEditor({ onNotice, onError, onBack, onOpenWizard, onOpenExsat }: Props) {
@@ -81,7 +82,7 @@ export function CatalogEditor({ onNotice, onError, onBack, onOpenWizard, onOpenE
   return <main className="management-workspace catalog-workspace">
     <header className="management-header cab"><div className="tit"><span className="eyebrow">Cadastros</span><h1>Catálogo</h1><p className="sub">Materiais, serviços, preços e fontes salvos localmente.</p></div><div className="acoes management-header-actions">{onBack && <button type="button" onClick={onBack}><ArrowLeft size={17} /> Voltar ao catálogo</button>}<button type="button" onClick={() => setImportOpen(true)}><Import size={17} /> Importar lote</button><button type="button" className="primary" onClick={beginCreate}><PackagePlus size={17} /> Novo item</button></div></header>
     <div className="management-body">
-      <aside className="client-list-pane"><label className="management-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Código, descrição, fabricante…" /></label><div className="client-list product-list" aria-busy={loading}>{products.map((product) => <button key={product.id} type="button" className={product.id === selectedId ? 'selected' : ''} onClick={() => { setCreating(false); setSelectedId(product.id); }}><Box size={17} /><span><b>{product.code}</b><small>{product.description}</small></span><em className={product.active ? '' : 'inactive-label'}>{product.active ? costText(`R$ ${product.currentCost.toFixed(2).replace('.', ',')}`) : 'Inativo'}</em></button>)}{!loading && products.length === 0 && <p className="management-empty">Nenhum item encontrado.</p>}</div></aside>
+      <aside className="client-list-pane"><label className="management-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Código, descrição, fabricante…" /></label><div className="client-list product-list" aria-busy={loading}>{products.map((product) => <button key={product.id} type="button" className={product.id === selectedId ? 'selected' : ''} onClick={() => { setCreating(false); setSelectedId(product.id); }}><Box size={17} /><span><b>{product.code}</b><small>{product.description}</small></span><em className={product.active ? '' : 'inactive-label'}>{product.active ? costText(brl(product.currentCost)) : 'Inativo'}</em></button>)}{!loading && products.length === 0 && <p className="management-empty">Nenhum item encontrado.</p>}</div></aside>
       <section className="client-editor">{creating || selected ? <form className="client-form product-form" onSubmit={(event) => void save(event)}><div className="editor-heading"><span><h2>{creating ? 'Novo item' : selected?.description}</h2><p>Alterações no catálogo não modificam propostas já existentes.</p></span><div className="editor-heading-actions"><button type="submit" className="primary" disabled={saving}><Save size={16} /> {saving ? 'Salvando…' : 'Salvar item'}</button>{!creating && selected && <button type="button" className="danger" onClick={() => void deleteProduct()} disabled={saving}><Trash2 size={16} /> Excluir</button>}</div></div><div className="form-grid">
         <label><span>Código <b>*</b></span><input autoFocus value={draft.code} maxLength={60} onChange={(event) => setDraft({ ...draft, code: event.target.value })} /></label>
         <label><span>Categoria <b>*</b></span><input value={draft.category} maxLength={120} placeholder="Material, serviço, CFTV…" onChange={(event) => setDraft({ ...draft, category: event.target.value })} /></label>

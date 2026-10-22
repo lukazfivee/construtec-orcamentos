@@ -23,7 +23,24 @@
     kids.flat().forEach((kid) => { if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid))); });
     return el;
   }
-  const show = (...nodes) => { app.replaceChildren(h('div', { class: 'brand' }, h('i'), 'CONSTRUTEC'), ...nodes); window.scrollTo(0, 0); };
+  // Logo oficial (preta no claro, branca no escuro, pelo tema do aparelho).
+  const brand = () => {
+    const pic = h('picture', { class: 'brand' });
+    pic.append(h('source', { srcset: './logo-branca.png', media: '(prefers-color-scheme: dark)' }), h('img', { src: './logo-preta.png', alt: 'Construtec', width: 132, height: 48 }));
+    return pic;
+  };
+  // Icones desenhados (traco de 1,5 como os da Suite), no lugar dos caracteres "!" e "OK".
+  const SVG = 'http://www.w3.org/2000/svg';
+  const glyph = (kind) => {
+    const svg = document.createElementNS(SVG, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('width', '28'); svg.setAttribute('height', '28');
+    svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.5');
+    svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round'); svg.setAttribute('aria-hidden', 'true');
+    const paths = kind === 'ok' ? ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'm8.5 12.5 2.5 2.5 4.5-5'] : ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'M12 7.5v5.5', 'M12 16.5h.01'];
+    paths.forEach((d) => { const p = document.createElementNS(SVG, 'path'); p.setAttribute('d', d); svg.append(p); });
+    return svg;
+  };
+  const show = (...nodes) => { app.replaceChildren(brand(), ...nodes); window.scrollTo(0, 0); };
   const contact = () => {
     const c = (data && data.company) || {};
     const parts = [c.phone, c.email].filter(Boolean);
@@ -32,11 +49,11 @@
   const rev = (n) => 'REV ' + String(n || 0).padStart(2, '0');
 
   function notice(icon, title, text, extra) {
-    show(h('div', { class: 'card' }, h('div', { class: 'big-icon', 'aria-hidden': 'true' }, icon), h('h2', { text: title }), h('p', { class: 'muted', text: text }), extra, contact()));
+    show(h('div', { class: 'card' + (icon === 'OK' ? ' ok' : '') }, h('div', { class: 'big-icon', 'aria-hidden': 'true' }, glyph(icon === 'OK' ? 'ok' : 'aviso')), h('h2', { text: title }), h('p', { class: 'muted', text: text }), extra, contact()));
   }
 
   function failure(message) {
-    show(h('div', { class: 'card' }, h('div', { class: 'big-icon', 'aria-hidden': 'true' }, '!'), h('h2', { text: 'Não foi possível abrir a proposta' }),
+    show(h('div', { class: 'card' }, h('div', { class: 'big-icon', 'aria-hidden': 'true' }, glyph('aviso')), h('h2', { text: 'Não foi possível abrir a proposta' }),
       h('p', { class: 'muted', text: message }), h('button', { class: 'btn', type: 'button', onclick: load }, 'Tentar de novo'), contact()));
   }
 

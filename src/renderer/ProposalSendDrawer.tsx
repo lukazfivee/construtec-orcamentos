@@ -2,13 +2,11 @@ import { useEffect, useState } from 'react';
 import { FileText, Loader2, Send } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { proposalApi } from './api';
-import { openExternalUrl, savePdfDocument } from './proposalPdfActions';
-import { isValidEmail, sanitizeWhatsAppPhone } from './ProposalShareDialog';
-import { pdfDefaultMessage, pdfFileName, revLabel, type PdfChoices } from './proposalPdfPages';
+import { isValidEmail, openExternalUrl, sanitizeWhatsAppPhone, savePdfDocument } from './proposalPdfActions';
+import { pdfDefaultMessage, pdfFileName, revLabel } from './proposalPdfPages';
 
 type SendProps = {
   proposal: ProposalDetail;
-  choices: PdfChoices;
   fetchDocument: () => Promise<string>;
   onClose: () => void;
   onSent: (proposal: ProposalDetail) => void;
@@ -16,7 +14,7 @@ type SendProps = {
 };
 
 // Enviar ao cliente (tela 23o): contatos, mensagem e anexo. Marca a proposta como Enviada.
-export function ProposalSendDrawer({ proposal, choices, fetchDocument, onClose, onSent, showNotice }: SendProps) {
+export function ProposalSendDrawer({ proposal, fetchDocument, onClose, onSent, showNotice }: SendProps) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState(() => pdfDefaultMessage(proposal));
@@ -80,9 +78,9 @@ export function ProposalSendDrawer({ proposal, choices, fetchDocument, onClose, 
             <input type="email" value={email} placeholder="contato@empresa.com.br" onChange={(event) => setEmail(event.target.value)} />
           </label>
           <label className="drawer-field"><span>Mensagem</span>
-            <textarea rows={5} value={message} onChange={(event) => setMessage(event.target.value)} />
+            <textarea rows={5} className="drawer-message" value={message} onChange={(event) => setMessage(event.target.value)} />
           </label>
-          <div className="drawer-attach"><FileText size={20} /><span><b>{pdfFileName(proposal)}</b><small>Proposta {choices.modelo === 'completo' ? 'completa' : 'resumida'} · só preços de venda</small></span></div>
+          <div className="drawer-attach"><FileText size={20} /><span><b title={pdfFileName(proposal)}>{pdfFileName(proposal)}</b><small>Proposta comercial · só preços de venda</small></span></div>
           {canMark && (
             <button type="button" className="drawer-switch" role="switch" aria-checked={mark} onClick={() => setMark((v) => !v)}>
               <span><b>Marcar a proposta como Enviada</b><small>Registra o envio na proposta e no histórico</small></span><i className="switch" />

@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Building2, Database, Download, Percent, Upload } from 'lucide-react';
 import type { AppSettings } from '../shared/contracts';
+import { version as appVersion } from '../../package.json';
+import { isCloudRuntime } from './api';
 
 /* Cartoes de Configuracoes com as proporcoes do Centro de Custos (cartao raio 14, titulo 15/600, campos de 40 px). */
 export function SettingsCard({ icon: Icon, title, sub, children }: { icon: LucideIcon; title: string; sub: string; children: ReactNode }) {
@@ -27,7 +29,7 @@ export function CompanyDataCard({ settings, disabled, onChange }: FormProps) {
     </label>
   );
   return (
-    <SettingsCard icon={Building2} title="Dados da Construtec para Exportação" sub="Identificação oficial que estampa cabeçalhos e rodapés de documentos PDF e Word.">
+    <SettingsCard icon={Building2} title="Dados da empresa nos documentos" sub="Identificação oficial que estampa cabeçalhos e rodapés de documentos PDF e Word.">
       <div className="st-grid">
         {text('companyName', 'Razão Social', 'Construtec Engenharia e Soluções Ltda.', true)}
         {text('tradeName', 'Nome Fantasia / Marca', 'Construtec Engenharia')}
@@ -42,14 +44,14 @@ export function CompanyDataCard({ settings, disabled, onChange }: FormProps) {
 
 export function NewProposalParamsCard({ settings, disabled, onChange }: FormProps) {
   return (
-    <SettingsCard icon={Percent} title="Parâmetros Padrão de Novas Propostas" sub="Responsável e horas da mão de obra. BDI, impostos e validade ficam em Padrões da empresa.">
+    <SettingsCard icon={Percent} title="Padrões das novas propostas" sub="Responsável e horas da mão de obra. BDI, impostos e validade ficam em Padrões da empresa.">
       <div className="st-grid">
         <label className="od-fld">
-          <span>Responsável Técnico Padrão</span>
+          <span>Responsável técnico padrão</span>
           <input className="od-inp" disabled={disabled} value={settings.defaultResponsible} placeholder="Marcos Ribeiro" onChange={(e) => onChange({ ...settings, defaultResponsible: e.target.value })} />
         </label>
         <label className="od-fld">
-          <span>Horas Mensais Padrão (Mão de Obra)</span>
+          <span>Horas por mês da mão de obra</span>
           <input className="od-inp" disabled={disabled} type="number" step="1" min="1" max="720" value={settings.defaultStandardHours} onChange={(e) => onChange({ ...settings, defaultStandardHours: Number(e.target.value) })} />
         </label>
       </div>
@@ -60,12 +62,13 @@ export function NewProposalParamsCard({ settings, disabled, onChange }: FormProp
 type EnvProps = { isAdmin: boolean; backupPending: boolean; restorePending: boolean; onBackup: () => void; onRestore: () => void };
 
 export function EnvironmentCard({ isAdmin, backupPending, restorePending, onBackup, onRestore }: EnvProps) {
+  const cloud = isCloudRuntime();
   return (
-    <SettingsCard icon={Database} title="Ambiente e Armazenamento Local" sub="Arquitetura Local-First Construtec Orçamentos.">
+    <SettingsCard icon={Database} title="Ambiente e armazenamento" sub={cloud ? 'Os dados desta versão ficam na nuvem, num banco PostgreSQL.' : 'Os dados desta versão ficam neste computador e funcionam sem internet.'}>
       <div className="st-tiles">
-        <div className="st-tile"><span>Versão do App</span><b>v1.0.6</b></div>
-        <div className="st-tile"><span>Banco Local</span><b className="ok">PGlite / PostgreSQL</b></div>
-        <div className="st-tile"><span>Modo de Operação</span><b className="info">Offline Local-First</b></div>
+        <div className="st-tile"><span>Versão do app</span><b>v{appVersion}</b></div>
+        <div className="st-tile"><span>Banco de dados</span><b>{cloud ? 'PostgreSQL na nuvem' : 'PGlite neste computador'}</b></div>
+        <div className="st-tile"><span>Modo de operação</span><b>{cloud ? 'On-line' : 'Sem internet (local)'}</b></div>
       </div>
       {isAdmin && (
         <div className="st-actions">

@@ -3,6 +3,7 @@ import {
   Clock,
   FileText,
 } from 'lucide-react';
+import { isCloudRuntime } from './api';
 
 type ProposalsListKpiBarProps = {
   stats: {
@@ -24,7 +25,7 @@ export function ProposalsListKpiBar({ stats }: ProposalsListKpiBarProps) {
         <div className="kpi-content">
           <span>Total de Orçamentos</span>
           <strong>{stats.totalCount}</strong>
-          <small>Registros no banco local</small>
+          <small>{isCloudRuntime() ? 'Registros na nuvem' : 'Registros neste computador'}</small>
         </div>
       </div>
 

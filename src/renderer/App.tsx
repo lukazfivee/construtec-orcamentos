@@ -30,12 +30,17 @@ export function App({ user, onLogout }: AppProps = {}) {
   setCurrentSuiteUser(user ?? null);
   const [activeNav, setActiveNav] = useState<NavSection>('Início');
   const [targetCostCenterId, setTargetCostCenterId] = useState<number | null>(null);
+  const [targetCentroPath, setTargetCentroPath] = useState<string | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [proposal, setProposal] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [documentPending, setDocumentPending] = useState(false);
+  // Os documentos sao gerados no fluxo unico "PDF da proposta"; nada no editor fica esperando arquivo.
+  const documentPending = false;
+  // Compartilhar (lista e editor) abre o PDF da proposta ja com o menu Compartilhar aberto.
+  const [pdfShare, setPdfShare] = useState(false);
   const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
   const [newProposalOpen, setNewProposalOpen] = useState(false);
   const [proposalViewMode, setProposalViewMode] = useState<ProposalViewMode>(INITIAL_PROPOSAL_VIEW_MODE);
@@ -68,23 +73,26 @@ export function App({ user, onLogout }: AppProps = {}) {
     void loadProposal();
   }, [loadProposal]);
 
-  const openProposal = useCallback(async (proposalId: string) => {
-    if (loading) return;
+  const openProposal = useCallback(async (proposalId: string): Promise<boolean> => {
+    if (loading) return false;
     setLoading(true);
     setError('');
     try {
       const result = await proposalApi.byId(proposalId);
       setProposal(result.proposal);
-      showNotice(result.proposal.isLatest ? 'Revisão atual aberta.' : 'Revisão histórica aberta em modo somente leitura.');
+      // So avisa o que muda o trabalho: revisao antiga abre somente leitura (abrir a atual nao gera aviso).
+      if (!result.proposal.isLatest) showNotice('Revisão histórica aberta em modo somente leitura.');
+      return true;
     } catch (revisionError) {
       setError(revisionError instanceof Error ? revisionError.message : 'Não foi possível abrir esta revisão.');
+      return false;
     } finally {
       setLoading(false);
     }
   }, [loading]);
 
   useProposalDeepLink(!loading, (id) => {
-    void openProposal(id).then(() => { setActiveNav('Propostas'); setProposalViewMode('editor'); });
+    void openProposal(id).then((ok) => { if (ok) { setActiveNav('Propostas'); setProposalViewMode('editor'); } });
   });
 
   const proposalCreated = useCallback(async (created: ProposalDetail) => {
@@ -128,42 +136,14 @@ export function App({ user, onLogout }: AppProps = {}) {
     }
   }, [proposal]);
 
-  const previewProposal = useCallback(async () => {
-    if (!proposal || documentPending) return;
-    setDocumentPending(true);
-    setError('');
-    try {
-      if (window.construtec?.previewProposal) {
-        await window.construtec.previewProposal(proposal);
-      } else {
-        window.print();
-      }
-      showNotice('Pré-visualização da proposta aberta.');
-    } catch (documentError) {
-      setError(documentError instanceof Error ? documentError.message : 'Não foi possível abrir a pré-visualização.');
-    } finally {
-      setDocumentPending(false);
-    }
-  }, [documentPending, proposal]);
-
-  const exportProposal = useCallback(async () => {
-    if (!proposal || documentPending) return;
-    setDocumentPending(true);
-    setError('');
-    try {
-      if (window.construtec?.exportProposal) {
-        await window.construtec.exportProposal(proposal);
-        showNotice('Proposta gerada em PDF e Word com sucesso.');
-      } else {
-        window.print();
-        showNotice('Use a opção "Salvar como PDF" do navegador.');
-      }
-    } catch (documentError) {
-      setError(documentError instanceof Error ? documentError.message : 'Não foi possível gerar os documentos.');
-    } finally {
-      setDocumentPending(false);
-    }
-  }, [documentPending, proposal]);
+  // Ctrl P e Ctrl G levam ao mesmo fluxo do PDF da proposta (opcoes, previa, baixar PDF ou Word, compartilhar).
+  const openPdf = useCallback((share = false) => {
+    if (!proposal) return;
+    setCatalogOpen(false);
+    setPdfShare(share);
+    setActiveNav('Propostas');
+    setProposalViewMode('pdf');
+  }, [proposal]);
 
   /* Busca do topo (Ctrl K): no editor abre a busca do catalogo; nas demais telas leva a lista de propostas e foca a busca dela. */
   const openSearch = useCallback(() => {
@@ -194,16 +174,16 @@ export function App({ user, onLogout }: AppProps = {}) {
         } else if (action === 's') {
           void createRevision();
         } else if (action === 'p') {
-          void previewProposal();
+          openPdf();
         } else if (action === 'g') {
-          void exportProposal();
+          openPdf();
         }
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openSearch, createRevision, exportProposal, previewProposal, proposal?.isLatest]);
+  }, [openSearch, createRevision, openPdf, proposal?.isLatest]);
 
   const selectNav = (label: NavSection) => {
     setActiveNav(label);
@@ -212,8 +192,9 @@ export function App({ user, onLogout }: AppProps = {}) {
     setMobileMenuOpen(false);
     setError('');
   };
-  const openCentroCustos = (ccId?: number) => {
+  const openCentroCustos = (ccId?: number, path?: string) => {
     setTargetCostCenterId(ccId ?? null);
+    setTargetCentroPath(path ?? null);
     setActiveNav('Centro de Custos');
   };
   // Tela aberta, em texto, para o assistente de IA.
@@ -228,6 +209,14 @@ export function App({ user, onLogout }: AppProps = {}) {
         proposal={proposal}
         onOpenCatalog={() => setCatalogOpen(true)}
         onSearch={openSearch}
+        onFollowNotice={(link) => {
+          // Mesmo destino do celular: a proposta aqui; a obra no Centro de Custos.
+          const [app, query] = link.split('?');
+          const params = new URLSearchParams(query || '');
+          if (app === 'orcamentos' && params.get('proposta')) {
+            void openProposal(params.get('proposta') as string).then((ok) => { if (ok) { setActiveNav('Propostas'); setProposalViewMode('editor'); } });
+          } else if (app === 'centro-custos') openCentroCustos(Number(params.get('obra')) || undefined, params.get('pedidos') === '1' ? '/usuarios' : undefined);
+        }}
         editorOpen={activeNav === 'Propostas' && proposalViewMode === 'editor' && Boolean(proposal)}
         onLogout={onLogout}
         onSelectApp={(app) => {
@@ -242,6 +231,8 @@ export function App({ user, onLogout }: AppProps = {}) {
         }}
         onOpenMobileMenu={() => setMobileMenuOpen(true)}
         showNotice={showNotice}
+        assistantOpen={assistantOpen}
+        onToggleAssistant={() => setAssistantOpen((open) => !open)}
       />
 
       <AppSidebar
@@ -269,8 +260,13 @@ export function App({ user, onLogout }: AppProps = {}) {
         <ProposalsListWorkspace
           key="proposals-list"
           onOpenProposal={async (proposalId) => {
-            await openProposal(proposalId);
-            setProposalViewMode('editor');
+            if (await openProposal(proposalId)) setProposalViewMode('editor');
+          }}
+          onOpenPdf={async (proposalId, share) => {
+            if (!(await openProposal(proposalId))) return;
+            setCatalogOpen(false);
+            setPdfShare(share);
+            setProposalViewMode('pdf');
           }}
           onNewProposal={() => {
             setError('');
@@ -283,6 +279,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         <ProposalPdfView
           key={`proposal-pdf-${proposal.id}`}
           proposalId={proposal.id}
+          initialShare={pdfShare}
           onBack={() => setProposalViewMode('editor')}
           onAddItems={() => { setProposalViewMode('editor'); setCatalogOpen(true); }}
           onProposalUpdate={setProposal}
@@ -306,7 +303,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           catalogOpen={catalogOpen}
           setCatalogOpen={setCatalogOpen}
           documentPending={documentPending}
-          onOpenProposal={openProposal}
+          onOpenProposal={async (id) => { await openProposal(id); }}
           onProposalUpdate={setProposal}
           onProposalTabsUpdate={setProposalTabs}
           onViewList={() => setProposalViewMode('list')}
@@ -320,7 +317,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           }}
           onCreateRevision={() => void createRevision()}
           initialSection={editorSection}
-          onOpenPdf={() => { setCatalogOpen(false); setProposalViewMode('pdf'); }}
+          onOpenPdf={(share?: boolean) => openPdf(share === true)}
           onOpenCompare={(fromRevisionId) => { setCatalogOpen(false); setCompareFrom(fromRevisionId); setProposalViewMode('compare'); }}
           onNavigateToCentroCustos={openCentroCustos}
           showNotice={showNotice}
@@ -330,7 +327,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         <HomeWorkspace
           key="home"
           onOpenProposal={async (proposalId) => {
-            await openProposal(proposalId);
+            if (!(await openProposal(proposalId))) return;
             setActiveNav('Propostas');
             setProposalViewMode('editor');
           }}
@@ -349,6 +346,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           key="centro-custos"
           activeProposal={proposal}
           targetCostCenterId={targetCostCenterId}
+          targetPath={targetCentroPath}
           onBackToProposal={() => {
             setActiveNav('Propostas');
             setProposalViewMode('editor');
@@ -392,6 +390,8 @@ export function App({ user, onLogout }: AppProps = {}) {
         onError={setError}
       />
       <AssistantFab
+        open={assistantOpen}
+        onOpenChange={setAssistantOpen}
         user={user}
         screen={assistantScreen}
         onProposalCreated={(created) => { setActiveNav('Propostas'); void proposalCreated(created); }}

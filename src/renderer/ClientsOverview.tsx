@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, RefreshCw, UserPlus, Users } from 'lucide-react';
 import type { ProposalSummary } from '../shared/contracts';
 import { clientsApi, proposalApi } from './api';
-import { EmptyState, PageHead, brl, nfmt, revText, statusChip } from './orcDeskUi';
+import { EmptyState, PageHead, brl, nfmt, plural, revText, statusChip } from './orcDeskUi';
 
 type Props = { onRegistry: () => void; onOpenProposal?: (proposalId: string) => void };
 
@@ -16,6 +16,7 @@ export function ClientsOverview({ onRegistry, onOpenProposal }: Props) {
   const [rows, setRows] = useState<ClientRow[] | null>(null);
   const [failed, setFailed] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const [totalWorks, setTotalWorks] = useState(0);
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export function ClientsOverview({ onRegistry, onOpenProposal }: Props) {
         };
       }).sort((a, b) => b.approved - a.approved || b.proposals.length - a.proposals.length || a.name.localeCompare(b.name, 'pt-BR'));
       setRows(built);
+      setTotalWorks(clientResult.clients.reduce((sum, client) => sum + client.works.length, 0));
     }).catch((error) => { if (active) setFailed(error instanceof Error ? error.message : 'Não foi possível carregar os clientes.'); });
     return () => { active = false; };
   }, [attempt]);
@@ -81,7 +83,7 @@ export function ClientsOverview({ onRegistry, onOpenProposal }: Props) {
           </Fragment>;
         })}</tbody>
       </table></div>}
-      {rows !== null && rows.length > 0 && <div className="od-footer"><span>{nfmt(rows.length)} clientes · {nfmt(totalProposals)} propostas</span></div>}
+      {rows !== null && rows.length > 0 && <div className="od-footer"><span>{plural(rows.length, 'cliente', 'clientes')} · {plural(totalProposals, 'proposta', 'propostas')} · {plural(totalWorks, 'obra', 'obras')}</span></div>}
     </div>
   </div></main>;
 }

@@ -237,7 +237,7 @@
       <div class="card">${kv.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
       <div class="card scope"><small class="label">Motivo</small><p${d.reason ? '' : ' class="none"'}>${esc(d.reason || 'Sem motivo informado.')}</p></div>
       <p class="hint">Se a obra saiu do Centro de Custos junto com a proposta, ela volta ao recuperar.</p>
-      <div class="actions"><button class="btn" type="button" data-rec>${icon('arrow-counter-clockwise', 18)}Recuperar proposta</button>
+      <div class="actions"><button class="btn" type="button" data-rec>${icon('arrow-counter-clockwise', 18)}Recuperar</button>
         <button class="btn2" type="button" data-forever>${icon('trash', 18)}Excluir de vez</button></div>`, true, params);
     OC.$('[data-rec]', el).addEventListener('click', () => recoverSheet(d));
     OC.$('[data-forever]', el).addEventListener('click', () => deleteForeverSheet([d]));

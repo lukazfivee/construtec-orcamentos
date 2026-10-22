@@ -133,11 +133,12 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
           <h1>Configurações</h1>
           <p className="sub">Parâmetros da empresa, padrões de propostas, usuários e estado do sistema.</p>
         </div>
-        <div className="acoes management-header-actions">
+        {/* So a aba Empresa e propostas usa o formulario: nas outras o botao nao aparece. */}
+        {tab === 'empresa' && <div className="acoes management-header-actions">
           <button type="submit" form="settings-form" className="primary" disabled={saving || settingDisabled} title={!isAdmin ? 'Somente administradores podem alterar configurações.' : undefined}>
             <Save size={16} /> {saving ? 'Salvando…' : 'Salvar configurações'}
           </button>
-        </div>
+        </div>}
       </header>
 
       <div className="st-tabs" role="tablist" aria-label="Seções das configurações">

@@ -24,7 +24,7 @@
       <span class="label">Modelos de texto da empresa</span>
       <div class="card" id="cc-tpl"></div>
       <p class="hint">${admin ? 'Propostas já criadas mantêm o corpo delas.' : 'Só administradores alteram os padrões.'}</p>
-      ${admin ? `<div class="actions"><button class="btn2" type="button" id="cc-undo">Descartar</button><button class="btn" type="button" id="cc-save">${icon('check', 18)}Salvar corpo padrão</button></div>` : ''}`, true, params);
+      ${admin ? `<div class="actions"><button class="btn2" type="button" id="cc-undo">Descartar</button><button class="btn" type="button" id="cc-save">${icon('check', 18)}Salvar</button></div>` : ''}`, true, params);
     const host = document.createElement('div');
     host.className = 'bk-list';
     const editor = OC.bodyEditor(host, {

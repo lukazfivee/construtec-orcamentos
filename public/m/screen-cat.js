@@ -39,7 +39,9 @@
       if (!o) return '';
       const bits = [];
       if (o.changePercent !== undefined) bits.push(`<span class="delta ${o.changePercent > 0 ? 'up' : 'down'}">${icon(o.changePercent > 0 ? 'caret-up' : 'caret-down', 12)}${esc(pctS(o.changePercent))}</span>${cost && o.fromUnit !== undefined ? `<small>antes ${esc(OC.money(o.fromUnit))}</small>` : ''}`);
-      if (o.isNew) bits.push('<span class="tag">Novo</span>');
+      // Como no computador: com todo o catalogo novo (primeira carga), o selo em cada linha nao informa nada.
+      const allNew = overview && overview.newCount > 0 && overview.newCount >= overview.productCount;
+      if (o.isNew && !allNew) bits.push('<span class="tag">Novo</span>');
       if (o.usedIn && o.usedIn.length) bits.push(`<small>Usado em ${esc(o.usedIn.slice(0, 3).join(', '))}${o.usedIn.length > 3 ? ` +${o.usedIn.length - 3}` : ''}</small>`);
       return bits.length ? `<span class="cat-x">${bits.join('')}</span>` : '';
     };

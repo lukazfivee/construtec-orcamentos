@@ -1,5 +1,6 @@
 import { CheckSquare, Loader2, Square } from 'lucide-react';
 import type { ProposalLine, ProposalSummary } from '../shared/contracts';
+import { brl, numero, plural } from '../shared/formatoBr';
 
 interface ProposalImportProposalTabProps {
   proposalsList: ProposalSummary[];
@@ -29,12 +30,12 @@ export function ProposalImportProposalTab({
   return (
     <div className="import-tab-pane">
       <label className="select-label">
-        <span>Selecione a proposta de origem:</span>
-        <select value={selectedProposalId} onChange={(e) => onSelectProposal(e.target.value)}>
-          <option value="">Selecione uma proposta...</option>
+        <span className="dlg-label">Proposta de origem</span>
+        <select className="od-inp" value={selectedProposalId} onChange={(e) => onSelectProposal(e.target.value)}>
+          <option value="">Selecione uma proposta</option>
           {proposalsList.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.number} (REV.{String(p.revision).padStart(2, '0')}) — {p.clientName} ({p.itemCount} itens)
+              {p.number} (REV.{String(p.revision).padStart(2, '0')}) — {p.clientName} ({plural(p.itemCount, 'item', 'itens')})
             </option>
           ))}
         </select>
@@ -42,7 +43,7 @@ export function ProposalImportProposalTab({
 
       {loadingSourceProposal ? (
         <div className="loading-state">
-          <Loader2 className="spinning" size={20} /> Carregando itens da proposta...
+          <Loader2 className="spinning" size={20} /> Carregando os itens da proposta…
         </div>
       ) : sourceProposalItems.length > 0 ? (
         <div className="proposal-items-picker">
@@ -51,7 +52,7 @@ export function ProposalImportProposalTab({
               {allSelected ? <CheckSquare size={14} /> : <Square size={14} />}
               {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
             </button>
-            <span>{selectedSourceItemIds.length} de {sourceProposalItems.length} selecionado(s)</span>
+            <span>{selectedSourceItemIds.length} de {plural(sourceProposalItems.length, 'item selecionado', 'itens selecionados')}</span>
           </div>
           <div className="picker-table-container">
             <table className="preview-table">
@@ -60,9 +61,9 @@ export function ProposalImportProposalTab({
                   <th style={{ width: 32 }}></th>
                   <th>Código</th>
                   <th>Descrição</th>
-                  <th>Qtd</th>
-                  <th>Unid</th>
-                  <th>Preço Venda</th>
+                  <th className="num">Qtd.</th>
+                  <th>Unid.</th>
+                  <th className="num">Preço de venda</th>
                 </tr>
               </thead>
               <tbody>
@@ -74,14 +75,12 @@ export function ProposalImportProposalTab({
                       className={checked ? 'selected-row' : ''}
                       onClick={() => onToggleItem(item.id)}
                     >
-                      <td><input type="checkbox" checked={checked} readOnly /></td>
-                      <td><code>{item.code}</code></td>
+                      <td><input type="checkbox" checked={checked} readOnly aria-label={`Selecionar ${item.description}`} /></td>
+                      <td className="cod">{item.code}</td>
                       <td>{item.description}</td>
-                      <td>{item.quantity}</td>
+                      <td className="num">{numero(item.quantity, 3)}</td>
                       <td>{item.unit}</td>
-                      <td>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.unitSale)}
-                      </td>
+                      <td className="num">{brl(item.unitSale)}</td>
                     </tr>
                   );
                 })}

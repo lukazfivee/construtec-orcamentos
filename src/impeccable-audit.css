@@ -148,7 +148,7 @@ button:not(:disabled):active {
 
 .form-grid input:hover,
 .work-form input:not([type="checkbox"]):hover,
-.new-proposal-dialog input:hover,
+.new-proposal-dialog input:where(:not([type="checkbox"], [type="radio"])):hover,
 .new-proposal-dialog select:hover {
   border-color: var(--bd-cool-63);
 }
@@ -340,10 +340,6 @@ button:not(:disabled):active {
 }
 
 /* Commercial panel */
-.commercial-panel {
-  background: var(--bg-cool-98);
-}
-
 .amount strong {
   font-variant-numeric: tabular-nums;
 }
@@ -446,13 +442,11 @@ button:not(:disabled):active {
 }
 
 .danger-action-btn,
-.danger-btn,
 .table-action-btn.danger {
   border-radius: var(--radius-control);
 }
 
 .danger-action-btn:focus-visible,
-.danger-btn:focus-visible,
 .table-action-btn.danger:focus-visible {
   outline: 2px solid #e66a62;
   outline-offset: 2px;

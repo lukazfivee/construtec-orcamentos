@@ -116,8 +116,7 @@ function UseKitDrawer({ kit, onClose, onOpenProposal, onNewProposalWithKit, onNo
     }
   };
 
-  return <Drawer title="Usar kit em proposta" icon={Layers} onClose={onClose} sub={`${kit.name} · ${plural(kit.items.length, 'item', 'itens')}`}
-    footer={<button type="button" className="od-btn s" onClick={onClose}>Fechar</button>}>
+  return <Drawer title="Usar kit em proposta" icon={Layers} onClose={onClose} sub={`${kit.name} · ${plural(kit.items.length, 'item', 'itens')}`}>
     <span className="od-small">Escolha a proposta em edição que recebe os itens do kit, ou comece uma nova com ele.</span>
     {proposals === null && [0, 1].map((i) => <div key={i} className="od-skel" style={{ height: 58 }} />)}
     {proposals?.map((proposal) => <button key={proposal.id} type="button" className="od-pick" disabled={!!busy} onClick={() => void apply(proposal)}>

@@ -113,13 +113,16 @@
     const box = OC.$('.pd-in', meas);
     const pages = [];
     let count = 0, label = '';
+    // Rotulo da pagina com a regra do computador (proposalPdfFlow): Itens se tem a planilha, senao Condicoes, senao Texto.
+    const seen = new Set();
+    const pageLabel = () => (seen.has('Itens') ? 'Itens' : seen.has('Condições') ? 'Condições' : 'Texto');
     const fits = () => box.scrollHeight <= LIMIT;
-    const start = () => { box.innerHTML = pages.length ? runHead : (firstHead || runHead); count = 0; label = ''; };
-    const commit = () => { pages.push({ label: label || 'Texto', html: box.innerHTML }); start(); };
+    const start = () => { box.innerHTML = pages.length ? runHead : (firstHead || runHead); count = 0; label = ''; seen.clear(); };
+    const commit = () => { pages.push({ label: pageLabel(), html: box.innerHTML }); start(); };
     const place = (html, lbl) => {
       box.insertAdjacentHTML('beforeend', html);
       if (!fits() && count > 0) { box.lastElementChild.remove(); commit(); box.insertAdjacentHTML('beforeend', html); }
-      count += 1; if (!label) label = lbl;
+      count += 1; if (!label) label = lbl; seen.add(lbl);
     };
     try {
       start();

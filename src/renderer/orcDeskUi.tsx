@@ -1,12 +1,12 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type FormEvent, type ReactNode } from 'react';
 import { X, type LucideIcon } from 'lucide-react';
+import { brl, numero, plural } from '../shared/formatoBr';
 import './orcDesk.css';
 
-export const brl = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+export { brl, plural };
 export const signBrl = (value: number) => `${value > 0 ? '+' : (value < 0 ? '−' : '')}${brl(Math.abs(value))}`;
-export const nfmt = (value: number) => Number(value || 0).toLocaleString('pt-BR');
+export const nfmt = (value: number) => numero(value, 3);
 export const pctSigned = (value: number) => `${value > 0 ? '+' : (value < 0 ? '−' : '')}${Math.abs(value).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
-export const plural = (n: number, one: string, many: string) => `${nfmt(n)} ${n === 1 ? one : many}`;
 export const revText = (revision: number) => `REV.${String(revision).padStart(2, '0')}`;
 
 export const statusChip = (status: string): { label: string; tone: 'ok' | 'warn' | 'bad' | 'info' | 'neu' | 'vio' } => {
@@ -62,6 +62,39 @@ export function Drawer({ title, sub, icon: Icon, onClose, children, footer }: {
       <div className="od-drawer-body">{children}</div>
       {footer && <div className="od-drawer-foot">{footer}</div>}
     </aside>
+  </div>;
+}
+
+/* Casca unica das janelas (a da Nova proposta): cabecalho claro com icone de 22 px, titulo 17/600 em frase normal,
+   apoio 12,5, corpo de 20 px e rodape com botoes .od-btn de 40 px. Esc e clique fora fecham (se nao estiver ocupado). */
+export function Dialogo({ id, icon: Icon, title, sub, onClose, children, footer, className, busy, onSubmit, tone, toolbar }: {
+  id: string; icon: LucideIcon; title: string; sub?: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode; toolbar?: ReactNode;
+  className?: string; busy?: boolean; onSubmit?: (event: FormEvent<HTMLFormElement>) => void; tone?: 'bad';
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && !busy) onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, busy]);
+  const body = <>
+    <div className="dlg-body">{children}</div>
+    {footer && <footer className="dlg-foot">{footer}</footer>}
+  </>;
+  return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+    <section className={`new-proposal-dialog dlg${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-labelledby={`${id}-title`}>
+      <header>
+        <div>
+          <Icon size={22} className={tone === 'bad' ? 'dlg-ic bad' : 'dlg-ic'} aria-hidden="true" />
+          <span>
+            <h2 id={`${id}-title`}>{title}</h2>
+            {sub && <p>{sub}</p>}
+          </span>
+        </div>
+        <button type="button" className="dialog-close" aria-label="Fechar" disabled={busy} onClick={onClose}><X size={18} /></button>
+      </header>
+      {toolbar}
+      {onSubmit ? <form className="dlg-form" onSubmit={onSubmit}>{body}</form> : body}
+    </section>
   </div>;
 }
 

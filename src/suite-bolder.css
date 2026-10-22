@@ -79,7 +79,7 @@
   .management-search input::placeholder, .search-box input::placeholder {
     color:var(--muted); opacity:1;
   }
-  .auth-card h1, .login-card h2 { font-weight:750; letter-spacing:-.025em; }
+  .login-card h2 { font-weight:750; letter-spacing:-.025em; }
   .topbar .icon-button:focus-visible, .topbar #topbar-theme-toggle:focus-visible,
   .sidebar button:focus-visible { outline:2px solid var(--bd-cool-80)!important; outline-offset:-3px; }
 }

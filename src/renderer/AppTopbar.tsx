@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Bell, ChevronDown, CircleHelp, LayoutGrid, Mail, Moon, Search, Sun } from 'lucide-react';
+import { Bell, ChevronDown, CircleHelp, LayoutGrid, Mail, Moon, Search, Sparkles, Sun } from 'lucide-react';
 import { isCloudRuntime } from './api';
 import type { AppTopbarProps } from './AppTopbarMobile';
 import { AppTopbarMobile } from './AppTopbarMobile';
 import { HelpModal } from './HelpModal';
 import { NotificationsPopover } from './NotificationsPopover';
+import { bellCount, bellLabel, useNoticeCount } from './notificationsFeed';
 import { SuiteSwitcherPopover } from './SuiteSwitcherPopover';
 import { openWebmail } from './webmail';
 import { UpdateNotice } from './UpdateNotice';
@@ -20,19 +21,15 @@ export function AppTopbar(props: AppTopbarProps) {
 
 /* Barra do topo identica a do Centro de Custos (shell.js + layout.css): busca a esquerda, selo de dados,
    botao Suite e tema. Notificacoes, ajuda e e-mail ficam antes do selo, no mesmo padrao de botao de icone. */
-function AppTopbarDesktop({ activeNav, proposal, editorOpen, onSearch, onSelectApp, showNotice }: AppTopbarProps) {
+function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNotice, assistantOpen, onToggleAssistant, onFollowNotice }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const theme = useTheme();
   const escuro = theme.resolved === 'escuro';
 
-  const divergentCount = proposal?.isLatest
-    ? proposal.items.filter(
-      (item) => item.catalogCurrentCost !== null && item.catalogCurrentCost !== undefined
-        && Math.abs(item.catalogCurrentCost - item.unitCost) >= 0.01,
-    ).length
-    : 0;
+  // Contador do sino: os avisos da Suite, os mesmos do celular.
+  const notices = useNoticeCount();
   const searchLabel = editorOpen ? 'Buscar no catálogo' : 'Buscar propostas, clientes, obras';
 
   return (
@@ -53,18 +50,38 @@ function AppTopbarDesktop({ activeNav, proposal, editorOpen, onSearch, onSelectA
         </div>
         <span className="espaco" />
         <UpdateNotice />
+        {/* Assistente (decisao D1 da Suite): ibtn de 36 px, o primeiro dos botoes de icone, mesmo icone do botao flutuante. */}
+        <button
+          type="button"
+          id="btn-assistente"
+          className={`ibtn ${assistantOpen ? 'ativo' : ''}`}
+          aria-label="Assistente"
+          title="Assistente"
+          aria-expanded={assistantOpen}
+          onClick={() => { onToggleAssistant?.(); setSuiteOpen(false); setNotificationsOpen(false); }}
+        >
+          <Sparkles className="ph" size={20} strokeWidth={1.5} />
+        </button>
         <div className="ancora">
           <button
             type="button"
+            data-sino
             className={`ibtn ${notificationsOpen ? 'ativo' : ''}`}
-            aria-label="Notificações"
-            title="Notificações e alertas do sistema"
+            aria-label={bellLabel(notices.unread)}
+            title="Notificações"
+            aria-expanded={notificationsOpen}
             onClick={() => { setNotificationsOpen((prev) => !prev); setSuiteOpen(false); }}
           >
             <Bell className="ph" size={20} strokeWidth={1.5} />
-            {divergentCount > 0 && <span className="ponto-aviso" aria-label={`${divergentCount} divergências`} />}
+            {notices.unread > 0 && <span className="bell-count" aria-hidden="true">{bellCount(notices.unread)}</span>}
           </button>
-          {notificationsOpen && <NotificationsPopover proposal={proposal} onClose={() => setNotificationsOpen(false)} />}
+          {notificationsOpen && (
+            <NotificationsPopover
+              onClose={() => setNotificationsOpen(false)}
+              onUnreadChange={notices.setUnread}
+              onFollow={(link) => onFollowNotice?.(link)}
+            />
+          )}
         </div>
         <button
           type="button"

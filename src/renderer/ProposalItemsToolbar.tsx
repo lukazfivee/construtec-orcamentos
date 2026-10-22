@@ -6,7 +6,6 @@ import {
   MoreHorizontal,
   Plus,
   Search,
-  Settings,
   SlidersHorizontal,
   Trash2,
   Upload,
@@ -133,9 +132,6 @@ export function ProposalItemsToolbar({
           title="Configurar colunas visíveis da tabela"
         >
           <SlidersHorizontal size={18} />
-        </button>
-        <button className="icon-button" aria-label="Configurações da tabela (indisponível)" aria-disabled="true" type="button" disabled title="Configurações da tabela serão implementadas em uma próxima etapa.">
-          <Settings size={18} />
         </button>
       </div>
     </div>

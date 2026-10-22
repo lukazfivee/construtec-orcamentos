@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock, FileText, Info, Loader2, LockKeyhole, LogIn, LogOut, Package, RefreshCw, Tag, Unplug, WifiOff } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, CheckCircle2, FileText, Info, Loader2, LockKeyhole, LogIn, LogOut, RefreshCw, Tag, Unplug, WifiOff } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { PriceDriftProposal, ProposalDetail } from '../shared/contracts';
 import { formatSyncDate } from './catalogImportHelpers';
 import { exsatCardPill, syncDisabledReason } from './CatalogHome';
@@ -44,9 +45,9 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
 
   const header = <PageHead eyebrow="Cadastros" title="Integração EXSAT" sub="Preços do distribuidor chegando no catálogo e nas propostas">
     <button type="button" className="od-btn s" onClick={onBack}>Voltar ao catálogo</button>
-    <button type="button" className="od-btn p" disabled={!!reason || sync.busy} title={reason || undefined} onClick={() => void sync.run()}>
+    {sync.desktop && <button type="button" className="od-btn p" disabled={!!reason || sync.busy} title={reason || undefined} onClick={() => void sync.run()}>
       {sync.busy ? <Loader2 size={17} className="od-spin" /> : <RefreshCw size={17} />}{sync.busy ? `Sincronizando… ${sync.phase.pct}%` : 'Sincronizar agora'}
-    </button>
+    </button>}
   </PageHead>;
 
   if (data.loading && !overview) return <main className="od-page" aria-busy="true"><div className="od-stack">
@@ -61,13 +62,13 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
     <div className="od-ex-head">
       <span className="od-ex-badge">EX</span>
       <span className="od-grow"><b>EXSAT</b><span>Distribuidor de sistemas especiais · catálogo e preços de custo</span></span>
-      <span className={`od-chip ${pill.tone}`}>{pill.tone === 'bad' ? <WifiOff size={13} /> : pill.tone === 'ok' ? <CheckCircle2 size={13} /> : <Info size={13} />}{pill.text}</span>
+      {sync.desktop && <span className={`od-chip ${pill.tone}`}>{pill.tone === 'bad' ? <WifiOff size={13} /> : pill.tone === 'ok' ? <CheckCircle2 size={13} /> : <Info size={13} />}{pill.text}</span>}
       {sync.desktop && (sync.connected
         ? <button type="button" className="od-btn sm s" disabled={sync.busy} onClick={() => void sync.logout()}><LogOut size={14} />Desconectar</button>
         : <button type="button" className="od-btn sm p" disabled={sync.busy || !sync.statusReady} onClick={() => void sync.login()}><LogIn size={14} />Entrar na Exsat</button>)}
     </div>
     <div className="od-kv">
-      <span><span>Conta</span><b>{sync.desktop ? (sync.connected ? 'Conectada' : 'Não conectada') : 'Só no aplicativo'}</b></span>
+      <span><span>Conta</span><b>{sync.desktop ? (sync.connected ? 'Conectada' : 'Não conectada') : 'Guardada no servidor'}</b></span>
       <span><span>Última sincronização</span><b>{sync.desktop ? formatSyncDate(sync.info.lastSyncAt) : '—'}</b></span>
       <span><span>Última varredura completa</span><b>{sync.desktop ? formatSyncDate(sync.info.lastFullSyncAt) : '—'}</b></span>
       <span><span>Itens no catálogo</span><b>{overview ? nfmt(overview.productCount) : '—'}</b></span>
@@ -95,20 +96,17 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
     </div></main>;
   }
 
-  const kpi = (label: string, value: string, sub: string, Icon: typeof Clock, tone: 'info' | 'ok' | 'warn') => <div className="od-card od-kpi" key={label}>
+  const kpi = (label: string, value: string, sub: string, Icon: LucideIcon, tone: 'info' | 'ok' | 'warn') => <div className="od-card od-kpi" key={label}>
     <div className="od-kpi-top"><span className="od-lbl">{label}</span><span className={`od-kpi-ic od-chip ${tone}`} style={{ padding: 0, width: 28, height: 28, justifyContent: 'center' }}><Icon size={15} /></span></div>
     <span className="od-kpi-v">{value}</span><span className="od-kpi-s">{sub}</span>
   </div>;
 
   const last = sync.last;
-  const lastText = sync.info.lastSyncAt ? formatSyncDate(sync.info.lastSyncAt) : 'Nunca';
   return <main className="od-page"><div className="od-stack">
     {header}{statusCard}
     {last && !sync.busy && <div className="od-note ok" role="status"><RefreshCw size={17} /><span>Sincronizado agora · {plural(last.created, 'item novo', 'itens novos')} · {plural(last.updated, 'preço ou dado atualizado', 'preços ou dados atualizados')}{last.rose || last.fell ? ` (${last.rose} subiu, ${last.fell} baixou)` : ''}{last.skipped ? ` · ${plural(last.skipped, 'item não confirmado ficou de fora', 'itens não confirmados ficaram de fora')}` : ''}{last.failedPages ? ` · ${plural(last.failedPages, 'página não pôde ser lida', 'páginas não puderam ser lidas')}` : ''}.</span></div>}
 
     <div className="od-kpis">
-      {kpi('Última sincronização', sync.desktop ? lastText : '—', sync.desktop ? (last ? 'feita por você agora' : 'EXSAT') : 'só no aplicativo', Clock, 'info')}
-      {kpi('Itens no catálogo', overview ? nfmt(overview.productCount) : '—', overview?.newCount ? plural(overview.newCount, 'item novo', 'itens novos') : 'sem itens novos', Package, 'info')}
       {kpi('Preços que mudaram', nfmt(rows.length), rows.length ? `${up} subiu, ${down} baixou` : 'nada mudou', Tag, rows.length ? 'warn' : 'ok')}
       {kpi('Propostas afetadas', nfmt(drift.length), drift.length ? 'em edição, com preço antigo' : 'nenhuma em edição', FileText, drift.length ? 'warn' : 'ok')}
     </div>

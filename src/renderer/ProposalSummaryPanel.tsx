@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ChevronDown,
   ChevronUp,
   Copy,
+  MoreHorizontal,
   FilePlus2,
   LockKeyhole,
   Save,
@@ -64,20 +65,23 @@ export function ProposalSummaryPanel({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
   const [paramsCollapsed, setParamsCollapsed] = useState(true);
-  const [actionsCollapsed, setActionsCollapsed] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   // p10 (custo, BDI e margem) e p11 (enviar e aprovar). Documentos saem do calculo de custo: sem p10 nao se gera.
   const canSeeCost = useSuitePermission('p10');
   const canSend = useSuitePermission('p11') && canSeeCost;
 
+  // Menu "Mais acoes": fecha com Esc ou clique fora.
   useEffect(() => {
-    if (!deleteModalOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !mutationPending) setDeleteModalOpen(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [deleteModalOpen, mutationPending]);
+    if (!moreOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMoreOpen(false); };
+    const onDown = (event: MouseEvent) => { if (!moreRef.current?.contains(event.target as Node)) setMoreOpen(false); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onDown);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onDown); };
+  }, [moreOpen]);
+  const runMore = (action: () => void) => { setMoreOpen(false); action(); };
 
   const materialsTotal = proposal.totals.cost ?? 0;
   const parsedDraftTax = taxDraft != null ? Number(taxDraft.trim().replace(/%/g, '').replace(',', '.')) : NaN;
@@ -113,19 +117,20 @@ export function ProposalSummaryPanel({
           <>
             {canSeeCost && (
               <>
-                <Amount label="Total de Materiais" value={`R$ ${money.format(materialsTotal)}`} />
-                <Amount label="Total de Mão de Obra" value={`R$ ${money.format(laborTotal)}`} />
-                <Amount label="Custo Base" value={`R$ ${money.format(baseCost)}`} />
-                <Amount label="BDI / acréscimos" value={`R$ ${money.format(bdiAdditions)}`} />
+                {/* Valores em R$ sem o simbolo: cabem ao lado do rotulo na coluna de 260 px (o valor final mantem o R$). */}
+                <Amount label="Materiais" value={money.format(materialsTotal)} />
+                <Amount label="Mão de obra" value={money.format(laborTotal)} />
+                <Amount label="Custo base" value={money.format(baseCost)} />
+                <Amount label="BDI" value={money.format(bdiAdditions)} />
               </>
             )}
             {taxAmount > 0 && (
-              <Amount label={`Impostos (${String(taxPercentage).replace('.', ',')}%)`} value={`R$ ${money.format(taxAmount)}`} />
+              <Amount label={`Impostos ${String(taxPercentage).replace('.', ',')}%`} value={money.format(taxAmount)} />
             )}
           </>
         )}
         {/* Item mais importante do painel: fica visível mesmo com "Resumo comercial" recolhido. */}
-        <Amount label="Valor Final da Proposta" value={`R$ ${money.format(finalValue)}`} tone="blue" />
+        <Amount label="Valor final" value={`R$ ${money.format(finalValue)}`} tone="blue" />
         </section>
 
         <div className="panel-card panel-section" style={canSeeCost ? undefined : { display: 'none' }}>
@@ -205,81 +210,64 @@ export function ProposalSummaryPanel({
           </div>
         )}
 
-        <div className="panel-card panel-section actions">
-          <button
-            type="button"
-            className="panel-section-toggle"
-            aria-expanded={!actionsCollapsed}
-            onClick={() => setActionsCollapsed((v) => !v)}
-          >
-            <h2>Ações</h2>
-            {actionsCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-          </button>
-          {!actionsCollapsed && (
-            <button type="button" disabled={!proposal.isLatest || mutationPending} onClick={onCreateRevision} title="Criar a próxima revisão (Ctrl+S)">
-              <Save size={18} /> Criar revisão
-            </button>
-          )}
-          {!actionsCollapsed && (
-            <button
-              type="button"
-              disabled={mutationPending}
-              onClick={onCloneProposal}
-              title="Clonar este orçamento gerando um novo número" aria-label="Clonar proposta"
-            >
-              <Copy size={18} /> Clonar
-            </button>
-          )}
-          {/* Item mais importante da seção: fica visível mesmo com "Ações" recolhida. */}
-          <button
-            className="primary generate"
-            type="button"
-            disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
-            onClick={onExportProposal}
-            title="Gerar os arquivos oficiais em PDF e Word (Ctrl+G)"
-            style={canSend ? undefined : { display: 'none' }}
-          >
-            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'}
-          </button>
-          {!actionsCollapsed && canSend && onShareProposal && (
-            <button
-              type="button"
-              className="share-action-btn"
-              disabled={documentPending}
-              onClick={onShareProposal}
-              title="Compartilhar proposta via WhatsApp ou E-mail"
-              aria-label="Compartilhar proposta"
-            >
-              <Share2 size={18} /> Compartilhar
-            </button>
-          )}
-          {!actionsCollapsed && (
-            <ProposalSyncDirectAction
-              proposal={proposal}
-              onProposalUpdate={onProposalUpdate}
-              onNavigateToCentroCustos={onNavigateToCentroCustos}
-              showNotice={showNotice}
-              disabled={mutationPending}
-            />
-          )}
-          {!actionsCollapsed && (
-            <button
-              type="button"
-              className="danger-action-btn"
-              disabled={mutationPending || ((proposal.status === 'approved' || proposal.hasApprovedRevision) && !isAdminNow())}
-              onClick={() => setDeleteModalOpen(true)}
-              title="Excluir este orçamento definitivamente" aria-label="Excluir orçamento"
-            >
-              <Trash2 size={16} /> Excluir
-            </button>
-          )}
-        </div>
         <div className="panel-footnote">
           <p className="last-change">
             Última alteração: {formattedUpdatedAt}
             <br />
             por {proposal.responsibleName ?? '—'}
           </p>
+        </div>
+        {/* Acoes: as finais (Centro de Custo e PDF + Word) ficam sempre visiveis no pe da coluna, uma por linha;
+            as de apoio (revisao, clonar, compartilhar, excluir) ficam no menu "Mais acoes". */}
+        <div className="panel-card panel-section actions">
+          <h2 className="actions-title">Ações</h2>
+          <div className="more-actions" ref={moreRef}>
+            <button type="button" aria-haspopup="menu" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+              <MoreHorizontal size={18} /> Mais ações
+            </button>
+            {moreOpen && (
+              <div className="pop more-actions-pop" role="menu" aria-label="Mais ações">
+                <button type="button" role="menuitem" disabled={!proposal.isLatest || mutationPending} onClick={() => runMore(onCreateRevision)} title="Criar a próxima revisão (Ctrl+S)">
+                  <Save size={18} /> Criar revisão
+                </button>
+                <button type="button" role="menuitem" disabled={mutationPending} onClick={() => runMore(onCloneProposal)} title="Duplicar esta proposta com um número novo">
+                  <Copy size={18} /> Duplicar
+                </button>
+                {canSend && onShareProposal && (
+                  <button type="button" role="menuitem" disabled={documentPending} onClick={() => runMore(onShareProposal)} title="Compartilhar por WhatsApp ou e-mail">
+                    <Share2 size={18} /> Compartilhar
+                  </button>
+                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="danger"
+                  disabled={mutationPending || ((proposal.status === 'approved' || proposal.hasApprovedRevision) && !isAdminNow())}
+                  onClick={() => runMore(() => setDeleteModalOpen(true))}
+                  title="Excluir esta proposta"
+                >
+                  <Trash2 size={18} /> Excluir
+                </button>
+              </div>
+            )}
+          </div>
+          <ProposalSyncDirectAction
+            proposal={proposal}
+            onProposalUpdate={onProposalUpdate}
+            onNavigateToCentroCustos={onNavigateToCentroCustos}
+            showNotice={showNotice}
+            disabled={mutationPending}
+          />
+          <button
+            className="primary generate"
+            type="button"
+            disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
+            onClick={onExportProposal}
+            title="Abre o PDF da proposta: opções, prévia e arquivo em PDF ou Word (Ctrl+G)"
+            style={canSend ? undefined : { display: 'none' }}
+          >
+            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF ou Word'}
+          </button>
         </div>
       </aside>
 

@@ -1,5 +1,6 @@
 import { type ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
+import { brl, numero, plural } from '../shared/formatoBr';
 
 export interface ParsedSpreadsheetItem {
   code: string;
@@ -114,27 +115,27 @@ export function ProposalImportPasteTab({
   return (
     <div className="import-tab-pane">
       <div className="paste-area-header">
-        <span>Copie linhas do Excel/Google Sheets e cole abaixo ou selecione um arquivo:</span>
-        <label className="csv-upload-btn">
-          <Upload size={13} /> Carregar .CSV
+        <span>Copie as linhas do Excel ou do Google Planilhas e cole abaixo, ou escolha um arquivo .csv.</span>
+        <label className="od-btn s sm csv-upload-btn">
+          <Upload size={15} /> Escolher arquivo .csv
           <input type="file" accept=".csv,.txt" onChange={handleFileUpload} style={{ display: 'none' }} />
         </label>
       </div>
 
       <textarea
-        className="paste-textarea"
+        className="od-inp paste-textarea"
         rows={4}
         value={pastedText}
         onChange={(e) => handleTextareaChange(e.target.value)}
-        placeholder="Cole aqui (ex: CÓDIGO [tab] DESCRIÇÃO [tab] QUANTIDADE [tab] UNIDADE [tab] CUSTO)"
+        placeholder="Cole aqui: código, descrição, quantidade, unidade e custo, uma linha por item"
       />
 
       {parsedItems.length > 0 && (
         <div className="parsed-preview">
           <div className="preview-header">
-            <strong>Pré-visualização: {parsedItems.length} item(ns) identificados</strong>
+            <strong>{plural(parsedItems.length, 'item encontrado', 'itens encontrados')}</strong>
             <span className="preview-total">
-              Total Custo: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalCost)}
+              Custo total: {brl(totalCost)}
             </span>
           </div>
           <div className="preview-table-container">
@@ -143,21 +144,21 @@ export function ProposalImportPasteTab({
                 <tr>
                   <th>Código</th>
                   <th>Descrição</th>
-                  <th>Qtd</th>
-                  <th>Unid</th>
-                  <th>Custo Unit.</th>
-                  <th>Total Custo</th>
+                  <th className="num">Qtd.</th>
+                  <th>Unid.</th>
+                  <th className="num">Custo unit.</th>
+                  <th className="num">Custo total</th>
                 </tr>
               </thead>
               <tbody>
                 {parsedItems.slice(0, 50).map((it, idx) => (
                   <tr key={idx}>
-                    <td><code>{it.code || '—'}</code></td>
+                    <td className="cod">{it.code || '—'}</td>
                     <td>{it.description}</td>
-                    <td>{it.quantity}</td>
+                    <td className="num">{numero(it.quantity, 3)}</td>
                     <td>{it.unit}</td>
-                    <td>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(it.unitCost)}</td>
-                    <td>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(it.quantity * it.unitCost)}</td>
+                    <td className="num">{brl(it.unitCost)}</td>
+                    <td className="num">{brl(it.quantity * it.unitCost)}</td>
                   </tr>
                 ))}
               </tbody>

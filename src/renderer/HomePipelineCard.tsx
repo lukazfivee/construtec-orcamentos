@@ -1,5 +1,6 @@
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import type { CommercialPipelineStage } from '../shared/contracts';
+import { pct, plural } from '../shared/formatoBr';
 
 type HomePipelineCardProps = {
   pipeline?: CommercialPipelineStage[];
@@ -31,7 +32,7 @@ export function HomePipelineCard({
       <div className="home-intelligence-card-header">
         <div className="title-group">
           <TrendingUp size={18} className="text-primary" />
-          <h3>Funil Comercial & Pipeline de Vendas</h3>
+          <h3>Funil comercial</h3>
         </div>
         <div className="conversion-badge" title="Taxa de conversão sobre propostas decididas (Aprovadas / Decididas)">
           <Target size={14} />
@@ -42,12 +43,12 @@ export function HomePipelineCard({
       <div className="home-pipeline-tickets">
         <div className="ticket-item">
           <DollarSign size={14} className="text-green" />
-          <span>Ticket Médio Aprovado:</span>
+          <span>Ticket médio aprovado</span>
           <strong>{money.format(averageTicketApproved)}</strong>
         </div>
         <div className="ticket-item">
           <DollarSign size={14} className="text-amber" />
-          <span>Ticket Médio em Negociação:</span>
+          <span>Ticket médio em negociação</span>
           <strong>{money.format(averageTicketNegotiation)}</strong>
         </div>
       </div>
@@ -59,8 +60,8 @@ export function HomePipelineCard({
             <div key={stage.status} className="pipeline-stage-row">
               <div className="stage-meta">
                 <span className={`status-tag ${config.badgeClass}`}>{stage.label}</span>
-                <span className="stage-count">{stage.count} {stage.count === 1 ? 'orçamento' : 'orçamentos'}</span>
-                <span className="stage-pct">{stage.percentage}%</span>
+                <span className="stage-count">{plural(stage.count, 'orçamento', 'orçamentos')}</span>
+                <span className="stage-pct">{pct(stage.percentage)}</span>
                 <strong className="stage-value">{money.format(stage.totalValue)}</strong>
               </div>
               <div className="stage-track">

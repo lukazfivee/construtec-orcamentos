@@ -7,9 +7,7 @@ import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
 import { ProposalDeleteModal } from './ProposalDeleteModal';
-import { ProposalExportDialog } from './ProposalExportDialog';
 import { ProposalExtendValidityDialog } from './ProposalExtendValidityDialog';
-import { ProposalShareDialog } from './ProposalShareDialog';
 import type {
   DateFilterOption,
   ValueFilterOption} from './ProposalsListFilterBar';
@@ -29,6 +27,8 @@ import {
 
 type ProposalsListWorkspaceProps = {
   onOpenProposal: (proposalId: string) => void;
+  /** Exportar e Compartilhar levam ao PDF da proposta (share abre o menu Compartilhar). */
+  onOpenPdf: (proposalId: string, share: boolean) => void;
   onNewProposal: () => void;
   onError: (message: string) => void;
   onNotice: (message: string) => void;
@@ -44,6 +44,7 @@ const statusLabels: Record<ProposalDetail['status'], string> = {
 
 export function ProposalsListWorkspace({
   onOpenProposal,
+  onOpenPdf,
   onNewProposal,
   onError,
   onNotice,
@@ -59,8 +60,6 @@ export function ProposalsListWorkspace({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [deletingProposal, setDeletingProposal] = useState<ProposalSummary | null>(null);
   const [cloningProposal, setCloningProposal] = useState<ProposalSummary | null>(null);
-  const [exportingProposal, setExportingProposal] = useState<ProposalDetail | null>(null);
-  const [sharingProposal, setSharingProposal] = useState<ProposalDetail | null>(null);
   const [extendingProposal, setExtendingProposal] = useState<ProposalSummary | null>(null);
   const [actionPending, setActionPending] = useState(false);
 
@@ -88,30 +87,6 @@ export function ProposalsListWorkspace({
       await loadProposals();
     } catch (error) {
       onError(error instanceof Error ? error.message : 'Erro ao atualizar status da proposta.');
-    } finally {
-      setActionPending(false);
-    }
-  };
-
-  const handleExport = async (item: ProposalSummary) => {
-    setActionPending(true);
-    try {
-      const detail = await proposalApi.byId(item.id);
-      setExportingProposal(detail.proposal);
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Erro ao carregar proposta para exportação.');
-    } finally {
-      setActionPending(false);
-    }
-  };
-
-  const handleShare = async (item: ProposalSummary) => {
-    setActionPending(true);
-    try {
-      const detail = await proposalApi.byId(item.id);
-      setSharingProposal(detail.proposal);
-    } catch (error) {
-      onError(error instanceof Error ? error.message : 'Erro ao carregar proposta para compartilhamento.');
     } finally {
       setActionPending(false);
     }
@@ -204,7 +179,7 @@ export function ProposalsListWorkspace({
       <header className="home-header cab">
         <div className="tit">
           <span className="eyebrow">Comercial</span>
-          <h1>Central de Propostas</h1>
+          <h1>Propostas</h1>
           <p className="sub">Da edição à aprovação, com o valor final de cada revisão.</p>
         </div>
         <div className="home-header-actions acoes">
@@ -262,8 +237,8 @@ export function ProposalsListWorkspace({
           onOpenProposal={onOpenProposal}
           onStatusChange={handleStatusChange}
           onClone={(item) => setCloningProposal(item)}
-          onExport={(item) => void handleExport(item)}
-          onShare={(item) => void handleShare(item)}
+          onExport={(item) => onOpenPdf(item.id, false)}
+          onShare={(item) => onOpenPdf(item.id, true)}
           onExtendValidity={(item) => setExtendingProposal(item)}
           onDeleteRequest={setDeletingProposal}
           onClearFilters={handleClearFilters}
@@ -296,26 +271,6 @@ export function ProposalsListWorkspace({
           onOpenProposal(cloned.id);
         }}
         onError={onError}
-      />
-
-      {/* Export Proposal Dialog */}
-      <ProposalExportDialog
-        open={Boolean(exportingProposal)}
-        proposal={exportingProposal}
-        onClose={() => setExportingProposal(null)}
-        onExportSuccess={(files) => {
-          onNotice(`Proposta exportada com sucesso! (${files.length} arquivo${files.length > 1 ? 's' : ''})`);
-          setExportingProposal(null);
-        }}
-        onError={onError}
-      />
-
-      {/* Share Proposal Dialog */}
-      <ProposalShareDialog
-        open={Boolean(sharingProposal)}
-        proposal={sharingProposal}
-        onClose={() => setSharingProposal(null)}
-        onNotice={onNotice}
       />
 
       {/* Extend Validity Dialog */}

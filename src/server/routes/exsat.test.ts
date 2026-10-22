@@ -80,7 +80,9 @@ test('conta Exsat: sem a chave EXSAT_CREDENTIAL_KEY nada e gravado nem a Exsat e
   assert.equal(status.body.status.keyConfigured, false);
   const saved = await ctx.call('PUT', '/credential', credential(ctx.site));
   assert.equal(saved.status, 503);
-  assert.match(saved.body.error, /EXSAT_CREDENTIAL_KEY/);
+  // A mensagem vai para a tela: diz o que falta sem o nome tecnico da variavel do servidor (auditoria ORC-34).
+  assert.match(saved.body.error, /não foi configurada no servidor/);
+  assert.doesNotMatch(saved.body.error, /EXSAT_CREDENTIAL_KEY/);
   assert.equal(saved.body.code, 'EXSAT_KEY_MISSING');
   assert.equal((await ctx.database.query('SELECT 1 FROM exsat_credentials')).rows.length, 0);
   assert.equal(ctx.site.log.length, 0);

@@ -1,36 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  AlertTriangle,
-  Bell,
-  CheckCheck,
-  CheckCircle2,
-  Database,
-  FileSpreadsheet,
-} from 'lucide-react';
-import type { ProposalDetail } from '../shared/contracts';
-import { isCloudRuntime } from './api';
+import { Bell, Check, RefreshCw } from 'lucide-react';
+import { noticeGroup, noticeHour, noticesApi, type SuiteNotice } from './notificationsFeed';
 
 interface NotificationsPopoverProps {
-  proposal: ProposalDetail | null;
   onClose: () => void;
+  /** Contador do sino: atualiza quando a pessoa marca como lido. */
+  onUnreadChange: (unread: number) => void;
+  /** Destino do aviso (orcamentos?proposta=... ou centro-custos?obra=...). */
+  onFollow: (link: string) => void;
 }
 
-const isCloud = isCloudRuntime();
+type Load = { state: 'loading' } | { state: 'error' } | { state: 'ready'; items: SuiteNotice[] };
 
-export function NotificationsPopover({ proposal, onClose }: NotificationsPopoverProps) {
+// Notificacoes do computador: os mesmos avisos do celular (Proposta aprovada, Novo acesso a proposta, Conta a vencer...),
+// por dia, com o ponto ciano nos novos e "Marcar todas como lidas".
+export function NotificationsPopover({ onClose, onUnreadChange, onFollow }: NotificationsPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const [clearedDivergence, setClearedDivergence] = useState(false);
+  const [load, setLoad] = useState<Load>({ state: 'loading' });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
     const handlePointerDown = (event: PointerEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        onClose();
-      }
+      const target = event.target as Element;
+      if (popoverRef.current && !popoverRef.current.contains(target) && !target.closest?.('[data-sino]')) onClose();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     document.addEventListener('pointerdown', handlePointerDown);
     return () => {
@@ -39,86 +33,81 @@ export function NotificationsPopover({ proposal, onClose }: NotificationsPopover
     };
   }, [onClose]);
 
-  const divergentItems = (!clearedDivergence && proposal?.isLatest)
-    ? proposal.items.filter(
-        (item) =>
-          item.catalogCurrentCost !== null &&
-          item.catalogCurrentCost !== undefined &&
-          Math.abs(item.catalogCurrentCost - item.unitCost) >= 0.01
-      )
-    : [];
+  useEffect(() => {
+    let active = true;
+    setLoad({ state: 'loading' });
+    noticesApi.list()
+      .then((feed) => { if (!active) return; setLoad({ state: 'ready', items: feed.items ?? [] }); onUnreadChange(Number(feed.unread) || 0); })
+      .catch(() => { if (active) setLoad({ state: 'error' }); });
+    return () => { active = false; };
+  }, [attempt, onUnreadChange]);
+
+  const items = load.state === 'ready' ? load.items : [];
+  const unread = items.filter((item) => !item.read).length;
+  const groups = (['Hoje', 'Ontem', 'Anteriores'] as const).map((name) => [name, items.filter((item) => noticeGroup(item.createdAt) === name)] as const).filter(([, list]) => list.length);
+
+  const markAll = async () => {
+    const before = load;
+    setLoad({ state: 'ready', items: items.map((item) => ({ ...item, read: true })) });
+    onUnreadChange(0);
+    await noticesApi.read({ all: true }).catch(() => { setLoad(before); onUnreadChange(unread); });
+  };
+  const open = async (notice: SuiteNotice) => {
+    if (!notice.read) {
+      setLoad({ state: 'ready', items: items.map((item) => (item.id === notice.id ? { ...item, read: true } : item)) });
+      onUnreadChange(Math.max(0, unread - 1));
+      await noticesApi.read({ ids: [notice.id] }).catch(() => {
+        setLoad((current) => (current.state === 'ready' ? { state: 'ready', items: current.items.map((item) => (item.id === notice.id ? { ...item, read: false } : item)) } : current));
+        onUnreadChange(unread);
+      });
+    }
+    if (notice.link) { onClose(); onFollow(notice.link); }
+  };
 
   return (
-    <div className="notifications-popover" ref={popoverRef} role="dialog" aria-label="Notificações do sistema">
+    <div className="notifications-popover pop" ref={popoverRef} role="dialog" aria-label="Notificações">
       <div className="notifications-header">
-        <div className="notifications-title">
-          <Bell size={16} />
-          <strong>Notificações & Alertas</strong>
-        </div>
-        {divergentItems.length > 0 && (
-          <button
-            type="button"
-            className="notifications-clear-btn"
-            onClick={() => setClearedDivergence(true)}
-            title="Marcar divergências como vistas"
-          >
-            <CheckCheck size={14} /> Dispensar
+        <strong>Notificações</strong>
+        {unread > 0 && (
+          <button type="button" className="notifications-read-all" onClick={() => void markAll()}>
+            <Check size={16} /> Marcar todas como lidas
           </button>
         )}
       </div>
 
-      <div className="notifications-list">
-        {divergentItems.length > 0 && (
-          <div className="notification-card warning">
-            <div className="notification-icon warning">
-              <AlertTriangle size={16} />
-            </div>
-            <div className="notification-body">
-              <strong>Divergência de Custos</strong>
-              <p>
-                {divergentItems.length} item(ns) na proposta <b>{proposal?.number}</b> possuem custo atualizado no catálogo local.
-              </p>
-              <small>Verifique os badges na tabela de itens para sincronizar se desejar.</small>
-            </div>
-          </div>
-        )}
-
-        {proposal && (
-          <div className="notification-card info">
-            <div className="notification-icon info">
-              <FileSpreadsheet size={16} />
-            </div>
-            <div className="notification-body">
-              <strong>Proposta Ativa: {proposal.number}</strong>
-              <p>
-                Revisão <b>REV.{String(proposal.revision).padStart(2, '0')}</b> —{' '}
-                {proposal.status === 'draft' ? 'Rascunho em edição' : proposal.status === 'approved' ? 'Aprovada' : 'Emitida'}
-              </p>
-              <small>{proposal.isLatest ? 'Modo de edição habilitado.' : 'Modo histórico somente leitura.'}</small>
-            </div>
-          </div>
-        )}
-
-        <div className="notification-card success">
-          <div className="notification-icon success">
-            <Database size={16} />
-          </div>
-          <div className="notification-body">
-            <strong>{isCloud ? 'Banco PostgreSQL na Nuvem Conectado' : 'Banco Local PGlite Conectado'}</strong>
-            <p>{isCloud
-              ? 'Conexão segura e íntegra com o banco de dados na nuvem.'
-              : 'Operação local-first ativa e íntegra. Todos os dados são persistidos neste computador.'}</p>
-            <small>
-              <CheckCircle2 size={12} style={{ display: 'inline', marginRight: 4 }} />
-              {isCloud ? 'Conexão segura (HTTPS)' : '100% Offline e seguro'}
-            </small>
-          </div>
+      {load.state === 'loading' && (
+        <div className="notifications-skeleton" role="status" aria-label="Carregando as notificações"><i /><i /><i /></div>
+      )}
+      {load.state === 'error' && (
+        <div className="notifications-empty">
+          <Bell size={24} />
+          <b>Não deu para carregar as notificações</b>
+          <span>A central de avisos da Suíte não respondeu. Confira a conexão e tente de novo.</span>
+          <button type="button" className="btn btn-s" onClick={() => setAttempt((value) => value + 1)}><RefreshCw size={16} /> Tentar de novo</button>
         </div>
-      </div>
-
-      <div className="notifications-footer">
-        <span>Construtec Orçamentos • Central Operacional</span>
-      </div>
+      )}
+      {load.state === 'ready' && !groups.length && (
+        <div className="notifications-empty">
+          <Bell size={24} />
+          <b>Nenhuma notificação por enquanto</b>
+          <span>Proposta aprovada, novo acesso à proposta e contas a vencer aparecem aqui e no celular.</span>
+        </div>
+      )}
+      {load.state === 'ready' && groups.map(([name, list]) => (
+        <section key={name} className="notifications-group" aria-label={name}>
+          <h3>{name}</h3>
+          {list.map((notice) => (
+            <button key={notice.id} type="button" className={`notification-row${notice.read ? '' : ' novo'}`} onClick={() => void open(notice)}>
+              <span className="notification-dot" aria-hidden="true" />
+              <span className="notification-text">
+                <b>{notice.title}</b>
+                <span>{notice.body}</span>
+                <small>{noticeHour(notice.createdAt)}{notice.read ? '' : <span className="sr-only"> (nova)</span>}</small>
+              </span>
+            </button>
+          ))}
+        </section>
+      ))}
     </div>
   );
 }

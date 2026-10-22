@@ -24,28 +24,11 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .actions .generate:not(:disabled):hover, .btn.primary:not(:disabled):hover,
 .new-proposal-dialog button.primary:not(:disabled):hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
 
-/* Modais que usavam .modal-backdrop e .modal-dialog sem nenhuma regra: abriam colados no canto, sem fundo. */
-.modal-backdrop {
-  position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 24px;
-}
-.modal-dialog {
-  max-width: calc(100vw - 48px); max-height: calc(100vh - 48px); overflow: hidden;
-  color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px;
-  box-shadow: 0 24px 60px rgba(8, 18, 35, .28);
-}
-.proposal-export-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.close-btn {
-  display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; padding: 0;
-  color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; cursor: pointer;
-}
-.close-btn:hover { background: var(--surface-subtle); }
-.proposal-import-header .close-btn { color: #fff; background: transparent; border-color: rgba(255, 255, 255, .35); }
-
 /* Classes usadas pelo React sem regra. */
 .text-right { text-align: right; }
 .home-panel { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .home-panel-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--line); }
-.home-panel-header h3 { margin: 0; color: var(--ink); font-size: calc(14px * var(--fs, 1)); font-weight: 700; }
+.home-panel-header h2, .home-panel-header h3 { margin: 0; color: var(--ink); font-size: calc(14px * var(--fs, 1)); font-weight: 700; }
 .home-panel-header p { margin: 3px 0 0; color: var(--muted-ink); font-size: calc(11px * var(--fs, 1)); }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 20px; text-align: center; }
 .empty-state h4, .empty-state p { margin: 0; }
@@ -62,15 +45,13 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 
 /* Contraste AA em chips, selos e textos auxiliares. */
 .chip-count { color: var(--ink-secondary); }
-.help-modal-dialog nav button, .help-modal-tabs button { color: var(--muted-ink); }
 .filter-chip.active { border-color: var(--bd-cool-30); }
 .filter-chip.active .chip-count { background: var(--bg-cool-89); color: var(--tx-cool-22); }
 .revision-tag, .items-count-badge, .proposal-date-cell { color: var(--muted-ink); }
 .last-change { color: var(--muted-ink); }
 .table-action-btn.secondary.share-btn { color: var(--tx-cool-28-3); }
 .user-profile-logout-btn { color: var(--tx-red-42); }
-.notifications-footer { color: var(--muted-ink); }
-.page-back, .page-eyebrow { color: var(--tx-cool-28-3); }
+.page-back { color: var(--tx-cool-28-3); }
 
 /* Lista de propostas: Cliente/Obra ocupa a sobra e trunca com reticencias, acoes secundarias viram icones,
  * colunas de apoio cedem espaco e a coluna de acoes fica sempre visivel (sticky com fundo opaco). */
@@ -120,19 +101,8 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .proposal-flow-rev, .rev-badge, .tab-counter, .summary-total-callout strong { color: var(--tx-cool-28-3); }
 .proposal-flow i { color: var(--ink-secondary); }
 .tab-counter.highlight { background: #047857; }
-.btn-action-whatsapp { background: #15803d; border-color: #166534; }
-.btn-action-whatsapp:hover { background: #166534; }
-.btn-action-email, .btn-action-whatsapp { white-space: nowrap; }
 .footer-actions { flex: none; }
-.share-dialog-footer { gap: 16px; }
-.btn-cancel { color: var(--muted-ink); }
 .settings-card b, .settings-card strong { text-wrap: balance; }
-
-/* Dialogo de clonar: lista do que sera gerado em uma coluna, sem quebrar o texto em pedacos. */
-.clone-summary-box li { display: block; position: relative; padding-left: 20px; }
-.clone-summary-box li .check-icon { position: absolute; left: 0; top: 2px; }
-.clone-mode-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.clone-mode-selector .radio-option { min-width: 0; }
 
 /* PDF e popover de compartilhar em 1024: preview com altura minima e menu ancorado a esquerda. */
 @media screen and (max-width: 1180px) {
@@ -144,7 +114,6 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .kit-add-btn, .management-header button.primary-ghost { color: var(--tx-cool-28-3); }
 .version-current, .history-current { color: var(--tx-green-24); }
 small.current-tag { color: var(--tx-green-24); }
-.clone-mode-selector, .clone-summary-box { width: 100%; box-sizing: border-box; }
 
 /* Configuracoes: campos e botoes soltos do painel de usuarios seguem o padrao dos demais campos. */
 .settings-card input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .settings-card select {
@@ -159,10 +128,9 @@ small.current-tag { color: var(--tx-green-24); }
 /* PDF da proposta: a pagina inteira cabe na area de visualizacao sem cortar. A altura do visor segue a janela
    (o preview se encaixa nela); as opcoes ficam na coluna ao lado e a pagina rola so se for maior que a janela. */
 .app-shell .pdf-page { gap: 10px; }
-.app-shell .pdf-page .page-eyebrow { display: none; }
 .app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh - 330px), 940px); align-items: start; min-height: 0; }
 .app-shell .pdf-layout .pdf-stage { flex: none; height: var(--pdf-stage-h); }
-.app-shell .pdf-layout .pdf-thumbs { max-height: calc(var(--pdf-stage-h) + 50px); }
+.app-shell .pdf-layout .pdf-thumbs { overflow: visible; max-height: none; } /* miniaturas na altura natural: a pagina rola, nao a coluna */
 @media screen and (max-width: 1180px) {
   .app-shell .pdf-layout { grid-template-rows: none; }
 }

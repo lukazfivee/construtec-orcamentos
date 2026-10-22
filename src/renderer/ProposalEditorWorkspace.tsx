@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { LayoutList, Plus } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { seesCost } from './SuitePermissions';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
 import { ProposalActionsBar } from './ProposalActionsBar';
 import { ProposalPriceDriftBanner } from './ProposalPriceDriftBanner';
-import { ProposalExportDialog } from './ProposalExportDialog';
-import { ProposalShareDialog } from './ProposalShareDialog';
 import { ProposalCommercialConditionsPanel } from './ProposalCommercialConditionsPanel';
 import { ProposalHistoryPanel } from './ProposalHistoryPanel';
 import { ProposalItemsPanel } from './ProposalItemsPanel';
@@ -15,6 +12,7 @@ import { ProposalKitsPanel } from './ProposalKitsPanel';
 import { ProposalLaborPanel } from './ProposalLaborPanel';
 import { ProposalMetaBar } from './ProposalMetaBar';
 import { ProposalMobileSheet } from './ProposalMobileSheet';
+import { ProposalOpenTabs } from './ProposalOpenTabs';
 import { ProposalSummaryPanel } from './ProposalSummaryPanel';
 import { useProposalMutations } from './useProposalMutations';
 
@@ -40,7 +38,7 @@ type Props = {
   onManageClients: () => void;
   onCreateRevision: () => void;
   initialSection?: ActiveSection;
-  onOpenPdf: () => void;
+  onOpenPdf: (share?: boolean) => void;
   onOpenCompare: (fromRevisionId?: string) => void;
   onNavigateToCentroCustos?: (costCenterId?: number) => void;
   showNotice: (message: string) => void;
@@ -72,8 +70,6 @@ export function ProposalEditorWorkspace({
   const [activeSection, setActiveSection] = useState<ActiveSection>(initialSection ?? 'Itens');
   const [laborTotal, setLaborTotal] = useState(0);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const {
     mutationPending,
     setMutationPending,
@@ -115,32 +111,14 @@ export function ProposalEditorWorkspace({
 
   return (
     <main className="workspace">
-      <div className="proposal-tabs" role="tablist" aria-label="Propostas abertas">
-        <button type="button" className="view-list-tab" onClick={onViewList} title="Ver lista completa de propostas">
-          <LayoutList size={15} /> Ver todas ({proposalTabs.length})
-        </button>
-        <span className="tab-divider" />
-        {proposalTabs.map((tab) => {
-          const selected = tab.id === proposal.id;
-          return (
-            <button
-              key={tab.id}
-              className={selected ? 'selected' : ''}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              disabled={loading}
-              title={`${tab.clientName} · ${tab.workName}`}
-              onClick={() => void onOpenProposal(tab.id)}
-            >
-              {tab.number} • REV.{String(tab.revision).padStart(2, '0')}
-            </button>
-          );
-        })}
-        <button type="button" className="new-tab" onClick={onNewProposal}>
-          <Plus size={17} /> Nova proposta
-        </button>
-      </div>
+      <ProposalOpenTabs
+        proposalTabs={proposalTabs}
+        selectedId={proposal.id}
+        loading={loading}
+        onViewList={onViewList}
+        onOpenProposal={onOpenProposal}
+        onNewProposal={onNewProposal}
+      />
 
       <ProposalMobileSheet
         proposal={proposal}
@@ -297,8 +275,8 @@ export function ProposalEditorWorkspace({
         onCreateRevision={onCreateRevision}
         onCloneProposal={() => setCloneDialogOpen(true)}
         onPreviewProposal={onOpenPdf}
-        onExportProposal={() => setExportDialogOpen(true)}
-        onShareProposal={() => setShareDialogOpen(true)}
+        onExportProposal={() => onOpenPdf()}
+        onShareProposal={() => onOpenPdf(true)}
         onDeleteProposal={() => void deleteCurrentProposal()}
         onProposalUpdate={onProposalUpdate}
         onNavigateToCentroCustos={onNavigateToCentroCustos}
@@ -317,22 +295,6 @@ export function ProposalEditorWorkspace({
         onError={setError}
       />
 
-      <ProposalExportDialog
-        open={exportDialogOpen}
-        proposal={proposal}
-        onClose={() => setExportDialogOpen(false)}
-        onExportSuccess={(files) => {
-          showNotice(`Proposta ${proposal.number} exportada com sucesso! (${files.length} arquivo${files.length > 1 ? 's' : ''})`);
-        }}
-        onError={setError}
-      />
-
-      <ProposalShareDialog
-        open={shareDialogOpen}
-        proposal={proposal}
-        onClose={() => setShareDialogOpen(false)}
-        onNotice={showNotice}
-      />
     </main>
   );
 }

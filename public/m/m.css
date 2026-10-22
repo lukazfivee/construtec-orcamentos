@@ -89,9 +89,16 @@ body.no-tabs .screen { min-height: calc(100vh - var(--sab)); min-height: calc(10
 .bar.warn span { background: var(--warn-bar); }
 .row .foot { font-size: 11.5px; color: var(--n300); }
 
-.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 3px; border-radius: 12px; background: var(--n800); gap: 3px; }
-.seg button { min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: var(--text); font-size: 13px; font-weight: 500; }
+/* Controle segmentado (decisao D4 da Suite): claro com trilho #eef1f3 e inativo #3f5a66; escuro abaixo. */
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 3px; border-radius: 12px; background: #eef1f3; gap: 3px; }
+.seg button { min-height: 44px; border: 0; border-radius: 9px; background: transparent; color: #3f5a66; font-size: 13px; font-weight: 500; }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+html[data-theme="escuro"] .seg { background: var(--surface); box-shadow: inset 0 0 0 1px var(--divider); }
+html[data-theme="escuro"] .seg button { color: #b9d4dd; }
+html[data-theme="escuro"] .seg button[aria-pressed="true"] { background: #1a4a5a; color: #f2f8fa; box-shadow: inset 0 0 0 1px rgba(95, 208, 238, .45); }
+/* Texto de exemplo dos campos com 4,5:1 nos dois temas (o padrao do navegador, #757575, ficava em 3,1:1 no escuro). */
+::placeholder { color: #5d7480; opacity: 1; }
+html[data-theme="escuro"] ::placeholder { color: #8fa6b0; }
 
 .kv { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13px; }
 .kv span { color: var(--n300); }
@@ -293,12 +300,12 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 .login-tip b { display: block; color: var(--text); font-size: 14px; }
 .login-tip .ico { color: var(--accent-300); margin-top: 2px; }
 
-/* O5: folga do botao do assistente (52px + 14px). Sem :has() (WebView antigo) a regra cai e vale o comportamento anterior.
-:root { --fab-clear: 66px; }
-/* O5: o fim de cada tela sai de baixo do botao do assistente (52px + folga). Sem barra de acoes, a sobra fica no fim
-   da tela; com a barra de acoes fixa, o botao sobe acima dela e a sobra fica antes da barra. */
+/* Botao do assistente (decisao D1 da Suite, igual no /m/ do Centro): o fim da rolagem de #view reserva a altura dele
+   + 16 px, para a ultima linha nunca ficar debaixo; em tela com barra de acoes fixa (formularios) o botao sai.
+   (O comentario anterior nao fechava e --fab-clear nunca existia: a reserva nao valia em nenhuma tela.) */
+:root { --fab-clear: 68px; }
 #view:not(:has(.actions)) { padding-bottom: var(--fab-clear); }
-#view :has(+ .actions) { margin-bottom: var(--fab-clear); }
+body:has(.actions) .ia-fab { display: none; }
 /* WebView sem :has(): folga em todas as telas (com a barra de acoes sobra um pouco a mais, o que e inofensivo). */
 @supports not selector(:has(a)) { #view { padding-bottom: var(--fab-clear); } }
 /* Filtros de situacao (lista de propostas) quebram linha em vez de rolar de lado e cortar o ultimo chip; os demais .chips (ex.: categorias do Catalogo) seguem rolando de lado. */

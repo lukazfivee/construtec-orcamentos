@@ -2,6 +2,8 @@ import type { CatalogProduct, ProposalDetail } from '../shared/contracts';
 import { apiRequest, proposalApi } from './api';
 
 const parseDecimal = (value: string) => Number(value.trim().replace(',', '.'));
+// Dinheiro aparece como 1.234,56 (formatoBr): com virgula, os pontos sao de milhar.
+const parseMoney = (value: string) => { const text = value.trim(); return Number(text.includes(',') ? text.replace(/\./g, '').replace(',', '.') : text); };
 const formatDecimal = (value: number) => String(value).replace('.', ',');
 
 type Options = {
@@ -143,7 +145,7 @@ export function useProposalItemActions({
   const updateItemMoney = async (itemId: string, field: 'unitCost' | 'unitSale', value: string) => {
     if (mutationPending) return;
     const currentItem = proposal.items.find((item) => item.id === itemId);
-    const nextValue = parseDecimal(value);
+    const nextValue = parseMoney(value);
     if (!currentItem || currentItem[field] === nextValue) return;
     if (!Number.isFinite(nextValue) || nextValue < 0 || nextValue > 100_000_000) {
       showNotice('Informe um valor válido.');

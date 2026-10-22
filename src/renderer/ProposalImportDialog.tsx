@@ -6,9 +6,10 @@ import {
   Loader2,
   PlusCircle,
   Upload,
-  X,
 } from 'lucide-react';
+import { plural } from '../shared/formatoBr';
 import type { KitSummary, ProposalDetail, ProposalLine, ProposalSummary } from '../shared/contracts';
+import { Dialogo } from './orcDeskUi';
 import { kitsApi, proposalApi } from './api';
 import {
   ProposalImportPasteTab,
@@ -50,15 +51,6 @@ export function ProposalImportDialog({
   // Aba De Kits
   const [kitsList, setKitsList] = useState<KitSummary[]>([]);
   const [selectedKitId, setSelectedKitId] = useState('');
-
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -140,37 +132,51 @@ export function ProposalImportDialog({
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop proposal-import-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="modal-dialog proposal-import-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="proposal-import-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="proposal-import-header">
-          <div className="title-group">
-            <span className="icon-badge"><Upload size={20} /></span>
-            <div>
-              <h2 id="proposal-import-title">Importar Itens para a Proposta</h2>
-              <p>Adicione itens em lote via planilha, a partir de outra proposta ou de kits cadastrados</p>
-            </div>
-          </div>
-          <button type="button" className="close-btn" onClick={onClose} aria-label="Fechar"><X size={18} /></button>
-        </header>
-
-        <nav className="proposal-import-tabs" aria-label="Opções de importação">
-          <button type="button" className={tab === 'paste' ? 'active' : ''} onClick={() => setTab('paste')}>
-            <FileSpreadsheet size={15} /> Planilha / Colagem (CSV)
+    <Dialogo
+      id="proposal-import"
+      icon={Upload}
+      title="Importar itens"
+      sub="De uma planilha, de outra proposta ou de um kit cadastrado"
+      className="w-lg import-dlg"
+      busy={loading}
+      onClose={onClose}
+      toolbar={(
+        <nav className="dlg-tabs" aria-label="Origem dos itens">
+          <button type="button" className={tab === 'paste' ? 'active' : ''} aria-pressed={tab === 'paste'} onClick={() => setTab('paste')}>
+            <FileSpreadsheet size={15} /> Planilha
           </button>
-          <button type="button" className={tab === 'proposal' ? 'active' : ''} onClick={() => setTab('proposal')}>
-            <Copy size={15} /> De Outra Proposta
+          <button type="button" className={tab === 'proposal' ? 'active' : ''} aria-pressed={tab === 'proposal'} onClick={() => setTab('proposal')}>
+            <Copy size={15} /> Outra proposta
           </button>
-          <button type="button" className={tab === 'kit' ? 'active' : ''} onClick={() => setTab('kit')}>
-            <Layers3 size={15} /> De um Kit
+          <button type="button" className={tab === 'kit' ? 'active' : ''} aria-pressed={tab === 'kit'} onClick={() => setTab('kit')}>
+            <Layers3 size={15} /> Kit
           </button>
         </nav>
-
+      )}
+      footer={(
+        <>
+          <button type="button" onClick={onClose} disabled={loading}>Cancelar</button>
+          {tab === 'paste' && (
+            <button type="button" className="primary" disabled={parsedItems.length === 0 || loading} onClick={() => void handleImportBatch()}>
+              {loading ? <Loader2 className="spinning" size={16} /> : <PlusCircle size={16} />}
+              {parsedItems.length > 0 ? `Importar ${plural(parsedItems.length, 'item', 'itens')}` : 'Importar itens'}
+            </button>
+          )}
+          {tab === 'proposal' && (
+            <button type="button" className="primary" disabled={selectedSourceItemIds.length === 0 || loading} onClick={() => void handleCopyFromProposal()}>
+              {loading ? <Loader2 className="spinning" size={16} /> : <Copy size={16} />}
+              {selectedSourceItemIds.length > 0 ? `Copiar ${plural(selectedSourceItemIds.length, 'item', 'itens')}` : 'Copiar itens'}
+            </button>
+          )}
+          {tab === 'kit' && (
+            <button type="button" className="primary" disabled={!selectedKitId || loading} onClick={() => void handleApplyKit()}>
+              {loading ? <Loader2 className="spinning" size={16} /> : <Layers3 size={16} />}
+              Adicionar itens do kit
+            </button>
+          )}
+        </>
+      )}
+    >
         <div className="proposal-import-body">
           {tab === 'paste' && (
             <ProposalImportPasteTab
@@ -207,9 +213,9 @@ export function ProposalImportDialog({
           {tab === 'kit' && (
             <div className="import-tab-pane">
               <label className="select-label">
-                <span>Selecione o kit cadastrado:</span>
-                <select value={selectedKitId} onChange={(e) => setSelectedKitId(e.target.value)}>
-                  <option value="">Selecione um kit...</option>
+                <span className="dlg-label">Kit</span>
+                <select className="od-inp" value={selectedKitId} onChange={(e) => setSelectedKitId(e.target.value)}>
+                  <option value="">Selecione um kit</option>
                   {kitsList.map((k) => (
                     <option key={k.id} value={k.id}>
                       {k.name} — {k.category} ({k.itemCount} itens)
@@ -219,53 +225,11 @@ export function ProposalImportDialog({
               </label>
 
               {selectedKitId && (
-                <div className="kit-import-info">
-                  <p>Todos os itens do kit serão inseridos no final da proposta com preços unitários congelados.</p>
-                </div>
+                <p className="dlg-note">Todos os itens do kit entram no fim da proposta, com os preços unitários de hoje.</p>
               )}
             </div>
           )}
         </div>
-
-        <footer className="proposal-import-footer">
-          <button type="button" className="btn-cancel" onClick={onClose} disabled={loading}>
-            Cancelar
-          </button>
-          {tab === 'paste' && (
-            <button
-              type="button"
-              className="primary compact"
-              disabled={parsedItems.length === 0 || loading}
-              onClick={() => void handleImportBatch()}
-            >
-              {loading ? <Loader2 className="spinning" size={15} /> : <PlusCircle size={15} />}
-              Importar {parsedItems.length > 0 ? `${parsedItems.length} itens` : 'Itens'}
-            </button>
-          )}
-          {tab === 'proposal' && (
-            <button
-              type="button"
-              className="primary compact"
-              disabled={selectedSourceItemIds.length === 0 || loading}
-              onClick={() => void handleCopyFromProposal()}
-            >
-              {loading ? <Loader2 className="spinning" size={15} /> : <Copy size={15} />}
-              Copiar {selectedSourceItemIds.length > 0 ? `${selectedSourceItemIds.length} itens` : 'Itens'}
-            </button>
-          )}
-          {tab === 'kit' && (
-            <button
-              type="button"
-              className="primary compact"
-              disabled={!selectedKitId || loading}
-              onClick={() => void handleApplyKit()}
-            >
-              {loading ? <Loader2 className="spinning" size={15} /> : <Layers3 size={15} />}
-              Adicionar Itens do Kit
-            </button>
-          )}
-        </footer>
-      </div>
-    </div>
+    </Dialogo>
   );
 }

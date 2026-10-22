@@ -68,8 +68,7 @@ export function ProposalsListTable({
     <div className="home-panel table-panel">
       <div className="home-panel-header">
         <div>
-          <h3>Lista de Propostas ({proposals.length})</h3>
-          <p>Clique em uma proposta para abrir a mesa de edição e composição.</p>
+          <h2>Lista de propostas ({proposals.length})</h2>
         </div>
       </div>
 
@@ -231,7 +230,7 @@ export function ProposalsListTable({
                       <button
                         type="button"
                         className="table-action-btn secondary"
-                        title="Gerar PDF / Word da proposta"
+                        title="Abre o PDF da proposta: opções, prévia e arquivo em PDF ou Word"
                         aria-label="Exportar proposta"
                         disabled={actionPending}
                         onClick={() => onExport(item)}
@@ -244,7 +243,7 @@ export function ProposalsListTable({
                       <button
                         type="button"
                         className="table-action-btn secondary share-btn"
-                        title="Compartilhar proposta via WhatsApp ou E-mail"
+                        title="Abre o PDF da proposta com o menu Compartilhar"
                         aria-label="Compartilhar proposta"
                         disabled={actionPending}
                         onClick={() => onShare(item)}

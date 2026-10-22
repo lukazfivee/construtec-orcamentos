@@ -1,5 +1,5 @@
 import { useRef, useState, type DragEvent } from 'react';
-import { ArrowDownRight, ArrowUpRight, Camera, Check, CheckCircle2, CircleDot, Download, FileDown, FileSpreadsheet, FileText, Info, KeyRound, Lightbulb, Loader2, Lock, Pencil, ShieldCheck, Table2, Upload, AlertCircle } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Camera, Check, CheckCircle2, CircleDot, Download, FileDown, FileSpreadsheet, Info, KeyRound, Lightbulb, Loader2, Lock, Pencil, ShieldCheck, Table2, Upload, AlertCircle } from 'lucide-react';
 import { FIELDS, colLetter, kb, pctText, templateCsv, type ErrRow, type FieldKey } from './catalogImportFlow';
 import { EmptyState, PageHead, Seg, brl, downloadText, hasDesktopApp, nfmt, plural } from './orcDeskUi';
 import { useCatalogImport, type CatalogImport } from './useCatalogImport';
@@ -53,13 +53,13 @@ function LoadCard({ imp }: { imp: CatalogImport }) {
   </>;
 }
 
-function FileStep({ imp, hints, onBack }: { imp: CatalogImport; hints: string[]; onBack: () => void }) {
+function FileStep({ imp, hints }: { imp: CatalogImport; hints: string[] }) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const desktop = hasDesktopApp() && !!window.construtec?.selectCatalogImport;
   const pick = (files: FileList | null) => { const f = files?.[0]; if (f) void imp.openFile(f); };
   const drop = (event: DragEvent) => { event.preventDefault(); setOver(false); pick(event.dataTransfer.files); };
-  return <div className="od-two">
+  return <div className="od-stack">
     <div className="od-card" style={{ paddingBottom: 4 }}>
       <div className="od-sect-head"><b>Arquivo</b><span>Planilha .xlsx ou .csv, PDF ou foto da lista de preços</span></div>
       <div style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -79,19 +79,6 @@ function FileStep({ imp, hints, onBack }: { imp: CatalogImport; hints: string[];
         <span className="od-grow"><b style={{ fontSize: 'calc(13.5px * var(--fs, 1))' }}>PDF ou foto da lista impressa</b>
           <span>{desktop ? 'Lemos a tabela com o reconhecimento de imagem do aplicativo; confira as colunas no passo seguinte.' : 'O reconhecimento de imagem roda só no aplicativo do computador. Aqui, use planilha XLSX ou CSV.'}</span></span>
         <button type="button" className="od-btn s" disabled={!desktop} onClick={() => void imp.openImage()}>Escolher PDF ou foto</button>
-      </div>
-    </div>
-    <div className="od-card">
-      <div className="od-sect-head"><b>O que dá para importar</b></div>
-      {[[FileSpreadsheet, 'Planilha .xlsx ou .csv', 'Uma linha por item, com código, descrição, unidade e custo'],
-        [FileText, 'PDF da lista de preços', 'Lemos a tabela do PDF no aplicativo; confira as colunas no passo seguinte'],
-        [Camera, 'Foto da lista impressa', 'No aplicativo do computador, ou pelo celular em Menu, Catálogo, Importar']].map(([Icon, title, sub]) => {
-        const I = Icon as typeof Camera;
-        return <div className="od-row" key={title as string}><span className="od-row-ic"><I size={18} /></span><span className="od-grow"><b style={{ fontSize: 'calc(13.5px * var(--fs, 1))' }}>{title as string}</b><span>{sub as string}</span></span></div>;
-      })}
-      <div style={{ padding: '14px 20px 18px', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button type="button" className="od-btn s" onClick={() => downloadText('modelo-catalogo.csv', templateCsv())}><FileDown size={17} />Baixar o modelo de planilha</button>
-        <button type="button" className="od-btn g" onClick={onBack}>Voltar ao catálogo</button>
       </div>
     </div>
   </div>;
@@ -296,10 +283,13 @@ export function CatalogImportPage({ canWrite, catalogCount, supplierHints, usedI
 
   return <main className="od-page" aria-busy={phase === 'read' || phase === 'conferir' || phase === 'run'}><div className="od-stack">
     <PageHead eyebrow="Cadastros" title="Importar lista de preços" sub="De um fornecedor para o catálogo, conferindo cada linha antes de entrar">
-      {phase === 'file' && <button type="button" className="od-btn s" onClick={() => downloadText('modelo-catalogo.csv', templateCsv())}><FileDown size={17} />Baixar modelo</button>}
+      {phase === 'file' && <>
+        <button type="button" className="od-btn g" onClick={onBack}>Voltar ao catálogo</button>
+        <button type="button" className="od-btn s" onClick={() => downloadText('modelo-catalogo.csv', templateCsv())}><FileDown size={17} />Baixar modelo</button>
+      </>}
     </PageHead>
     <Stepper phase={phase} />
-    {phase === 'file' && <FileStep imp={imp} hints={supplierHints} onBack={onBack} />}
+    {phase === 'file' && <FileStep imp={imp} hints={supplierHints} />}
     {(phase === 'read' || phase === 'conferir') && <LoadCard imp={imp} />}
     {phase === 'map' && <MapStep imp={imp} />}
     {phase === 'review' && <ReviewStep imp={imp} usedIn={usedIn} />}

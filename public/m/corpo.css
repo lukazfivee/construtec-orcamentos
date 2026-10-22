@@ -5,7 +5,7 @@
 .bk-add { align-self: stretch; min-height: 44px; border: 1px dashed var(--divider); border-radius: 10px; background: transparent; color: var(--accent-300); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .bk-add[disabled] { opacity: .45; }
 .bk { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; min-width: 0; }
-.bk.is-special { box-shadow: var(--shadow), inset 3px 0 0 var(--accent); }
+.bk-auto { margin-right: auto; height: 22px; padding: 0 8px; border-radius: 11px; background: var(--n800); color: var(--text); font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; white-space: nowrap; }
 .bk.is-off .bk-body { opacity: .55; }
 .bk-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
 .bk-kind { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--n300); }
@@ -87,3 +87,4 @@
 
 /* Opcoes do documento. */
 .pdf-notes textarea { min-height: 76px; }
+.pdf-notes[hidden] { display: none; }

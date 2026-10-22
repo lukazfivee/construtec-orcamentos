@@ -74,7 +74,6 @@ export function CompanyDefaultsPanel({ settings, loading, isAdmin, onSaved, onNo
 
   return <section className="od-scope" aria-label="Padrões da empresa">
     <div className="od-sechead">
-      <span className="od-eyebrow">Administração</span>
       <h2>Padrões da empresa</h2>
       <span className="od-sub">Valem para as próximas propostas; as que já existem mantêm os valores delas</span>
     </div>

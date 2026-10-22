@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Calculator,
   Command,
@@ -7,9 +7,10 @@ import {
   Info,
   Lock,
   MessageSquareWarning,
-  X,
 } from 'lucide-react';
 import { ReportProblemForm } from './ReportProblemForm';
+import { Dialogo } from './orcDeskUi';
+import { isCloudRuntime } from './api';
 
 interface HelpModalProps {
   open: boolean;
@@ -21,85 +22,40 @@ type TabKey = 'shortcuts' | 'calculations' | 'privacy' | 'about' | 'report';
 export function HelpModal({ open, onClose }: HelpModalProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('shortcuts');
 
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
-
   if (!open) return null;
+  const cloud = isCloudRuntime();
+  const tabs: Array<[TabKey, typeof Command, string]> = [
+    ['shortcuts', Command, 'Atalhos'],
+    ['calculations', Calculator, 'Cálculo'],
+    ['privacy', Lock, 'Sigilo e revisões'],
+    ['about', Info, 'Sobre'],
+    ['report', MessageSquareWarning, 'Reportar problema'],
+  ];
 
   return (
-    <div className="modal-backdrop help-modal-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="modal-dialog help-modal-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="help-modal-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="help-modal-header">
-          <div className="help-modal-title-group">
-            <span className="help-modal-icon-badge">
-              <HelpCircle size={22} />
-            </span>
-            <div>
-              <h2 id="help-modal-title">Central de Ajuda & Diretrizes</h2>
-              <p>Atalhos rápidos, regras comerciais e diretrizes operacionais do Construtec Orçamentos</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="help-modal-close-btn"
-            onClick={onClose}
-            aria-label="Fechar Central de Ajuda"
-          >
-            <X size={18} />
-          </button>
-        </header>
-
-        <nav className="help-modal-tabs" aria-label="Seções de ajuda">
-          <button
-            type="button"
-            className={activeTab === 'shortcuts' ? 'active' : ''}
-            onClick={() => setActiveTab('shortcuts')}
-          >
-            <Command size={15} /> Atalhos de Teclado
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'calculations' ? 'active' : ''}
-            onClick={() => setActiveTab('calculations')}
-          >
-            <Calculator size={15} /> Metodologia de Cálculo
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'privacy' ? 'active' : ''}
-            onClick={() => setActiveTab('privacy')}
-          >
-            <Lock size={15} /> Sigilo & Imutabilidade
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'about' ? 'active' : ''}
-            onClick={() => setActiveTab('about')}
-          >
-            <Info size={15} /> Sobre o Sistema
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'report' ? 'active' : ''}
-            onClick={() => setActiveTab('report')}
-          >
-            <MessageSquareWarning size={15} /> Reportar problema
-          </button>
+    <Dialogo
+      id="help-modal"
+      icon={HelpCircle}
+      title="Ajuda"
+      sub="Atalhos, regras de cálculo e sigilo do Construtec Orçamentos"
+      className="w-lg help-dlg"
+      onClose={onClose}
+      toolbar={(
+        <nav className="dlg-tabs" aria-label="Seções de ajuda">
+          {tabs.map(([key, Icon, label]) => (
+            <button key={key} type="button" className={activeTab === key ? 'active' : ''} aria-pressed={activeTab === key} onClick={() => setActiveTab(key)}>
+              <Icon size={15} /> {label}
+            </button>
+          ))}
         </nav>
-
-        <div className="help-modal-content">
+      )}
+      footer={(
+        <>
+          <span className="dlg-tip">Esc fecha esta janela.</span>
+          <button type="button" className="primary" onClick={onClose}>Entendido</button>
+        </>
+      )}
+    >
           {activeTab === 'shortcuts' && (
             <div className="help-section">
               <p className="help-section-desc">
@@ -155,29 +111,28 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
           {activeTab === 'calculations' && (
             <div className="help-section">
               <div className="help-calc-item">
-                <h3>BDI — Benefícios e Despesas Indiretas</h3>
+                <h3>BDI e impostos</h3>
                 <p>
-                  O BDI compõe os custos indiretos, administração central, impostos, seguros e a margem de lucro prevista.
-                  É aplicado sobre o custo base dos insumos e serviços:
+                  O BDI cobre custos indiretos, administração, seguros e a margem prevista. É um multiplicador aplicado sobre o custo dos materiais e da mão de obra; os impostos entram depois:
                 </p>
                 <div className="help-formula-box">
-                  <code>Preço de Venda = Custo Base × (1 + BDI% / 100)</code>
+                  <code>Preço de venda = custo × BDI (multiplicador, ex.: 1,25) × (1 + impostos %)</code>
                 </div>
               </div>
 
               <div className="help-calc-item">
-                <h3>Mão de Obra e Encargos Sociais</h3>
+                <h3>Mão de obra</h3>
                 <p>
-                  A taxa horária operacional de cada profissional considera o salário-base somado aos adicionais legais
-                  (periculosidade/insalubridade) e ao percentual de encargos sociais e trabalhistas da categoria:
+                  O custo por hora de cada função soma o salário e os custos mensais da pessoa e divide pelas horas do mês
+                  (padrão 176 h, em Configurações; cada proposta pode usar outro valor):
                 </p>
                 <div className="help-formula-box">
-                  <code>Custo Horário = (Salário Base × (1 + Encargos%)) ÷ 220 horas mensais</code>
+                  <code>Custo por hora = (salário + alimentação + transporte + outros) ÷ horas por mês</code>
                 </div>
               </div>
 
               <div className="help-calc-item">
-                <h3>Precisão e Arredondamento Financeiro</h3>
+                <h3>Arredondamento</h3>
                 <p>
                   Todos os cálculos operam com precisão decimal em centavos e formatação estrita no padrão monetário brasileiro
                   (<code>R$ 1.250,00</code>), evitando perdas ou divergências cumulativas de arredondamento.
@@ -189,7 +144,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
           {activeTab === 'privacy' && (
             <div className="help-section">
               <div className="help-privacy-card">
-                <div className="privacy-badge"><Lock size={18} /> Sigilo Comercial Estrito</div>
+                <div className="privacy-badge"><Lock size={18} /> Sigilo comercial</div>
                 <p>
                   Informações estratégicas internas — como custo de aquisição de fornecedores, salários de funcionários,
                   margem líquida da Construtec e taxa detalhada de BDI — <strong>nunca são expostas nos documentos de exportação (PDF e Word)</strong> entregues ao cliente.
@@ -200,7 +155,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
               </div>
 
               <div className="help-privacy-card">
-                <div className="privacy-badge"><FileCheck2 size={18} /> Imutabilidade de Revisões</div>
+                <div className="privacy-badge"><FileCheck2 size={18} /> Revisões não mudam depois de criadas</div>
                 <p>
                   Cada proposta gerada possui snapshots congelados de todos os seus itens. Se o preço de um material for alterado no catálogo posteriormente,
                   <strong>as propostas já emitidas não sofrem nenhuma alteração</strong>, resguardando o histórico e a validade jurídica dos orçamentos aprovados.
@@ -215,39 +170,28 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
             <div className="help-section">
               <div className="help-about-details">
                 <div className="about-row">
-                  <span>Software:</span>
+                  <span>Aplicativo</span>
                   <strong>Construtec Orçamentos</strong>
                 </div>
                 <div className="about-row">
-                  <span>Arquitetura:</span>
-                  <strong>Desktop Local-First (Operação 100% Offline)</strong>
+                  <span>Onde roda</span>
+                  <strong>{cloud ? 'Site da Suíte, dados na nuvem' : 'Aplicativo do Windows, funciona sem internet'}</strong>
                 </div>
                 <div className="about-row">
-                  <span>Banco de Dados:</span>
-                  <strong>PGlite (PostgreSQL embutido localmente)</strong>
+                  <span>Banco de dados</span>
+                  <strong>{cloud ? 'PostgreSQL na nuvem' : 'PGlite neste computador'}</strong>
                 </div>
                 <div className="about-row">
-                  <span>Empresa:</span>
+                  <span>Empresa</span>
                   <strong>LAC Construtec Construtora Eireli</strong>
                 </div>
                 <div className="about-row">
-                  <span>Segurança:</span>
+                  <span>Segurança</span>
                   <strong>Sessão JWT com criptografia local e hash seguro de senhas</strong>
                 </div>
               </div>
             </div>
           )}
-        </div>
-
-        <footer className="help-modal-footer">
-          <span className="help-modal-footer-tip">
-            Pressione <kbd>Esc</kbd> para fechar a qualquer momento.
-          </span>
-          <button type="button" className="primary compact" onClick={onClose}>
-            Entendido
-          </button>
-        </footer>
-      </div>
-    </div>
+    </Dialogo>
   );
 }

@@ -1,18 +1,19 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeftRight, Check, ChevronLeft, ChevronDown, ChevronUp, History, Loader2, Minus, Pencil, Plus, RefreshCw, WifiOff, Equal } from 'lucide-react';
 import type { ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import { brl as brlFmt, mult } from '../shared/formatoBr';
 import { proposalApi } from './api';
 import { compareProposals, deltaDirection, rowDirection, rowTag, type CompareLine, type CompareRow } from './proposalCompare';
 import { revLabel } from './proposalPdfPages';
 import { useSuitePermission } from './SuitePermissions';
 
-const brl0 = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+// Valores com centavos, como no resto do app (formatador unico pt-BR).
+const brl = { format: brlFmt };
 const num = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
 const dateFull = new Intl.DateTimeFormat('pt-BR');
 const statusLabels: Record<ProposalDetail['status'], string> = { draft: 'Em edição', review: 'Em revisão', sent: 'Enviada', approved: 'Aprovada', rejected: 'Recusada' };
 const statusClasses: Record<ProposalDetail['status'], string> = { draft: 'status-draft', review: 'status-review', sent: 'status-sent', approved: 'status-approved', rejected: 'status-rejected' };
-const signed = (value: number) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${brl0.format(Math.abs(value))}`;
+const signed = (value: number) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${brl.format(Math.abs(value))}`;
 const pct = (value: number) => `${Math.abs(value).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 const when = (iso: string) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? '' : dateFull.format(d); };
 const side = (line: CompareLine | undefined) => (line ? `${num.format(line.quantity)} ${line.unit}` : '—');
@@ -131,7 +132,7 @@ export function ProposalCompareView({ proposalId, initialFrom, onBack }: Props) 
     );
   }
 
-  const optionText = (r: ProposalRevisionSummary) => `${revLabel(r.revision)} · ${statusLabels[r.status]} · ${r.totalSale ? brl0.format(r.totalSale) : 'sem itens'}`;
+  const optionText = (r: ProposalRevisionSummary) => `${revLabel(r.revision)} · ${statusLabels[r.status]} · ${r.totalSale ? brl.format(r.totalSale) : 'sem itens'}`;
   const labelA = revA ? revLabel(revA.revision) : '';
   const labelB = revB ? revLabel(revB.revision) : '';
   const base = pair?.to;
@@ -174,18 +175,17 @@ export function ProposalCompareView({ proposalId, initialFrom, onBack }: Props) 
               <span>Valor final</span>
               <b className={`delta ${deltaDirection(result.finalDelta)}`}>{signed(result.finalDelta)}</b>
               <small>{result.percent ? `${result.percent > 0 ? '+' : '−'}${pct(result.percent)} no valor final` : 'sem mudança'}</small>
-              <small>{labelA} {brl0.format(result.finalFrom)} → {labelB} {brl0.format(result.finalTo)}</small>
+              <small>{labelA} {brl.format(result.finalFrom)} → {labelB} {brl.format(result.finalTo)}</small>
             </div>
-            <div className="compare-parts">
-              <div><span>Itens</span><b className={`delta ${deltaDirection(result.itemsDelta)}`}>{signed(result.itemsDelta)}</b></div>
+            {(Math.abs(result.generalDelta) > 0.5 || !p10) && <div className="compare-parts">
               {Math.abs(result.generalDelta) > 0.5 && (
                 <div>
-                  <span>{p10 && result.bdiChanged && pair ? `BDI ${pair.from.bdiMultiplier.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} → ${pair.to.bdiMultiplier.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Ajuste geral de preço'}</span>
+                  <span>{p10 && result.bdiChanged && pair ? `BDI ${mult(pair.from.bdiMultiplier)} → ${mult(pair.to.bdiMultiplier)}` : 'Ajuste geral de preço'}</span>
                   <b className={`delta ${deltaDirection(result.generalDelta)}`}>{signed(result.generalDelta)}</b>
                 </div>
               )}
               {!p10 && <small>Valores de venda. Custo e BDI ficam com quem tem essa permissão.</small>}
-            </div>
+            </div>}
             <div className="compare-count">
               {counters.map(([label, n]) => <span key={label}><b>{n}</b><small>{label}</small></span>)}
             </div>
@@ -223,9 +223,9 @@ export function ProposalCompareView({ proposalId, initialFrom, onBack }: Props) 
                             <tr key={`${row.item.code}-${row.item.description}-${index}`} className={`row ${row.kind}`}>
                               <td><b>{row.item.description}</b>{row.item.code && <small>{row.item.code}</small>}</td>
                               <td className={row.qtyChanged ? 'changed' : ''}>{side(row.before)}<small>{sideSub(row.before)}</small></td>
-                              <td className="num">{row.before ? brl0.format(row.before.totalSale) : '—'}</td>
+                              <td className="num">{row.before ? brl.format(row.before.totalSale) : '—'}</td>
                               <td className={row.qtyChanged || row.priceChanged ? 'changed' : ''}>{side(row.kind === 'del' ? undefined : row.item)}<small>{row.kind === 'del' ? '' : sideSub(row.item)}</small></td>
-                              <td className="num">{row.kind === 'del' ? '—' : brl0.format(row.item.totalSale)}</td>
+                              <td className="num">{row.kind === 'del' ? '—' : brl.format(row.item.totalSale)}</td>
                               <td className={`num delta ${dir}`}>{row.kind === 'same' ? '—' : signed(row.delta)}</td>
                               <td><span className={`compare-tag ${row.kind === 'same' ? 'eq' : dir}`}>{icon(row)}{rowTag(row)}</span></td>
                             </tr>
