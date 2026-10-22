@@ -1,5 +1,13 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-22 BRT - Auditoria Impeccable: correções da revisão do Codex no PR #232 (Claude Code)
+
+- Base: `origin/main`, branch `fix/impeccable-auditoria-21-10`. Quatro comentários do Codex, todos corrigidos.
+- `App.tsx`: `openProposal` devolve `true/false`; lista, Início, aviso e deep link só mudam de tela (editor ou PDF) se a proposta carregou, então Exportar/Compartilhar nunca abre a proposta anterior. Aviso `centro-custos?pedidos=1` abre `/d/#/usuarios` no quadro do Centro (`CentroCustosWorkspace` ganhou `targetPath`).
+- `NotificationsPopover.tsx`: se o POST de leitura falhar, volta o estado anterior e o contador do sino.
+- `proposalPdfPages.ts`: quantidades da prévia com até 4 casas, igual ao documento.
+- Validação: `tsc` sem erros; `npm run verify` 390 passam, 0 falham (1 ignorado).
+
 ## 2026-10-21 BRT - Centro de Custos no navegador abre o app, não o seletor (Claude Code)
 
 - Base: `origin/main` em `5d40842`, branch `fix/centro-direto` (PR #222). A raiz do Centro na nuvem (`/`) serve a página "Escolha seu aplicativo" (`suite-launcher.js` do Centro, feita com o Chamados); o Orçamentos abria essa raiz ao escolher Centro de Custos. Agora o contrato é: abrir `<Centro>/d/` (obra: `<Centro>/d/#/obras/<id>`); o celular já usava `/m/`.
