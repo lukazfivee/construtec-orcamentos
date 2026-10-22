@@ -79,8 +79,12 @@
 
 /* Janela larga (>= 1200px): o app roda a 75% de zoom (escala-75.css) e vh/vw contam a janela antes da reducao.
    Aqui tudo divide por .75 para o painel ficar com 420px por min(640px, 80vh) na tela. */
+/* Computador: o painel abre logo abaixo da barra do topo, sob o botao "Assistente" (igual ao #ia-sheet do Centro). */
+@media screen and (min-width: 768px) {
+  .assistant-panel { top: calc(var(--top-h, 64px) + 8px); bottom: auto; height: min(640px, calc(100vh - var(--top-h, 64px) - 32px)); }
+}
 @media screen and (min-width: 1200px) {
-  .assistant-panel { right: 32px; bottom: 32px; width: min(560px, calc((100vw - 48px) / .75)); height: min(853px, calc(80vh / .75)); }
+  .assistant-panel { right: 32px; width: min(560px, calc((100vw - 48px) / .75)); height: min(853px, calc(100vh / .75 - var(--top-h, 64px) - 32px)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
