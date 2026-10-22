@@ -8,9 +8,10 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html, body { margin: 0; background: var(--bg); color: var(--text); }
 body { font: 15px/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; min-height: 100vh; min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
 #app { max-width: 520px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right)) calc(120px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 14px; }
-.brand { display: flex; align-items: center; gap: 10px; padding: 4px 0 8px; font-weight: 700; letter-spacing: .1em; color: var(--accent-d); }
-.brand i { width: 10px; height: 26px; background: var(--accent); border-radius: 3px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.brand { display: block; padding: 4px 0 8px; }
+.brand img { display: block; width: auto; height: 40px; }
+/* Contorno por anel de 1 px (padrao da Suite), nao por borda. */
+.card { background: var(--surface); border: 0; box-shadow: 0 0 0 1px var(--line); border-radius: 14px; padding: 16px; }
 .kicker { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-d); }
 h1 { margin: 4px 0 2px; font-size: 24px; line-height: 1.2; }
 h2 { margin: 0 0 6px; font-size: 18px; }
@@ -40,7 +41,7 @@ input.bad, textarea.bad { border-color: var(--bad); }
 .note { padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: 14px; }
 .err { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--bad); color: var(--bad); font-size: 14px; margin-bottom: 12px; }
 .hint { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
-.big-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; font-weight: 700; margin-bottom: 10px; background: var(--accent-soft); color: var(--accent-d); }
+.big-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 10px; background: var(--accent-soft); color: var(--accent-d); }
 .ok .big-icon { background: var(--ok); color: var(--on-accent); }
 .code { display: inline-block; margin: 6px 0 12px; padding: 6px 10px; border-radius: 8px; background: var(--accent-soft); font: 600 14px ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
 .reader { background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
