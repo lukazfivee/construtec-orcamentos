@@ -51,7 +51,6 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .last-change { color: var(--muted-ink); }
 .table-action-btn.secondary.share-btn { color: var(--tx-cool-28-3); }
 .user-profile-logout-btn { color: var(--tx-red-42); }
-.notifications-footer { color: var(--muted-ink); }
 .page-back { color: var(--tx-cool-28-3); }
 
 /* Lista de propostas: Cliente/Obra ocupa a sobra e trunca com reticencias, acoes secundarias viram icones,

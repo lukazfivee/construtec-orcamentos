@@ -3,19 +3,14 @@ import {
   AlertTriangle,
   Bell,
   CheckCheck,
-  CheckCircle2,
-  Database,
-  FileSpreadsheet,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
-import { isCloudRuntime } from './api';
+import { plural } from '../shared/formatoBr';
 
 interface NotificationsPopoverProps {
   proposal: ProposalDetail | null;
   onClose: () => void;
 }
-
-const isCloud = isCloudRuntime();
 
 export function NotificationsPopover({ proposal, onClose }: NotificationsPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -53,7 +48,7 @@ export function NotificationsPopover({ proposal, onClose }: NotificationsPopover
       <div className="notifications-header">
         <div className="notifications-title">
           <Bell size={16} />
-          <strong>Notificações & Alertas</strong>
+          <strong>Notificações</strong>
         </div>
         {divergentItems.length > 0 && (
           <button
@@ -74,50 +69,16 @@ export function NotificationsPopover({ proposal, onClose }: NotificationsPopover
               <AlertTriangle size={16} />
             </div>
             <div className="notification-body">
-              <strong>Divergência de Custos</strong>
+              <strong>Custo novo no catálogo</strong>
               <p>
-                {divergentItems.length} item(ns) na proposta <b>{proposal?.number}</b> possuem custo atualizado no catálogo local.
+                {plural(divergentItems.length, 'item', 'itens')} da proposta <b>{proposal?.number}</b> {divergentItems.length === 1 ? 'tem' : 'têm'} custo diferente no catálogo.
               </p>
-              <small>Verifique os badges na tabela de itens para sincronizar se desejar.</small>
+              <small>O selo na tabela de itens mostra o custo novo; atualize se quiser.</small>
             </div>
           </div>
         )}
 
-        {proposal && (
-          <div className="notification-card info">
-            <div className="notification-icon info">
-              <FileSpreadsheet size={16} />
-            </div>
-            <div className="notification-body">
-              <strong>Proposta Ativa: {proposal.number}</strong>
-              <p>
-                Revisão <b>REV.{String(proposal.revision).padStart(2, '0')}</b> —{' '}
-                {proposal.status === 'draft' ? 'Rascunho em edição' : proposal.status === 'approved' ? 'Aprovada' : 'Emitida'}
-              </p>
-              <small>{proposal.isLatest ? 'Modo de edição habilitado.' : 'Modo histórico somente leitura.'}</small>
-            </div>
-          </div>
-        )}
-
-        <div className="notification-card success">
-          <div className="notification-icon success">
-            <Database size={16} />
-          </div>
-          <div className="notification-body">
-            <strong>{isCloud ? 'Banco PostgreSQL na Nuvem Conectado' : 'Banco Local PGlite Conectado'}</strong>
-            <p>{isCloud
-              ? 'Conexão segura e íntegra com o banco de dados na nuvem.'
-              : 'Operação local-first ativa e íntegra. Todos os dados são persistidos neste computador.'}</p>
-            <small>
-              <CheckCircle2 size={12} style={{ display: 'inline', marginRight: 4 }} />
-              {isCloud ? 'Conexão segura (HTTPS)' : '100% Offline e seguro'}
-            </small>
-          </div>
-        </div>
-      </div>
-
-      <div className="notifications-footer">
-        <span>Construtec Orçamentos • Central Operacional</span>
+        {divergentItems.length === 0 && <p className="notifications-empty">Nenhum aviso agora.</p>}
       </div>
     </div>
   );
