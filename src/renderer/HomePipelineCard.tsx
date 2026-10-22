@@ -1,5 +1,6 @@
 import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import type { CommercialPipelineStage } from '../shared/contracts';
+import { pct, plural } from '../shared/formatoBr';
 
 type HomePipelineCardProps = {
   pipeline?: CommercialPipelineStage[];
@@ -59,8 +60,8 @@ export function HomePipelineCard({
             <div key={stage.status} className="pipeline-stage-row">
               <div className="stage-meta">
                 <span className={`status-tag ${config.badgeClass}`}>{stage.label}</span>
-                <span className="stage-count">{stage.count} {stage.count === 1 ? 'orçamento' : 'orçamentos'}</span>
-                <span className="stage-pct">{stage.percentage}%</span>
+                <span className="stage-count">{plural(stage.count, 'orçamento', 'orçamentos')}</span>
+                <span className="stage-pct">{pct(stage.percentage)}</span>
                 <strong className="stage-value">{money.format(stage.totalValue)}</strong>
               </div>
               <div className="stage-track">

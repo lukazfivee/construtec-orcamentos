@@ -3,6 +3,7 @@ import { Layers3, Search, Send } from 'lucide-react';
 import type { KitDetail, KitSummary } from '../shared/contracts';
 import { costText } from './SuitePermissions';
 import { kitsApi } from './api';
+import { mult } from '../shared/formatoBr';
 
 type ProposalKitsPanelProps = {
   proposalId: string;
@@ -131,7 +132,7 @@ export function ProposalKitsPanel({
               </div>
               <div className="kp-apply">
                 <div className="kp-price">
-                  <span>Preço de venda estimado (BDI {bdiMultiplier}×)</span>
+                  <span>Preço de venda estimado (BDI {mult(bdiMultiplier)})</span>
                   <strong>{costText(money.format(estimatedSaleTotal))}</strong>
                 </div>
                 <button
