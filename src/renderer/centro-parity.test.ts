@@ -81,7 +81,7 @@ test('casca: tokens e medidas do Centro (menu 236/72, topo 64, busca 440, botoes
   assert.match(rule(shell, '.side .quem'), /padding: 10px 8px 0/);
   assert.match(shell, /\.app-shell \.btn \{ height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 13\.5px/);
   assert.match(shell, /\.app-shell \.inp \{ height: 40px;[^}]*border-radius: 10px/);
-  assert.match(shell, /\.app-shell \.ibtn \{ width: 36px; height: 36px;[^}]*border-radius: 9px/);
+  assert.match(shell, /\.app-shell \.ibtn \{ width: 36px; height: 36px;[^}]*border-radius: 10px/);
 });
 
 test('casca: o escuro usa a paleta do Centro (superficie, fundo, texto, linha, acento)', () => {
@@ -120,10 +120,34 @@ test('o menu lateral usa grupos e icones Lucide com traco 1.5 (equivalentes aos 
   assert.match(sidebar, /logo-icon\.png/);
 });
 
-test('a busca do topo abre com Ctrl K e o atalho aparece no campo', () => {
+test('a busca do topo usa Ctrl K e resultados inline, como no Centro', () => {
   const top = read('src/renderer/AppTopbar.tsx');
   assert.match(top, /<kbd>Ctrl K<\/kbd>/);
+  assert.match(top, /id="global-search"/);
+  assert.match(top, /className="busca-res"/);
+  assert.doesNotMatch(top, /readOnly/);
   const app = read('src/renderer/App.tsx');
   assert.match(app, /action === 'k'/);
-  assert.match(app, /openSearch\(\)/);
+  assert.match(app, /#global-search/);
+});
+
+test('topo: botoes de icone e assistente usam Phosphor, como no Centro', () => {
+  const top = read('src/renderer/AppTopbar.tsx');
+  const assistant = read('src/renderer/AssistantFab.tsx');
+  assert.match(top, /import \{ Ph \} from '\.\/Ph';/);
+  assert.doesNotMatch(top, /from 'lucide-react'/);
+  for (const icon of ['magnifying-glass', 'sparkle-fill', 'bell', 'question', 'envelope-simple', 'squares-four', 'caret-down']) {
+    assert.match(top, new RegExp(`name=\\{?['"]${icon}`), `icone ${icon} deve usar Phosphor`);
+  }
+  assert.match(top, /<Ph name=\{escuro \? 'sun' : 'moon'\}/);
+  assert.match(assistant, /<Ph name="sparkle" size=\{18\}/);
+  assert.match(assistant, /<Ph name="paper-plane-right" size=\{20\}/);
+  assert.match(assistant, /document\.getElementById\('btn-assistente'\)/);
+});
+
+test('topo: o ícone preenchido do assistente tem o mesmo tamanho dos demais e o botão não ganha tom ao abrir', () => {
+  const shell = read('src/shell-centro.css');
+  assert.match(shell, /\.app-shell \.ibtn \.ph, \.app-shell \.ibtn \.ph-fill \{ font-size: 20px/);
+  const topbar = read('src/renderer/AppTopbar.tsx');
+  assert.match(topbar, /id="btn-assistente"\s+className="ibtn"/);
 });

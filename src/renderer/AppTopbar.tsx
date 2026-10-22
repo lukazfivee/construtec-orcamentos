@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Bell, ChevronDown, CircleHelp, LayoutGrid, Mail, Moon, Search, Sparkles, Sun } from 'lucide-react';
-import { isCloudRuntime } from './api';
+import { useEffect, useState } from 'react';
+import type { ProposalSummary } from '../shared/contracts';
+import { isCloudRuntime, proposalApi } from './api';
+import { Ph } from './Ph';
 import type { AppTopbarProps } from './AppTopbarMobile';
 import { AppTopbarMobile } from './AppTopbarMobile';
 import { HelpModal } from './HelpModal';
@@ -21,32 +22,53 @@ export function AppTopbar(props: AppTopbarProps) {
 
 /* Barra do topo identica a do Centro de Custos (shell.js + layout.css): busca a esquerda, selo de dados,
    botao Suite e tema. Notificacoes, ajuda e e-mail ficam antes do selo, no mesmo padrao de botao de icone. */
-function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNotice, assistantOpen, onToggleAssistant, onFollowNotice }: AppTopbarProps) {
+function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onOpenSearchResult, onSelectApp, showNotice, assistantOpen, onToggleAssistant, onFollowNotice }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const theme = useTheme();
   const escuro = theme.resolved === 'escuro';
+  const [search, setSearch] = useState('');
+  const [proposals, setProposals] = useState<ProposalSummary[]>([]);
 
   // Contador do sino: os avisos da Suite, os mesmos do celular.
   const notices = useNoticeCount();
   const searchLabel = editorOpen ? 'Buscar no catálogo' : 'Buscar propostas, clientes, obras';
+  const results = search.trim().length < 2 ? [] : proposals.filter((proposal) => {
+    const term = search.trim().toLocaleLowerCase('pt-BR');
+    return [proposal.number, proposal.clientName, proposal.workName].some((value) => value.toLocaleLowerCase('pt-BR').includes(term));
+  }).slice(0, 6);
+
+  useEffect(() => {
+    if (search.trim().length < 2) return;
+    let active = true;
+    void proposalApi.list().then((result) => { if (active) setProposals(result.proposals); }).catch(() => { if (active) setProposals([]); });
+    return () => { active = false; };
+  }, [search]);
 
   return (
     <>
       <header className="top">
         <div className="busca" role="search">
-          <Search className="ph" size={18} strokeWidth={1.5} />
+          <Ph name="magnifying-glass" />
           <input
+            id="global-search"
             className="inp"
             type="search"
-            readOnly
+            value={search}
             placeholder={searchLabel}
             aria-label={`${searchLabel}. Atalho Ctrl K`}
-            onClick={onSearch}
-            onKeyDown={(event) => { if (event.key === 'Enter') onSearch?.(); }}
+            aria-controls="global-search-results"
+            aria-expanded={results.length > 0}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter' && results[0]) onOpenSearchResult?.(results[0].id); }}
           />
           <kbd>Ctrl K</kbd>
+          {search.trim().length >= 2 && <div className="busca-res" id="global-search-results" role="listbox">
+            {results.length ? results.map((proposal) => <button key={proposal.id} type="button" role="option" onClick={() => onOpenSearchResult?.(proposal.id)}>
+              <Ph name="file-text" size={18} /><span><b>{proposal.number} · {proposal.clientName}</b><small>{proposal.workName}</small></span>
+            </button>) : <p>Nada encontrado para “{search}”.</p>}
+          </div>}
         </div>
         <span className="espaco" />
         <UpdateNotice />
@@ -54,13 +76,13 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
         <button
           type="button"
           id="btn-assistente"
-          className={`ibtn ${assistantOpen ? 'ativo' : ''}`}
+          className="ibtn"
           aria-label="Assistente"
           title="Assistente"
           aria-expanded={assistantOpen}
           onClick={() => { onToggleAssistant?.(); setSuiteOpen(false); setNotificationsOpen(false); }}
         >
-          <Sparkles className="ph" size={20} strokeWidth={1.5} />
+          <Ph name="sparkle-fill" />
         </button>
         <div className="ancora">
           <button
@@ -72,7 +94,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
             aria-expanded={notificationsOpen}
             onClick={() => { setNotificationsOpen((prev) => !prev); setSuiteOpen(false); }}
           >
-            <Bell className="ph" size={20} strokeWidth={1.5} />
+            <Ph name="bell" />
             {notices.unread > 0 && <span className="bell-count" aria-hidden="true">{bellCount(notices.unread)}</span>}
           </button>
           {notificationsOpen && (
@@ -90,7 +112,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
           title="Central de Ajuda e Atalhos (Ctrl+H)"
           onClick={() => { setHelpOpen(true); setSuiteOpen(false); setNotificationsOpen(false); }}
         >
-          <CircleHelp className="ph" size={20} strokeWidth={1.5} />
+          <Ph name="question" />
         </button>
         <button
           type="button"
@@ -102,7 +124,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
             showNotice('Abrindo UOL Webmail Pro corporativo…');
           }}
         >
-          <Mail className="ph" size={20} strokeWidth={1.5} />
+          <Ph name="envelope-simple" />
         </button>
         <button
           type="button"
@@ -127,7 +149,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
             aria-expanded={suiteOpen}
             onClick={() => { setSuiteOpen((prev) => !prev); setNotificationsOpen(false); }}
           >
-            <LayoutGrid className="ph" size={17} strokeWidth={1.5} />Suíte<ChevronDown size={12} strokeWidth={1.5} />
+            <Ph name="squares-four" />Suíte<Ph name="caret-down" size={12} />
           </button>
           {suiteOpen && (
             <SuiteSwitcherPopover
@@ -144,7 +166,7 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
           title={escuro ? 'Usar tema claro' : 'Usar tema escuro'}
           onClick={theme.toggle}
         >
-          {escuro ? <Sun className="ph" size={20} strokeWidth={1.5} /> : <Moon className="ph" size={20} strokeWidth={1.5} />}
+          <Ph name={escuro ? 'sun' : 'moon'} />
         </button>
       </header>
       <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />

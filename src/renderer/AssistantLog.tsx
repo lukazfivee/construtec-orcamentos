@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ArrowRight, Check, Sparkles } from 'lucide-react';
+import { Ph } from './Ph';
 import { parseMarkdown } from './assistant/assistantMarkdown';
 import type { Inline } from './assistant/assistantMarkdown';
 import type { PendingNav } from './assistant/assistantTools';
@@ -28,11 +28,11 @@ function EditCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreate
       {card.note && <p className="assistant-card-note">{card.note}</p>}
       {open && (
         <div className="assistant-card-actions">
-          <button type="button" className="assistant-go" disabled={card.state === 'busy'} onClick={onCreate}><Check size={15} aria-hidden="true" />{card.state === 'busy' ? 'Aplicando' : 'Aplicar alterações'}</button>
+          <button type="button" className="assistant-go" disabled={card.state === 'busy'} onClick={onCreate}><Ph name="check" size={15} />{card.state === 'busy' ? 'Aplicando' : 'Aplicar alterações'}</button>
           <button type="button" className="assistant-card-keep" disabled={card.state === 'busy'} onClick={onDismiss}>Continuar conversando</button>
         </div>
       )}
-      {card.state === 'done' && <p className="assistant-card-note"><Check size={14} aria-hidden="true" /> Alterações aplicadas.</p>}
+      {card.state === 'done' && <p className="assistant-card-note"><Ph name="check" size={14} /> Alterações aplicadas.</p>}
     </div>
   );
 }
@@ -65,11 +65,11 @@ function DraftCardView({ card, onCreate, onDismiss }: { card: DraftCard; onCreat
       {card.note && <p className="assistant-card-note">{card.note}</p>}
       {open && (
         <div className="assistant-card-actions">
-          <button type="button" className="assistant-go" disabled={card.state === 'busy'} onClick={onCreate}><Check size={15} aria-hidden="true" />{card.state === 'busy' ? 'Criando' : 'Criar proposta'}</button>
+          <button type="button" className="assistant-go" disabled={card.state === 'busy'} onClick={onCreate}><Ph name="check" size={15} />{card.state === 'busy' ? 'Criando' : 'Criar proposta'}</button>
           <button type="button" className="assistant-card-keep" disabled={card.state === 'busy'} onClick={onDismiss}>Continuar conversando</button>
         </div>
       )}
-      {card.state === 'done' && <p className="assistant-card-note"><Check size={14} aria-hidden="true" /> Proposta criada.</p>}
+      {card.state === 'done' && <p className="assistant-card-note"><Ph name="check" size={14} /> Proposta criada.</p>}
     </div>
   );
 }
@@ -103,7 +103,7 @@ export function AssistantLog({ log, busy, live, step, suggestions, onAsk, onGo, 
     <div className="assistant-log" ref={box} aria-live="polite">
       {log.length === 0 && (
         <div className="assistant-hello">
-          <Sparkles size={28} aria-hidden="true" />
+          <Ph name="sparkle-fill" size={28} />
           <b>Como posso ajudar?</b>
           <span>Pergunte sobre propostas, clientes, kits, catálogo e a obra de cada proposta, ou peça para abrir uma tela.</span>
           <div className="assistant-suggestions">
@@ -115,7 +115,7 @@ export function AssistantLog({ log, busy, live, step, suggestions, onAsk, onGo, 
         <div key={i} className={`assistant-msg ${msg.who}`}>
           {msg.who === 'ia' ? <Markdown text={msg.text} /> : msg.text}
           {msg.card && msg.card.state !== 'dismissed' && <DraftCardView card={msg.card} onCreate={() => onCreate(i)} onDismiss={() => onDismiss(i)} />}
-          {msg.go && <button type="button" className="assistant-go" onClick={() => msg.go && onGo(msg.go)}><ArrowRight size={15} aria-hidden="true" />Ir para {msg.go.label}</button>}
+          {msg.go && <button type="button" className="assistant-go" onClick={() => msg.go && onGo(msg.go)}><Ph name="arrow-right" size={16} />Ir para {msg.go.label}</button>}
         </div>
       ))}
       {busy && live && <div className="assistant-msg ia"><Markdown text={live} /></div>}

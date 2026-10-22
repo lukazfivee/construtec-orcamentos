@@ -33,6 +33,8 @@ export interface AppTopbarProps {
   onOpenCatalog: () => void;
   /** Desktop: abre a busca (catalogo no editor, lista de propostas nas demais telas). */
   onSearch?: () => void;
+  /** Desktop: abre proposta escolhida nos resultados inline da busca global. */
+  onOpenSearchResult?: (proposalId: string) => void;
   /** Desktop: a proposta esta aberta no editor (a busca do topo vira busca no catalogo). */
   editorOpen?: boolean;
   onLogout?: () => void;

@@ -145,17 +145,10 @@ export function App({ user, onLogout }: AppProps = {}) {
     setProposalViewMode('pdf');
   }, [proposal]);
 
-  /* Busca do topo (Ctrl K): no editor abre a busca do catalogo; nas demais telas leva a lista de propostas e foca a busca dela. */
+  /* Busca global do topo: Ctrl K foca o campo e os resultados aparecem logo abaixo. */
   const openSearch = useCallback(() => {
-    if (activeNav === 'Propostas' && proposalViewMode === 'editor' && proposal) {
-      setCatalogOpen(true);
-      return;
-    }
-    setActiveNav('Propostas');
-    setProposalViewMode('list');
-    setCatalogOpen(false);
-    window.setTimeout(() => document.querySelector<HTMLInputElement>('[data-proposals-search]')?.focus(), 80);
-  }, [activeNav, proposal, proposalViewMode]);
+    document.querySelector<HTMLInputElement>('#global-search')?.focus();
+  }, []);
 
   useEffect(() => {
     const announce = (message: string) => {
@@ -209,6 +202,9 @@ export function App({ user, onLogout }: AppProps = {}) {
         proposal={proposal}
         onOpenCatalog={() => setCatalogOpen(true)}
         onSearch={openSearch}
+        onOpenSearchResult={(proposalId) => {
+          void openProposal(proposalId).then((ok) => { if (ok) { setActiveNav('Propostas'); setProposalViewMode('editor'); } });
+        }}
         onFollowNotice={(link) => {
           // Mesmo destino do celular: a proposta aqui; a obra no Centro de Custos.
           const [app, query] = link.split('?');
