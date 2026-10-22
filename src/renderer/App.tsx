@@ -31,6 +31,7 @@ export function App({ user, onLogout }: AppProps = {}) {
   const [activeNav, setActiveNav] = useState<NavSection>('Início');
   const [targetCostCenterId, setTargetCostCenterId] = useState<number | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [proposal, setProposal] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -242,6 +243,8 @@ export function App({ user, onLogout }: AppProps = {}) {
         }}
         onOpenMobileMenu={() => setMobileMenuOpen(true)}
         showNotice={showNotice}
+        assistantOpen={assistantOpen}
+        onToggleAssistant={() => setAssistantOpen((open) => !open)}
       />
 
       <AppSidebar
@@ -392,6 +395,8 @@ export function App({ user, onLogout }: AppProps = {}) {
         onError={setError}
       />
       <AssistantFab
+        open={assistantOpen}
+        onOpenChange={setAssistantOpen}
         user={user}
         screen={assistantScreen}
         onProposalCreated={(created) => { setActiveNav('Propostas'); void proposalCreated(created); }}

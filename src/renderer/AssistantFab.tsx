@@ -13,10 +13,14 @@ import type { AssistantNav, PendingNav } from './assistant/assistantTools';
 import { AssistantLog } from './AssistantLog';
 import type { AssistantMsg, DraftCard } from './AssistantLog';
 import { seesCost, useCanEdit } from './SuitePermissions';
+import { useIsMobile } from './useIsMobile';
 
-// Assistente de IA: botao flutuante em todas as telas depois do login (o App so monta depois dele) e
-// painel de conversa. A conversa fica neste componente: sair da conta desmonta tudo e ela some.
+// Assistente de IA: painel de conversa aberto pelo botao "Assistente" da barra do topo (desktop) ou pelo botao
+// flutuante (celular), em todas as telas depois do login (o App so monta depois dele). A conversa fica neste componente: sair da conta desmonta tudo e ela some.
 interface Props extends AssistantNav {
+  /** Aberto/fechado fica no App: o botao do topo (desktop) e o flutuante (celular) mexem no mesmo estado. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   user?: AuthUser | null;
   /** Tela aberta agora, em texto: entra nas instrucoes da IA. */
   screen: string;
@@ -30,7 +34,8 @@ const SUGGESTIONS = ['Quais propostas estão em andamento?', 'Quanto temos aprov
 const COST_SUGGESTION = 'Como está a obra da proposta aprovada mais recente?';
 
 export function AssistantFab(props: Props) {
-  const [open, setOpen] = useState(false);
+  const { open, onOpenChange: setOpen } = props;
+  const mobile = useIsMobile();
   const [log, setLog] = useState<AssistantMsg[]>([]);
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState('');
@@ -56,13 +61,13 @@ export function AssistantFab(props: Props) {
 
   useEffect(() => {
     if (open) input.current?.focus();
-    else if (wasOpen.current) fab.current?.focus();
+    else if (wasOpen.current) (fab.current ?? document.getElementById('btn-assistente'))?.focus();
     wasOpen.current = open;
     if (!open) return undefined;
     const onKey = (event: globalThis.KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, setOpen]);
 
   useEffect(() => { // a caixa de texto cresce com o que e digitado, ate 120 px
     const box = input.current;
@@ -157,6 +162,7 @@ export function AssistantFab(props: Props) {
   const suggestions = seesCost() ? [...SUGGESTIONS.slice(0, 2), COST_SUGGESTION, ...SUGGESTIONS.slice(2)] : SUGGESTIONS;
 
   if (!open) {
+    if (!mobile) return null; // no desktop o assistente abre pelo botao da barra do topo
     return <button ref={fab} type="button" className="assistant-fab" aria-label="Abrir o assistente" title="Assistente" onClick={() => setOpen(true)}><Sparkles size={24} aria-hidden="true" /></button>;
   }
   return (

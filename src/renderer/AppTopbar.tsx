@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, ChevronDown, CircleHelp, LayoutGrid, Mail, Moon, Search, Sun } from 'lucide-react';
+import { Bell, ChevronDown, CircleHelp, LayoutGrid, Mail, Moon, Search, Sparkles, Sun } from 'lucide-react';
 import { isCloudRuntime } from './api';
 import type { AppTopbarProps } from './AppTopbarMobile';
 import { AppTopbarMobile } from './AppTopbarMobile';
@@ -20,7 +20,7 @@ export function AppTopbar(props: AppTopbarProps) {
 
 /* Barra do topo identica a do Centro de Custos (shell.js + layout.css): busca a esquerda, selo de dados,
    botao Suite e tema. Notificacoes, ajuda e e-mail ficam antes do selo, no mesmo padrao de botao de icone. */
-function AppTopbarDesktop({ activeNav, proposal, editorOpen, onSearch, onSelectApp, showNotice }: AppTopbarProps) {
+function AppTopbarDesktop({ activeNav, proposal, editorOpen, onSearch, onSelectApp, showNotice, assistantOpen, onToggleAssistant }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -53,6 +53,18 @@ function AppTopbarDesktop({ activeNav, proposal, editorOpen, onSearch, onSelectA
         </div>
         <span className="espaco" />
         <UpdateNotice />
+        {/* Assistente (decisao D1 da Suite): ibtn de 36 px, o primeiro dos botoes de icone, mesmo icone do botao flutuante. */}
+        <button
+          type="button"
+          id="btn-assistente"
+          className={`ibtn ${assistantOpen ? 'ativo' : ''}`}
+          aria-label="Assistente"
+          title="Assistente"
+          aria-expanded={assistantOpen}
+          onClick={() => { onToggleAssistant?.(); setSuiteOpen(false); setNotificationsOpen(false); }}
+        >
+          <Sparkles className="ph" size={20} strokeWidth={1.5} />
+        </button>
         <div className="ancora">
           <button
             type="button"

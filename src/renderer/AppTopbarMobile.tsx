@@ -38,6 +38,9 @@ export interface AppTopbarProps {
   onSelectApp?: (app: 'orcamentos' | 'centro-custos') => void;
   onOpenMobileMenu?: () => void;
   showNotice: (message: string) => void;
+  /** Desktop: o assistente e um botao de icone na barra do topo (no celular continua flutuante). */
+  assistantOpen?: boolean;
+  onToggleAssistant?: () => void;
 }
 
 const getInitials = (name: string) =>

@@ -1,20 +1,18 @@
-/* Assistente de IA (AssistantFab): botao flutuante e painel de conversa.
+/* Assistente de IA (AssistantFab): painel de conversa. No desktop abre pelo botao "Assistente" da barra do topo (ibtn,
+   shell-centro.css); o botao flutuante so existe no celular e em janela estreita (< 768 px).
    Camadas: acima do conteudo e das barras (menu lateral 30, topo 20), abaixo de toasts (70) e modais (60+).
    Cores so por token (claro e escuro). */
 .assistant-fab {
   position: fixed; right: 24px; bottom: 24px; z-index: 35;
   display: grid; place-items: center; width: 52px; height: 52px; padding: 0;
   color: var(--on-fill); background: var(--blue); border: 0; border-radius: 50%; cursor: pointer;
-  box-shadow: 0 8px 20px rgba(13, 127, 159, .4);
+  box-shadow: 0 8px 22px rgba(3, 31, 41, .3), inset 0 0 0 1px rgba(255, 255, 255, .18);
   transition: transform .15s ease, background-color .15s ease;
 }
 .grecaptcha-badge { visibility: hidden; } /* o aviso do reCAPTCHA fica no painel do assistente */
 .assistant-fab:hover { background: var(--blue-hover); transform: translateY(-1px); }
 .assistant-fab:focus-visible, .assistant-panel button:focus-visible, .assistant-panel textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* O botao fica no canto onde termina o painel comercial do editor: sobra espaco no fim da rolagem dele
-   para os botoes de baixo (Gerar PDF + Word, Gerar Centro de Custo) nunca ficarem atras do botao. */
-.app-shell.cc .commercial-panel { padding-bottom: 92px; }
 
 .assistant-scrim { display: none; }
 .assistant-handle { display: none; }
@@ -80,13 +78,8 @@
 .assistant-note a { color: inherit; text-decoration: underline; }
 
 /* Janela larga (>= 1200px): o app roda a 75% de zoom (escala-75.css) e vh/vw contam a janela antes da reducao.
-   Aqui tudo divide por .75 para o botao ficar com 52px e o painel com 420px por min(640px, 80vh) na tela. */
+   Aqui tudo divide por .75 para o painel ficar com 420px por min(640px, 80vh) na tela. */
 @media screen and (min-width: 1200px) {
-  .assistant-fab { right: 32px; bottom: 32px; width: 69px; height: 69px; }
-  .assistant-fab svg { width: 32px; height: 32px; }
-  .app-shell.cc .commercial-panel { padding-bottom: 112px; }
-  /* Paginas (Inicio, Propostas, Catalogo, Kits, EXSAT...): sobra no fim da rolagem para a ultima linha da lista sair de baixo do botao. */
-  .app-shell.cc > .home-workspace, .app-shell.cc > .management-workspace, .app-shell.cc > .od-page, .app-shell.cc > .workspace-page { padding-bottom: 112px; }
   .assistant-panel { right: 32px; bottom: 32px; width: min(560px, calc((100vw - 48px) / .75)); height: min(853px, calc(80vh / .75)); }
 }
 
