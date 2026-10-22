@@ -15,6 +15,7 @@ import { isCloudRuntime } from './api';
 import { HelpModal } from './HelpModal';
 import { MobileSuiteSheet } from './MobileSuiteSheet';
 import { NotificationsPopover } from './NotificationsPopover';
+import { bellCount, bellLabel, useNoticeCount } from './notificationsFeed';
 import { openWebmail } from './webmail';
 import { UpdateNotice } from './UpdateNotice';
 import { UserProfilePopover } from './UserProfilePopover';
@@ -41,6 +42,8 @@ export interface AppTopbarProps {
   /** Desktop: o assistente e um botao de icone na barra do topo (no celular continua flutuante). */
   assistantOpen?: boolean;
   onToggleAssistant?: () => void;
+  /** Desktop: destino de um aviso do sino (orcamentos?proposta=... ou centro-custos?obra=...). */
+  onFollowNotice?: (link: string) => void;
 }
 
 const getInitials = (name: string) =>
@@ -59,6 +62,7 @@ export function AppTopbarMobile({
   onLogout,
   onOpenMobileMenu,
   showNotice,
+  onFollowNotice,
 }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const mobile = useIsMobile();
@@ -67,15 +71,8 @@ export function AppTopbarMobile({
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const divergentCount =
-    proposal?.isLatest
-      ? proposal.items.filter(
-          (item) =>
-            item.catalogCurrentCost !== null &&
-            item.catalogCurrentCost !== undefined &&
-            Math.abs(item.catalogCurrentCost - item.unitCost) >= 0.01
-        ).length
-      : 0;
+  // Contador do sino: os avisos da Suite, os mesmos do /m/.
+  const notices = useNoticeCount();
 
   const displayName = user?.name || 'Marcos Ribeiro';
   const displayInitials = user?.name ? getInitials(user.name) : 'MR';
@@ -138,22 +135,24 @@ export function AppTopbarMobile({
             <div className="top-action-anchor">
               <button
                 className={`icon-button ${notificationsOpen ? 'active' : ''}`}
-                aria-label="Notificações"
+                aria-label={bellLabel(notices.unread)}
+                data-sino
                 type="button"
                 onClick={() => {
                   setNotificationsOpen((prev) => !prev);
                   setSuiteOpen(false);
                   setProfileOpen(false);
                 }}
-                title="Notificações e alertas do sistema"
+                title="Notificações"
               >
                 <Bell size={18} />
-                {divergentCount > 0 && <span className="notification-badge" aria-label={`${divergentCount} divergências`} />}
+                {notices.unread > 0 && <span className="bell-count" aria-hidden="true">{bellCount(notices.unread)}</span>}
               </button>
               {notificationsOpen && (
                 <NotificationsPopover
-                  proposal={proposal}
                   onClose={() => setNotificationsOpen(false)}
+                  onUnreadChange={notices.setUnread}
+                  onFollow={(link) => onFollowNotice?.(link)}
                 />
               )}
             </div>

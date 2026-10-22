@@ -205,6 +205,14 @@ export function App({ user, onLogout }: AppProps = {}) {
         proposal={proposal}
         onOpenCatalog={() => setCatalogOpen(true)}
         onSearch={openSearch}
+        onFollowNotice={(link) => {
+          // Mesmo destino do celular: a proposta aqui; a obra no Centro de Custos.
+          const [app, query] = link.split('?');
+          const params = new URLSearchParams(query || '');
+          if (app === 'orcamentos' && params.get('proposta')) {
+            void openProposal(params.get('proposta') as string).then(() => { setActiveNav('Propostas'); setProposalViewMode('editor'); });
+          } else if (app === 'centro-custos') openCentroCustos(Number(params.get('obra')) || undefined);
+        }}
         editorOpen={activeNav === 'Propostas' && proposalViewMode === 'editor' && Boolean(proposal)}
         onLogout={onLogout}
         onSelectApp={(app) => {

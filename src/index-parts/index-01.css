@@ -115,7 +115,6 @@ kbd {
 .profile:disabled:hover { background: rgba(35, 49, 71, 0.5); }
 .profile > span { display: grid; place-items: center; width: 27px; height: 27px; font-size: calc(10px * var(--fs, 1)); font-weight: 700; background: var(--bg-cool-34); border-radius: 50%; }
 .profile b { font-size: calc(11.5px * var(--fs, 1)); font-weight: 500; }
-.notification-badge { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; background: #12a9d1; border: 1.5px solid #132038; border-radius: 50%; box-shadow: 0 0 6px #12a9d1; }
 
 /* App Switcher / Suíte Construtec */
 .suite-switcher-container { position: relative; display: inline-flex; align-items: center; margin-right: 4px; }

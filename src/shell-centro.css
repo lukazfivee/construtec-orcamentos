@@ -158,7 +158,6 @@
   .app-shell.cc > .top { grid-column: 2; grid-row: 1; position: relative; z-index: 20; height: var(--top-h); display: flex; align-items: center; gap: 16px; padding: 0 24px 0 32px; background: var(--color-surface); box-shadow: 0 1px 0 var(--color-divider); min-width: 0; }
   .top .espaco { flex: 1; }
   .top .ancora { position: relative; display: flex; align-items: center; }
-  .top .ponto-aviso { position: absolute; top: 7px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: #12a9d1; box-shadow: 0 0 0 2px var(--color-surface); }
   .busca { position: relative; width: 440px; min-width: 220px; flex: 0 1 440px; }
   .busca > .ph { position: absolute; left: 12px; top: 11px; font-size: calc(18px * var(--fs, 1)); color: var(--color-neutral-300); pointer-events: none; }
   .busca .inp { padding: 0 60px 0 40px; background: var(--color-bg); cursor: text; }
