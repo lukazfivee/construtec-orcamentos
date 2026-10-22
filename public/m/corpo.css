@@ -87,3 +87,4 @@
 
 /* Opcoes do documento. */
 .pdf-notes textarea { min-height: 76px; }
+.pdf-notes[hidden] { display: none; }

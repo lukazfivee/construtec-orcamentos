@@ -118,7 +118,7 @@ test('paginas do PDF do desktop com carta: carta e fechamento nas paginas, assin
   const pages = buildPdfPages(proposal, { ...defaultPdfChoices(proposal) });
   const joined = pages.map((page) => page.html).join('\n');
   assert.equal(pages[0].label, 'Texto');
-  inOrder(joined, ['Vitória / ES, 06 de Agosto de 2026.', 'At.:', 'REF.: Proposta nº PA-1042', 'Prezados Senhores:', '1. Apresentação', 'pg-caption', 'Planilha de mão de obra', '14.1. Responsabilidades', 'No aguardo de breve pronunciamento', 'pg-sign']);
+  inOrder(joined, ['Vitória / ES, 06 de Agosto de 2026.', 'At.:', 'REF.: Proposta nº PA-1042', 'Prezados Senhores:', '1. Apresentação', 'pd-cap', 'Planilha de mão de obra', '14.1. Responsabilidades', 'No aguardo de breve pronunciamento', 'pg-sign']);
   assert.equal((joined.match(/class="pg-sign"/g) ?? []).length, 1);
   assert.match(joined, /<h4 class="pg-h2">14\.1\./);
   const noSign = buildPdfPages(proposal, defaultPdfChoices(proposal), { pdfShowLogo: true, pdfShowSignature: false }).map((page) => page.html).join('');

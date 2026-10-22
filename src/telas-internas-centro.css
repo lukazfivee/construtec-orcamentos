@@ -83,6 +83,12 @@
   .app-shell.cc .pdf-options button small { font-size: calc(12px * var(--fs, 1)); font-weight: 400; color: var(--color-neutral-300); }
   .app-shell.cc .pdf-options button:hover { background: var(--color-accent-900); }
   .app-shell.cc .pdf-options button[aria-checked="true"][role="radio"] { background: var(--color-accent-900); box-shadow: inset 0 0 0 2px var(--color-accent-500); }
+  /* Observacoes so deste documento: logo abaixo da chave Observacoes, a mensagem cresce com o texto (sem rolagem interna). */
+  .app-shell.cc .pdf-notes { display: flex; flex-direction: column; gap: 6px; margin: 0 0 2px; }
+  .app-shell.cc .pdf-notes span { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); font-weight: 600; }
+  .app-shell.cc .pdf-notes textarea { min-height: 72px; padding: 10px 12px; border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--color-field); background: var(--color-surface); color: var(--color-text); font: calc(13.5px * var(--fs, 1))/1.5 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; resize: vertical; field-sizing: content; }
+  .app-shell.cc .pdf-notes textarea::placeholder { color: var(--color-neutral-300); }
+  .app-shell.cc .pdf-notes textarea:focus { outline: none; box-shadow: inset 0 0 0 2px var(--color-accent-300); }
   .app-shell.cc .pdf-team { padding: 18px 20px; border: 0; border-radius: 14px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--c-warn-bar); }
   .app-shell.cc .pdf-team > div { margin-bottom: 10px; }
   .app-shell.cc .pdf-team b { font-size: calc(15px * var(--fs, 1)); font-weight: 600; }

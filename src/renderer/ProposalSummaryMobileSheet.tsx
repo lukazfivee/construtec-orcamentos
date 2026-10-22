@@ -193,7 +193,7 @@ export function ProposalSummaryMobileSheet({
             style={canSend ? undefined : { display: 'none' }}
             onClick={() => { onExportProposal(); onClose(); }}
           >
-            <FilePlus2 size={16} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'}
+            <FilePlus2 size={16} /> {documentPending ? 'Preparando…' : 'Gerar PDF ou Word'}
           </button>
           {canSend && onShareProposal && (
             <button type="button" disabled={documentPending} onClick={() => { onShareProposal(); onClose(); }}>

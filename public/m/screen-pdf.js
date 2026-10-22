@@ -7,6 +7,8 @@
   // Escolhas por proposta: sobrevivem ao erro de rede e ao "Tentar de novo".
   const saved = {};
   const choicesFor = (id) => (saved[id] = saved[id] || OC.docDefaults());
+  // Proposta com carta de abertura ja comeca no texto da carta: a capa fica desligada ate a pessoa ligar (como no computador).
+  const fresh = {};
   const query = (c) => OC.docQuery(c);
 
   // Nome do arquivo: Proposta_Construtec_CLIENTE_Obra (mesma regra do computador; REV so da segunda revisao em diante).
@@ -110,7 +112,8 @@
       <div class="share-list">
         <button class="opt" type="button" data-sh="whats">${icon('paper-plane-tilt', 20)}<span class="grow"><b>WhatsApp</b><small>Mensagem pronta com o arquivo</small></span></button>
         <button class="opt" type="button" data-sh="mail">${icon('envelope-simple', 20)}<span class="grow"><b>E-mail</b><small>Abre o e-mail com a mensagem</small></span></button>
-        <button class="opt" type="button" data-sh="file">${icon('arrow-square-out', 20)}<span class="grow"><b>Outros apps</b><small>Menu de compartilhar do aparelho</small></span></button>
+        <button class="opt" type="button" data-sh="copy">${icon('copy', 20)}<span class="grow"><b>Copiar mensagem</b><small>Para colar na conversa com o cliente</small></span></button>
+        ${navigator.canShare ? `<button class="opt" type="button" data-sh="file">${icon('arrow-square-out', 20)}<span class="grow"><b>Outros apps</b><small>Menu de compartilhar do aparelho</small></span></button>` : ''}
         <button class="opt" type="button" data-sh="print">${icon('file-text', 20)}<span class="grow"><b>Salvar como PDF</b><small>Pela impressão do aparelho</small></span></button>
         <button class="opt" type="button" data-sh="word">${icon('download-simple', 20)}<span class="grow"><b>Word (.docx)</b><small>O mesmo documento, para editar no Word</small></span></button>
       </div>
@@ -127,6 +130,8 @@
           } else await shareFile(doc, message(p));
         } else if (kind === 'mail') {
           location.href = `mailto:?subject=${encodeURIComponent(`Proposta ${p.number} · Construtec`)}&body=${encodeURIComponent(`${message(p)}\n\nO arquivo da proposta segue em anexo.`)}`;
+        } else if (kind === 'copy') {
+          try { await navigator.clipboard.writeText(message(p)); OC.toast('Mensagem copiada. Cole na conversa com o cliente.'); } catch { OC.toast('Não foi possível copiar automaticamente.', 'warning-circle'); }
         } else if (kind === 'file') {
           await shareFile(await fetchDocument(p, c), message(p));
         } else if (kind === 'word') {
@@ -166,6 +171,7 @@
     <div class="actions"><button class="btn2" type="button" disabled>Compartilhar</button><button class="btn" type="button" disabled>Baixar PDF</button></div>`;
 
   OC.screens.pdf = async function (params) {
+    if (!saved[params.id]) fresh[params.id] = true;
     const c = choicesFor(params.id);
     const el = OC.render(`${OC.header('PDF da proposta', { back: true })}<div class="prop-tags"><span class="prop-work" id="pdf-sub">Gerando a pré-visualização do PDF…</span></div><div id="pdf-body" class="p-body">${skeleton()}</div>`, true, params);
     const body = OC.$('#pdf-body', el);
@@ -184,6 +190,7 @@
       return;
     }
     if (nav !== OC.nav) return;
+    if (fresh[p.id]) { delete fresh[p.id]; c.capa = !(p.bodyBlocks || []).some((b) => b.type === 'carta' && b.enabled); }
     history.replaceState(null, '', `#pdf=${encodeURIComponent(p.id)}`);
     OC.$('#pdf-sub', el).textContent = `${p.number} · ${OC.rev(p.revision)} · ${p.workName || p.clientName}`;
     if (!p.items.length && !OC.laborSale(p)) {
@@ -207,15 +214,16 @@
     else if (!sendable) sendBlock = `<p class="hint">${p.status === 'draft' ? 'Envie para revisão interna antes de mandar ao cliente.' : 'Compartilhar não muda a situação da proposta.'}</p>`;
     else sendBlock = '';
 
+    // Mesmas opcoes, textos e ordem do PDF da proposta no computador (ProposalPdfView): Incluir no documento e Apresentacao.
     body.innerHTML = `<div class="sec-row"><span class="label">Pré-visualização</span><span class="hint right" id="pdf-pages"></span></div>
       <div class="pdf-thumbs" id="pdf-thumbs"></div>
       <p class="hint busy-row" id="pdf-busy" role="status" hidden>${icon('circle-notch', 16)}Atualizando a pré-visualização…</p>
       <span class="label">Incluir no documento</span>
-      <div class="opt-list">${sw('capa', 'Capa', 'Obra, cliente e valor total')}${sw('condicoes', 'Cláusulas comerciais', 'Validade, prazo, pagamento e garantia')}${sw('obs', 'Observações', 'Observações das condições e notas deste documento')}
-        ${sw('validade', 'Aviso de validade', p.validUntil ? `Até ${OC.dateFull(p.validUntil)}` : 'Sem validade definida', !p.validUntil)}${OC.docLabor(p) > 0 ? sw('mao', 'Mão de obra', `Linha de serviços técnicos (${esc(OC.money(OC.docLabor(p)))})`) : ''}</div>
-      <label class="field pdf-notes" id="pdf-notes"><span>Observações complementares para este documento</span><textarea rows="3" maxlength="1000" placeholder="Ex.: Não inclusa infraestrutura de alvenaria. Ponto de energia por conta do contratante.">${esc(c.notas)}</textarea></label>
+      <div class="opt-list">${sw('capa', 'Capa', 'Obra, cliente e valor total')}${sw('condicoes', 'Condições comerciais', 'Pagamento, validade, prazo e garantia')}${sw('obs', 'Observações', 'Observações das condições e notas deste documento')}
+        <label class="field pdf-notes" id="pdf-notes"><span>Observações só deste documento</span><textarea rows="3" maxlength="1000" placeholder="Ex.: Não inclusa infraestrutura de alvenaria. Ponto de energia por conta do contratante.">${esc(c.notas)}</textarea></label>
+        ${sw('validade', 'Validade', p.validUntil ? `Até ${OC.dateFull(p.validUntil)}` : 'Sem validade definida', !p.validUntil)}${OC.docLabor(p) > 0 ? sw('mao', 'Mão de obra', `Linha de serviços técnicos (${esc(OC.money(OC.docLabor(p)))})`) : ''}</div>
       <span class="label">Apresentação</span>
-      <div class="opt-list">${sw('agrupar', 'Agrupar por categoria', 'Itens separados por sistema (Elétrica, CFTV...)')}${sw('codigos', 'Códigos do catálogo', 'Abaixo da descrição de cada item')}${sw('marca', "Marca d'água", 'Logo ao fundo das páginas')}</div>
+      <div class="opt-list">${sw('agrupar', 'Agrupar por categoria', 'Itens separados por sistema (Elétrica, CFTV…)')}${sw('codigos', 'Códigos do catálogo', 'Abaixo da descrição de cada item')}${sw('marca', "Marca d'água", 'Logo clara ao fundo das páginas')}</div>
       ${cost ? `<div class="card team"><div class="sec-row"><b>${icon('eye', 18)}Só para a equipe</b><span class="tag">Não vai no PDF</span></div>
         <div class="kv"><span>Custo base</span><b>${esc(OC.money0(t.baseCost))}</b></div>
         <div class="kv"><span>BDI</span><b>${esc(OC.dec2(p.bdiMultiplier))} ×</b></div>

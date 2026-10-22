@@ -1,20 +1,29 @@
-// Paginas da pre-visualizacao do PDF (Rodada 23, telas 23m a 23p): capa, itens por sistema e condicoes.
-// So leva precos de venda. Custo, BDI e margem nunca entram, com ou sem a permissao p10: o arquivo do cliente
-// vem do servidor (GET /api/proposals/:id/document), que tambem nao os envia.
-import type { AppSettings, ProposalDetail } from '../shared/contracts';
+// Paginas da pre-visualizacao do PDF no computador. Seguem o documento do servidor (GET /api/proposals/:id/document, o mesmo do
+// celular): capa, quadro de identificacao, corpo montado ou o texto padrao (Prezados Senhores e Apresentacao), planilha de itens,
+// condicoes, fechamento e aviso de validade. As opcoes sao as mesmas do celular (public/m/pdf-corpo.js) e vao na mesma query.
+// So leva precos de venda. Custo, BDI e margem nunca entram, com ou sem a permissao p10.
+import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
 import { resolveBodyParts, type BodyPart } from '../shared/proposalBody';
-import { commercialLaborTotal, escapeHtml, parseCommercialConditions, proposalFileBaseName } from '../documents/proposalDocumentCommon';
+import { commercialLaborTotal, escapeHtml, groupItemsByCategory, proposalFileBaseName } from '../documents/proposalDocumentCommon';
+import { proposalPresentation } from '../documents/proposalPresentation';
 import { CONSTRUTEC_LOGO_SMALL_BASE64 } from '../assets/previewImagesBase64';
 import { bodyTextAtoms } from './proposalPdfBodyPages';
-import { flowPages, type FlowAtom } from './proposalPdfFlow';
+import { flowPages, type FlowAtom, type FlowWrap } from './proposalPdfFlow';
 
-// marca: marca d'agua deste PDF; null vale o padrao da empresa (Configuracoes).
-export type PdfChoices = { modelo: 'completo' | 'resumido'; capa: boolean; condicoes: boolean; validade: boolean; marca: boolean | null };
+// Escolhas do documento, iguais no computador e no celular. marca: marca d'agua deste PDF; null vale o padrao da empresa.
+// obs: observacoes das condicoes e as notas deste documento (notas); mao: a linha da mao de obra.
+export type PdfChoices = {
+  capa: boolean; condicoes: boolean; obs: boolean; notas: string; validade: boolean; mao: boolean;
+  agrupar: boolean; codigos: boolean; marca: boolean | null;
+};
 export type PdfPage = { label: 'Capa' | 'Itens' | 'Condições' | 'Texto'; html: string };
+
+export const PDF_NOTES_MAX = 1000;
 
 // Proposta com carta de abertura ja comeca no texto da carta: a capa fica desligada ate a pessoa ligar.
 export const defaultPdfChoices = (proposal?: ProposalDetail): PdfChoices => ({
-  modelo: 'completo', capa: !proposal?.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled), condicoes: true, validade: true, marca: null,
+  capa: !proposal?.bodyBlocks?.some((block) => block.type === 'carta' && block.enabled),
+  condicoes: true, obs: true, notas: '', validade: true, mao: true, agrupar: false, codigos: false, marca: null,
 });
 
 // Logo esmaecida ao fundo da pagina de pre-visualizacao (o PDF real usa .watermark do documento do servidor).
@@ -29,7 +38,7 @@ const LAST_PAGE_RESERVE = 3;
 export const rowWeight = (description: string) => Math.max(1, Math.ceil(description.length / CHARS_PER_LINE));
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const numberFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
+const numberFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
 const cents = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 export const formatIsoDate = (iso: string | null | undefined) => (iso ? dateFmt.format(new Date(`${iso.slice(0, 10)}T00:00:00Z`)) : '');
@@ -51,14 +60,26 @@ export const hasPdfContent = (proposal: ProposalDetail) => proposal.items.length
 // Validade so conta se a proposta tem data.
 export const effectiveChoices = (choices: PdfChoices, proposal: ProposalDetail): PdfChoices => ({ ...choices, validade: choices.validade && Boolean(proposal.validUntil) });
 
-export const pdfQuery = (choices: PdfChoices) =>
-  `modelo=${choices.modelo}&capa=${choices.capa ? 1 : 0}&condicoes=${choices.condicoes ? 1 : 0}&validade=${choices.validade ? 1 : 0}${choices.marca === null ? '' : `&marca=${choices.marca ? 1 : 0}`}`;
+const flag = (value: boolean) => (value ? 1 : 0);
+const cleanNotes = (choices: PdfChoices) => (choices.obs ? choices.notas.trim().slice(0, PDF_NOTES_MAX) : '');
+
+// Parametros do documento do servidor (HTML e Word), iguais aos do celular (OC.docQuery). marca so vai quando a pessoa mudou.
+export const pdfQuery = (choices: PdfChoices) => [
+  `modelo=${choices.obs ? 'completo' : 'resumido'}`, `capa=${flag(choices.capa)}`, `condicoes=${flag(choices.condicoes)}`, `validade=${flag(choices.validade)}`,
+  `agrupar=${flag(choices.agrupar)}`, `codigos=${flag(choices.codigos)}`, `mao=${flag(choices.mao)}`, `observacoes=${flag(choices.obs)}`,
+  ...(choices.marca === null ? [] : [`marca=${flag(choices.marca)}`]),
+  ...(cleanNotes(choices) ? [`notas=${encodeURIComponent(cleanNotes(choices))}`] : []),
+].join('&');
+
+// As mesmas escolhas no formato do gerador oficial (proposalPresentation / buildProposalHtml).
+export const pdfExportOptions = (choices: PdfChoices): ProposalExportOptions => ({
+  groupByCategory: choices.agrupar, showProductCodes: choices.codigos, includeLabor: choices.mao, includeCommercialTerms: choices.condicoes,
+  includeNotes: choices.obs, ...(cleanNotes(choices) ? { customNotes: cleanNotes(choices) } : {}), ...(choices.marca === null ? {} : { watermark: choices.marca }),
+});
 
 export const pdfFileName = (proposal: ProposalDetail) => proposalFileBaseName(proposal);
 
-type Row = { weight: number } & ({ cat: string; sum: number } | { item: { description: string; quantity: number; unit: string; unitSale: number; totalSale: number } });
-
-export type PdfBranding = Pick<AppSettings, 'pdfShowLogo' | 'pdfShowSignature'> & Partial<Pick<AppSettings, 'pdfWatermark'>>;
+export type PdfBranding = Partial<Pick<AppSettings, 'pdfShowLogo' | 'pdfShowSignature' | 'pdfWatermark' | 'tradeName' | 'companyName' | 'address' | 'phone' | 'email' | 'document'>>;
 
 // Quebra as linhas em paginas pelo peso (linhas visuais); a ultima pagina guarda espaco para o total e a validade.
 export const paginateRows = <T extends { weight: number }>(rows: T[]): T[][] => {
@@ -80,86 +101,98 @@ export const paginateRows = <T extends { weight: number }>(rows: T[]): T[][] => 
   return pages;
 };
 
+// Planilha de itens com o cabecalho do documento; continua com o cabecalho na pagina seguinte.
+const ITEMS_WRAP: FlowWrap = { open: '<table class="pd-items"><thead><tr><th>Item</th><th>Descrição</th><th>Qtd.</th><th>Unit.</th><th>Total</th></tr></thead><tbody>', close: '</tbody></table>' };
+const LEGACY_LEAD = 'Prezados Senhores,\nApresentamos nossa proposta técnica e comercial para fornecimento de equipamentos, materiais e execução dos serviços descritos a seguir.';
+
 export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, branding?: PdfBranding): PdfPage[] => {
-  const showLogo = branding?.pdfShowLogo ?? true;
   const showSignature = branding?.pdfShowSignature ?? true;
   const choices = effectiveChoices(rawChoices, proposal);
+  const content = proposalPresentation(proposal, branding as AppSettings | undefined, pdfExportOptions(choices));
   const total = proposal.totals.finalValue ?? 0;
-  const number = `${proposal.number} · ${revLabel(proposal.revision)}`;
+  const ref = `${proposal.number} • Revisão ${String(proposal.revision).padStart(2, '0')}`;
   const validUntil = formatIsoDate(proposal.validUntil);
-  const brand = showLogo ? `<img class="pg-head-logo" alt="CONSTRUTEC" src="data:image/png;base64,${CONSTRUTEC_LOGO_SMALL_BASE64}">` : '<b>CONSTRUTEC</b>';
-  const head = (title: string) => `<div class="pg-head">${brand}<span>${escapeHtml(number)}</span></div><div class="pg-title">${escapeHtml(title)}</div>`;
-  const foot = (n: number) => `<div class="pg-foot"><span>Construtec Engenharia · Sistemas especiais</span><span>Página ${n}</span></div>`;
-  const labor = laborSale(proposal);
-  const systems = [...new Set(proposal.items.map((item) => item.category || 'Itens'))];
-  if (labor > 0) systems.push('Mão de obra e serviços técnicos');
-  const pages: PdfPage[] = [];
+  const labor = choices.mao ? laborSale(proposal) : 0;
+  const text = (value: string) => escapeHtml(value).replace(/\n/g, '<br>');
+  // Cabecalho com o nome da marca em texto, como no timbrado do documento e na previa do celular.
+  const brand = `<b>${escapeHtml(content.brand)}</b>`;
+  const block = (label: PdfPage['label'], html: string, group?: string): FlowAtom => ({ kind: 'block', label, html: `<div class="pd-piece">${html}</div>`, ...(group ? { group } : {}) });
 
-  if (choices.capa) {
-    pages.push({
-      label: 'Capa',
-      html: `<div class="pg-cover">${showLogo ? '<b class="pg-logo">CONSTRUTEC</b>' : ''}<small>Proposta comercial</small><b class="pg-h1">${escapeHtml(proposal.workName || proposal.clientName)}</b><span>${escapeHtml(proposal.clientName)}</span>
-        <dl><dt>Proposta</dt><dd>${escapeHtml(number)}</dd>
-        ${choices.validade ? `<dt>Válida até</dt><dd>${escapeHtml(validUntil)}</dd>` : ''}
-        <dt>Responsável</dt><dd>${escapeHtml(proposal.responsibleName || '')}</dd><dt>Sistemas</dt><dd>${escapeHtml(systems.join(', '))}</dd></dl>
-        <div class="pg-total"><small>Valor total</small><b>${escapeHtml(brl.format(total))}</b></div></div>`,
+  // Planilha: titulo, legenda, linhas, totais e a faixa do valor total formam um bloco so (como o pricing-block do documento).
+  const pricing = (title: string, caption = ''): FlowAtom[] => {
+    let n = 0;
+    const row = (item: { description: string; code?: string | null; quantity: number; unit: string; unitSale: number; totalSale: number }): FlowAtom => ({
+      kind: 'tr', label: 'Itens', wrap: ITEMS_WRAP,
+      html: `<tr><td>${++n}</td><td>${escapeHtml(item.description)}${choices.codigos && item.code ? `<small>${escapeHtml(item.code)}</small>` : ''}</td><td>${escapeHtml(numberFmt.format(item.quantity))} ${escapeHtml(item.unit)}</td><td>${escapeHtml(brl.format(item.unitSale))}</td><td>${escapeHtml(brl.format(item.totalSale))}</td></tr>`,
     });
-  }
-
-  const rows: Row[] = [];
-  const laborLine = { description: 'Mão de obra', quantity: 1, unit: 'vb', unitSale: labor, totalSale: labor };
-  if (choices.modelo === 'completo') {
-    // Planilha item a item, na ordem da proposta, sem separar por sistema; a mao de obra e a ultima linha.
-    [...proposal.items, ...(labor > 0 ? [laborLine] : [])].forEach((item) => rows.push({ weight: rowWeight(item.description), item }));
-  } else {
-    // Resumido: so o total de cada sistema.
-    systems.forEach((system, index) => {
-      const list = labor > 0 && index === systems.length - 1 ? [laborLine] : proposal.items.filter((item) => (item.category || 'Itens') === system);
-      rows.push({ weight: 1, cat: system, sum: list.reduce((sum, item) => sum + (item.totalSale || 0), 0) });
-    });
-  }
-  const completo = choices.modelo === 'completo';
-  const heading = (title: string, label: PdfPage['label']): FlowAtom => ({ kind: 'h', label, html: `<h4 class="pg-h">${escapeHtml(title)}</h4>` });
-  const itemAtoms = (title: string, caption = ''): FlowAtom[] => ([
-    heading(title, 'Itens'),
-    ...(caption ? [{ kind: 'p' as const, label: 'Itens' as const, html: `<p class="pg-caption">${escapeHtml(caption)}</p>` }] : []),
-    ...rows.map((row): FlowAtom => ({
-      kind: 'tr', label: 'Itens',
-      html: 'cat' in row
-        ? `<tr class="pg-cat"><td colspan="${completo ? 3 : 1}">${escapeHtml(row.cat)}</td><td>${completo ? '' : escapeHtml(brl.format(row.sum))}</td></tr>`
-        : `<tr><td>${escapeHtml(row.item.description)}</td><td>${escapeHtml(numberFmt.format(row.item.quantity))} ${escapeHtml(row.item.unit)}</td><td>${escapeHtml(brl.format(row.item.unitSale))}</td><td>${escapeHtml(brl.format(row.item.totalSale))}</td></tr>`,
-    })),
-    { kind: 'block', label: 'Itens', html: `<div class="pg-total"><small>Valor total da proposta</small><b>${escapeHtml(brl.format(total))}</b></div>${choices.validade ? `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}.</p>` : ''}` },
-  ] as FlowAtom[]).map((atom) => ({ ...atom, group: 'planilha' }));
-  const conditionAtoms = (title: string): FlowAtom[] => {
-    const terms = parseCommercialConditions(proposal.scope);
+    const cat = (name: string): FlowAtom => ({ kind: 'tr', label: 'Itens', wrap: ITEMS_WRAP, html: `<tr class="pg-cat"><td colspan="5">${escapeHtml(name)}</td></tr>` });
+    const rows: FlowAtom[] = [];
+    if (choices.agrupar) groupItemsByCategory(proposal).forEach(([name, list]) => { rows.push(cat(name)); list.forEach((item) => rows.push(row(item))); });
+    else proposal.items.forEach((item) => rows.push(row(item)));
+    if (labor > 0) {
+      if (choices.agrupar) rows.push(cat('Mão de Obra e Serviços Técnicos'));
+      rows.push(row({ description: 'Mão de obra', unit: 'vb', quantity: 1, unitSale: labor, totalSale: labor }));
+    }
+    if (!rows.length) rows.push({ kind: 'tr', label: 'Itens', wrap: ITEMS_WRAP, html: '<tr><td colspan="5" class="pd-muted">Nenhum item incluído nesta revisão.</td></tr>' });
+    const sums = content.summary.slice(0, -1).map(([label, value]) => `<div><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`).join('');
+    const heading: FlowAtom = { kind: 'h', label: 'Itens', html: `<h2 class="pd-h">${escapeHtml(title)}</h2>${caption ? `<div class="pd-cap">${escapeHtml(caption)}</div>` : ''}` };
     return [
-      heading(title, 'Condições'),
-      { kind: 'block', label: 'Condições', html: `<dl class="pg-terms"><dt>Pagamento</dt><dd>${escapeHtml(terms.paymentTerms || 'Conforme combinado com o cliente')}</dd><dt>Prazo</dt><dd>${escapeHtml(terms.executionTerm || 'A combinar após o aceite')}</dd><dt>Garantia</dt><dd>${escapeHtml(terms.warranty || 'Conforme normas técnicas aplicáveis')}</dd></dl>` },
-      ...(choices.validade ? [{ kind: 'block' as const, label: 'Condições' as const, html: `<p class="pg-note"><b>Validade:</b> esta proposta vale até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>` }] : []),
-    ];
+      heading,
+      ...rows,
+      block('Itens', `<div class="pd-sum">${sums}<div class="pg-total"><small>Valor total da proposta</small><b>${escapeHtml(brl.format(total))}</b></div></div>`),
+    ].map((atom) => ({ ...atom, group: 'planilha' }));
   };
-  // Corpo montado pelo usuario: a ordem dos blocos e a ordem do conteudo; sem corpo, o layout fixo (itens e condicoes).
+  // Condicoes: as clausulas do documento (forma de pagamento, validade, prazo, garantia e observacoes com as notas deste documento).
+  const conditions = (title: string): FlowAtom[] => (content.terms.length ? [
+    { kind: 'h', label: 'Condições', html: `<h2 class="pd-h">${escapeHtml(title)}</h2>` },
+    block('Condições', `<dl class="pg-terms">${content.terms.map(([dt, dd]) => `<dt>${escapeHtml(dt)}</dt><dd>${text(dd)}</dd>`).join('')}</dl><p class="pd-p">Valores expressos em moeda corrente nacional (BRL).</p>`),
+  ] : []);
+
   const bodyParts = proposal.bodyBlocks ? resolveBodyParts(proposal, proposal.bodyBlocks) : null;
+  const letter = Boolean(bodyParts?.some((part) => part.kind === 'carta'));
   const flow: FlowAtom[] = [];
-  let text: BodyPart[] = [];
-  const flushText = (endsDocument = false) => { flow.push(...bodyTextAtoms(text, showSignature, endsDocument)); text = []; };
+  // Sem carta: quadro de identificacao na primeira pagina (como o timbrado do documento); com carta, cabecalho em todas as paginas.
+  if (!letter) {
+    flow.push(block('Texto', `<div class="pg-head">${brand}<span>Proposta comercial · ${escapeHtml(ref)}</span></div>
+      <div class="pd-id"><span><b>Cliente:</b> ${escapeHtml(proposal.clientName)}</span><span><b>Local / Obra:</b> ${escapeHtml(proposal.workName || '—')}</span><span><b>Referência:</b> ${escapeHtml(proposal.number)} | Rev. ${String(proposal.revision).padStart(2, '0')}</span></div>
+      <div class="pg-title pd-center">Proposta técnica comercial</div>`));
+  }
+  let pending: BodyPart[] = [];
+  const flushText = (endsDocument = false) => { flow.push(...bodyTextAtoms(pending, showSignature, endsDocument)); pending = []; };
   if (!bodyParts) {
-    flow.push(...itemAtoms(completo ? 'Itens da proposta' : 'Resumo por sistema'));
-    if (choices.condicoes) flow.push(...conditionAtoms('Condições comerciais'));
+    // Texto padrao do documento sem corpo montado: abertura e apresentacao da empresa antes da planilha.
+    flow.push(block('Texto', `<p class="pd-p pd-lead">${text(LEGACY_LEAD)}</p>`));
+    flow.push({ kind: 'h', label: 'Texto', html: `<h2 class="pd-h">Apresentação — ${escapeHtml(content.brand)}</h2>` });
+    flow.push(block('Texto', `<p class="pd-p">${escapeHtml(content.presentation)}</p>`));
+    flow.push(...pricing('1. Composição e Precificação'));
+    flow.push(...conditions('2. Condições Comerciais'));
   } else {
     for (const part of bodyParts) {
-      if (part.kind === 'itens') { flushText(); flow.push(...itemAtoms(part.title, part.caption)); }
-      else if (part.kind === 'condicoes') { flushText(); if (choices.condicoes) flow.push(...conditionAtoms(part.title)); }
-      else text.push(part);
+      if (part.kind === 'itens') { flushText(); flow.push(...pricing(part.title, part.caption)); }
+      else if (part.kind === 'condicoes') { flushText(); flow.push(...conditions(part.title)); }
+      else pending.push(part);
     }
     flushText(true);
   }
-  if (showSignature && (!bodyParts || !bodyParts.some((part) => part.kind === 'fechamento')) && flow.length) {
-    flow.push({ kind: 'block', label: flow[flow.length - 1].label, html: `<p class="pg-sign">${escapeHtml(proposal.responsibleName || '')}<br>Construtec Engenharia</p>` });
+  // Fechamento padrao do documento quando o corpo nao tem um.
+  if (!bodyParts?.some((part) => part.kind === 'fechamento')) {
+    const signature = showSignature ? `<div class="pd-sign pg-sign"><i></i><b>${escapeHtml(proposal.responsibleName || content.brand)}</b><span>${escapeHtml(content.company)}</span></div>` : '';
+    flow.push(block('Texto', `<p class="pd-p pd-close">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>${signature}`, 'fim'));
   }
-  pages.push(...flowPages(flow, head('Proposta comercial')));
-  return pages.map((page, index) => ({ ...page, html: `<div class="pg">${page.html}${foot(index + 1)}</div>` }));
+  if (choices.validade) flow.push(block('Texto', `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>`, 'fim'));
+
+  const pages: PdfPage[] = [];
+  if (choices.capa) {
+    pages.push({
+      label: 'Capa',
+      html: `<div class="pg-cover"><small>Proposta comercial</small><b class="pg-h1">${escapeHtml(proposal.workName || proposal.clientName || '')}</b><span>${escapeHtml(proposal.clientName || '')}</span>
+        <dl><dt>Proposta</dt><dd>${escapeHtml(`${proposal.number} · ${revLabel(proposal.revision)}`)}</dd>
+        ${choices.validade ? `<dt>Válida até</dt><dd>${escapeHtml(validUntil)}</dd>` : ''}
+        ${proposal.responsibleName ? `<dt>Responsável</dt><dd>${escapeHtml(proposal.responsibleName)}</dd>` : ''}<dt>Valor total</dt><dd><b>${escapeHtml(brl.format(total))}</b></dd></dl></div>`,
+    });
+  }
+  pages.push(...flowPages(flow, letter ? `<div class="pg-head">${brand}<span>${escapeHtml(ref)}</span></div>` : ''));
+  return pages.map((page, index) => ({ ...page, html: `<div class="pg">${page.html}<div class="pg-foot"><span>${escapeHtml(content.company)}</span><span>Pág. ${index + 1} / ${pages.length}</span></div></div>` }));
 };
 
 export const pdfDefaultMessage = (proposal: ProposalDetail) =>

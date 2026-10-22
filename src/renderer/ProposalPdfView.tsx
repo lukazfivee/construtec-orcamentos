@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Download, Eye, FileText, Link2, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
+  ChevronLeft, ChevronRight, Copy, Download, Eye, FileText, FileType2, Link2, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 // eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
 import pdfPageCss from '../proposal-pdf-page.css?raw';
 import { isCloudRuntime, proposalApi, settingsApi } from './api';
 import { setPdfFlowCss } from './proposalPdfFlow';
-import { openExternalUrl, savePdfDocument } from './proposalPdfActions';
+import { openExternalUrl, savePdfDocument, saveWordDocument } from './proposalPdfActions';
 import { ProposalClientLinkDrawer } from './ProposalClientLinkDrawer';
 import { ProposalSendDrawer } from './ProposalSendDrawer';
 import {
-  PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel, watermarkOverlayHtml,
+  PDF_NOTES_MAX, PDF_PAGE_HEIGHT, PDF_PAGE_WIDTH, buildPdfPages, defaultPdfChoices, effectiveChoices, formatIsoDate, hasPdfContent, laborSale, pdfDefaultMessage, pdfFileName, pdfQuery, revLabel, watermarkOverlayHtml,
   type PdfBranding, type PdfChoices,
 } from './proposalPdfPages';
 import { useCanEdit, useSuitePermission } from './SuitePermissions';
@@ -31,6 +31,8 @@ type Props = {
   onProposalUpdate: (proposal: ProposalDetail) => void;
   onProposalTabsReload: () => void;
   showNotice: (message: string) => void;
+  /** Abre ja com o menu Compartilhar aberto (Compartilhar da lista e do editor levam para ca). */
+  initialShare?: boolean;
 };
 
 type Load = { state: 'loading' } | { state: 'error'; offline: boolean; message: string } | { state: 'ready'; proposal: ProposalDetail };
@@ -54,7 +56,7 @@ function PdfPageFrame({ html, scale, className, watermark }: { html: string; sca
   );
 }
 
-export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpdate, onProposalTabsReload, showNotice }: Props) {
+export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpdate, onProposalTabsReload, showNotice, initialShare = false }: Props) {
   const canEdit = useCanEdit();
   const p10 = useSuitePermission('p10');
   const p11 = useSuitePermission('p11');
@@ -88,11 +90,19 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
 
   useEffect(() => {
     let active = true;
-    void settingsApi.get().then((result) => { if (active) setBranding({ pdfShowLogo: result.settings.pdfShowLogo, pdfShowSignature: result.settings.pdfShowSignature, pdfWatermark: result.settings.pdfWatermark }); }).catch(() => undefined);
+    void settingsApi.get().then((result) => { if (active) setBranding(result.settings); }).catch(() => undefined);
     return () => { active = false; };
   }, []);
 
   useEffect(() => { savedChoices.set(proposalId, choices); }, [proposalId, choices]);
+
+  // Compartilhar da lista e do editor: o menu abre assim que a proposta carrega.
+  const sharedOnce = useRef(false);
+  useEffect(() => {
+    if (!initialShare || sharedOnce.current || load.state !== 'ready') return;
+    sharedOnce.current = true;
+    setShareOpen(true);
+  }, [initialShare, load.state]);
 
   useLayoutEffect(() => {
     const element = stageRef.current;
@@ -209,6 +219,30 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
     catch { showNotice('Não foi possível copiar automaticamente.'); }
   };
   const sharePrint = () => { setShareOpen(false); void download(); };
+  const shareWord = async () => {
+    setShareOpen(false);
+    setBusy(true);
+    try { showNotice(`Word baixado: ${saveWordDocument(proposal, await proposalApi.documentDocx(proposal.id, pdfQuery(eff)))}`); }
+    catch (error) { showNotice(error instanceof Error ? error.message : 'Não foi possível montar o Word agora.'); }
+    finally { setBusy(false); }
+  };
+  // Menu de compartilhar do aparelho, so onde ele existe (o mesmo "Outros apps" do celular).
+  const canShareFiles = typeof navigator !== 'undefined' && typeof navigator.canShare === 'function';
+  const shareOther = async () => {
+    setShareOpen(false);
+    try {
+      const html = await fetchDocument();
+      const file = new File([html], `${fileName}.html`, { type: 'text/html' });
+      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: file.name, text: pdfDefaultMessage(proposal) });
+      else void download();
+    } catch (error) { if (!(error instanceof Error && error.name === 'AbortError')) showNotice('Não foi possível abrir o menu de compartilhar.'); }
+  };
+  const laborValue = laborSale(proposal);
+  const sw = (key: 'capa' | 'condicoes' | 'obs' | 'validade' | 'mao' | 'agrupar' | 'codigos', title: string, text: string, off = false) => (
+    <button key={key} type="button" role="switch" aria-checked={key === 'validade' ? eff.validade : choices[key]} disabled={off} onClick={() => setChoice(key, !choices[key])}>
+      <span><b>{title}</b><small>{text}</small></span><i className="switch" />
+    </button>
+  );
 
   return (
     <main className="workspace-page pdf-page">
@@ -226,8 +260,10 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
                 <span className="share-menu-file" title={fileName}>{fileName}</span>
                 <button type="button" role="menuitem" onClick={shareWhatsApp}><MessageCircle size={16} /> WhatsApp</button>
                 <button type="button" role="menuitem" onClick={shareEmail}><Mail size={16} /> E-mail</button>
-                <button type="button" role="menuitem" onClick={() => void shareCopy()}><FileText size={16} /> Copiar mensagem</button>
+                <button type="button" role="menuitem" onClick={() => void shareCopy()}><Copy size={16} /> Copiar mensagem</button>
+                {canShareFiles && <button type="button" role="menuitem" onClick={() => void shareOther()}><Share2 size={16} /> Outros apps</button>}
                 <button type="button" role="menuitem" onClick={sharePrint}><Download size={16} /> Salvar como PDF</button>
+                <button type="button" role="menuitem" onClick={() => void shareWord()}><FileType2 size={16} /> Word (.docx)</button>
                 <span className="share-menu-note">Compartilhar não muda a situação da proposta.</span>
               </div>
             )}
@@ -289,26 +325,23 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
 
         <aside className="pdf-options" aria-label="Opções do PDF">
           <fieldset>
-            <legend>Modelo</legend>
-            <div role="radiogroup" aria-label="Modelo do PDF">
-              {([['completo', 'Completo', 'Cada item com quantidade e preço'], ['resumido', 'Resumido', 'Só o total de cada sistema']] as const).map(([value, title, text]) => (
-                <button key={value} type="button" role="radio" aria-checked={choices.modelo === value} onClick={() => setChoice('modelo', value)}>
-                  <span><b>{title}</b><small>{text}</small></span><i className="radio" />
-                </button>
-              ))}
-            </div>
+            <legend>Incluir no documento</legend>
+            {sw('capa', 'Capa', 'Obra, cliente e valor total')}
+            {sw('condicoes', 'Condições comerciais', 'Pagamento, validade, prazo e garantia')}
+            {sw('obs', 'Observações', 'Observações das condições e notas deste documento')}
+            {choices.obs && (
+              <label className="pdf-notes">
+                <span>Observações só deste documento</span>
+                <textarea rows={3} maxLength={PDF_NOTES_MAX} value={choices.notas} placeholder="Ex.: Não inclusa infraestrutura de alvenaria. Ponto de energia por conta do contratante." onChange={(event) => setChoice('notas', event.target.value)} />
+              </label>
+            )}
+            {sw('validade', 'Validade', proposal.validUntil ? `Até ${formatIsoDate(proposal.validUntil)}` : 'Sem validade definida', !proposal.validUntil)}
+            {laborValue > 0 && sw('mao', 'Mão de obra', `Linha de serviços técnicos (${brl.format(laborValue)})`)}
           </fieldset>
           <fieldset>
-            <legend>Incluir no PDF</legend>
-            {([
-              ['capa', 'Capa', 'Obra, cliente e valor total', false],
-              ['condicoes', 'Condições comerciais', 'Pagamento, prazo e garantia', false],
-              ['validade', 'Validade', proposal.validUntil ? `Até ${formatIsoDate(proposal.validUntil)}` : 'Sem validade definida', !proposal.validUntil],
-            ] as const).map(([key, title, text, off]) => (
-              <button key={key} type="button" role="switch" aria-checked={key === 'validade' ? eff.validade : choices[key]} disabled={off} onClick={() => setChoice(key, !choices[key])}>
-                <span><b>{title}</b><small>{text}</small></span><i className="switch" />
-              </button>
-            ))}
+            <legend>Apresentação</legend>
+            {sw('agrupar', 'Agrupar por categoria', 'Itens separados por sistema (Elétrica, CFTV…)')}
+            {sw('codigos', 'Códigos do catálogo', 'Abaixo da descrição de cada item')}
             <button type="button" role="switch" aria-checked={watermarkOn} onClick={() => setChoice('marca', !watermarkOn)}><span><b>Marca d'água</b><small>Logo clara ao fundo das páginas</small></span><i className="switch" /></button>
           </fieldset>
           {p10 && (
@@ -349,7 +382,6 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
       {sendOpen && (
         <ProposalSendDrawer
           proposal={proposal}
-          choices={eff}
           fetchDocument={fetchDocument}
           onClose={() => setSendOpen(false)}
           onSent={(updated) => { setSendOpen(false); onProposalUpdate(updated); onProposalTabsReload(); showNotice('Proposta marcada como enviada.'); onBack(); }}

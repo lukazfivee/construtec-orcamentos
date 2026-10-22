@@ -36,7 +36,10 @@ export function App({ user, onLogout }: AppProps = {}) {
   const [proposal, setProposal] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [documentPending, setDocumentPending] = useState(false);
+  // Os documentos sao gerados no fluxo unico "PDF da proposta"; nada no editor fica esperando arquivo.
+  const documentPending = false;
+  // Compartilhar (lista e editor) abre o PDF da proposta ja com o menu Compartilhar aberto.
+  const [pdfShare, setPdfShare] = useState(false);
   const [proposalTabs, setProposalTabs] = useState<ProposalSummary[]>([]);
   const [newProposalOpen, setNewProposalOpen] = useState(false);
   const [proposalViewMode, setProposalViewMode] = useState<ProposalViewMode>(INITIAL_PROPOSAL_VIEW_MODE);
@@ -130,42 +133,14 @@ export function App({ user, onLogout }: AppProps = {}) {
     }
   }, [proposal]);
 
-  const previewProposal = useCallback(async () => {
-    if (!proposal || documentPending) return;
-    setDocumentPending(true);
-    setError('');
-    try {
-      if (window.construtec?.previewProposal) {
-        await window.construtec.previewProposal(proposal);
-      } else {
-        window.print();
-      }
-      showNotice('Pré-visualização da proposta aberta.');
-    } catch (documentError) {
-      setError(documentError instanceof Error ? documentError.message : 'Não foi possível abrir a pré-visualização.');
-    } finally {
-      setDocumentPending(false);
-    }
-  }, [documentPending, proposal]);
-
-  const exportProposal = useCallback(async () => {
-    if (!proposal || documentPending) return;
-    setDocumentPending(true);
-    setError('');
-    try {
-      if (window.construtec?.exportProposal) {
-        await window.construtec.exportProposal(proposal);
-        showNotice('Proposta gerada em PDF e Word com sucesso.');
-      } else {
-        window.print();
-        showNotice('Use a opção "Salvar como PDF" do navegador.');
-      }
-    } catch (documentError) {
-      setError(documentError instanceof Error ? documentError.message : 'Não foi possível gerar os documentos.');
-    } finally {
-      setDocumentPending(false);
-    }
-  }, [documentPending, proposal]);
+  // Ctrl P e Ctrl G levam ao mesmo fluxo do PDF da proposta (opcoes, previa, baixar PDF ou Word, compartilhar).
+  const openPdf = useCallback((share = false) => {
+    if (!proposal) return;
+    setCatalogOpen(false);
+    setPdfShare(share);
+    setActiveNav('Propostas');
+    setProposalViewMode('pdf');
+  }, [proposal]);
 
   /* Busca do topo (Ctrl K): no editor abre a busca do catalogo; nas demais telas leva a lista de propostas e foca a busca dela. */
   const openSearch = useCallback(() => {
@@ -196,16 +171,16 @@ export function App({ user, onLogout }: AppProps = {}) {
         } else if (action === 's') {
           void createRevision();
         } else if (action === 'p') {
-          void previewProposal();
+          openPdf();
         } else if (action === 'g') {
-          void exportProposal();
+          openPdf();
         }
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openSearch, createRevision, exportProposal, previewProposal, proposal?.isLatest]);
+  }, [openSearch, createRevision, openPdf, proposal?.isLatest]);
 
   const selectNav = (label: NavSection) => {
     setActiveNav(label);
@@ -276,6 +251,12 @@ export function App({ user, onLogout }: AppProps = {}) {
             await openProposal(proposalId);
             setProposalViewMode('editor');
           }}
+          onOpenPdf={async (proposalId, share) => {
+            await openProposal(proposalId);
+            setCatalogOpen(false);
+            setPdfShare(share);
+            setProposalViewMode('pdf');
+          }}
           onNewProposal={() => {
             setError('');
             setNewProposalOpen(true);
@@ -287,6 +268,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         <ProposalPdfView
           key={`proposal-pdf-${proposal.id}`}
           proposalId={proposal.id}
+          initialShare={pdfShare}
           onBack={() => setProposalViewMode('editor')}
           onAddItems={() => { setProposalViewMode('editor'); setCatalogOpen(true); }}
           onProposalUpdate={setProposal}
@@ -324,7 +306,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           }}
           onCreateRevision={() => void createRevision()}
           initialSection={editorSection}
-          onOpenPdf={() => { setCatalogOpen(false); setProposalViewMode('pdf'); }}
+          onOpenPdf={(share?: boolean) => openPdf(share === true)}
           onOpenCompare={(fromRevisionId) => { setCatalogOpen(false); setCompareFrom(fromRevisionId); setProposalViewMode('compare'); }}
           onNavigateToCentroCustos={openCentroCustos}
           showNotice={showNotice}

@@ -5,8 +5,6 @@ import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
 import { ProposalActionsBar } from './ProposalActionsBar';
 import { ProposalPriceDriftBanner } from './ProposalPriceDriftBanner';
-import { ProposalExportDialog } from './ProposalExportDialog';
-import { ProposalShareDialog } from './ProposalShareDialog';
 import { ProposalCommercialConditionsPanel } from './ProposalCommercialConditionsPanel';
 import { ProposalHistoryPanel } from './ProposalHistoryPanel';
 import { ProposalItemsPanel } from './ProposalItemsPanel';
@@ -40,7 +38,7 @@ type Props = {
   onManageClients: () => void;
   onCreateRevision: () => void;
   initialSection?: ActiveSection;
-  onOpenPdf: () => void;
+  onOpenPdf: (share?: boolean) => void;
   onOpenCompare: (fromRevisionId?: string) => void;
   onNavigateToCentroCustos?: (costCenterId?: number) => void;
   showNotice: (message: string) => void;
@@ -72,8 +70,6 @@ export function ProposalEditorWorkspace({
   const [activeSection, setActiveSection] = useState<ActiveSection>(initialSection ?? 'Itens');
   const [laborTotal, setLaborTotal] = useState(0);
   const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const {
     mutationPending,
     setMutationPending,
@@ -279,8 +275,8 @@ export function ProposalEditorWorkspace({
         onCreateRevision={onCreateRevision}
         onCloneProposal={() => setCloneDialogOpen(true)}
         onPreviewProposal={onOpenPdf}
-        onExportProposal={() => setExportDialogOpen(true)}
-        onShareProposal={() => setShareDialogOpen(true)}
+        onExportProposal={() => onOpenPdf()}
+        onShareProposal={() => onOpenPdf(true)}
         onDeleteProposal={() => void deleteCurrentProposal()}
         onProposalUpdate={onProposalUpdate}
         onNavigateToCentroCustos={onNavigateToCentroCustos}
@@ -299,22 +295,6 @@ export function ProposalEditorWorkspace({
         onError={setError}
       />
 
-      <ProposalExportDialog
-        open={exportDialogOpen}
-        proposal={proposal}
-        onClose={() => setExportDialogOpen(false)}
-        onExportSuccess={(files) => {
-          showNotice(`Proposta ${proposal.number} exportada com sucesso! (${files.length} arquivo${files.length > 1 ? 's' : ''})`);
-        }}
-        onError={setError}
-      />
-
-      <ProposalShareDialog
-        open={shareDialogOpen}
-        proposal={proposal}
-        onClose={() => setShareDialogOpen(false)}
-        onNotice={showNotice}
-      />
     </main>
   );
 }

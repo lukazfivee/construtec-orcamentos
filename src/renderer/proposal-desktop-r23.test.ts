@@ -64,17 +64,21 @@ test('PDF: paginas so com preco de venda, nunca custo, BDI ou margem', () => {
   assert.ok(html.includes('R$') && html.includes('4.300,00') && html.includes('Camera dome'));
 });
 
-test('PDF: capa, itens e condicoes seguem as escolhas; resumido tem so o total por sistema', () => {
+test('PDF: capa, texto, itens e condicoes seguem as escolhas, as mesmas do celular', () => {
   const p = proposal();
-  const labels = (choices: Parameters<typeof buildPdfPages>[1]) => buildPdfPages(p, choices).map((page) => page.label);
-  // Itens e condicoes seguem em fluxo: dividem a pagina quando cabem, sem pagina pela metade.
-  assert.deepEqual(labels(defaultPdfChoices()), ['Capa', 'Itens']);
-  assert.deepEqual(labels({ ...defaultPdfChoices(), capa: false, condicoes: false }), ['Itens']);
-  const flowHtml = buildPdfPages(p, defaultPdfChoices()).map((page) => page.html).join('\n');
-  assert.ok(flowHtml.includes('Condições comerciais') && flowHtml.includes('Pagamento'));
-  const resumido = buildPdfPages(p, { ...defaultPdfChoices(), modelo: 'resumido' }).map((page) => page.html).join('\n');
-  assert.ok(resumido.includes('Resumo por sistema') && !resumido.includes('Camera dome'));
-  assert.equal(pdfQuery(defaultPdfChoices()), 'modelo=completo&capa=1&condicoes=1&validade=1');
+  const pages = (choices: Parameters<typeof buildPdfPages>[1]) => buildPdfPages(p, choices);
+  const html = (choices: Parameters<typeof buildPdfPages>[1]) => pages(choices).map((page) => page.html).join('\n');
+  // Sem corpo montado o documento do servidor abre com "Prezados Senhores" e a Apresentacao antes da planilha: a previa tambem.
+  const all = html(defaultPdfChoices());
+  assert.equal(pages(defaultPdfChoices())[0].label, 'Capa');
+  for (const piece of ['Prezados Senhores', 'Apresentação — CONSTRUTEC', '1. Composição e Precificação', '2. Condições Comerciais', 'Forma de pagamento', 'Permanecemos à disposição']) assert.ok(all.includes(piece), piece);
+  assert.ok(all.indexOf('Prezados Senhores') < all.indexOf('Camera dome') && all.indexOf('Camera dome') < all.indexOf('Forma de pagamento'));
+  assert.ok(!html({ ...defaultPdfChoices(), capa: false }).includes('pg-cover'));
+  assert.ok(!html({ ...defaultPdfChoices(), condicoes: false, obs: false }).includes('Forma de pagamento'));
+  assert.ok(html({ ...defaultPdfChoices(), agrupar: true }).includes('class="pg-cat"'));
+  assert.equal(pdfQuery(defaultPdfChoices()), 'modelo=completo&capa=1&condicoes=1&validade=1&agrupar=0&codigos=0&mao=1&observacoes=1');
+  assert.equal(pdfQuery({ ...defaultPdfChoices(), capa: false, agrupar: true, codigos: true, mao: false, notas: 'Ponto & cia', marca: true }),
+    'modelo=completo&capa=0&condicoes=1&validade=1&agrupar=1&codigos=1&mao=0&observacoes=1&marca=1&notas=Ponto%20%26%20cia');
 });
 
 test('PDF: validade so conta com data; sem p10 a mao de obra vem do valor final', () => {
@@ -144,7 +148,7 @@ test('PDF: a planilha orcamentaria que cabe numa pagina nao e cortada entre pagi
     const pages = buildPdfPages(body(filler), { ...defaultPdfChoices(), capa: false });
     const withRows = pages.filter((page) => /<tr>/.test(page.html));
     assert.equal(withRows.length, 1, `com ${filler} paragrafos de texto a planilha ficou em ${withRows.length} paginas`);
-    assert.equal((withRows[0].html.match(/<tr>/g) ?? []).length, 10, 'nove itens e a mao de obra juntos');
+    assert.equal((withRows[0].html.match(/<tr><td>/g) ?? []).length, 10, 'nove itens e a mao de obra juntos');
     assert.match(withRows[0].html, /Planilha orçamentária/);
   }
   const html = buildPdfPages(body(3), { ...defaultPdfChoices(), capa: false }).map((page) => page.html).join('');

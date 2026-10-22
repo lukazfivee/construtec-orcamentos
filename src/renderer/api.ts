@@ -238,6 +238,8 @@ export const proposalApi = {
   ),
   // HTML do PDF do cliente, montado no servidor (so precos de venda).
   documentHtml: (proposalId: string, query: string) => requestText(`/api/proposals/${proposalId}/document?${query}`),
+  // O mesmo documento em Word (.docx), com as mesmas escolhas.
+  documentDocx: (proposalId: string, query: string) => requestBinary(`/api/proposals/${proposalId}/document.docx?${query}`),
   clientLink: (proposalId: string) => request<{ link: ClientLinkInfo | null }>(`/api/proposals/${proposalId}/client-link`),
   createClientLink: (proposalId: string, input: { days: number; requireIdentity: boolean }) => request<{ link: ClientLinkInfo }>(
     `/api/proposals/${proposalId}/client-link`, { method: 'POST', body: JSON.stringify(input) },

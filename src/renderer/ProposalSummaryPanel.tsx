@@ -263,10 +263,10 @@ export function ProposalSummaryPanel({
             type="button"
             disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
             onClick={onExportProposal}
-            title="Gerar os arquivos oficiais em PDF e Word (Ctrl+G)"
+            title="Abre o PDF da proposta: opções, prévia e arquivo em PDF ou Word (Ctrl+G)"
             style={canSend ? undefined : { display: 'none' }}
           >
-            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF + Word'}
+            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF ou Word'}
           </button>
         </div>
       </aside>

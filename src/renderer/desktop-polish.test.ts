@@ -11,7 +11,7 @@ const allCss = ['src/index.css', 'src/desktop-polish.css', 'src/impeccable-audit
   .map(read).join('\n');
 
 test('janelas antigas usam a casca unica da Nova proposta (Dialogo), com regra de CSS', () => {
-  for (const file of ['HelpModal', 'ProposalShareDialog', 'ProposalExportDialog', 'ProposalImportDialog', 'ProposalExtendValidityDialog', 'ProposalDeleteModal']) {
+  for (const file of ['HelpModal', 'ProposalImportDialog', 'ProposalExtendValidityDialog', 'ProposalDeleteModal']) {
     const source = read(`src/renderer/${file}.tsx`);
     assert.match(source, /<Dialogo\s/, `${file} deve usar <Dialogo>`);
     assert.doesNotMatch(source, /className="modal-(?:backdrop|dialog)"/, `${file} ainda com casca antiga`);

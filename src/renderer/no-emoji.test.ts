@@ -30,8 +30,8 @@ test('nenhum emoji em src/renderer, src/documents, src/server, src/shared, publi
   assert.deepEqual(hits, [], `emojis encontrados:\n${hits.join('\n')}`);
 });
 
-test('mensagens de WhatsApp do diálogo Compartilhar não carregam pictogramas', () => {
-  const source = readFileSync(path.join(root, 'src/renderer/ProposalShareDialog.tsx'), 'utf8');
+test('mensagem de WhatsApp do Compartilhar (PDF da proposta) não carrega pictogramas', () => {
+  const source = readFileSync(path.join(root, 'src/renderer/proposalPdfPages.ts'), 'utf8');
   assert.equal(EMOJI.test(source), false);
-  assert.match(source, /\*Proposta:\*/);
+  assert.match(source, /Segue a proposta \$\{proposal\.number\}/);
 });
