@@ -222,7 +222,8 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
             </button>
             {shareOpen && (
               <div className="share-menu" role="menu">
-                <span className="share-menu-title">Compartilhar {fileName}</span>
+                <span className="share-menu-title">Compartilhar</span>
+                <span className="share-menu-file" title={fileName}>{fileName}</span>
                 <button type="button" role="menuitem" onClick={shareWhatsApp}><MessageCircle size={16} /> WhatsApp</button>
                 <button type="button" role="menuitem" onClick={shareEmail}><Mail size={16} /> E-mail</button>
                 <button type="button" role="menuitem" onClick={() => void shareCopy()}><FileText size={16} /> Copiar mensagem</button>

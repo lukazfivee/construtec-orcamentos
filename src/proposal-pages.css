@@ -72,8 +72,10 @@
 .drawer-field textarea { resize: vertical; }
 .drawer-field input:focus, .drawer-field textarea:focus { outline: none; border-color: var(--bd-cool-30); box-shadow: 0 0 0 2px rgba(13, 127, 159, .14); }
 .drawer-attach { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--tx-cool-30); background: var(--blue-soft); border-radius: 6px; }
-.drawer-attach span { display: flex; flex-direction: column; color: var(--ink); font-size: calc(12.5px * var(--fs, 1)); }
-.drawer-attach small { color: var(--muted); font-size: calc(11px * var(--fs, 1)); }
+.drawer-attach span { display: flex; flex-direction: column; min-width: 0; color: var(--ink); font-size: calc(12.5px * var(--fs, 1)); }
+.drawer-attach b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.drawer-attach svg { flex: none; }
+.drawer-attach small { color: var(--muted); font-size: calc(11.5px * var(--fs, 1)); }
 .drawer-problem { margin: 0; padding: 8px 10px; color: var(--status-rejected-text); background: var(--status-rejected-bg); border: 1px solid var(--status-rejected-border); border-radius: 6px; font-size: calc(11.5px * var(--fs, 1)); }
 .switch { position: relative; flex: none; width: 36px; height: 20px; background: var(--bg-line-strong); border-radius: 10px; transition: background-color 150ms ease; }
 .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--surface); border-radius: 50%; box-shadow: 0 1px 2px rgba(3, 31, 41, .3); transition: transform 150ms ease; }
@@ -125,10 +127,10 @@
 .pdf-options fieldset { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 .pdf-options legend { padding: 0 4px; font-size: calc(12px * var(--fs, 1)); font-weight: 700; }
 .pdf-options button[aria-checked="true"][role="radio"] { background: var(--blue-soft); border-color: var(--bd-cool-30); }
-.pdf-team { padding: 12px; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 8px; }
+.pdf-team { padding: 12px 14px; background: var(--surface); border: 0; border-radius: 14px; box-shadow: 0 0 0 1px var(--line); }
 .pdf-team > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.pdf-team b { display: inline-flex; align-items: center; gap: 6px; font-size: calc(12px * var(--fs, 1)); }
-.pdf-team > div > span { padding: 2px 7px; color: var(--tx-amber-30); background: var(--amber-soft); border-radius: 10px; font-size: calc(10px * var(--fs, 1)); font-weight: 700; }
+.pdf-team b { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: calc(12.5px * var(--fs, 1)); white-space: nowrap; }
+.pdf-team > div > span { flex: none; padding: 2px 8px; color: var(--tx-amber-30); background: var(--amber-soft); border-radius: 12px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; white-space: nowrap; }
 .pdf-team dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 0; font-size: calc(12px * var(--fs, 1)); }
 .pdf-team dt { color: var(--muted); }
 .pdf-team dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -143,8 +145,9 @@
 @keyframes pdf-shimmer { to { background-position: -200% 0; } }
 .share-wrap { position: relative; }
 .share-menu { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; width: 270px; display: flex; flex-direction: column; gap: 2px; padding: 8px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 14px 34px rgba(3, 31, 41, .2); animation: popover-in 160ms cubic-bezier(.2, .8, .2, 1); }
-.share-menu-title { padding: 6px 8px; color: var(--tx-cool-30); font-size: calc(10.5px * var(--fs, 1)); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-.share-menu button { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 8px; background: transparent; border: 0; border-radius: 6px; font-size: calc(12.5px * var(--fs, 1)); cursor: pointer; }
+.share-menu-title { padding: 6px 8px 0; color: var(--ink); font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
+.share-menu-file { display: block; min-width: 0; padding: 0 8px 6px; overflow: hidden; color: var(--muted); font-size: calc(11.5px * var(--fs, 1)); text-overflow: ellipsis; white-space: nowrap; }
+.share-menu button { display: flex; align-items: center; justify-content: flex-start; width: 100%; gap: 10px; height: 36px; padding: 0 8px; background: transparent; border: 0; border-radius: 6px; font-size: calc(12.5px * var(--fs, 1)); cursor: pointer; }
 .share-menu button:hover { background: var(--blue-soft); }
 .share-menu-note { padding: 6px 8px 2px; color: var(--muted); font-size: calc(11px * var(--fs, 1)); }
 

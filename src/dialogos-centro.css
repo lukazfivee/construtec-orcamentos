@@ -20,6 +20,8 @@
   .side-drawer-body { font-size: calc(13.5px * var(--fs, 1)); }
   .drawer-field { gap: 6px; font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
   .drawer-field input, .drawer-field textarea { border: 0; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--color-field); }
+  /* Mensagem cresce com o texto: sem rolagem dentro da gaveta, que ja rola. */
+  .app-shell.cc .side-drawer .drawer-field textarea.drawer-message { height: auto; min-height: 120px; field-sizing: content; resize: none; overflow: hidden; }
   .side-drawer > footer button { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--color-surface); color: var(--color-text); box-shadow: inset 0 0 0 1px var(--color-divider); font: 600 calc(13.5px * var(--fs, 1)) "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
   .side-drawer > footer button.primary { background: var(--color-brand) !important; color: #fefefe !important; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
 

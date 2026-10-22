@@ -131,7 +131,7 @@ small.current-tag { color: var(--tx-green-24); }
 .app-shell .pdf-page { gap: 10px; }
 .app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh - 330px), 940px); align-items: start; min-height: 0; }
 .app-shell .pdf-layout .pdf-stage { flex: none; height: var(--pdf-stage-h); }
-.app-shell .pdf-layout .pdf-thumbs { max-height: calc(var(--pdf-stage-h) + 50px); }
+.app-shell .pdf-layout .pdf-thumbs { overflow: visible; max-height: none; } /* miniaturas na altura natural: a pagina rola, nao a coluna */
 @media screen and (max-width: 1180px) {
   .app-shell .pdf-layout { grid-template-rows: none; }
 }
