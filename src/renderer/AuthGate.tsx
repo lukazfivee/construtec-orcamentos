@@ -1,8 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { KeyRound, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { AuthUser } from '../shared/contracts';
 import { CONSTRUTEC_LOGO_BASE64 } from '../assets/logoBase64';
 import { App } from './App';
+import { LoginScreen, type LoginNotice } from './LoginScreen';
 import { authApi, isCloudRuntime, setAuthSessionToken } from './api';
 import { useTheme } from './theme';
 import { centroEntryUrl, claimCentroEntry, isFramed, skipCentroEntry, suiteSessionFromHash } from './suiteSession';
@@ -26,12 +26,12 @@ export function AuthGate() {
   const [mode, setMode] = useState<AuthMode>('checking');
   const [user, setUser] = useState<AuthUser | null>(null);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState<boolean>(() => {
     return localStorage.getItem(REMEMBER_FLAG_KEY) !== 'false';
   });
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+  // Aviso da tela de entrar (igual ao Centro): saiu ou a sessao terminou.
+  const [notice, setNotice] = useState<LoginNotice>('');
 
   const finishSession = (token: string, nextUser: AuthUser, shouldRemember = rememberMe) => {
     sessionStorage.setItem(SESSION_KEY, token);
@@ -46,12 +46,12 @@ export function AuthGate() {
     }
     setAuthSessionToken(token);
     setUser(nextUser);
-    setPassword('');
     setError('');
     setMode('ready');
   };
 
   const clearSession = async (endRemote = false) => {
+    setNotice(endRemote ? 'sair' : 'exp');
     if (endRemote) {
       await authApi.logout().catch(() => undefined);
       skipCentroEntry(sessionStorage);
@@ -60,7 +60,6 @@ export function AuthGate() {
     localStorage.removeItem(SESSION_KEY);
     setAuthSessionToken(null);
     setUser(null);
-    setPassword('');
     setError('');
     const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
     if (savedEmail) setEmail(savedEmail);
@@ -139,18 +138,14 @@ export function AuthGate() {
     };
   }, []);
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (pending) return;
-    setPending(true);
-    setError('');
+  // Mesma logica de antes (POST /api/auth/login, validado pelo Centro); a tela so mostra o resultado.
+  const submit = async (password: string) => {
     try {
       const session = await authApi.login({ email: email.trim(), password, rememberMe });
       finishSession(session.token, session.user, rememberMe);
+      return '';
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Não foi possível entrar no aplicativo.');
-    } finally {
-      setPending(false);
+      return submitError instanceof Error ? submitError.message : 'Não foi possível entrar no aplicativo.';
     }
   };
 
@@ -168,75 +163,17 @@ export function AuthGate() {
     );
   }
 
-  if (inApp) {
-    return (
-      <main className="auth-shell">
-        <section className="auth-card">
-          <div className="auth-card-brand">
-            <img src={brandLogo} alt="Construtec Orçamentos" className="auth-logo" />
-          </div>
-          <header className="auth-card-header">
-            <span className="auth-brand-icon"><LockKeyhole size={22} /></span>
-            <div>
-              <span className="auth-eyebrow">CONSTRUTEC ORÇAMENTOS</span>
-              <h1>Entrar</h1>
-              <p>Sua sessão terminou. Entre de novo no aplicativo para continuar.</p>
-            </div>
-          </header>
-          {error && <div className="auth-error" role="alert">{error}</div>}
-          <a className="auth-submit" href="suite://entrar" style={{ textDecoration: 'none' }}><KeyRound size={17} />Entrar</a>
-        </section>
-      </main>
-    );
-  }
-
   return (
-    <main className="auth-shell">
-      <section className="auth-card">
-        <div className="auth-card-brand">
-          <img src={brandLogo} alt="Construtec Orçamentos" className="auth-logo" />
-        </div>
-        <header className="auth-card-header">
-          <span className="auth-brand-icon"><LockKeyhole size={22} /></span>
-          <div>
-            <span className="auth-eyebrow">CONSTRUTEC ORÇAMENTOS</span>
-            <h1>Entrar</h1>
-            <p>Use a mesma conta do Centro de Custos. Sem conta? Peça a um administrador para criar a sua.</p>
-          </div>
-        </header>
-
-        <form onSubmit={(event) => void submit(event)}>
-          <label>
-            <span>E-mail</span>
-            <input autoFocus required type="email" maxLength={254} autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="usuario@rcconstrutec.com.br" />
-          </label>
-          <label>
-            <span>Senha</span>
-            <input required type="password" maxLength={128} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Senha da sua conta" />
-          </label>
-
-          <label className="auth-remember-row">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
-            />
-            <span>Lembrar meu acesso neste dispositivo</span>
-          </label>
-
-          {error && <div className="auth-error" role="alert">{error}</div>}
-
-          <button className="auth-submit" type="submit" disabled={pending}>
-            {pending ? <LoaderCircle className="spinning" size={17} /> : <KeyRound size={17} />}
-            {pending ? 'Validando…' : 'Entrar'}
-          </button>
-        </form>
-
-        <footer>
-          <ShieldCheck size={15} />
-          <span>{isCloud ? 'Sessão protegida por HTTPS.' : 'Entrar exige conexão com o Centro de Custos.'} A senha é validada pelo Centro de Custos.</span>
-        </footer>
-      </section>
-    </main>
+    <LoginScreen
+      key={`${notice}-${error}`}
+      email={email}
+      onEmailChange={setEmail}
+      rememberMe={rememberMe}
+      onRememberChange={setRememberMe}
+      onSubmit={submit}
+      notice={notice}
+      initialError={error}
+      inApp={inApp}
+    />
   );
 }

@@ -160,8 +160,8 @@
 :root { --sel-seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235d7480' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
 :root[data-theme="escuro"] { --sel-seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b9d4dd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
 @media (min-width: 768px) {
-  .app-shell.cc input[type="checkbox"], .app-shell.cc input[type="radio"], .auth-card input[type="checkbox"] { accent-color: var(--color-brand); }
-  :where(:root[data-theme="escuro"]) .app-shell.cc :is(input[type="checkbox"], input[type="radio"]), :where(:root[data-theme="escuro"]) .auth-card input[type="checkbox"] { accent-color: #5fd0ee; }
+  .app-shell.cc input[type="checkbox"], .app-shell.cc input[type="radio"] { accent-color: var(--color-brand); }
+  :where(:root[data-theme="escuro"]) .app-shell.cc :is(input[type="checkbox"], input[type="radio"]) { accent-color: #5fd0ee; }
   /* select: sem a seta e a borda do navegador; anel de 1 px na cor de campo (com :where(), as regras proprias de cada tela valem)
      e seta desenhada por variavel de tema, numa regra mais forte para nao sumir quando a tela usa o atalho "background:". */
   .app-shell.cc :where(select:not(.status-select)) {

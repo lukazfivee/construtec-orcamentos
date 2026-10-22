@@ -1,0 +1,119 @@
+/* Tela de entrar do computador igual a do Centro de Custos (public/d/css/login.css, Desktop novo /d/): marca a esquerda,
+   formulario a direita, tema no canto. Mesmas medidas, cores, raios e tempos; os botoes e campos do Centro (.btn, .inp, .fld,
+   .ibtn) estao aqui com o prefixo lg- porque a tela fica fora da casca do app. Presa a janela (fixed + inset), como no Centro,
+   para nao depender de vh com o zoom de .75. */
+.lg { --lg-font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; position: fixed; inset: 0; z-index: 65; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(480px, 1fr); background: var(--color-bg); color: var(--color-text); font: calc(14px * var(--fs, 1))/1.5 var(--lg-font); -webkit-font-smoothing: antialiased; animation: lg-fade-in .25s ease both; }
+.lg *, .lg *::before, .lg *::after { box-sizing: border-box; }
+.lg ::selection { background: rgba(18, 169, 209, .28); }
+
+/* Painel da marca: sempre escuro, nos dois temas. */
+.lg-marca { position: relative; overflow: hidden; min-width: 0; display: flex; flex-direction: column; padding: 48px 56px 40px; background: #021820; color: #fefefe; }
+.lg-fundo { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.lg-fundo span { position: absolute; border-radius: 50%; }
+.lg-fundo .b1 { left: -120px; top: -100px; width: 520px; height: 520px; background: var(--color-accent-500); opacity: .45; filter: blur(90px); animation: lg-blob-a 16s ease-in-out infinite alternate; }
+.lg-fundo .b2 { right: -160px; top: 240px; width: 560px; height: 560px; background: #0b5a70; opacity: .8; filter: blur(96px); animation: lg-blob-b 19s ease-in-out infinite alternate; }
+.lg-fundo .b3 { left: -60px; bottom: -200px; width: 520px; height: 520px; background: #1a4da1; opacity: .4; filter: blur(100px); animation: lg-blob-c 21s ease-in-out infinite alternate; }
+.lg-fundo .pontos { inset: 0; border-radius: 0; background-image: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px); background-size: 20px 20px; }
+@keyframes lg-blob-a { to { transform: translate(90px, 120px) scale(1.15); } }
+@keyframes lg-blob-b { to { transform: translate(-100px, -60px) scale(.9); } }
+@keyframes lg-blob-c { to { transform: translate(120px, -90px) scale(1.2); } }
+
+.lg-topo { position: relative; display: flex; align-items: center; gap: 14px; }
+.lg-topo img { height: 34px; width: auto; }
+.lg-chip { height: 26px; padding: 0 10px; border-radius: 8px; display: flex; align-items: center; background: rgba(95, 208, 238, .14); color: #5fd0ee; font-size: calc(11.5px * var(--fs, 1)); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.lg-meio { position: relative; flex: 1; min-height: 0; max-width: 560px; display: flex; flex-direction: column; justify-content: center; gap: 22px; padding: 24px 0; }
+.lg-meio h1 { margin: 0; font: 600 calc(38px * var(--fs, 1))/1.15 var(--lg-font); letter-spacing: -.02em; text-wrap: balance; }
+.lg-meio > p { margin: 0; font-size: calc(15.5px * var(--fs, 1)); line-height: 1.6; color: #b9d4dd; text-wrap: pretty; }
+.lg-cards { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+.lg-card { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.lg-card-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: rgba(95, 208, 238, .14); color: #5fd0ee; }
+.lg-card-ic svg { width: calc(21px * var(--fs, 1)); height: calc(21px * var(--fs, 1)); }
+.lg-card > span:last-child { display: flex; flex-direction: column; gap: 2px; font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: #b9d4dd; }
+.lg-card b { font-size: calc(14.5px * var(--fs, 1)); font-weight: 600; color: #fefefe; }
+.lg-rodape { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: calc(12.5px * var(--fs, 1)); color: #8fb3bf; }
+.lg-rodape span { display: flex; align-items: center; gap: 8px; }
+.lg-rodape svg { color: #5fd0ee; }
+
+/* Lado do formulario. */
+.lg-lado { position: relative; min-width: 0; display: flex; flex-direction: column; background: var(--color-bg); }
+.lg-tema { flex: none; display: flex; justify-content: flex-end; padding: 20px 24px 0; }
+.lg-tema .lg-btn { height: 40px; color: var(--color-neutral-300); }
+.lg-rolar { flex: 1; min-height: 0; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 12px 48px 24px; }
+.lg-caixa { width: 100%; max-width: calc(420px * var(--fs, 1)); }
+.lg-vista { display: flex; flex-direction: column; gap: 18px; animation: lg-fade-up .3s ease both; }
+.lg-titulo { display: flex; flex-direction: column; gap: 6px; }
+.lg-titulo h2 { margin: 0; font: 600 calc(30px * var(--fs, 1))/1.2 var(--lg-font); letter-spacing: -.01em; color: var(--color-text); }
+.lg-titulo p { margin: 0; font-size: calc(14px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); text-wrap: pretty; }
+
+/* Botoes do Centro (base.css .btn, .btn-p, .btn-s, .btn-g). */
+.lg-btn { height: 40px; padding: 0 16px; border: 0; border-radius: 10px; font: 600 calc(13.5px * var(--fs, 1)) var(--lg-font); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; text-decoration: none; transition: transform .12s ease, background-color .15s ease, box-shadow .15s ease; }
+.lg-btn:active { transform: scale(.97); }
+.lg-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+.lg-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.lg-btn.p { background: var(--color-brand); color: var(--on-brand); box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
+.lg-btn.p:hover { background: var(--color-accent-700); }
+.lg-btn.g { background: transparent; color: var(--color-accent-300); }
+.lg-btn.g:hover { background: var(--color-accent-900); }
+:root[data-theme="escuro"] .lg-btn.p { background: linear-gradient(180deg, #2bc0e4 0%, #0f93b7 100%); color: #00141b; box-shadow: 0 6px 18px rgba(18, 169, 209, .28); }
+:root[data-theme="escuro"] .lg-btn.p:hover { background: linear-gradient(180deg, #4fd0ee 0%, #12a3c9 100%); }
+
+.lg-aviso { display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; animation: lg-fade-up .2s ease both; }
+.lg-aviso > svg { flex: none; }
+.lg-aviso span { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: var(--color-text); }
+.lg-aviso b { font-size: calc(14px * var(--fs, 1)); font-weight: 600; }
+.lg-aviso.ok { background: var(--c-ok-soft); } .lg-aviso.ok > svg, .lg-aviso.ok b { color: var(--c-ok); }
+.lg-aviso.warn { background: var(--c-warn-soft); } .lg-aviso.warn > svg, .lg-aviso.warn b { color: var(--c-warn); }
+.lg-aviso.bad { background: var(--c-err-soft); } .lg-aviso.bad > svg, .lg-aviso.bad b { color: var(--c-err); }
+.lg-aviso.info { background: var(--c-muted-soft); box-shadow: inset 0 0 0 1px var(--color-divider); } .lg-aviso.info > svg { color: var(--color-neutral-300); }
+
+/* Campos do Centro (base.css .fld, .inp) com o icone dentro. */
+.lg-campos { display: flex; flex-direction: column; gap: 14px; }
+.lg-campos.tremer { animation: lg-shake .4s ease; }
+.lg-fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lg-fld > span:first-child { font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
+.lg-inp { position: relative; display: block; font-weight: 400; color: var(--color-text); }
+.lg-inp > svg { position: absolute; left: 14px; top: 15px; width: calc(18px * var(--fs, 1)); height: calc(18px * var(--fs, 1)); color: var(--color-neutral-300); pointer-events: none; }
+.lg-inp input { height: 48px; width: 100%; padding: 0 14px 0 44px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); color: var(--color-text); font: calc(15px * var(--fs, 1)) var(--lg-font); outline: none; transition: box-shadow .15s ease; }
+.lg-inp input:focus { box-shadow: inset 0 0 0 2px var(--color-focus); }
+.lg-inp input::placeholder { color: var(--color-placeholder); font-weight: 400; }
+.lg-inp input.com-olho { padding-right: 48px; }
+.lg-inp input:disabled { opacity: .7; cursor: not-allowed; }
+.lg-inp input.ruim { box-shadow: inset 0 0 0 2px var(--c-err); }
+.lg-olho { position: absolute; right: 4px; top: 4px; width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--color-neutral-300); cursor: pointer; display: grid; place-items: center; transition: background-color .15s ease, color .15s ease; }
+.lg-olho:hover { background: var(--color-accent-900); color: var(--color-accent-300); }
+.lg-olho:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 0; }
+
+.lg-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lg-linha > .lg-btn.g { height: 44px; padding: 0 6px; }
+.lg-manter { position: relative; min-height: 44px; display: flex; align-items: center; gap: 10px; font-size: calc(13.5px * var(--fs, 1)); color: var(--color-text); cursor: pointer; user-select: none; }
+.lg-manter input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lg-manter .marca-caixa { width: 20px; height: 20px; flex: none; border-radius: 5px; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--color-neutral-500); color: #fefefe; transition: background-color .15s ease, box-shadow .15s ease; }
+.lg-manter .marca-caixa svg { opacity: 0; }
+/* Marcada na cor da marca do tema (D5); o check usa a cor da superficie para ter contraste nos dois temas. */
+.lg-manter input:checked + .marca-caixa { background: var(--color-focus); box-shadow: inset 0 0 0 2px var(--color-focus); color: var(--color-surface); }
+.lg-manter input:checked + .marca-caixa svg { opacity: 1; }
+.lg-manter input:focus-visible + .marca-caixa { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Entrar e o botao primario do sistema (solido no claro, o degrade do vidro no escuro). */
+.lg-ir { height: 50px; width: 100%; font-size: calc(15px * var(--fs, 1)); }
+.lg-ir.ocupado { opacity: .75; pointer-events: none; }
+.lg-ir.ocupado svg { animation: lg-spin 1s linear infinite; }
+.lg-primeiro { display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-divider); font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); }
+.lg-primeiro > svg { flex: none; color: var(--color-neutral-300); }
+.lg-primeiro b { font-weight: 600; color: var(--color-text); }
+.lg-ajuda { flex: none; padding: 0 24px 20px; display: flex; justify-content: center; gap: 18px; font-size: calc(12px * var(--fs, 1)); color: var(--color-neutral-300); }
+
+@keyframes lg-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes lg-fade-up { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+@keyframes lg-shake { 10%, 90% { transform: translateX(-2px) } 20%, 80% { transform: translateX(4px) } 30%, 50%, 70% { transform: translateX(-7px) } 40%, 60% { transform: translateX(7px) } }
+@keyframes lg-spin { to { transform: rotate(360deg) } }
+
+/* Janela estreita: so o formulario. */
+@media (max-width: 860px) {
+  .lg { grid-template-columns: minmax(0, 1fr); }
+  .lg-marca { display: none; }
+  .lg-rolar { padding: 12px 20px 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg, .lg-vista, .lg-aviso, .lg-campos.tremer, .lg-fundo span { animation: none !important; }
+}
