@@ -21,7 +21,7 @@
   .app-shell.cc .proposal-flow-status, .app-shell.cc .flow-status { height: 24px; padding: 0 9px; border-radius: 12px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .proposal-steps li { font-size: calc(12.5px * var(--fs, 1)); color: var(--color-neutral-300); }
   .app-shell.cc .proposal-steps li.current { color: var(--color-text); font-weight: 600; }
-  .app-shell.cc .proposal-steps li i { width: 20px; height: 20px; background: var(--color-neutral-800); color: var(--color-neutral-300); }
+  .app-shell.cc .proposal-steps li i { width: 20px; height: 20px; background: var(--color-neutral-800); color: var(--color-text); }
   .app-shell.cc .proposal-steps li.done i { background: var(--color-brand); color: #fefefe; }
   .app-shell.cc .proposal-flow-hint { font-size: calc(12.5px * var(--fs, 1)); color: var(--color-neutral-300); }
   .app-shell.cc .proposal-meta { border-bottom: 1px solid var(--color-divider); }

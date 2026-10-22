@@ -24,7 +24,7 @@
 .proposal-steps li { position: relative; display: inline-flex; align-items: center; gap: 6px; padding-right: 26px; color: var(--muted); font-size: calc(11.5px * var(--fs, 1)); }
 .proposal-steps li:not(:last-child)::after { content: ""; position: absolute; right: 7px; top: 50%; width: 12px; height: 2px; background: var(--bg-line); }
 .proposal-steps li.done:not(:last-child)::after { background: #12a9d1; }
-.proposal-steps li i { display: inline-grid; place-items: center; width: 18px; height: 18px; color: var(--muted); background: var(--bg-line); border-radius: 50%; font-size: calc(10px * var(--fs, 1)); font-style: normal; font-weight: 700; }
+.proposal-steps li i { display: inline-grid; place-items: center; width: 18px; height: 18px; color: var(--muted); background: var(--bg-line); border-radius: 50%; font-size: calc(11.5px * var(--fs, 1)); font-style: normal; font-weight: 700; }
 .proposal-steps li.done i { color: #fff; background: var(--blue); }
 .proposal-steps li.current { color: var(--ink); font-weight: 700; }
 .proposal-steps li.current i { color: var(--ink); background: var(--surface); box-shadow: inset 0 0 0 2px #12a9d1; }

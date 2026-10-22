@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { LayoutList, Plus } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import { seesCost } from './SuitePermissions';
 import { proposalApi } from './api';
@@ -15,6 +14,7 @@ import { ProposalKitsPanel } from './ProposalKitsPanel';
 import { ProposalLaborPanel } from './ProposalLaborPanel';
 import { ProposalMetaBar } from './ProposalMetaBar';
 import { ProposalMobileSheet } from './ProposalMobileSheet';
+import { ProposalOpenTabs } from './ProposalOpenTabs';
 import { ProposalSummaryPanel } from './ProposalSummaryPanel';
 import { useProposalMutations } from './useProposalMutations';
 
@@ -115,32 +115,14 @@ export function ProposalEditorWorkspace({
 
   return (
     <main className="workspace">
-      <div className="proposal-tabs" role="tablist" aria-label="Propostas abertas">
-        <button type="button" className="view-list-tab" onClick={onViewList} title="Ver lista completa de propostas">
-          <LayoutList size={15} /> Ver todas ({proposalTabs.length})
-        </button>
-        <span className="tab-divider" />
-        {proposalTabs.map((tab) => {
-          const selected = tab.id === proposal.id;
-          return (
-            <button
-              key={tab.id}
-              className={selected ? 'selected' : ''}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              disabled={loading}
-              title={`${tab.clientName} · ${tab.workName}`}
-              onClick={() => void onOpenProposal(tab.id)}
-            >
-              {tab.number} • REV.{String(tab.revision).padStart(2, '0')}
-            </button>
-          );
-        })}
-        <button type="button" className="new-tab" onClick={onNewProposal}>
-          <Plus size={17} /> Nova proposta
-        </button>
-      </div>
+      <ProposalOpenTabs
+        proposalTabs={proposalTabs}
+        selectedId={proposal.id}
+        loading={loading}
+        onViewList={onViewList}
+        onOpenProposal={onOpenProposal}
+        onNewProposal={onNewProposal}
+      />
 
       <ProposalMobileSheet
         proposal={proposal}

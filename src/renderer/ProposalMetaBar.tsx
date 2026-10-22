@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
-  Building2,
   ChevronDown,
   ExternalLink,
   MapPin,
@@ -144,7 +143,6 @@ export function ProposalMetaBar({
         <MetaField
           label="Cliente"
           value={proposal.clientName ?? '—'}
-          icon={<Building2 size={19} />}
           disabled={!isEditable || mutationPending}
           onClick={() => {
             setCatalogOpen(false);
