@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { isCloudRuntime } from './api';
+import { useEffect, useState } from 'react';
+import { isCloudRuntime, proposalApi } from './api';
 import { Ph } from './Ph';
 import type { AppTopbarProps } from './AppTopbarMobile';
+import type { ProposalSummary } from '../shared/contracts';
 import { AppTopbarMobile } from './AppTopbarMobile';
 import { HelpModal } from './HelpModal';
 import { NotificationsPopover } from './NotificationsPopover';
@@ -21,16 +22,29 @@ export function AppTopbar(props: AppTopbarProps) {
 
 /* Barra do topo identica a do Centro de Custos (shell.js + layout.css): busca a esquerda, selo de dados,
    botao Suite e tema. Notificacoes, ajuda e e-mail ficam antes do selo, no mesmo padrao de botao de icone. */
-function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNotice, assistantOpen, onToggleAssistant, onFollowNotice }: AppTopbarProps) {
+function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onOpenSearchResult, onSelectApp, showNotice, assistantOpen, onToggleAssistant, onFollowNotice }: AppTopbarProps) {
   const [suiteOpen, setSuiteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const theme = useTheme();
   const escuro = theme.resolved === 'escuro';
+  const [search, setSearch] = useState('');
+  const [proposals, setProposals] = useState<ProposalSummary[]>([]);
 
   // Contador do sino: os avisos da Suite, os mesmos do celular.
   const notices = useNoticeCount();
   const searchLabel = editorOpen ? 'Buscar no catálogo' : 'Buscar propostas, clientes, obras';
+  const results = search.trim().length < 2 ? [] : proposals.filter((proposal) => {
+    const term = search.trim().toLocaleLowerCase('pt-BR');
+    return [proposal.number, proposal.clientName, proposal.workName].some((value) => value.toLocaleLowerCase('pt-BR').includes(term));
+  }).slice(0, 6);
+
+  useEffect(() => {
+    if (search.trim().length < 2) return;
+    let active = true;
+    void proposalApi.list().then((result) => { if (active) setProposals(result.proposals); }).catch(() => { if (active) setProposals([]); });
+    return () => { active = false; };
+  }, [search]);
 
   return (
     <>
@@ -38,15 +52,23 @@ function AppTopbarDesktop({ activeNav, editorOpen, onSearch, onSelectApp, showNo
         <div className="busca" role="search">
           <Ph name="magnifying-glass" />
           <input
+            id="global-search"
             className="inp"
             type="search"
-            readOnly
+            value={search}
             placeholder={searchLabel}
             aria-label={`${searchLabel}. Atalho Ctrl K`}
-            onClick={onSearch}
-            onKeyDown={(event) => { if (event.key === 'Enter') onSearch?.(); }}
+            aria-controls="global-search-results"
+            aria-expanded={results.length > 0}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter' && results[0]) onOpenSearchResult?.(results[0].id); }}
           />
           <kbd>Ctrl K</kbd>
+          {search.trim().length >= 2 && <div className="busca-res" id="global-search-results" role="listbox">
+            {results.length ? results.map((proposal) => <button key={proposal.id} type="button" role="option" onClick={() => onOpenSearchResult?.(proposal.id)}>
+              <Ph name="file-text" size={18} /><span><b>{proposal.number} · {proposal.clientName}</b><small>{proposal.workName}</small></span>
+            </button>) : <p>Nada encontrado para “{search}”.</p>}
+          </div>}
         </div>
         <span className="espaco" />
         <UpdateNotice />
