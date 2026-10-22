@@ -1,6 +1,6 @@
-import { Building2, Info } from 'lucide-react';
 import type { TopClientMetric } from '../shared/contracts';
 import { plural } from '../shared/formatoBr';
+import { Building2, Info } from './icons';
 
 type HomeTopClientsCardProps = {
   clients?: TopClientMetric[];

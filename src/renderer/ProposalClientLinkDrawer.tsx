@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Check, CheckCircle2, Copy, Eye, Link2, Loader2, MessageCircle, Send } from 'lucide-react';
 import type { ClientLinkInfo, ProposalDetail } from '../shared/contracts';
+import { Check, CheckCircle2, Copy, Eye, Link2, Loader2, MessageCircle, Send } from './icons';
 import { proposalApi } from './api';
 import { openExternalUrl } from './proposalPdfActions';
 import { revLabel } from './proposalPdfPages';

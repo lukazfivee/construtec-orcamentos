@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ProposalDetail } from '../shared/contracts';
 import {
   AlertTriangle,
   Building2,
@@ -8,8 +9,7 @@ import {
   RefreshCw,
   ShieldCheck,
   X,
-} from 'lucide-react';
-import type { ProposalDetail } from '../shared/contracts';
+} from './icons';
 import { useSuitePermission } from './SuitePermissions';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, proposalApi } from './api';
 import { CenterTrackingCard } from './CenterTrackingCard';

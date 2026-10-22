@@ -1,6 +1,6 @@
-import { TrendingUp, Target, DollarSign } from 'lucide-react';
 import type { CommercialPipelineStage } from '../shared/contracts';
 import { pct, plural } from '../shared/formatoBr';
+import { TrendingUp, Target, DollarSign } from './icons';
 
 type HomePipelineCardProps = {
   pipeline?: CommercialPipelineStage[];

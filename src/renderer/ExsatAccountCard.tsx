@@ -1,8 +1,8 @@
 // Cartao "Conta Exsat" da aba Exsat no site: o servidor guarda a conta criptografada e varre o catalogo em segundo plano.
 // A senha so existe no campo enquanto se digita; depois do envio o campo e limpo e ela nunca volta do servidor.
 import { useState, type FormEvent } from 'react';
-import { AlertTriangle, CheckCircle2, ExternalLink, FileSpreadsheet, KeyRound, ListChecks, Loader2, Pause, RefreshCw, Square, Trash2, WifiOff } from 'lucide-react';
 import type { ExsatSyncJob } from '../shared/exsatServer';
+import { AlertTriangle, CheckCircle2, ExternalLink, FileSpreadsheet, KeyRound, ListChecks, Loader2, Pause, RefreshCw, Square, Trash2, WifiOff } from './icons';
 import { formatSyncDate } from './catalogImportHelpers';
 import type { ExsatServer } from './useExsatServer';
 

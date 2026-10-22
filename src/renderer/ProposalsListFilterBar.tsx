@@ -1,3 +1,4 @@
+import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import {
   Calendar,
   Clock,
@@ -6,8 +7,7 @@ import {
   FilterX,
   Search,
   X,
-} from 'lucide-react';
-import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+} from './icons';
 import type { ValidityFilterOption } from './proposalValidityHelpers';
 
 export type DateFilterOption = 'all' | 'today' | 'month' | 'last30' | 'year';

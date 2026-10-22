@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeftRight, Building2, Check, Copy, ExternalLink, FileText, Loader2, Plus, Send } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { ArrowLeftRight, Building2, Check, Copy, ExternalLink, FileText, Loader2, Plus, Send } from './icons';
 import { proposalApi } from './api';
 import { FLOW_STEPS, flowStepIndex, nextStep, type FlowAction } from './proposalFlow';
 import { useCanEdit, useSuitePermission } from './SuitePermissions';

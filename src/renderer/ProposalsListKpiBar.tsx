@@ -2,7 +2,7 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-} from 'lucide-react';
+} from './icons';
 import { isCloudRuntime } from './api';
 
 type ProposalsListKpiBarProps = {

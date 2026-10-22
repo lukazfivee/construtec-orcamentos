@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import {
-  ChevronLeft, ChevronRight, Copy, Download, Eye, FileText, FileType2, Link2, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
-} from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 // eslint-disable-next-line import/no-unresolved -- sufixo ?raw e resolvido pelo Vite
 import pdfPageCss from '../proposal-pdf-page.css?raw';
+import {
+  ChevronLeft, ChevronRight, Copy, Download, Eye, FileText, FileType2, Link2, Loader2, LockKeyhole, Mail, MessageCircle, Minus, Plus, RefreshCw, Send, Share2, ShieldCheck, WifiOff,
+} from './icons';
 import { isCloudRuntime, proposalApi, settingsApi } from './api';
 import { setPdfFlowCss } from './proposalPdfFlow';
 import { openExternalUrl, savePdfDocument, saveWordDocument } from './proposalPdfActions';

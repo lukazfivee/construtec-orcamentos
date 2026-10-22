@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { BODY_LIMITS, BODY_VARIABLES, CONDITIONS_DEFAULT_TITLE, ITEMS_DEFAULT_TITLE, LETTER_TITLE_DEFAULT, type BodyBlock } from '../shared/proposalBody';
 import {
   AlignLeft, Bookmark, ChevronDown, ChevronUp, Copy, GripVertical, Heading, List, Mail, PenLine, ReceiptText, Sheet, Table2, Trash2, type LucideIcon,
-} from 'lucide-react';
-import { BODY_LIMITS, BODY_VARIABLES, CONDITIONS_DEFAULT_TITLE, ITEMS_DEFAULT_TITLE, LETTER_TITLE_DEFAULT, type BodyBlock } from '../shared/proposalBody';
+} from './icons';
 import { ProposalBodyFields } from './ProposalBodyFields';
 import { ProposalBodyGrid } from './ProposalBodyGrid';
 import { BLOCK_LABELS, canDisableBlock, canDuplicateBlock, canRemoveBlock } from './proposalBodyEdit';

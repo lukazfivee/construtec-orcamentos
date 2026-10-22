@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { GitCompare, History as HistoryIcon } from 'lucide-react';
 import type { ProposalDetail, ProposalRevisionSummary } from '../shared/contracts';
+import { GitCompare, History as HistoryIcon } from './icons';
 import { proposalApi } from './api';
 
 const statusLabels: Record<ProposalDetail['status'], string> = {

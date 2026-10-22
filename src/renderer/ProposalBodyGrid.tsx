@@ -1,8 +1,8 @@
 // Editor da planilha propria dentro do cartao do corpo: cabecalho, linhas e colunas digitados ou colados do Excel.
 // A grade usa a largura toda do cartao (sem rolagem propria): as colunas dividem o espaco por igual.
 import { useState, type ClipboardEvent } from 'react';
-import { ClipboardPaste, Plus, X } from 'lucide-react';
 import { BODY_LIMITS, emptyBodyTable, type BodyTable } from '../shared/proposalBody';
+import { ClipboardPaste, Plus, X } from './icons';
 import {
   addColumn, addRow, canAddColumn, canAddRow, canRemoveColumn, isTablePaste, parseClipboardTable, pasteInto, removeColumn, removeRow, setCell, setHeader, tableFromPaste,
 } from './bodyGridOps';

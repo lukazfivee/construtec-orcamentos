@@ -75,7 +75,7 @@
 @media (min-width: 768px) {
   /* Aviso de custos preservados: linha de apoio, nao um cartao */
   .app-shell.cc .commercial-panel .frozen-state { padding: 0 4px; background: transparent; color: var(--c-ok); gap: 8px; font-size: calc(12px * var(--fs, 1)); line-height: 1.4; }
-  .app-shell.cc .commercial-panel .frozen-state svg { width: 15px; height: 15px; flex: none; }
+  .app-shell.cc .commercial-panel .frozen-state .pic { font-size: 15px; flex: none; }
 }
 @media (min-width: 768px) {
   .app-shell.cc .commercial-panel .amount { min-height: 20px; }

@@ -9,7 +9,7 @@
   /* Cabecalho de bloco: icone de 30 px, titulo 15/600 e apoio de 12.5 */
   .app-shell.cc .history-heading { min-height: 0; padding: 0; gap: 16px; border: 0; background: transparent; }
   .app-shell.cc .history-heading > div { gap: 12px; align-items: center; }
-  .app-shell.cc .history-heading > div > svg { box-sizing: content-box; flex: none; width: 16px; height: 16px; padding: 7px; border-radius: 9px; background: var(--color-accent-900); color: var(--color-accent-300); stroke-width: 1.5; }
+  .app-shell.cc .history-heading > div > .pic { box-sizing: content-box; flex: none; font-size: 16px; padding: 7px; border-radius: 9px; background: var(--color-accent-900); color: var(--color-accent-300); stroke-width: 1.5; }
   .app-shell.cc .history-heading b { font-size: calc(15px * var(--fs, 1)); font-weight: 600; line-height: 1.5; color: var(--color-text); }
   .app-shell.cc .history-heading small { font-size: calc(12.5px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); }
   .app-shell.cc .history-heading button, .app-shell.cc .history-table button, .app-shell.cc .labor-form-actions button {

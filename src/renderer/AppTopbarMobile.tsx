@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { AuthUser, ProposalDetail } from '../shared/contracts';
 import {
   Bell,
   ChevronDown,
@@ -9,8 +10,7 @@ import {
   Moon,
   Search,
   Sun,
-} from 'lucide-react';
-import type { AuthUser, ProposalDetail } from '../shared/contracts';
+} from './icons';
 import { isCloudRuntime } from './api';
 import { HelpModal } from './HelpModal';
 import { MobileSuiteSheet } from './MobileSuiteSheet';

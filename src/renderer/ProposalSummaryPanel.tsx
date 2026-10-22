@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { calculateProposalTotals } from '../shared/proposalFinancials';
+import type { ProposalDetail } from '../shared/contracts';
 import {
   ChevronDown,
   ChevronUp,
@@ -9,9 +11,7 @@ import {
   Save,
   Share2,
   Trash2,
-} from 'lucide-react';
-import { calculateProposalTotals } from '../shared/proposalFinancials';
-import type { ProposalDetail } from '../shared/contracts';
+} from './icons';
 import { isAdminNow , useSuitePermission } from './SuitePermissions';
 import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
 import { ProposalSummaryMobileSheet, Amount, money } from './ProposalSummaryMobileSheet';

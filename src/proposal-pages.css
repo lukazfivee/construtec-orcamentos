@@ -74,7 +74,7 @@
 .drawer-attach { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--tx-cool-30); background: var(--blue-soft); border-radius: 6px; }
 .drawer-attach span { display: flex; flex-direction: column; min-width: 0; color: var(--ink); font-size: calc(12.5px * var(--fs, 1)); }
 .drawer-attach b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drawer-attach svg { flex: none; }
+.drawer-attach .pic { flex: none; }
 .drawer-attach small { color: var(--muted); font-size: calc(11.5px * var(--fs, 1)); }
 .drawer-problem { margin: 0; padding: 8px 10px; color: var(--status-rejected-text); background: var(--status-rejected-bg); border: 1px solid var(--status-rejected-border); border-radius: 6px; font-size: calc(11.5px * var(--fs, 1)); }
 .switch { position: relative; flex: none; width: 36px; height: 20px; background: var(--bg-line-strong); border-radius: 10px; transition: background-color 150ms ease; }
@@ -135,9 +135,9 @@
 .pdf-team dt { color: var(--muted); }
 .pdf-team dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
 .pdf-hint { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 10px 12px; color: var(--ink-secondary); background: var(--blue-soft); border-radius: 6px; font-size: calc(11.5px * var(--fs, 1)); line-height: 1.45; }
-.pdf-hint svg { flex: none; margin-top: 1px; color: var(--tx-cool-30); }
+.pdf-hint .pic { flex: none; margin-top: 1px; color: var(--tx-cool-30); }
 .pdf-hint.lock { background: var(--amber-soft); }
-.pdf-hint.lock svg { color: var(--tx-amber-30); }
+.pdf-hint.lock .pic { color: var(--tx-amber-30); }
 .pdf-skeleton { display: flex; gap: 16px; }
 .pdf-skeleton i { flex: 1; height: 360px; background: linear-gradient(90deg, var(--bg-line) 25%, var(--bg-cool-94-2) 50%, var(--bg-line) 75%); background-size: 200% 100%; border-radius: 8px; animation: pdf-shimmer 1.4s ease-in-out infinite; }
 .pdf-skeleton i:first-child { flex: 0 0 116px; }

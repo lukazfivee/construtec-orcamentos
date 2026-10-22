@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from './icons';
 import { ProposalDiffCards } from './ProposalDiffCards';
 import type { ProposalItemDiff, ProposalLaborDiff, DiffStatus } from './proposalDiffHelpers';
 import { useIsMobile } from './useIsMobile';

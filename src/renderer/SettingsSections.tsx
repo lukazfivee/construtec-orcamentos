@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { Building2, Database, Download, Percent, Upload } from 'lucide-react';
 import type { AppSettings } from '../shared/contracts';
 import { version as appVersion } from '../../package.json';
+import type { LucideIcon } from './icons';
+import { Building2, Database, Download, Percent, Upload } from './icons';
 import { isCloudRuntime } from './api';
 
 /* Cartoes de Configuracoes com as proporcoes do Centro de Custos (cartao raio 14, titulo 15/600, campos de 40 px). */

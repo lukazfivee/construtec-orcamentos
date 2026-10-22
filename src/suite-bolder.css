@@ -51,7 +51,7 @@
   .sidebar nav button.active span, #app .sidebar nav .nav-item.ativo span {
     font-weight:700!important;
   }
-  .sidebar nav button.active svg, #app .sidebar nav .nav-item.ativo svg {
+  .sidebar nav button.active .pic, #app .sidebar nav .nav-item.ativo .pic {
     color:var(--tx-cool-45);
   }
   .section-tabs button.selected, .proposal-tabs button.selected,

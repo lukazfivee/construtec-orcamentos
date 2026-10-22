@@ -5,7 +5,7 @@ import {
   SlidersHorizontal,
   Upload,
   X,
-} from 'lucide-react';
+} from './icons';
 
 type Props = {
   fabMenuOpen: boolean;

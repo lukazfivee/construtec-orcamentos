@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { CheckCircle2, Send } from 'lucide-react';
+import { CheckCircle2, Send } from './icons';
 import { apiRequest } from './api';
 import './ReportProblemForm.css';
 

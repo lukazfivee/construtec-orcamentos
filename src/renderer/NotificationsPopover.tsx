@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Check, RefreshCw } from 'lucide-react';
+import { Bell, Check, RefreshCw } from './icons';
 import { noticeGroup, noticeHour, noticesApi, type SuiteNotice } from './notificationsFeed';
 
 interface NotificationsPopoverProps {

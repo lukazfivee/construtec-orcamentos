@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ProposalDetail, ProposalLaborItem, ProposalRevisionSummary } from '../shared/contracts';
 import {
   ArrowLeftRight,
   ChevronRight,
@@ -7,8 +8,7 @@ import {
   Loader2,
   Package,
   X,
-} from 'lucide-react';
-import type { ProposalDetail, ProposalLaborItem, ProposalRevisionSummary } from '../shared/contracts';
+} from './icons';
 import { proposalApi } from './api';
 import {
   computeFinancialDelta,

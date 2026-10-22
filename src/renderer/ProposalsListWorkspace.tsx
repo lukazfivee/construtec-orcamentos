@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import {
   FilePlus2,
   RefreshCw,
-} from 'lucide-react';
-import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+} from './icons';
 import { proposalApi } from './api';
 import { CloneProposalDialog } from './CloneProposalDialog';
 import { ProposalDeleteModal } from './ProposalDeleteModal';

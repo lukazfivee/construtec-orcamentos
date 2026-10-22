@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, Box, CircleDollarSign, Import, PackagePlus, Save, Search, Trash2 } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
 import { brl, dinheiro } from '../shared/formatoBr';
+import { ArrowLeft, Box, CircleDollarSign, Import, PackagePlus, Save, Search, Trash2 } from './icons';
 import { costText, seesCost } from './SuitePermissions';
 import { catalogApi } from './api';
 import { CatalogImportDialog } from './CatalogImportDialog';

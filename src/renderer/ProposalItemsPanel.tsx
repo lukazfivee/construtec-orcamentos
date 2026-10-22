@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { Plus } from './icons';
 import { useSuitePermission } from './SuitePermissions';
 import { ProposalCatalogPopover } from './ProposalCatalogPopover';
 import { ProposalImportDialog } from './ProposalImportDialog';

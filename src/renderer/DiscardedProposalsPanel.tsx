@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Archive, RotateCcw, Trash2 } from 'lucide-react';
+import { Archive, RotateCcw, Trash2 } from './icons';
 import { proposalApi, type DiscardedProposalRecord } from './api';
 import { SettingsCard } from './SettingsSections';
 

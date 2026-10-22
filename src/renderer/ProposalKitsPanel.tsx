@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Layers3, Search, Send } from 'lucide-react';
 import type { KitDetail, KitSummary } from '../shared/contracts';
 import { mult } from '../shared/formatoBr';
+import { Layers3, Search, Send } from './icons';
 import { costText } from './SuitePermissions';
 import { kitsApi } from './api';
 

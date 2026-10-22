@@ -7,8 +7,8 @@
 /* Base: botao e campo sem classe herdavam 16px do navegador. */
 button { font-size: calc(12px * var(--fs, 1)); line-height: 1.25; }
 input, select, textarea { font-size: calc(12px * var(--fs, 1)); }
-button:has(> svg) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-button svg { flex: none; }
+button:has(> .pic) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+button .pic { flex: none; }
 
 /* Desabilitado legivel: o botao primario nao vira texto branco sobre cinza claro. */
 button:disabled { opacity: .7; color: var(--muted-ink); }
@@ -61,7 +61,7 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 .proposals-table .client-name, .proposals-table .work-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .proposals-table .work-name { min-width: 0; }
 .proposals-table .proposal-date-cell { white-space: nowrap; }
-.proposals-table .proposal-date-cell svg { display: inline-block; margin-right: 4px; vertical-align: -2px; }
+.proposals-table .proposal-date-cell .pic { display: inline-block; margin-right: 4px; vertical-align: -2px; }
 .proposals-table .proposal-status-cell { white-space: nowrap; }
 .proposals-table .proposal-status-cell .sync-badge { display: flex; width: fit-content; }
 .proposals-table .proposal-actions-cell { white-space: nowrap; }
@@ -134,3 +134,6 @@ small.current-tag { color: var(--tx-green-24); }
 @media screen and (max-width: 1180px) {
   .app-shell .pdf-layout { grid-template-rows: none; }
 }
+
+/* Icones Phosphor (icons.tsx): caixa do tamanho da letra, alinhada ao texto e sem encolher no flex. */
+:where(.pic) { flex: none; vertical-align: -0.125em; }

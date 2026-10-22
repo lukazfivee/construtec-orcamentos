@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { Copy, GripVertical, Trash2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { Copy, GripVertical, Trash2 } from './icons';
 
 type Item = ProposalDetail['items'][number];
 

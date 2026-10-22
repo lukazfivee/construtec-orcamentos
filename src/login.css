@@ -27,12 +27,12 @@
 .lg-cards { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
 .lg-card { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .lg-card-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: rgba(95, 208, 238, .14); color: #5fd0ee; }
-.lg-card-ic svg { width: calc(21px * var(--fs, 1)); height: calc(21px * var(--fs, 1)); }
+.lg-card-ic .pic { font-size: calc(21px * var(--fs, 1)); }
 .lg-card > span:last-child { display: flex; flex-direction: column; gap: 2px; font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: #b9d4dd; }
 .lg-card b { font-size: calc(14.5px * var(--fs, 1)); font-weight: 600; color: #fefefe; }
 .lg-rodape { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: calc(12.5px * var(--fs, 1)); color: #8fb3bf; }
 .lg-rodape span { display: flex; align-items: center; gap: 8px; }
-.lg-rodape svg { color: #5fd0ee; }
+.lg-rodape .pic { color: #5fd0ee; }
 
 /* Lado do formulario. */
 .lg-lado { position: relative; min-width: 0; display: flex; flex-direction: column; background: var(--color-bg); }
@@ -58,13 +58,13 @@
 :root[data-theme="escuro"] .lg-btn.p:hover { background: linear-gradient(180deg, #4fd0ee 0%, #12a3c9 100%); }
 
 .lg-aviso { display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; animation: lg-fade-up .2s ease both; }
-.lg-aviso > svg { flex: none; }
+.lg-aviso > .pic { flex: none; }
 .lg-aviso span { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: var(--color-text); }
 .lg-aviso b { font-size: calc(14px * var(--fs, 1)); font-weight: 600; }
-.lg-aviso.ok { background: var(--c-ok-soft); } .lg-aviso.ok > svg, .lg-aviso.ok b { color: var(--c-ok); }
-.lg-aviso.warn { background: var(--c-warn-soft); } .lg-aviso.warn > svg, .lg-aviso.warn b { color: var(--c-warn); }
-.lg-aviso.bad { background: var(--c-err-soft); } .lg-aviso.bad > svg, .lg-aviso.bad b { color: var(--c-err); }
-.lg-aviso.info { background: var(--c-muted-soft); box-shadow: inset 0 0 0 1px var(--color-divider); } .lg-aviso.info > svg { color: var(--color-neutral-300); }
+.lg-aviso.ok { background: var(--c-ok-soft); } .lg-aviso.ok > .pic, .lg-aviso.ok b { color: var(--c-ok); }
+.lg-aviso.warn { background: var(--c-warn-soft); } .lg-aviso.warn > .pic, .lg-aviso.warn b { color: var(--c-warn); }
+.lg-aviso.bad { background: var(--c-err-soft); } .lg-aviso.bad > .pic, .lg-aviso.bad b { color: var(--c-err); }
+.lg-aviso.info { background: var(--c-muted-soft); box-shadow: inset 0 0 0 1px var(--color-divider); } .lg-aviso.info > .pic { color: var(--color-neutral-300); }
 
 /* Campos do Centro (base.css .fld, .inp) com o icone dentro. */
 .lg-campos { display: flex; flex-direction: column; gap: 14px; }
@@ -72,7 +72,7 @@
 .lg-fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lg-fld > span:first-child { font-size: calc(12px * var(--fs, 1)); font-weight: 600; color: var(--color-neutral-300); }
 .lg-inp { position: relative; display: block; font-weight: 400; color: var(--color-text); }
-.lg-inp > svg { position: absolute; left: 14px; top: 15px; width: calc(18px * var(--fs, 1)); height: calc(18px * var(--fs, 1)); color: var(--color-neutral-300); pointer-events: none; }
+.lg-inp > .pic { position: absolute; left: 14px; top: 15px; font-size: calc(18px * var(--fs, 1)); color: var(--color-neutral-300); pointer-events: none; }
 .lg-inp input { height: 48px; width: 100%; padding: 0 14px 0 44px; border: 0; border-radius: 10px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-field); color: var(--color-text); font: calc(15px * var(--fs, 1)) var(--lg-font); outline: none; transition: box-shadow .15s ease; }
 .lg-inp input:focus { box-shadow: inset 0 0 0 2px var(--color-focus); }
 .lg-inp input::placeholder { color: var(--color-placeholder); font-weight: 400; }
@@ -88,18 +88,18 @@
 .lg-manter { position: relative; min-height: 44px; display: flex; align-items: center; gap: 10px; font-size: calc(13.5px * var(--fs, 1)); color: var(--color-text); cursor: pointer; user-select: none; }
 .lg-manter input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .lg-manter .marca-caixa { width: 20px; height: 20px; flex: none; border-radius: 5px; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--color-neutral-500); color: #fefefe; transition: background-color .15s ease, box-shadow .15s ease; }
-.lg-manter .marca-caixa svg { opacity: 0; }
+.lg-manter .marca-caixa .pic { opacity: 0; }
 /* Marcada na cor da marca do tema (D5); o check usa a cor da superficie para ter contraste nos dois temas. */
 .lg-manter input:checked + .marca-caixa { background: var(--color-focus); box-shadow: inset 0 0 0 2px var(--color-focus); color: var(--color-surface); }
-.lg-manter input:checked + .marca-caixa svg { opacity: 1; }
+.lg-manter input:checked + .marca-caixa .pic { opacity: 1; }
 .lg-manter input:focus-visible + .marca-caixa { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 
 /* Entrar e o botao primario do sistema (solido no claro, o degrade do vidro no escuro). */
 .lg-ir { height: 50px; width: 100%; font-size: calc(15px * var(--fs, 1)); }
 .lg-ir.ocupado { opacity: .75; pointer-events: none; }
-.lg-ir.ocupado svg { animation: lg-spin 1s linear infinite; }
+.lg-ir.ocupado .pic { animation: lg-spin 1s linear infinite; }
 .lg-primeiro { display: flex; gap: 12px; padding: 14px 16px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--color-divider); font-size: calc(13px * var(--fs, 1)); line-height: 1.5; color: var(--color-neutral-300); }
-.lg-primeiro > svg { flex: none; color: var(--color-neutral-300); }
+.lg-primeiro > .pic { flex: none; color: var(--color-neutral-300); }
 .lg-primeiro b { font-weight: 600; color: var(--color-text); }
 .lg-ajuda { flex: none; padding: 0 24px 20px; display: flex; justify-content: center; gap: 18px; font-size: calc(12px * var(--fs, 1)); color: var(--color-neutral-300); }
 

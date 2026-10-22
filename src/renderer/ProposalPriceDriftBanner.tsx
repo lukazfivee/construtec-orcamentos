@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Loader2, TrendingUp, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { Loader2, TrendingUp, X } from './icons';
 import { proposalApi, type PriceDrift } from './api';
 import { useCanEdit, useSuitePermission } from './SuitePermissions';
 

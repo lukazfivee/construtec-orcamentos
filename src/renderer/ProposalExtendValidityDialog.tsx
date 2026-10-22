@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CalendarClock, Check, Clock } from 'lucide-react';
 import type { ProposalSummary } from '../shared/contracts';
+import { CalendarClock, Check, Clock } from './icons';
 import { Dialogo } from './orcDeskUi';
 import { proposalApi } from './api';
 import { calculateExtendedDate, getProposalValidityStatus } from './proposalValidityHelpers';

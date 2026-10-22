@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUpRight, Building2, ChevronRight, CornerDownRight, FileText, Layers, Wrench, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { ArrowUpRight, Building2, ChevronRight, CornerDownRight, FileText, Layers, Wrench, X } from './icons';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
 import { SUITE_MENU_TITLE, chamadosEntradaUrl } from './suiteMenu';
 

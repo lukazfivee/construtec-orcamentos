@@ -1,5 +1,5 @@
-import { Copy, Trash2, X } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { Copy, Trash2, X } from './icons';
 
 type Item = ProposalDetail['items'][number];
 

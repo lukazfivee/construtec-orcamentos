@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { MailCheck, Save, Trash2, UserPlus, Users } from 'lucide-react';
 import type { AuthRole, AuthUser, AuthorizedEmailRecord, UserRecord } from '../shared/contracts';
+import { MailCheck, Save, Trash2, UserPlus, Users } from './icons';
 import { usersApi } from './api';
 import { SettingsCard } from './SettingsSections';
 

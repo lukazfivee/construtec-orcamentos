@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AlignLeft, Check, CircleAlert, Eye, FileText, Heading, LayoutTemplate, List, Loader2, Mail, PenLine, Plus, RotateCcw, Sheet, Undo2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
 import { getProposalFinancials } from '../shared/proposalFinancials';
 import { BODY_LIMITS, BUILTIN_BODY_TEMPLATES, emptyBodyBlock, resolveBodyParts, type BodyBlock, type BodyBlockType, type BodyTemplate } from '../shared/proposalBody';
 import { BODY_MODELS, findBodyModel, modelBodyBlocks, pendingPlaceholders } from '../shared/proposalBodyModels';
+import { AlignLeft, Check, CircleAlert, Eye, FileText, Heading, LayoutTemplate, List, Loader2, Mail, PenLine, Plus, RotateCcw, Sheet, Undo2 } from './icons';
 import { proposalApi } from './api';
 import { ProposalBodyCard } from './ProposalBodyCard';
 import {

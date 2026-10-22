@@ -1,5 +1,5 @@
-import { FileText, Grid2X2, Layers3, LogOut, Mail, Menu } from 'lucide-react';
 import type { AuthUser } from '../shared/contracts';
+import { FileText, Grid2X2, Layers3, LogOut, Mail, Menu } from './icons';
 import type { NavItem, NavSection } from './navSections';
 import { NAV_ITEMS } from './navSections';
 import { openWebmail } from './webmail';

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, CalendarDays, FilePlus2, FileText, MapPin, X } from 'lucide-react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
 import { BODY_MODELS, findBodyModel } from '../shared/proposalBodyModels';
+import { Building2, CalendarDays, FilePlus2, FileText, MapPin, X } from './icons';
 import { useCompanyBodyModels } from './useCompanyBodyModels';
 import { clientsApi, proposalApi, settingsApi } from './api';
 

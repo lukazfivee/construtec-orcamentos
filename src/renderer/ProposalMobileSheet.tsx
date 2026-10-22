@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown, LayoutList, Plus, X } from 'lucide-react';
 import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+import { ChevronDown, LayoutList, Plus, X } from './icons';
 import { ProposalMetaBar } from './ProposalMetaBar';
 
 const mobileStatusLabels: Record<ProposalDetail['status'], string> = {

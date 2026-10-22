@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { version as appVersion } from '../../package.json';
 import {
   ArrowRight, Building2, Check, RotateCw, CircleAlert, Eye, EyeOff, FileText, History, KeyRound, LoaderCircle, LockKeyhole, LogOut, Mail, MailOpen, Moon, Send, ShieldCheck, Sun, WifiOff,
   type LucideIcon,
-} from 'lucide-react';
-import { version as appVersion } from '../../package.json';
+} from './icons';
 import { getCentroCustosUrl, isCloudRuntime } from './api';
 import { openExternalUrl } from './proposalPdfActions';
 import { useTheme } from './theme';

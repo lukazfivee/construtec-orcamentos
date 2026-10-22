@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { CheckCircle2, RefreshCw, TrendingUp } from 'lucide-react';
 import type { PriceDriftProposal, ProposalDetail } from '../shared/contracts';
+import { CheckCircle2, RefreshCw, TrendingUp } from './icons';
 import { priceDriftApi } from './api';
 import { Drawer, brl, pctSigned, plural, revText, signBrl } from './orcDeskUi';
 import { useSuitePermission } from './SuitePermissions';
