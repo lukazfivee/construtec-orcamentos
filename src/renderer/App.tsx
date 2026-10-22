@@ -76,7 +76,8 @@ export function App({ user, onLogout }: AppProps = {}) {
     try {
       const result = await proposalApi.byId(proposalId);
       setProposal(result.proposal);
-      showNotice(result.proposal.isLatest ? 'Revisão atual aberta.' : 'Revisão histórica aberta em modo somente leitura.');
+      // So avisa o que muda o trabalho: revisao antiga abre somente leitura (abrir a atual nao gera aviso).
+      if (!result.proposal.isLatest) showNotice('Revisão histórica aberta em modo somente leitura.');
     } catch (revisionError) {
       setError(revisionError instanceof Error ? revisionError.message : 'Não foi possível abrir esta revisão.');
     } finally {

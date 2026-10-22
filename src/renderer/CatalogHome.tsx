@@ -73,18 +73,19 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
   const fil = (key: Filter, label: string) => [key, label] as const;
 
   return <main className="od-page" aria-busy={loading}><div className="od-stack">
-    <PageHead eyebrow="Cadastros" title="Catálogo EXSAT" sub={`${overview ? `${nfmt(overview.productCount)} itens` : 'Carregando itens'}${seesCost ? ' · preços de custo, sem BDI' : ''}`}>
+    <PageHead eyebrow="Cadastros" title="Catálogo" sub={`${overview ? `${nfmt(overview.productCount)} itens` : 'Carregando itens'}${seesCost ? ' · preços de custo, sem BDI' : ''}`}>
       <button type="button" className="od-btn s" onClick={onEdit}><PackagePlus size={17} />Cadastrar itens</button>
       {canWrite && <button type="button" className="od-btn s" onClick={onImport}><Upload size={17} />Importar lista</button>}
-      <button type="button" className="od-btn p" disabled={!!syncReason || sync.busy} title={syncReason || undefined} onClick={() => void sync.run()}>
+      {/* No site a varredura roda em Importar lista, aba Exsat: o botao so existe no aplicativo. */}
+      {sync.desktop && <button type="button" className="od-btn p" disabled={!!syncReason || sync.busy} title={syncReason || undefined} onClick={() => void sync.run()}>
         {sync.busy ? <Loader2 size={17} className="od-spin" /> : <RefreshCw size={17} />}{sync.busy ? `Sincronizando… ${sync.phase.pct}%` : 'Sincronizar agora'}
-      </button>
+      </button>}
     </PageHead>
 
     <button type="button" className="od-card od-link-card" onClick={onExsat}>
       <span className="od-ex-badge">EX</span>
       <span className="od-grow"><b>Integração EXSAT</b><span>{cardSub}</span></span>
-      <span className={`od-chip ${pill.tone}`}>{pill.tone === 'bad' && <WifiOff size={13} />}{pill.text}</span>
+      {sync.desktop && <span className={`od-chip ${pill.tone}`}>{pill.tone === 'bad' && <WifiOff size={13} />}{pill.text}</span>}
       <span className="od-go">Ver mudanças<ChevronRight size={16} /></span>
     </button>
     {sync.busy && <div className="od-card pad" role="status"><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 'calc(13px * var(--fs, 1))' }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div><span className="od-bar"><span style={{ width: `${sync.phase.pct}%` }} /></span></div>}
