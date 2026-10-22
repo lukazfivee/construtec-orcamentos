@@ -30,6 +30,7 @@ export function App({ user, onLogout }: AppProps = {}) {
   setCurrentSuiteUser(user ?? null);
   const [activeNav, setActiveNav] = useState<NavSection>('Início');
   const [targetCostCenterId, setTargetCostCenterId] = useState<number | null>(null);
+  const [targetCentroPath, setTargetCentroPath] = useState<string | null>(null);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [notice, setNotice] = useState('');
@@ -72,8 +73,8 @@ export function App({ user, onLogout }: AppProps = {}) {
     void loadProposal();
   }, [loadProposal]);
 
-  const openProposal = useCallback(async (proposalId: string) => {
-    if (loading) return;
+  const openProposal = useCallback(async (proposalId: string): Promise<boolean> => {
+    if (loading) return false;
     setLoading(true);
     setError('');
     try {
@@ -81,15 +82,17 @@ export function App({ user, onLogout }: AppProps = {}) {
       setProposal(result.proposal);
       // So avisa o que muda o trabalho: revisao antiga abre somente leitura (abrir a atual nao gera aviso).
       if (!result.proposal.isLatest) showNotice('Revisão histórica aberta em modo somente leitura.');
+      return true;
     } catch (revisionError) {
       setError(revisionError instanceof Error ? revisionError.message : 'Não foi possível abrir esta revisão.');
+      return false;
     } finally {
       setLoading(false);
     }
   }, [loading]);
 
   useProposalDeepLink(!loading, (id) => {
-    void openProposal(id).then(() => { setActiveNav('Propostas'); setProposalViewMode('editor'); });
+    void openProposal(id).then((ok) => { if (ok) { setActiveNav('Propostas'); setProposalViewMode('editor'); } });
   });
 
   const proposalCreated = useCallback(async (created: ProposalDetail) => {
@@ -189,8 +192,9 @@ export function App({ user, onLogout }: AppProps = {}) {
     setMobileMenuOpen(false);
     setError('');
   };
-  const openCentroCustos = (ccId?: number) => {
+  const openCentroCustos = (ccId?: number, path?: string) => {
     setTargetCostCenterId(ccId ?? null);
+    setTargetCentroPath(path ?? null);
     setActiveNav('Centro de Custos');
   };
   // Tela aberta, em texto, para o assistente de IA.
@@ -210,8 +214,8 @@ export function App({ user, onLogout }: AppProps = {}) {
           const [app, query] = link.split('?');
           const params = new URLSearchParams(query || '');
           if (app === 'orcamentos' && params.get('proposta')) {
-            void openProposal(params.get('proposta') as string).then(() => { setActiveNav('Propostas'); setProposalViewMode('editor'); });
-          } else if (app === 'centro-custos') openCentroCustos(Number(params.get('obra')) || undefined);
+            void openProposal(params.get('proposta') as string).then((ok) => { if (ok) { setActiveNav('Propostas'); setProposalViewMode('editor'); } });
+          } else if (app === 'centro-custos') openCentroCustos(Number(params.get('obra')) || undefined, params.get('pedidos') === '1' ? '/usuarios' : undefined);
         }}
         editorOpen={activeNav === 'Propostas' && proposalViewMode === 'editor' && Boolean(proposal)}
         onLogout={onLogout}
@@ -256,11 +260,10 @@ export function App({ user, onLogout }: AppProps = {}) {
         <ProposalsListWorkspace
           key="proposals-list"
           onOpenProposal={async (proposalId) => {
-            await openProposal(proposalId);
-            setProposalViewMode('editor');
+            if (await openProposal(proposalId)) setProposalViewMode('editor');
           }}
           onOpenPdf={async (proposalId, share) => {
-            await openProposal(proposalId);
+            if (!(await openProposal(proposalId))) return;
             setCatalogOpen(false);
             setPdfShare(share);
             setProposalViewMode('pdf');
@@ -300,7 +303,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           catalogOpen={catalogOpen}
           setCatalogOpen={setCatalogOpen}
           documentPending={documentPending}
-          onOpenProposal={openProposal}
+          onOpenProposal={async (id) => { await openProposal(id); }}
           onProposalUpdate={setProposal}
           onProposalTabsUpdate={setProposalTabs}
           onViewList={() => setProposalViewMode('list')}
@@ -324,7 +327,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         <HomeWorkspace
           key="home"
           onOpenProposal={async (proposalId) => {
-            await openProposal(proposalId);
+            if (!(await openProposal(proposalId))) return;
             setActiveNav('Propostas');
             setProposalViewMode('editor');
           }}
@@ -343,6 +346,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           key="centro-custos"
           activeProposal={proposal}
           targetCostCenterId={targetCostCenterId}
+          targetPath={targetCentroPath}
           onBackToProposal={() => {
             setActiveNav('Propostas');
             setProposalViewMode('editor');

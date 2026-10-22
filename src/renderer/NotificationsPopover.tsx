@@ -47,15 +47,19 @@ export function NotificationsPopover({ onClose, onUnreadChange, onFollow }: Noti
   const groups = (['Hoje', 'Ontem', 'Anteriores'] as const).map((name) => [name, items.filter((item) => noticeGroup(item.createdAt) === name)] as const).filter(([, list]) => list.length);
 
   const markAll = async () => {
+    const before = load;
     setLoad({ state: 'ready', items: items.map((item) => ({ ...item, read: true })) });
     onUnreadChange(0);
-    await noticesApi.read({ all: true }).catch(() => undefined);
+    await noticesApi.read({ all: true }).catch(() => { setLoad(before); onUnreadChange(unread); });
   };
   const open = async (notice: SuiteNotice) => {
     if (!notice.read) {
       setLoad({ state: 'ready', items: items.map((item) => (item.id === notice.id ? { ...item, read: true } : item)) });
       onUnreadChange(Math.max(0, unread - 1));
-      await noticesApi.read({ ids: [notice.id] }).catch(() => undefined);
+      await noticesApi.read({ ids: [notice.id] }).catch(() => {
+        setLoad((current) => (current.state === 'ready' ? { state: 'ready', items: current.items.map((item) => (item.id === notice.id ? { ...item, read: false } : item)) } : current));
+        onUnreadChange(unread);
+      });
     }
     if (notice.link) { onClose(); onFollow(notice.link); }
   };

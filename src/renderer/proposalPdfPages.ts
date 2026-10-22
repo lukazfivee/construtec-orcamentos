@@ -38,7 +38,7 @@ const LAST_PAGE_RESERVE = 3;
 export const rowWeight = (description: string) => Math.max(1, Math.ceil(description.length / CHARS_PER_LINE));
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const numberFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
+const numberFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
 const dateFmt = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' });
 const cents = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 export const formatIsoDate = (iso: string | null | undefined) => (iso ? dateFmt.format(new Date(`${iso.slice(0, 10)}T00:00:00Z`)) : '');

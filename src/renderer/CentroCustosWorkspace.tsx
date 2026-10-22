@@ -12,6 +12,7 @@ import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, isCloudRuntime } from './a
 interface Props {
   activeProposal?: ProposalDetail | null;
   targetCostCenterId?: number | null;
+  targetPath?: string | null;
   onBackToProposal?: () => void;
   onNotice?: (message: string) => void;
 }
@@ -19,6 +20,7 @@ interface Props {
 export function CentroCustosWorkspace({
   activeProposal,
   targetCostCenterId,
+  targetPath,
   onBackToProposal,
   onNotice,
 }: Props) {
@@ -37,7 +39,7 @@ export function CentroCustosWorkspace({
   }, []);
   const iframeUrl = targetCostCenterId
     ? `${baseAppUrl}/d/#/obras/${targetCostCenterId}`
-    : `${baseAppUrl}/d/`;
+    : targetPath ? `${baseAppUrl}/d/#${targetPath}` : `${baseAppUrl}/d/`;
 
   const checkHealth = async () => {
     try {
