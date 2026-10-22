@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, CheckCircle2, FileText, Info, Loader2, LockKeyhole, LogIn, LogOut, RefreshCw, Tag, Unplug, WifiOff } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import type { PriceDriftProposal, ProposalDetail } from '../shared/contracts';
+import { ArrowDownRight, ArrowUpRight, CheckCircle2, FileText, Info, Loader2, LockKeyhole, LogIn, LogOut, RefreshCw, Tag, Unplug, WifiOff } from './icons';
+import type { LucideIcon } from './icons';
 import { formatSyncDate } from './catalogImportHelpers';
 import { exsatCardPill, syncDisabledReason } from './CatalogHome';
 import { EmptyState, PageHead, Seg, brl, nfmt, pctSigned, plural, revText, signBrl, statusChip } from './orcDeskUi';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Check, Trash2 } from 'lucide-react';
 import type { CompanyBodyModel } from '../shared/proposalBodyModels';
+import { Check, Trash2 } from './icons';
 import { settingsApi } from './api';
 
 type Props = { models: CompanyBodyModel[]; disabled: boolean; onChange: (models: CompanyBodyModel[]) => void; onNotice: (message: string) => void; onError: (message: string) => void };

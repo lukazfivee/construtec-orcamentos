@@ -151,3 +151,10 @@ test('topo: o ícone preenchido do assistente tem o mesmo tamanho dos demais e o
   const topbar = read('src/renderer/AppTopbar.tsx');
   assert.match(topbar, /id="btn-assistente"\s+className="ibtn"/);
 });
+
+test('icones: nenhum arquivo do app importa lucide-react; tudo passa por icons.tsx (Phosphor)', () => {
+  const walk = (dir: string): string[] => readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`]));
+  const usam = walk('src').filter((f) => /\.(tsx?|jsx?)$/.test(f) && !f.endsWith('centro-parity.test.ts') && /from 'lucide-react'/.test(readFileSync(path.join(root, f), 'utf8')));
+  assert.deepEqual(usam, []);
+  assert.doesNotMatch(readFileSync(path.join(root, 'package.json'), 'utf8'), /lucide-react/);
+});

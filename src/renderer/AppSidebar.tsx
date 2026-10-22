@@ -1,7 +1,7 @@
 import type { SyntheticEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, LogOut } from 'lucide-react';
 import type { AuthUser } from '../shared/contracts';
+import { ChevronLeft, LogOut } from './icons';
 import type { AppSidebarProps } from './AppSidebarMobile';
 import { AppSidebarMobile } from './AppSidebarMobile';
 import { NAV_GROUPS } from './navSections';

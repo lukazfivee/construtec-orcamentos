@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ExternalLink, Search } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { ExternalLink, Search } from './icons';
 import { seesCost } from './SuitePermissions';
 import { proposalApi } from './api';
 

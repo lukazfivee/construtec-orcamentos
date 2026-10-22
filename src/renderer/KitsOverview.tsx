@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ChevronRight, FileText, Layers, PackagePlus, Plus, RefreshCw } from 'lucide-react';
 import type { KitDetail, KitSummary, ProposalSummary } from '../shared/contracts';
+import { ChevronRight, FileText, Layers, PackagePlus, Plus, RefreshCw } from './icons';
 import { kitsApi, proposalApi } from './api';
 import { Drawer, EmptyState, PageHead, brl, plural, revText } from './orcDeskUi';
 import { useCanEdit, useSuitePermission } from './SuitePermissions';

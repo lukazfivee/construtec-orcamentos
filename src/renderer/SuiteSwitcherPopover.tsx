@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
-import { ChartColumn, FileText, Mail, SquareArrowOutUpRight, Wrench } from 'lucide-react';
+import type { LucideIcon } from './icons';
+import { ChartColumn, FileText, Mail, SquareArrowOutUpRight, Wrench } from './icons';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl } from './api';
 import type { SuiteAppId, SuiteMenuEntry } from './suiteMenu';
 import { SUITE_APPS, SUITE_MENU_TITLE, SUITE_WEBMAIL, chamadosEntradaUrl } from './suiteMenu';

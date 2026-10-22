@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowDownToLine, LoaderCircle, RefreshCw, TriangleAlert, X } from 'lucide-react';
+import { ArrowDownToLine, LoaderCircle, RefreshCw, TriangleAlert, X } from './icons';
 import { hasUnsavedChanges } from './unsavedChanges';
 import { useAppUpdater } from './useAppUpdater';
 

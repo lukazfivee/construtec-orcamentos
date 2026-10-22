@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, EyeOff, Info, Minus, Plus, ShieldCheck } from 'lucide-react';
 import type { AppSettings } from '../shared/contracts';
+import { Check, EyeOff, Info, Minus, Plus, ShieldCheck } from './icons';
 import { settingsApi } from './api';
 import { CompanyDefaultBody } from './CompanyDefaultBody';
 import { Seg } from './orcDeskUi';

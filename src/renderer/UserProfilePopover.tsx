@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { LogOut, ShieldCheck, UserCheck } from 'lucide-react';
 import type { AuthUser } from '../shared/contracts';
+import { LogOut, ShieldCheck, UserCheck } from './icons';
 
 interface UserProfilePopoverProps {
   user: AuthUser;

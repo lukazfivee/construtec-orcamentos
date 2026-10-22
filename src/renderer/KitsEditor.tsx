@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, Layers3, PackagePlus } from 'lucide-react';
 import type { CatalogProduct, KitInput, KitSummary, ProposalDetail } from '../shared/contracts';
+import { ArrowLeft, Layers3, PackagePlus } from './icons';
 import { kitsApi } from './api';
 import { KitEditorHeader } from './KitEditorHeader';
 import { KitFormFields, emptyKitDraft, type KitFormDraft } from './KitFormFields';

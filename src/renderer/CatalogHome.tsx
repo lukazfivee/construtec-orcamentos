@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, ChevronRight, EyeOff, Loader2, PackagePlus, RefreshCw, Search, Upload, WifiOff } from 'lucide-react';
 import type { CatalogOverviewNewItem, CatalogProduct } from '../shared/contracts';
+import { ArrowDownRight, ArrowUpRight, ChevronRight, EyeOff, Loader2, PackagePlus, RefreshCw, Search, Upload, WifiOff } from './icons';
 import { catalogApi } from './api';
 import { PageHead, Seg, brl, nfmt, pctSigned, plural } from './orcDeskUi';
 import { formatSyncDate } from './catalogImportHelpers';

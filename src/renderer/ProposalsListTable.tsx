@@ -1,3 +1,4 @@
+import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
 import {
   ArrowUpDown,
   Building2,
@@ -14,8 +15,7 @@ import {
   Share2,
   Trash2,
   RefreshCw,
-} from 'lucide-react';
-import type { ProposalDetail, ProposalSummary } from '../shared/contracts';
+} from './icons';
 import { isAdminNow } from './SuitePermissions';
 import { getProposalValidityStatus } from './proposalValidityHelpers';
 

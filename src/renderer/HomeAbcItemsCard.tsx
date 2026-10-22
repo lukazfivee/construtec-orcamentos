@@ -1,5 +1,5 @@
-import { BarChart3, Info } from 'lucide-react';
 import type { AbcItem } from '../shared/contracts';
+import { BarChart3, Info } from './icons';
 
 type HomeAbcItemsCardProps = {
   items?: AbcItem[];

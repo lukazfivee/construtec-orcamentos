@@ -1,6 +1,6 @@
 import { type ChangeEvent } from 'react';
-import { Upload } from 'lucide-react';
 import { brl, numero, plural } from '../shared/formatoBr';
+import { Upload } from './icons';
 
 export interface ParsedSpreadsheetItem {
   code: string;

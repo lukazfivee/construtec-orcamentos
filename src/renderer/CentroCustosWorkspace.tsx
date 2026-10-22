@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ProposalDetail } from '../shared/contracts';
 import {
   AlertTriangle,
   ArrowLeft,
   ExternalLink,
   Layers,
   RotateCw,
-} from 'lucide-react';
-import type { ProposalDetail } from '../shared/contracts';
+} from './icons';
 import { CENTRO_CUSTOS_CLOUD_URL, getCentroCustosUrl, isCloudRuntime } from './api';
 
 interface Props {

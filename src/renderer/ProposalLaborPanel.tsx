@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
 import { sumDecimal } from '../shared/decimal';
 import type { ProposalLaborInput, ProposalLaborItem } from '../shared/contracts';
 import { calculateLaborItem } from '../shared/labor';
+import { Plus, Trash2 } from './icons';
 import { proposalApi } from './api';
 import './ProposalLaborPanel.css';
 

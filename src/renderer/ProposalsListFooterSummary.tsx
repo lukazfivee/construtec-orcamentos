@@ -1,10 +1,10 @@
+import type { ProposalSummary } from '../shared/contracts';
 import {
   BarChart3,
   CheckCircle2,
   Clock,
   Coins,
-} from 'lucide-react';
-import type { ProposalSummary } from '../shared/contracts';
+} from './icons';
 
 type ProposalsListFooterSummaryProps = {
   filteredProposals: ProposalSummary[];

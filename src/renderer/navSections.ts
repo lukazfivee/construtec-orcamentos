@@ -1,5 +1,5 @@
-import type { LucideIcon } from 'lucide-react';
-import { Box, FileText, Grid2X2, Layers3, Settings, Users } from 'lucide-react';
+import type { LucideIcon } from './icons';
+import { Box, FileText, Grid2X2, Layers3, Settings, Users } from './icons';
 
 export type NavSection = 'Início' | 'Propostas' | 'Centro de Custos' | 'Catálogo' | 'Clientes' | 'Kits' | 'Configurações';
 

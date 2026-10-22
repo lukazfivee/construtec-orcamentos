@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import type { ClientRecord, ProposalDetail } from '../shared/contracts';
 import {
   ChevronDown,
   ExternalLink,
   MapPin,
   Search,
-} from 'lucide-react';
-import type { ClientRecord, ProposalDetail } from '../shared/contracts';
+} from './icons';
 import { useSuitePermission } from './SuitePermissions';
 import { clientsApi, proposalApi } from './api';
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { plural } from '../shared/formatoBr';
+import type { KitSummary, ProposalDetail, ProposalLine, ProposalSummary } from '../shared/contracts';
 import {
   Copy,
   FileSpreadsheet,
@@ -6,9 +8,7 @@ import {
   Loader2,
   PlusCircle,
   Upload,
-} from 'lucide-react';
-import { plural } from '../shared/formatoBr';
-import type { KitSummary, ProposalDetail, ProposalLine, ProposalSummary } from '../shared/contracts';
+} from './icons';
 import { Dialogo } from './orcDeskUi';
 import { kitsApi, proposalApi } from './api';
 import {

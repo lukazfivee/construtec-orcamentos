@@ -120,7 +120,7 @@ kbd {
 .suite-switcher-container { position: relative; display: inline-flex; align-items: center; margin-right: 4px; }
 .btn-suite-topbar { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; height: 28px; border-radius: 6px; background: rgba(13, 127, 159, 0.22); border: 1px solid rgba(1, 183, 241, 0.35); color: #f2f7fa; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
 .btn-suite-topbar:hover, .btn-suite-topbar.active { background: rgba(13, 127, 159, 0.38); border-color: #12a9d1; color: #fff; }
-.btn-suite-topbar svg { color: var(--tx-cool-45); }
+.btn-suite-topbar .pic { color: var(--tx-cool-45); }
 .suite-caret { font-size: calc(10px * var(--fs, 1)); opacity: 0.7; }
 .suite-dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 1000; width: 268px; background: #0d1a29; border: 1px solid rgba(1, 183, 241, 0.3); border-radius: 10px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55); padding: 6px; display: flex; flex-direction: column; gap: 2px; animation: popover-fade-in 120ms ease-out; }
 .suite-dropdown-header { font-size: calc(9.5px * var(--fs, 1)); font-weight: 700; color: var(--tx-cool-45); text-transform: uppercase; letter-spacing: 0.08em; padding: 6px 8px 4px; display: flex; align-items: center; }
@@ -160,7 +160,7 @@ kbd {
 .new-proposal-dialog { width: min(640px, 100%); color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; box-shadow: 0 24px 60px rgba(8, 18, 35, .28); animation: popover-in 180ms cubic-bezier(.2, .8, .2, 1); }
 .new-proposal-dialog > header { display: flex; align-items: center; justify-content: space-between; min-height: 78px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
 .new-proposal-dialog > header > div { display: flex; align-items: center; gap: 12px; }
-.new-proposal-dialog > header > div > svg { color: var(--tx-cool-30); }
+.new-proposal-dialog > header > div > .pic { color: var(--tx-cool-30); }
 .new-proposal-dialog h2, .new-proposal-dialog p { margin: 0; }
 .new-proposal-dialog h2 { font-size: calc(16px * var(--fs, 1)); }
 .new-proposal-dialog header p { margin-top: 3px; color: var(--muted); font-size: calc(10px * var(--fs, 1)); }
@@ -202,7 +202,7 @@ kbd {
 .meta-field + .meta-field { border-left: 1px solid var(--line); }
 .meta-field > span { color: var(--tx-cool-42); font-size: calc(11px * var(--fs, 1)); }
 .meta-field button { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0; font-size: calc(14px * var(--fs, 1)); font-weight: 500; text-align: left; background: transparent; border: 0; cursor: pointer; }
-.meta-field button svg:last-child { margin-left: auto; color: var(--tx-cool-49); }
+.meta-field button .pic:last-child { margin-left: auto; color: var(--tx-cool-49); }
 .meta-field button.accent { width: fit-content; padding: 7px 10px; color: var(--tx-amber-30); background: var(--amber-soft); border: 1px solid var(--status-draft-border); border-radius: 6px; }
 
 .section-tabs {

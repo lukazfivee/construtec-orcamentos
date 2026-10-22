@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, FileText, Trash2 } from 'lucide-react';
 import { BUILTIN_BODY_TEMPLATES, emptyBodyBlock, legacyBodyBlocks, type BodyBlock, type BodyTemplate } from '../shared/proposalBody';
 import { BODY_MODELS, findBodyModel, modelBodyBlocks } from '../shared/proposalBodyModels';
+import { Check, FileText, Trash2 } from './icons';
 import { CompanyBodyModelsList } from './CompanyBodyModelsList';
 import { useCompanyBodyModels } from './useCompanyBodyModels';
 import { settingsApi } from './api';

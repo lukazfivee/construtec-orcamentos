@@ -1,6 +1,6 @@
 import { useEffect, type FormEvent, type ReactNode } from 'react';
-import { X, type LucideIcon } from 'lucide-react';
 import { brl, numero, plural } from '../shared/formatoBr';
+import { X, type LucideIcon } from './icons';
 import './orcDesk.css';
 
 export { brl, plural };

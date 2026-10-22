@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { BookmarkPlus, X } from 'lucide-react';
 import type { ProposalLine } from '../shared/contracts';
+import { BookmarkPlus, X } from './icons';
 
 type Props = {
   item: ProposalLine;

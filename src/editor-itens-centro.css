@@ -10,9 +10,9 @@
   .app-shell.cc .proposal-tabs button.selected::after { inset: auto 0 0; height: 2px; background: var(--color-accent-300); }
   .app-shell.cc .proposal-tabs .tab-divider { flex: none; align-self: center; width: 1px; height: 20px; margin: 0; background: var(--color-divider); }
   .app-shell.cc .proposal-tabs .view-list-tab { color: var(--color-accent-300); }
-  .app-shell.cc .proposal-tabs .view-list-tab svg { stroke-width: 1.5; }
+  .app-shell.cc .proposal-tabs .view-list-tab .pic { stroke-width: 1.5; }
   .app-shell.cc .proposal-tabs .new-tab { position: sticky; right: 0; min-width: 0; margin-left: auto; padding-left: 14px; background: var(--color-surface); box-shadow: -14px 0 12px var(--color-surface); color: var(--color-accent-300); }
-  .app-shell.cc .proposal-tabs .new-tab svg { stroke-width: 1.5; }
+  .app-shell.cc .proposal-tabs .new-tab .pic { stroke-width: 1.5; }
 
   /* ---------- Cabecalho: campos da proposta e Status completo (chip de 24 px sem cortar o texto) ---------- */
   .app-shell.cc .meta-field .status-select { width: 100%; min-width: 0; max-width: none; height: 24px; padding: 0 28px 0 9px; border: 0; border-radius: 12px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; text-overflow: clip; }
@@ -25,7 +25,7 @@
   .app-shell.cc .toolbar { flex-wrap: wrap; row-gap: 8px; }
   .app-shell.cc .toolbar button.insert-toolbar-btn { padding: 0 14px; }
   .app-shell.cc .toolbar { gap: 8px; padding: 10px 32px; }
-  .app-shell.cc .toolbar button svg { flex: none; }
+  .app-shell.cc .toolbar button .pic { flex: none; }
   .app-shell.cc .toolbar button:not(.icon-button) { padding: 0 12px; }
 
   /* ---------- Tabela de itens (.tbl): cabecalho 11/600 em caixa alta, corpo 13, linha de 56 px, sem divisorias verticais ---------- */
@@ -109,7 +109,7 @@
 }
 @media (min-width: 768px) and (max-width: 1360px) {
   .app-shell.cc .proposal-tabs { gap: 18px; padding: 0 24px; }
-  .app-shell.cc .meta-field button > svg:first-child { display: none; }
+  .app-shell.cc .meta-field button > .pic:first-child { display: none; }
   .app-shell.cc .commercial-panel .panel-card { padding: 14px; }
   .app-shell.cc .commercial-panel .editable-parameter, .app-shell.cc .commercial-panel .locked-input { width: 88px; }
   /* Itens: os totais do rodape (custo e venda) em negrito nao cabiam em 84/92 px e eram cobertos pela coluna vizinha. */

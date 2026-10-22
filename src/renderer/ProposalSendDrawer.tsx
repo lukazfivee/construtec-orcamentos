@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FileText, Loader2, Send } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { FileText, Loader2, Send } from './icons';
 import { proposalApi } from './api';
 import { isValidEmail, openExternalUrl, sanitizeWhatsAppPhone, savePdfDocument } from './proposalPdfActions';
 import { pdfDefaultMessage, pdfFileName, revLabel } from './proposalPdfPages';

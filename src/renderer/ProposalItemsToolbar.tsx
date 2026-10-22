@@ -10,7 +10,7 @@ import {
   Trash2,
   Upload,
   X,
-} from 'lucide-react';
+} from './icons';
 import type { useProposalItemActions } from './useProposalItemActions';
 
 type ItemActions = ReturnType<typeof useProposalItemActions>;

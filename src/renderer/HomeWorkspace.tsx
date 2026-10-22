@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import type { DashboardMetrics, ProposalDetail, ProposalSummary } from '../shared/contracts';
+import { plural } from '../shared/formatoBr';
 import {
   BarChart3,
   Box,
@@ -11,9 +13,7 @@ import {
   TrendingUp,
   UserPlus,
   Users,
-} from 'lucide-react';
-import type { DashboardMetrics, ProposalDetail, ProposalSummary } from '../shared/contracts';
-import { plural } from '../shared/formatoBr';
+} from './icons';
 import { dashboardApi } from './api';
 import { HomePipelineCard } from './HomePipelineCard';
 import { HomeAbcItemsCard } from './HomeAbcItemsCard';

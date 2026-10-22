@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { LayoutList, Plus } from 'lucide-react';
 import type { ProposalSummary } from '../shared/contracts';
+import { LayoutList, Plus } from './icons';
 
 type Props = {
   proposalTabs: ProposalSummary[];

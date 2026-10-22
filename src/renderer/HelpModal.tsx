@@ -7,7 +7,7 @@ import {
   Info,
   Lock,
   MessageSquareWarning,
-} from 'lucide-react';
+} from './icons';
 import { ReportProblemForm } from './ReportProblemForm';
 import { Dialogo } from './orcDeskUi';
 import { isCloudRuntime } from './api';

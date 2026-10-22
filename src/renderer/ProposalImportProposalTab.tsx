@@ -1,6 +1,6 @@
-import { CheckSquare, Loader2, Square } from 'lucide-react';
 import type { ProposalLine, ProposalSummary } from '../shared/contracts';
 import { brl, numero, plural } from '../shared/formatoBr';
+import { CheckSquare, Loader2, Square } from './icons';
 
 interface ProposalImportProposalTabProps {
   proposalsList: ProposalSummary[];

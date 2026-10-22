@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, Activity, RefreshCw } from 'lucide-react';
 import type { CenterTracking } from '../shared/contracts';
+import { AlertTriangle, Activity, RefreshCw } from './icons';
 import { useSuitePermission } from './SuitePermissions';
 import { proposalApi } from './api';
 

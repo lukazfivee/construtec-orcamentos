@@ -1,5 +1,5 @@
-import { CheckCircle2, Loader2, LogIn, LogOut, RefreshCw, WifiOff } from 'lucide-react';
 import type { ExsatSyncInfo } from '../shared/contracts';
+import { CheckCircle2, Loader2, LogIn, LogOut, RefreshCw, WifiOff } from './icons';
 import { formatSyncDate } from './catalogImportHelpers';
 import { ExsatAccountCard } from './ExsatAccountCard';
 import type { ExsatServer } from './useExsatServer';

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AlertTriangle, Copy, FileImage, FileSpreadsheet, Loader2, Plus, X } from 'lucide-react';
 import type { CatalogImportItem, CatalogProduct, ExsatBatchPreview, ExsatPageFailure, ExsatSyncInfo } from '../shared/contracts';
+import { AlertTriangle, Copy, FileImage, FileSpreadsheet, Loader2, Plus, X } from './icons';
 import { catalogApi } from './api';
 import { importInChunks } from './catalogImportChunks';
 import { CatalogImportExsat } from './CatalogImportExsat';

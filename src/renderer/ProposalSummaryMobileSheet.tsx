@@ -1,3 +1,4 @@
+import type { ProposalDetail } from '../shared/contracts';
 import {
   Copy,
   Eye,
@@ -6,8 +7,7 @@ import {
   Share2,
   Trash2,
   X,
-} from 'lucide-react';
-import type { ProposalDetail } from '../shared/contracts';
+} from './icons';
 import { useSuitePermission } from './SuitePermissions';
 import { ProposalSyncDirectAction } from './ProposalSyncDirectAction';
 

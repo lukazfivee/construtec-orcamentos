@@ -1,5 +1,5 @@
-import { Save, Send, Trash2 } from 'lucide-react';
 import type { ProposalDetail } from '../shared/contracts';
+import { Save, Send, Trash2 } from './icons';
 import { costText } from './SuitePermissions';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });

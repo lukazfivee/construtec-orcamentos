@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, Building2, MapPin, Pencil, Plus, Save, Search } from 'lucide-react';
 import type { ClientContact, ClientRecord, WorkRecord } from '../shared/contracts';
+import { ArrowLeft, Building2, MapPin, Pencil, Plus, Save, Search } from './icons';
 import { ClientContactFields, emptyContact } from './ClientContactFields';
 import { clientsApi } from './api';
 

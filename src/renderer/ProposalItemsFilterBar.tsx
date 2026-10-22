@@ -1,4 +1,4 @@
-import { Search, Tag, X } from 'lucide-react';
+import { Search, Tag, X } from './icons';
 
 type Props = {
   open: boolean;

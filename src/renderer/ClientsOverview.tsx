@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronRight, RefreshCw, UserPlus, Users } from 'lucide-react';
 import type { ProposalSummary } from '../shared/contracts';
+import { ChevronDown, ChevronRight, RefreshCw, UserPlus, Users } from './icons';
 import { clientsApi, proposalApi } from './api';
 import { EmptyState, PageHead, brl, nfmt, plural, revText, statusChip } from './orcDeskUi';
 

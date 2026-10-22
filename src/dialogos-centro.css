@@ -79,7 +79,7 @@
 .help-dlg .help-privacy-card { padding: 14px; }
 .help-dlg .help-privacy-card p { margin: 0 0 6px; }
 .help-dlg .privacy-badge { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
-.help-dlg .privacy-badge svg { color: var(--color-neutral-300); }
+.help-dlg .privacy-badge .pic { color: var(--color-neutral-300); }
 .help-dlg .help-about-details { display: flex; flex-direction: column; gap: 8px; }
 .help-dlg .about-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 12px; font-size: calc(13px * var(--fs, 1)); }
 .help-dlg .about-row span { color: var(--color-neutral-300); }
@@ -131,7 +131,7 @@
 .clone-proposal-dialog .radio-option small { color: var(--color-neutral-300); font-size: calc(12px * var(--fs, 1)); font-weight: 400; line-height: 1.4; }
 .clone-proposal-dialog .clone-summary-box { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--color-bg); box-shadow: inset 0 0 0 1px var(--color-divider); }
 .clone-proposal-dialog .clone-summary-title { display: flex; align-items: center; gap: 8px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
-.clone-proposal-dialog .clone-summary-title svg, .clone-proposal-dialog .clone-summary-box .check-icon { flex: none; color: var(--color-neutral-300); }
+.clone-proposal-dialog .clone-summary-title .pic, .clone-proposal-dialog .clone-summary-box .check-icon { flex: none; color: var(--color-neutral-300); }
 .clone-proposal-dialog .clone-summary-box ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .clone-proposal-dialog .clone-summary-box li { display: flex; align-items: flex-start; gap: 8px; color: var(--color-text); font-size: calc(13px * var(--fs, 1)); line-height: 1.45; }
 .clone-proposal-dialog .clone-summary-box .check-icon { margin-top: 3px; }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookmarkPlus } from 'lucide-react';
+import { BookmarkPlus } from './icons';
 
 type Props = { existing: string[]; disabled: boolean; onSave: (name: string) => Promise<boolean> };
 

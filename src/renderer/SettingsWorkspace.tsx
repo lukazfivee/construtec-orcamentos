@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Save, ShieldCheck } from 'lucide-react';
 import type { AppSettings, AuthUser } from '../shared/contracts';
+import { Save, ShieldCheck } from './icons';
 import { DiscardedProposalsPanel } from './DiscardedProposalsPanel';
 import { authApi, settingsApi, systemApi } from './api';
 import { CompanyDefaultsPanel } from './CompanyDefaultsPanel';

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, CheckCircle2, Copy, FileSpreadsheet, Loader2, MapPin, X } from 'lucide-react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
+import { Building2, CheckCircle2, Copy, FileSpreadsheet, Loader2, MapPin, X } from './icons';
 import { clientsApi, proposalApi } from './api';
 
 export interface SourceProposalInfo {

@@ -31,7 +31,7 @@
 .body-grip:hover { background: var(--color-accent-900); color: var(--color-text); }
 .body-grip:active { cursor: grabbing; }
 .body-kind { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--color-text); }
-.body-kind svg { flex: none; color: var(--color-focus); }
+.body-kind .pic { flex: none; color: var(--color-focus); }
 .body-kind b { font-size: calc(14px * var(--fs, 1)); font-weight: 600; }
 .body-kind small { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 11px; background: var(--c-muted-soft); color: var(--c-muted); font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; }
 .body-card-actions { margin-left: auto; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }

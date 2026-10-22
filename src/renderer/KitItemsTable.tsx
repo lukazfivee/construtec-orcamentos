@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from './icons';
 import { costText } from './SuitePermissions';
 
 export type KitItemDraft = {

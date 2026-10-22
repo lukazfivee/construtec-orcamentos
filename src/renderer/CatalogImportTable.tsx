@@ -1,5 +1,5 @@
-import { Download, FileSpreadsheet, Plus, Trash2 } from 'lucide-react';
 import type { CatalogImportItem, CatalogImportStatus } from '../shared/contracts';
+import { Download, FileSpreadsheet, Plus, Trash2 } from './icons';
 import { statusTone, type ImportMode } from './catalogImportDialogModel';
 import { formatMoney, type Row } from './catalogImportHelpers';
 

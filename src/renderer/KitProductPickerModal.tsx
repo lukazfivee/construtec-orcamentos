@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Box, Plus, Search, X } from 'lucide-react';
 import type { CatalogProduct } from '../shared/contracts';
+import { Box, Plus, Search, X } from './icons';
 import { costText } from './SuitePermissions';
 import { catalogApi } from './api';
 

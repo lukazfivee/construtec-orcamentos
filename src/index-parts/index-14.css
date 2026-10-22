@@ -42,7 +42,7 @@
   line-height: 1.2;
 }
 
-.validity-badge svg {
+.validity-badge .pic {
   flex-shrink: 0;
 }
 
@@ -139,7 +139,7 @@
   line-height: 1.2;
 }
 
-.sync-badge svg {
+.sync-badge .pic {
   flex-shrink: 0;
 }
 

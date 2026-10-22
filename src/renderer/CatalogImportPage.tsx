@@ -1,5 +1,5 @@
 import { useRef, useState, type DragEvent } from 'react';
-import { ArrowDownRight, ArrowUpRight, Camera, Check, CheckCircle2, CircleDot, Download, FileDown, FileSpreadsheet, Info, KeyRound, Lightbulb, Loader2, Lock, Pencil, ShieldCheck, Table2, Upload, AlertCircle } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Camera, Check, CheckCircle2, CircleDot, Download, FileDown, FileSpreadsheet, Info, KeyRound, Lightbulb, Loader2, Lock, Pencil, ShieldCheck, Table2, Upload, AlertCircle } from './icons';
 import { FIELDS, colLetter, kb, pctText, templateCsv, type ErrRow, type FieldKey } from './catalogImportFlow';
 import { EmptyState, PageHead, Seg, brl, downloadText, hasDesktopApp, nfmt, plural } from './orcDeskUi';
 import { useCatalogImport, type CatalogImport } from './useCatalogImport';

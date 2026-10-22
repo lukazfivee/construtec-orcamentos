@@ -1,5 +1,5 @@
-import { AlertTriangle, Trash2 } from 'lucide-react';
 import type { ProposalSummary } from '../shared/contracts';
+import { AlertTriangle, Trash2 } from './icons';
 import { Dialogo } from './orcDeskUi';
 import { ProposalDiscardBox } from './ProposalDiscardBox';
 

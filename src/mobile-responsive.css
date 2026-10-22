@@ -59,7 +59,7 @@
   font-size: calc(13px * var(--fs, 1)); font-weight: 600; text-align: left;
 }
 .proposal-items-fab-menu button:disabled { opacity: .5; }
-.proposal-items-fab-menu button svg { color: var(--muted); flex: none; }
+.proposal-items-fab-menu button .pic { color: var(--muted); flex: none; }
 
 /* Resumo & acoes: chip fixo com o valor final (sempre visivel, sem rolar) e
    folha com o resumo comercial completo + acoes -- mesmo padrao validado com
@@ -154,7 +154,7 @@
     gap: 3px !important; padding: 5px 1px !important; border-radius: 8px !important;
     color: var(--muted);
   }
-  .sidebar-mobile-only > button svg { width: 18px; height: 18px; }
+  .sidebar-mobile-only > button .pic { font-size: 18px; }
   .sidebar-mobile-only > button span { font-size: calc(9px * var(--fs, 1)); line-height: 1; }
   .sidebar-mobile-only > button.active { background: #073541; color: #fff; }
   .sidebar-mobile-only > button.active::before { content: none; }

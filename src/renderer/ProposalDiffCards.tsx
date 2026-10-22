@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from './icons';
 import type { DiffStatus, ProposalItemDiff, ProposalLaborDiff } from './proposalDiffHelpers';
 
 // Comparativo de revisoes no celular: um cartao por item (antes e depois),

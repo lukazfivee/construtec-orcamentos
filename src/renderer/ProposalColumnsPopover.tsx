@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Check, Eye, EyeOff, RotateCcw, X } from 'lucide-react';
+import { Check, Eye, EyeOff, RotateCcw, X } from './icons';
 
 export type ProposalColumnsVisibility = {
   code: boolean;
