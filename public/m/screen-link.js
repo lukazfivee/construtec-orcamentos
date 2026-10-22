@@ -67,7 +67,15 @@
 
   function form(p, canSend) {
     if (p.status === 'draft') return `<p class="hint lock">${icon('lock-simple', 15)}<span>Envie a proposta para revisão antes de gerar o link.</span></p>`;
-    if (!canSend) return `<p class="hint lock">${icon('lock-simple', 15)}<span>${OC.can('p11') ? 'Só a revisão atual pode ter link.' : 'Seu papel não permite enviar propostas ao cliente.'}</span></p>`;
+    // Motivo certo para cada caso (antes toda proposta sem envio caia em "Só a revisão atual").
+    if (!canSend) {
+      const why = !OC.can('p11') ? 'Seu papel não permite enviar propostas ao cliente.'
+        : !p.isLatest ? 'Só a revisão atual pode ter link.'
+          : p.status === 'approved' ? 'A proposta já foi aprovada: o link para o cliente não é mais necessário.'
+            : p.status === 'rejected' ? 'A proposta foi recusada. Para enviar de novo, crie uma nova revisão.'
+              : 'Você não tem permissão para editar esta proposta.';
+      return `<p class="hint lock">${icon('lock-simple', 15)}<span>${why}</span></p>`;
+    }
     const left = OC.daysUntil(p.validUntil);
     return `<div class="card"><span class="label">Validade do link</span>
         <div class="chips wrap" id="l-days">${DAYS.map((d) => `<button class="chip-act" type="button" data-d="${d}">${d} dias</button>`).join('')}</div>

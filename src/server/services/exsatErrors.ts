@@ -7,8 +7,8 @@ export type ExsatErrorCode =
   | 'EXSAT_JOB_RUNNING' | 'EXSAT_INTERNAL';
 
 const MESSAGES: Record<ExsatErrorCode, string> = {
-  EXSAT_KEY_MISSING: 'O servidor ainda não tem a chave de criptografia da conta Exsat (EXSAT_CREDENTIAL_KEY). Nada foi salvo. Peça ao responsável pelo servidor para cadastrá-la.',
-  EXSAT_KEY_INVALID: 'A chave de criptografia da conta Exsat no servidor (EXSAT_CREDENTIAL_KEY) é inválida. Ela precisa ter 32 bytes. Nada foi salvo.',
+  EXSAT_KEY_MISSING: 'A conexão com a Exsat ainda não foi configurada no servidor. Nada foi salvo. Peça ao responsável pelo sistema para configurar.',
+  EXSAT_KEY_INVALID: 'A configuração da conexão com a Exsat no servidor está incorreta. Nada foi salvo. Peça ao responsável pelo sistema para corrigir.',
   EXSAT_NOT_CONFIGURED: 'Nenhuma conta da Exsat foi cadastrada. Informe o e-mail e a senha e use Salvar e conectar.',
   EXSAT_CREDENTIAL_UNREADABLE: 'Não foi possível ler a conta Exsat guardada (a chave do servidor mudou ou o registro foi alterado). Cadastre a conta de novo.',
   EXSAT_LOGIN_REJECTED: 'A Exsat recusou o e-mail ou a senha. Confira os dados e tente de novo mais tarde, para não bloquear a conta.',

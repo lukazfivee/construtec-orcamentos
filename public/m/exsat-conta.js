@@ -97,7 +97,7 @@
           <small>${s.configured ? `${esc(s.usernameHint || 'Conta')} · cadastrada em ${esc(when(s.configuredAt))}` : 'Nenhuma conta cadastrada'}</small></span>
           <span class="tag ${s.connected ? 'ok' : 'warn'}">${s.connected ? 'Conectada' : 'Não conectada'}</span></div>
         <p class="hint">${s.configured ? (s.connected ? 'O servidor está conectado e lê os seus preços de revendedor.' : 'O servidor entra na Exsat quando você atualiza o catálogo.') : 'Informe a conta de revendedor da Exsat. Só entram itens com preço real, lido com login.'}</p>
-        ${!s.keyConfigured ? '<div class="xs-note warn" role="alert">O servidor ainda não tem a chave de criptografia da conta (EXSAT_CREDENTIAL_KEY), então nada é guardado. Peça ao responsável pelo servidor para cadastrá-la.</div>' : ''}
+        ${!s.keyConfigured ? '<div class="xs-note warn" role="alert">A conexão com a Exsat ainda não foi configurada no servidor, então a conta não é guardada. Peça ao responsável pelo sistema para configurar.</div>' : ''}
         ${s.lastFailure && !s.connected ? `<div class="xs-note bad" role="alert">${esc(s.lastFailure.message)}${wait > 0 ? ` Nova tentativa liberada em ${Math.ceil(wait / 60)} min.` : ''}</div>` : ''}
         ${s.configured && s.keyConfigured ? `${job ? jobHtml(job) : ''}<div class="ex-btns"><button class="btn" type="button" data-x="start"${busy || running || wait > 0 ? ' disabled' : ''}>${running ? 'Varredura em andamento' : 'Atualizar catálogo'}</button></div>
           <small class="hint">Lê todos os departamentos da Exsat com a sua conta, em segundo plano.</small>` : ''}

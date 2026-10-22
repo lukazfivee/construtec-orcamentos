@@ -30,7 +30,7 @@
       ${card('file-text', 'Situação da proposta', flow.map(([st, t]) => `<div class="help-flow">${OC.pill(st)}<small>${esc(t)}</small></div>`).join(''))}
       ${card('clock-counter-clockwise', 'Revisões', '<p>Cada revisão guarda os itens e os preços do momento em que foi criada. Mudar o catálogo depois não altera propostas já emitidas; o aviso de preço novo aparece nas propostas em edição.</p>')}
       ${OC.can('p10') ? card('percent', 'Como o preço é calculado', `<p>Preço de venda = custo × BDI (multiplicador, ex.: 1,25) × (1 + impostos %). A mão de obra entra pelo custo por hora:</p>
-        <p class="help-code">Custo por hora = (salário + alimentação + transporte + outros) ÷ horas por mês (padrão 220)</p><p>Os valores são arredondados em centavos, no padrão R$ 1.250,00.</p>`) : ''}
+        <p class="help-code">Custo por hora = (salário + alimentação + transporte + outros) ÷ horas por mês (padrão 176, em Configurações)</p><p>Os valores são arredondados em centavos, no padrão R$ 1.250,00.</p>`) : ''}
       ${card('lock-simple', 'Sigilo comercial', '<p>Custo, salários, BDI e margem nunca saem no PDF nem no Word do cliente. O cliente recebe só os valores de venda e o escopo.</p><p>Quem não tem permissão para ver custo vê só o valor final, aqui e no computador.</p>')}
       ${card('desktop', 'Celular e computador', '<p>Propostas, catálogo, kits, clientes e configurações são os mesmos nos dois. Foto ou PDF de orçamento para importar itens, backup e restauração ficam na versão completa (Menu, Versão completa).</p>')}
       ${card('info', 'Sobre', '<div class="kv"><span>Aplicativo</span><b>Construtec Orçamentos</b></div><div class="kv"><span>Dados</span><b>Servidor da Construtec</b></div>')}`, true, params);
