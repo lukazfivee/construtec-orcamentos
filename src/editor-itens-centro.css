@@ -129,7 +129,7 @@
 /* Linha em branco (item fora do catalogo) e etiqueta "avulso" com o atalho para o catalogo. */
 .app-shell.cc .proposal-items-panel .add-line-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 28px; }
 .app-shell.cc .proposal-items-panel .add-line-row .add-line + .add-line { margin-left: 0; }
-.custom-line-tag { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300, var(--muted)); }
+.custom-line-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; margin-top: 2px; font-size: calc(11.5px * var(--fs, 1)); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-300, var(--muted)); }
 .custom-line-tag button { padding: 0; font: inherit; letter-spacing: 0; text-transform: none; color: var(--color-accent-300, var(--tx-cool-30)); background: transparent; border: 0; cursor: pointer; text-decoration: underline; }
 .custom-line-tag button:disabled { opacity: .5; cursor: default; }
 @media (min-width: 768px) {
