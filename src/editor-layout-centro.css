@@ -45,7 +45,6 @@
   .app-shell.cc .kp-list { overflow: visible; }
 
   /* Painel lateral: cabe na altura da janela sem rolagem propria (a rolagem fica como reserva para janelas muito baixas) */
-  .app-shell.cc .commercial-panel { gap: 10px; padding: 12px 14px 14px; }
   .app-shell.cc .commercial-panel .panel-card { gap: 4px; padding: 12px 14px; }
   .app-shell.cc .commercial-panel .panel-title { padding: 0 0 4px; }
   .app-shell.cc .commercial-panel .amount { min-height: 22px; }
@@ -56,34 +55,29 @@
   .app-shell.cc .commercial-panel .frozen-state { padding: 8px 12px; font-size: calc(12.5px * var(--fs, 1)); }
   .app-shell.cc .commercial-panel .panel-footnote { padding-top: 0; }
   .app-shell.cc .commercial-panel .panel-footnote p { font-size: calc(11.5px * var(--fs, 1)); line-height: 1.4; }
-  .app-shell.cc .commercial-panel .panel-section.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .app-shell.cc .commercial-panel .panel-section.actions > .panel-section-toggle,
-  .app-shell.cc .commercial-panel .panel-section.actions > .generate,
-  .app-shell.cc .commercial-panel .panel-section.actions > div { grid-column: 1 / -1; }
-  .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { height: 36px; padding: 0 10px; gap: 6px; justify-content: center; font-size: calc(12.5px * var(--fs, 1)); white-space: nowrap; }
-  .app-shell.cc .commercial-panel .panel-section.actions > .generate { height: 40px; }
+  /* Acoes: uma por linha em qualquer largura, no pe da coluna (margin-top: auto), sempre visiveis. "Mais acoes" abre o menu
+     de apoio (revisao, duplicar, compartilhar, excluir) para cima; Centro de Custo e PDF + Word ficam por ultimo. */
+  .app-shell.cc .commercial-panel .panel-section.actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: auto; }
+  .app-shell.cc .commercial-panel .panel-section.actions .actions-title { margin: 0 0 2px; }
+  .app-shell.cc .commercial-panel .panel-section.actions button { width: 100%; height: 40px; margin: 0; padding: 0 12px; gap: 8px; justify-content: flex-start; font-size: calc(13px * var(--fs, 1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .app-shell.cc .commercial-panel .panel-section.actions .gerar-centro-feedback { margin-top: 8px; }
+  .app-shell.cc .commercial-panel .more-actions { position: relative; }
+  .app-shell.cc .commercial-panel .more-actions-pop { left: 0; right: 0; bottom: calc(100% + 6px); display: grid; gap: 2px; padding: 6px; }
+  .app-shell.cc .commercial-panel .more-actions-pop button { background: transparent; box-shadow: none; }
+  .app-shell.cc .commercial-panel .more-actions-pop button:hover:not(:disabled) { background: var(--color-accent-900); }
+  .app-shell.cc .commercial-panel .more-actions-pop button.danger { color: var(--c-err); }
+  .app-shell.cc .commercial-panel .more-actions-pop button:disabled { background: transparent; box-shadow: none; }
+  /* Resumo: rotulos curtos numa linha so, valor a direita (sem quebrar "Total de / Materiais") */
+  .app-shell.cc .commercial-panel .amount:not(.blue) { flex-wrap: nowrap; }
+  .app-shell.cc .commercial-panel .amount:not(.blue) span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 @media (min-width: 768px) {
   /* Aviso de custos preservados: linha de apoio, nao um cartao */
   .app-shell.cc .commercial-panel .frozen-state { padding: 0 4px; background: transparent; color: var(--c-ok); gap: 8px; font-size: calc(12px * var(--fs, 1)); line-height: 1.4; }
   .app-shell.cc .commercial-panel .frozen-state svg { width: 15px; height: 15px; flex: none; }
-  .app-shell.cc .commercial-panel .panel-section.actions button.btn-gerar-centro { height: 36px !important; padding: 0 10px !important; justify-content: center !important; font-size: calc(12.5px * var(--fs, 1)) !important; }
-  .app-shell.cc .commercial-panel .panel-section.actions .gerar-centro-feedback { margin-top: 8px; }
 }
 @media (min-width: 768px) {
-  /* Acoes: o botao principal fica por ultimo na grade, abaixo dos secundarios */
-  .app-shell.cc .commercial-panel .panel-section.actions > .generate { order: 20; }
-  .app-shell.cc .commercial-panel .panel-section.actions > div { order: 10; }
-  .app-shell.cc .commercial-panel .panel-section.actions > .panel-section-toggle { margin-bottom: 0; }
-}
-@media (min-width: 768px) {
-  .app-shell.cc .commercial-panel { gap: 8px; padding: 12px 14px 8px; }
   .app-shell.cc .commercial-panel .amount { min-height: 20px; }
-  .app-shell.cc .commercial-panel .panel-section.actions button:not(.panel-section-toggle) { padding: 0 6px; }
-}
-@media (min-width: 768px) and (max-width: 1360px) {
-  /* Coluna do resumo estreita (1280): as acoes ficam uma por linha, depois da regra de 2 colunas acima (mesma especificidade, ordem decide). */
-  .app-shell.cc .commercial-panel .panel-section.actions { grid-template-columns: minmax(0, 1fr); }
 }
 @media (min-width: 768px) {
   /* Tabela de Mao de obra (13 colunas): rola so na horizontal; a coluna Funcao fica fixa a esquerda */

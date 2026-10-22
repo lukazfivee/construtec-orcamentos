@@ -64,7 +64,6 @@
   .app-shell.cc .add-line { font-size: calc(13px * var(--fs, 1)); color: var(--color-accent-300); }
 
   /* Resumo comercial (lateral): rotulos 11.5/600 em caixa alta, valores 21/600 */
-  .app-shell.cc .commercial-panel { background: var(--color-surface); color: var(--color-text); }
   .app-shell.cc .commercial-panel .panel-title { font-size: calc(15px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .commercial-panel .panel-section-toggle { font-size: calc(13px * var(--fs, 1)); font-weight: 600; }
   .app-shell.cc .commercial-panel button.primary, .app-shell.cc .commercial-panel .generate { height: 40px; border-radius: 10px; }

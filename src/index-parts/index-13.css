@@ -79,58 +79,15 @@
    BOTAO E PAINEL GERAR CENTRO DE CUSTO (ETAPA 02)
    ========================================================================== */
 
-.actions button.btn-gerar-centro,
-button.btn-gerar-centro,
-.btn-gerar-centro {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 10px !important;
-  width: 100% !important;
-  height: 44px !important;
-  padding: 0 14px !important;
-  font-size: calc(13px * var(--fs, 1)) !important;
-  font-weight: 600 !important;
-  color: #ffffff !important;
-  background: #047857 !important;
-  border: 1px solid #065f46 !important;
-  border-radius: 6px !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
-  margin-top: 10px !important;
-  box-shadow: 0 1px 2px rgba(4, 120, 87, 0.2) !important;
-}
-
-.actions button.btn-gerar-centro:hover:not(:disabled),
-button.btn-gerar-centro:hover:not(:disabled),
-.btn-gerar-centro:hover:not(:disabled) {
-  background: #059669 !important;
-  border-color: #047857 !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 5px rgba(4, 120, 87, 0.3) !important;
-}
-
-.actions button.btn-gerar-centro.success,
-button.btn-gerar-centro.success,
-.btn-gerar-centro.success {
-  background: #065f46 !important;
-  border-color: #064e3b !important;
-  color: #ffffff !important;
-}
-
-.actions button.btn-gerar-centro:disabled,
-button.btn-gerar-centro:disabled,
-.btn-gerar-centro:disabled {
-  opacity: 0.65 !important;
-  cursor: not-allowed !important;
-}
-
-.actions button.btn-gerar-centro svg,
-button.btn-gerar-centro svg,
-.btn-gerar-centro svg {
-  color: #ffffff !important;
-  flex-shrink: 0 !important;
-}
+/* Gerar Centro de Custo: botao secundario com anel (verde fica so para situacao); o da janela de confirmacao e o principal ciano. */
+.btn-gerar-centro { display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%; height: 40px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; cursor: pointer; transition: background-color .15s ease; }
+.btn-gerar-centro:hover:not(:disabled) { background: var(--od-accent-900); }
+.btn-gerar-centro:disabled { opacity: .55; cursor: not-allowed; }
+.btn-gerar-centro svg { flex: none; color: var(--od-accent-300); }
+.btn-gerar-centro.success svg { color: var(--status-approved-text); }
+.modal-card .modal-footer .btn-gerar-centro.gerar-centro-modal-confirm { display: inline-flex; width: auto; background: #0a7896; color: #fefefe; box-shadow: 0 6px 16px rgba(10, 120, 150, .22); }
+.modal-card .modal-footer .btn-gerar-centro.gerar-centro-modal-confirm:hover:not(:disabled) { background: #0b4a5c; }
+.modal-card .modal-footer .btn-gerar-centro.gerar-centro-modal-confirm svg { color: inherit; }
 
 .gerar-centro-feedback {
   padding: 10px 12px;
