@@ -21,7 +21,7 @@ export function ProposalCatalogPopover({
   onClose,
   setError,
 }: Props) {
-  const [query, setQuery] = useState('leit');
+  const [query, setQuery] = useState('');
   const [catalogResults, setCatalogResults] = useState<CatalogProduct[]>([]);
   const [selectedCatalogIndex, setSelectedCatalogIndex] = useState(0);
   const [catalogLoading, setCatalogLoading] = useState(false);
