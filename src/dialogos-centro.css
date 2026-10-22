@@ -186,3 +186,4 @@
 .dlg .discard-open .od-btn { padding: 0 8px; margin-left: -8px; }
 .dlg .discard-form { display: grid; gap: 12px; }
 .dlg .danger-callout { margin: 0; padding: 12px 14px; border-radius: 12px; outline: 0; background: var(--c-err-soft); color: var(--c-err); font-size: calc(13px * var(--fs, 1)); line-height: 1.45; }
+.new-proposal-dialog.dlg.export-dlg label.format-card > span { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
