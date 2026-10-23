@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import path from 'node:path';
-import { countPendingProposals, INITIAL_PROPOSAL_VIEW_MODE, viewModeOnSelectNav } from './proposalNav';
+import { attentionTitle, INITIAL_PROPOSAL_VIEW_MODE, proposalsNeedingAction, viewModeOnSelectNav } from './proposalNav';
 
 // Propostas abre sempre na lista principal: ao abrir o app, ao escolher Propostas no menu (mesmo com um editor aberto)
 // e ao escolher Orcamentos no menu Suite. O editor so abre quando o usuario escolhe uma proposta.
@@ -42,14 +42,23 @@ test('Catalogo, Clientes, Kits e Configuracoes montam a visao principal da secao
   }
 });
 
-test('contagem do selo de Propostas: so as ultimas revisoes em edicao ou revisao', () => {
-  assert.equal(countPendingProposals([
+test('selo de Propostas: mesma regra do "precisam de acao" do celular (so a revisao atual)', () => {
+  const hoje = new Date(2026, 9, 22, 15, 0, 0);
+  const lista = [
     { status: 'draft', isLatest: true },
     { status: 'review', isLatest: true },
-    { status: 'sent', isLatest: true },
-    { status: 'approved', isLatest: true },
+    { status: 'sent', isLatest: true, validUntil: '2026-10-25' }, // perto do fim
+    { status: 'sent', isLatest: true, validUntil: '2026-12-31' }, // longe: nao conta
+    { status: 'sent', isLatest: true }, // sem validade: nao conta
+    { status: 'approved', isLatest: true, syncStatus: 'pending' }, // sem Centro de Custo
+    { status: 'approved', isLatest: true, syncStatus: 'delivered' }, // ja entregue: nao conta
+    { status: 'rejected', isLatest: true },
     { status: 'draft', isLatest: false },
-    { status: 'draft' },
-  ]), 3);
-  assert.equal(countPendingProposals([]), 0);
+  ];
+  const a = proposalsNeedingAction(lista, hoje);
+  assert.deepEqual(a, { total: 4, approved: 1, expiring: 1, review: 1, draft: 1 });
+  assert.equal(proposalsNeedingAction([], hoje).total, 0);
+  assert.equal(proposalsNeedingAction([{ status: 'sent', validUntil: '2026-10-20' }], hoje).expiring, 1, 'validade vencida conta');
+  assert.match(attentionTitle(a), /^4 propostas precisam de ação: 1 aprovada sem Centro de Custo, 1 com a validade perto do fim, 1 aguardando revisão, 1 em edição$/);
+  assert.match(attentionTitle(proposalsNeedingAction([{ status: 'draft' }], hoje)), /^1 proposta precisa de ação: 1 em edição$/);
 });

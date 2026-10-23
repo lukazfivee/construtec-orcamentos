@@ -5,6 +5,7 @@ import { ChevronLeft, LogOut } from './icons';
 import type { AppSidebarProps } from './AppSidebarMobile';
 import { AppSidebarMobile } from './AppSidebarMobile';
 import { NAV_GROUPS } from './navSections';
+import { attentionTitle } from './proposalNav';
 import { useIsMobile } from './useIsMobile';
 
 export type { NavSection } from './navSections';
@@ -33,7 +34,7 @@ export function AppSidebar(props: AppSidebarProps) {
   return mobile ? <AppSidebarMobile {...props} /> : <AppSidebarDesktop {...props} />;
 }
 
-function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProposals = 0 }: AppSidebarProps) {
+function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProposals }: AppSidebarProps) {
   const [recolhido, setRecolhido] = useState(initialCollapsed);
   const [espia, setEspia] = useState(false);
   const [dica, setDica] = useState<{ text: string; left: number; top: number } | null>(null);
@@ -105,7 +106,7 @@ function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProp
 
   const displayName = user?.name || 'Marcos Ribeiro';
   const role = user ? roleLabels[user.role] ?? user.role : roleLabels.commercial;
-  const badges: Partial<Record<string, number>> = { Propostas: pendingProposals };
+  const badges: Partial<Record<string, number>> = { Propostas: pendingProposals?.total ?? 0 };
 
   return (
     <aside className="side" id="menu-lateral" aria-label="Navegação principal" onMouseEnter={entrou} onMouseLeave={saiu}>
@@ -153,7 +154,7 @@ function AppSidebarDesktop({ activeNav, onSelectNav, user, onLogout, pendingProp
                   <Icon className="ph" size={18} strokeWidth={1.5} />
                   <span className="rot">{label}</span>
                   {count > 0 && (
-                    <span className="badge" title={`${count} em edição ou revisão`}>{count > 99 ? '99+' : count}</span>
+                    <span className={`badge${pendingProposals && pendingProposals.expiring > 0 ? ' alerta' : ''}`} title={pendingProposals ? attentionTitle(pendingProposals) : undefined}>{count > 99 ? '99+' : count}</span>
                   )}
                 </button>
               );
