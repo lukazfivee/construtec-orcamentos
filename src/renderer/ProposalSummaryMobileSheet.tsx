@@ -2,7 +2,6 @@ import type { ProposalDetail } from '../shared/contracts';
 import {
   Copy,
   Eye,
-  FilePlus2,
   Save,
   Share2,
   Trash2,
@@ -47,7 +46,6 @@ type Props = {
   onCreateRevision: () => void;
   onCloneProposal: () => void;
   onPreviewProposal: () => void;
-  onExportProposal: () => void;
   onShareProposal?: () => void;
   onProposalUpdate?: (proposal: ProposalDetail) => void;
   onNavigateToCentroCustos?: (costCenterId?: number) => void;
@@ -78,7 +76,6 @@ export function ProposalSummaryMobileSheet({
   onCreateRevision,
   onCloneProposal,
   onPreviewProposal,
-  onExportProposal,
   onShareProposal,
   onProposalUpdate,
   onNavigateToCentroCustos,
@@ -188,15 +185,6 @@ export function ProposalSummaryMobileSheet({
           </button>
           <button type="button" disabled={documentPending} style={canSeeCost ? undefined : { display: 'none' }} onClick={() => { onPreviewProposal(); onClose(); }}>
             <Eye size={16} /> Pré-visualizar
-          </button>
-          <button
-            className="primary"
-            type="button"
-            disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
-            style={canSend ? undefined : { display: 'none' }}
-            onClick={() => { onExportProposal(); onClose(); }}
-          >
-            <FilePlus2 size={16} /> {documentPending ? 'Preparando…' : 'Gerar PDF ou Word'}
           </button>
           {canSend && onShareProposal && (
             <button type="button" disabled={documentPending} onClick={() => { onShareProposal(); onClose(); }}>

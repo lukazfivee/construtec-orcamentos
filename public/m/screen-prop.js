@@ -28,7 +28,7 @@
     const status = (s, msg) => async () => { await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: s } }); OC.toast(msg); ctx.reload(); };
     if (p.status === 'draft' && p.items.length) return { hint: 'Próximo passo: revisão interna do orçamento', prim: ['Enviar para revisão', 'paper-plane-tilt', status('review', 'Enviada para revisão interna')] };
     if (p.status === 'draft') return { hint: 'A proposta ainda não tem itens', prim: ['Adicionar itens', 'plus', () => ctx.tab('itens')] };
-    if (p.status === 'review') return { hint: 'Gere o PDF do cliente e envie. Custo, BDI e margem não aparecem nele.', prim: ['Gerar PDF e enviar', 'paper-plane-tilt', () => OC.open('pdf', { id: p.id })], sec: ['Só marcar enviada', () => confirmSheet('Marcar como enviada', 'Use quando o PDF já foi mandado ao cliente por outro caminho.', 'Marcar enviada', status('sent', 'Proposta marcada como enviada'))] };
+    if (p.status === 'review') return { hint: 'Gere o PDF do cliente e envie. Custo, BDI e margem não aparecem nele.', prim: ['Gerar PDF', 'file-text', () => OC.open('pdf', { id: p.id })], sec: ['Só marcar enviada', () => confirmSheet('Marcar como enviada', 'Use quando o PDF já foi mandado ao cliente por outro caminho.', 'Marcar enviada', status('sent', 'Proposta marcada como enviada'))] };
     if (p.status === 'sent') {
       return {
         hint: 'Resposta do cliente',

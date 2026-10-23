@@ -322,7 +322,6 @@
   .frozen-state { min-height: 38px; margin-top: 12px; }
   .actions { margin-top: 12px; }
   .actions button { height: 37px; margin-top: 6px; }
-  .actions .generate { height: 42px; }
   .panel-footnote { margin-top: 7px; padding-top: 0; }
   .demo-data-note { margin-bottom: 0; font-size: calc(8px * var(--fs, 1)); }
   .last-change { display: none; }

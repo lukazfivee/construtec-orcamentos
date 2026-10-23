@@ -29,7 +29,7 @@ export const nextStep = (proposal: FlowInput, perms: FlowPermissions): NextStep 
     case 'review':
       return {
         hint: 'Gere o PDF do cliente e envie. Custo, BDI e margem não aparecem nele.',
-        primary: { action: 'pdf-send', label: 'Gerar PDF e enviar' },
+        primary: { action: 'pdf-send', label: 'Gerar PDF' },
         secondary: { action: 'mark-sent', label: 'Só marcar enviada' },
       };
     case 'sent':

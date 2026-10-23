@@ -21,7 +21,7 @@ button:disabled { opacity: .7; color: var(--muted-ink); }
 }
 .od-btn:disabled { opacity: 1; color: var(--muted-ink); background: var(--bg-cool-90-3); border-color: var(--bd-cool-83-3); }
 .primary:hover:not(:disabled), .primary-btn:hover:not(:disabled), .web-login-card button:hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
-.actions .generate:not(:disabled):hover, .btn.primary:not(:disabled):hover,
+.btn.primary:not(:disabled):hover,
 .new-proposal-dialog button.primary:not(:disabled):hover { background: var(--blue-hover) !important; border-color: var(--blue-hover) !important; }
 
 /* Classes usadas pelo React sem regra. */

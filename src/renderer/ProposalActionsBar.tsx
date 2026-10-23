@@ -127,9 +127,12 @@ export function ProposalActionsBar({
           <p>{proposal.workName || '—'} · {proposal.clientName}</p>
         </div>
         <div className="proposal-flow-actions">
-          <button type="button" className="flow-btn" onClick={onOpenPdf} disabled={!hasContent} title={hasContent ? 'Pré-visualizar, baixar, compartilhar ou enviar o PDF' : 'Adicione itens para gerar o PDF'}>
-            <FileText size={16} /> PDF
-          </button>
+          {/* Um só botão de PDF no topo: em revisão ele é a ação principal ("Gerar PDF", à direita); nas outras situações fica aqui. */}
+          {primary?.action !== 'pdf-send' && (
+            <button type="button" className="flow-btn" onClick={onOpenPdf} disabled={!hasContent} title={hasContent ? 'Pré-visualizar, baixar (PDF ou Word), compartilhar ou enviar' : 'Adicione itens para gerar o PDF'}>
+              <FileText size={16} /> Gerar PDF
+            </button>
+          )}
           {revisionCount > 1 && (
             <button type="button" className="flow-btn" onClick={onOpenCompare}>
               <ArrowLeftRight size={16} /> Comparar revisões
