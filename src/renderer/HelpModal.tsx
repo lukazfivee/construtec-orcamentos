@@ -84,17 +84,10 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
                   </div>
                 </div>
                 <div className="shortcut-card">
-                  <div className="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></div>
+                  <div className="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd> ou <kbd>G</kbd></div>
                   <div className="shortcut-info">
-                    <strong>Pré-visualizar Proposta</strong>
-                    <span>Abre a pré-visualização comercial formatada para apresentação ao cliente.</span>
-                  </div>
-                </div>
-                <div className="shortcut-card">
-                  <div className="shortcut-keys"><kbd>Ctrl</kbd> + <kbd>G</kbd></div>
-                  <div className="shortcut-info">
-                    <strong>Exportar Documentos</strong>
-                    <span>Gera os arquivos oficiais da proposta em PDF e Word (.docx).</span>
+                    <strong>PDF da proposta</strong>
+                    <span>Abre o PDF da proposta: opções, pré-visualização, arquivo em PDF ou Word e compartilhar.</span>
                   </div>
                 </div>
                 <div className="shortcut-card">

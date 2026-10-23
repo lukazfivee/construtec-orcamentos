@@ -85,15 +85,17 @@ test('planilha propria no Word: tabela com cabecalho repetido entre a secao e a 
   assert.doesNotMatch(xml, /BDI|Margem|33[,.]7/);
 });
 
-test('planilha propria nas paginas do PDF do desktop: titulo, cabecalho uma vez e tabela longa em varias paginas', () => {
+test('planilha propria nas paginas do PDF do desktop: titulo, cabecalho em cada pagina e tabela longa em varias paginas', () => {
   const joined = buildPdfPages(make(blocks), defaultPdfChoices()).map((page) => page.html).join('\n');
-  assert.match(joined, /<h4 class="pg-h">Cronograma da Cliente Teste<\/h4>/);
-  assert.match(joined, /<table class="pg-grid"><thead><tr><th>Etapa<\/th>/);
+  assert.match(joined, /<h2 class="pd-h">Cronograma da Cliente Teste<\/h2>/);
+  assert.match(joined, /<table class="pd-tab"><thead><tr><th>Etapa<\/th>/);
   assert.match(joined, /<td>Projeto &lt;b&gt;<\/td>/);
   const long = blocks.map((item) => (item.id === 'p' ? { ...item, table: { headers: ['Linha'], rows: Array.from({ length: 120 }, (_, at) => [`LINHA-${at} ${'texto '.repeat(8)}`]) } } : item));
   const pages = buildPdfPages(make(long), { ...defaultPdfChoices(), capa: false });
   const all = pages.map((page) => page.html).join('');
   assert.equal((all.match(/LINHA-\d+/g) ?? []).length, 120);
-  assert.equal((all.match(/<table class="pg-grid"><thead>/g) ?? []).length, 1, "cabecalho da planilha propria so no primeiro pedaco");
-  assert.ok(pages.filter((page) => /pg-grid/.test(page.html)).length >= 2, 'a tabela longa continua na pagina seguinte');
+  const withGrid = pages.filter((page) => /pd-tab/.test(page.html));
+  assert.ok(withGrid.length >= 2, 'a tabela longa continua na pagina seguinte');
+  // Como no celular e no PDF impresso: o cabecalho da planilha propria se repete em cada pagina onde ela continua.
+  assert.equal((all.match(/<table class="pd-tab"><thead>/g) ?? []).length, withGrid.length);
 });

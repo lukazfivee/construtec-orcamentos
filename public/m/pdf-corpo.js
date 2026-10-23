@@ -1,6 +1,6 @@
 // Previa do documento do cliente no celular, na ordem do documento do servidor (buildProposalHtml + buildMobileProposalHtml): capa,
 // corpo montado (carta, titulos, textos, listas, planilhas, tabela de itens, condicoes, fechamento) ou o layout padrao, e o aviso de
-// validade. As paginas sao medidas de verdade numa folha escondida. Opcoes do documento iguais as do computador (ProposalExportDialog):
+// validade. As paginas sao medidas de verdade numa folha escondida. Opcoes do documento iguais as do computador (ProposalPdfView):
 // agrupar, codigos, mao de obra, clausulas, observacoes, notas complementares e marca d'agua. So precos de venda.
 (function (OC) {
   const { esc } = OC;

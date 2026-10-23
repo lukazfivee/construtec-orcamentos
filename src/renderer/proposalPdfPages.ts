@@ -31,11 +31,6 @@ export const watermarkOverlayHtml = () => `<div style="position:absolute;inset:0
 
 export const PDF_PAGE_WIDTH = 396;
 export const PDF_PAGE_HEIGHT = 560;
-export const ROWS_PER_PAGE = 14;
-// Descricao longa quebra em varias linhas: cada linha extra conta como uma linha da pagina.
-const CHARS_PER_LINE = 34;
-const LAST_PAGE_RESERVE = 3;
-export const rowWeight = (description: string) => Math.max(1, Math.ceil(description.length / CHARS_PER_LINE));
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const numberFmt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
@@ -80,26 +75,6 @@ export const pdfExportOptions = (choices: PdfChoices): ProposalExportOptions => 
 export const pdfFileName = (proposal: ProposalDetail) => proposalFileBaseName(proposal);
 
 export type PdfBranding = Partial<Pick<AppSettings, 'pdfShowLogo' | 'pdfShowSignature' | 'pdfWatermark' | 'tradeName' | 'companyName' | 'address' | 'phone' | 'email' | 'document'>>;
-
-// Quebra as linhas em paginas pelo peso (linhas visuais); a ultima pagina guarda espaco para o total e a validade.
-export const paginateRows = <T extends { weight: number }>(rows: T[]): T[][] => {
-  const pages: T[][] = [];
-  let current: T[] = [];
-  let used = 0;
-  for (const row of rows) {
-    if (current.length > 0 && used + row.weight > ROWS_PER_PAGE) { pages.push(current); current = []; used = 0; }
-    current.push(row);
-    used += row.weight;
-  }
-  if (current.length > 0) pages.push(current);
-  const lastUsed = (pages[pages.length - 1] ?? []).reduce((sum, row) => sum + row.weight, 0);
-  if (lastUsed + LAST_PAGE_RESERVE > ROWS_PER_PAGE && pages.length > 0 && pages[pages.length - 1].length > 1) {
-    const last = pages[pages.length - 1];
-    const moved = last.pop() as T;
-    pages.push([moved]);
-  }
-  return pages;
-};
 
 // Planilha de itens com o cabecalho do documento; continua com o cabecalho na pagina seguinte.
 const ITEMS_WRAP: FlowWrap = { open: '<table class="pd-items"><thead><tr><th>Item</th><th>Descrição</th><th>Qtd.</th><th>Unit.</th><th>Total</th></tr></thead><tbody>', close: '</tbody></table>' };
@@ -158,7 +133,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
       <div class="pg-title pd-center">Proposta técnica comercial</div>`));
   }
   let pending: BodyPart[] = [];
-  const flushText = (endsDocument = false) => { flow.push(...bodyTextAtoms(pending, showSignature, endsDocument)); pending = []; };
+  const flushText = (endsDocument = false) => { flow.push(...bodyTextAtoms(pending, { showSignature, brand: content.brand, company: content.company }, endsDocument)); pending = []; };
   if (!bodyParts) {
     // Texto padrao do documento sem corpo montado: abertura e apresentacao da empresa antes da planilha.
     flow.push(block('Texto', `<p class="pd-p pd-lead">${text(LEGACY_LEAD)}</p>`));
@@ -176,7 +151,7 @@ export const buildPdfPages = (proposal: ProposalDetail, rawChoices: PdfChoices, 
   }
   // Fechamento padrao do documento quando o corpo nao tem um.
   if (!bodyParts?.some((part) => part.kind === 'fechamento')) {
-    const signature = showSignature ? `<div class="pd-sign pg-sign"><i></i><b>${escapeHtml(proposal.responsibleName || content.brand)}</b><span>${escapeHtml(content.company)}</span></div>` : '';
+    const signature = showSignature ? `<div class="pd-sign"><i></i><b>${escapeHtml(proposal.responsibleName || content.brand)}</b><span>${escapeHtml(content.company)}</span></div>` : '';
     flow.push(block('Texto', `<p class="pd-p pd-close">Permanecemos à disposição para quaisquer esclarecimentos técnicos ou comerciais referentes a esta proposta.</p>${signature}`, 'fim'));
   }
   if (choices.validade) flow.push(block('Texto', `<p class="pg-note">Proposta válida até ${escapeHtml(validUntil)}. Depois disso, os preços dos equipamentos podem mudar.</p>`, 'fim'));
