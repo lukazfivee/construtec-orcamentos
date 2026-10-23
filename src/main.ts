@@ -1,6 +1,7 @@
-import { app, BrowserWindow, dialog, nativeTheme, screen, shell } from 'electron';
+import { app, BrowserWindow, dialog, nativeTheme, screen, session, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import { installMicrophonePermission } from './main/micPermission';
 import { startOrcamentosMain, type OrcamentosMain } from './main/orcamentosMain';
 import { registerUpdaterIpc } from './main/updaterIpc';
 
@@ -59,6 +60,7 @@ const createWindow = async () => {
 };
 
 app.whenReady().then(async () => {
+  installMicrophonePermission(session.defaultSession); // ditado por voz do assistente
   const userDataPath = app.getPath('userData');
   const packagedPGlitePath = app.isPackaged ? path.join(process.resourcesPath, 'pglite') : undefined;
   orcamentos = await startOrcamentosMain({ userDataPath, packagedPGlitePath });

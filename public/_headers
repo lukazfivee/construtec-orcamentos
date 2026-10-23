@@ -4,6 +4,7 @@
 # regras casam, a Cloudflare junta os valores do mesmo cabecalho e o navegador aplica as duas politicas (vale a mais estrita).
 /*
   X-Content-Type-Options: nosniff
+  Permissions-Policy: microphone=(self)
   Content-Security-Policy: frame-ancestors 'self' https://centro-custos-api.construtec-reports.workers.dev
 /c
   Content-Security-Policy: frame-ancestors 'self'

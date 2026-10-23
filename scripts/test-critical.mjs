@@ -58,6 +58,7 @@ const entryPoints = [
   'src/renderer/mobile-visual.test.ts',
   'src/renderer/mobile-assistant.test.ts',
   'src/renderer/assistant.test.ts',
+  'src/renderer/assistant-voice.test.ts',
   'src/renderer/assistantDraft.test.ts',
   'src/renderer/assistantEdit.test.ts',
   'src/renderer/mobile-assistant-draft.test.ts',

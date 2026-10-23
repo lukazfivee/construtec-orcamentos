@@ -3,6 +3,7 @@
 // aparece enquanto e escrita (streaming). A conversa fica na memoria: nada vai para o disco.
 import { appCheckAllowed, FIREBASE_CONFIG, MODELS, RECAPTCHA_KEY, SDK_BASE } from './assistantConfig';
 import type { AssistantTools, SchemaBuilder, ToolCall } from './assistantTools';
+import { TRANSCRIBE_PROMPT } from './assistantVoice';
 
 // Tipos minimos do SDK (so o que o app usa).
 type Content = string | Array<{ functionResponse: { name: string; response: unknown } }>;
@@ -14,7 +15,7 @@ interface ChatSession {
 interface AiModule {
   getAI(app: unknown, options: { backend: unknown }): unknown;
   GoogleAIBackend: new () => unknown;
-  getGenerativeModel(backend: unknown, options: Record<string, unknown>): { startChat(options: { history?: unknown[] }): ChatSession };
+  getGenerativeModel(backend: unknown, options: Record<string, unknown>): { startChat(options: { history?: unknown[] }): ChatSession; generateContent(request: unknown): Promise<{ response: { text(): string } }> };
   Schema: SchemaBuilder;
 }
 interface AppModule { getApps(): unknown[]; initializeApp(config: object): unknown }
@@ -25,6 +26,8 @@ export interface ChatHooks { onLive(text: string): void; onStep(label: string): 
 export interface AssistantChat {
   /** Texto final da resposta (vazio se o modelo so chamou ferramentas). */
   ask(text: string, hooks: ChatHooks): Promise<string>;
+  /** Ditado: transcreve um WAV (base64) com o mesmo Gemini, no modelo reserva se o primeiro estiver no limite. */
+  transcribe(wavBase64: string): Promise<string>;
   /** Pre-carrega o SDK para a primeira pergunta nao esperar por ele. */
   warm(): void;
   reset(): void;
@@ -122,7 +125,21 @@ export function createAssistantChat(options: { tools: AssistantTools; prompt: ()
     }
   }
 
+  async function transcribe(wavBase64: string): Promise<string> {
+    const { ai, backend } = await getSdk();
+    const request = [{ text: TRANSCRIBE_PROMPT }, { inlineData: { mimeType: 'audio/wav', data: wavBase64 } }];
+    let failure: unknown;
+    for (const m of MODELS) {
+      try {
+        const generative = ai.getGenerativeModel(backend, { model: m.nome, generationConfig: { temperature: 0, maxOutputTokens: 1000, thinkingConfig: { thinkingLevel: 'MINIMAL' } } });
+        return String((await generative.generateContent(request)).response.text() || '').trim();
+      } catch (error) { failure = error; if (!quota(error) && !overloaded(error)) break; }
+    }
+    throw failure;
+  }
+
   return {
+    transcribe,
     warm() { if (!isOffline()) getSdk().catch(() => undefined); },
     reset() { chat = null; model = 0; },
     async ask(text, hooks) {

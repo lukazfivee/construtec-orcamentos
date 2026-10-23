@@ -9,6 +9,7 @@ import { applyPlan } from './assistant/proposalEdit';
 import { createAssistantChat, friendlyError, isOffline } from './assistant/assistantChat';
 import { appCheckAllowed, buildPrompt } from './assistant/assistantConfig';
 import { createAssistantTools } from './assistant/assistantTools';
+import { browserVoiceDeps, createVoice, voiceSupported, type VoiceState } from './assistant/assistantVoice';
 import type { AssistantNav, PendingNav } from './assistant/assistantTools';
 import { AssistantLog } from './AssistantLog';
 import type { AssistantMsg, DraftCard } from './AssistantLog';
@@ -53,6 +54,8 @@ export function AssistantFab(props: Props) {
   const fab = useRef<HTMLButtonElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const wasOpen = useRef(false);
+  const [voiceState, setVoiceState] = useState<VoiceState>('idle');
+  const voice = useRef<ReturnType<typeof createVoice> | null>(null);
 
   useEffect(() => {
     const warm = window.setTimeout(() => chat.warm(), 2500);
@@ -75,6 +78,16 @@ export function AssistantFab(props: Props) {
   }, [draft, open]);
 
   const push = (msg: AssistantMsg) => setLog((list) => [...list, msg]);
+  // Ditado: o texto transcrito cai no campo para conferir; fechar o painel descarta a gravacao.
+  if (!voice.current) {
+    voice.current = createVoice(browserVoiceDeps((wav) => chat.transcribe(wav), friendlyError, isOffline), {
+      onState: setVoiceState,
+      onText: (text) => { setDraft((current) => `${current.trim()}${current.trim() ? ' ' : ''}${text}`.slice(0, 1500)); input.current?.focus(); },
+      onError: (text) => setLog((list) => [...list, { who: 'erro', text }]),
+    });
+  }
+  useEffect(() => { if (!open) voice.current?.cancel(); }, [open]);
+  useEffect(() => () => voice.current?.cancel(), []);
   const go = (target: PendingNav) => { setOpen(false); target.run(); };
 
   const ask = async (raw: string) => {
@@ -111,7 +124,7 @@ export function AssistantFab(props: Props) {
 
   const submit = (event: { preventDefault(): void }) => {
     event.preventDefault();
-    if (working.current || !draft.trim()) return;
+    if (working.current || !draft.trim() || voiceState !== 'idle') return;
     const text = draft;
     setDraft('');
     void ask(text);
@@ -179,8 +192,15 @@ export function AssistantFab(props: Props) {
         <form className="assistant-input" onSubmit={submit}>
           <textarea ref={input} rows={1} maxLength={1500} value={draft} placeholder="Pergunte, peça uma tela ou uma proposta" aria-label="Mensagem para o assistente"
             onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} />
+          {voiceSupported() && (
+            <button type="button" className={`assistant-mic${voiceState === 'rec' ? ' rec' : ''}`} aria-pressed={voiceState === 'rec'} disabled={voiceState === 'work' || (busy && voiceState !== 'rec')}
+              aria-label={voiceState === 'rec' ? 'Parar e transcrever' : voiceState === 'work' ? 'Transcrevendo' : 'Ditar mensagem'} onClick={() => void voice.current?.toggle()}>
+              {voiceState === 'work' ? <span className="assistant-dots" aria-hidden="true"><i /><i /><i /></span> : <Ph name={voiceState === 'rec' ? 'stop-fill' : 'microphone'} size={20} />}
+            </button>
+          )}
           <button type="submit" className="assistant-send" aria-label="Enviar" disabled={busy || !draft.trim()}><Ph name="paper-plane-right" size={20} /></button>
         </form>
+        <small className="assistant-voz" role="status" hidden={voiceState === 'idle'}>{voiceState === 'rec' ? 'Ouvindo… toque no quadrado para parar.' : voiceState === 'work' ? 'Transcrevendo…' : ''}</small>
         <small className="assistant-note">
           A IA pode errar. Confira os valores nas telas.
           {appCheckAllowed(window.location) && <> Protegido pelo reCAPTCHA (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacidade</a>, <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Termos</a>).</>}
