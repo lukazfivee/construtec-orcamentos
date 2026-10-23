@@ -20,7 +20,7 @@ export const acharNavegador = () => CANDIDATOS.find((item) => item && existsSync
 
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function abrirNavegador({ porta }) {
+export async function abrirNavegador({ porta, extra = [] }) {
   const exe = acharNavegador();
   if (!exe) throw new Error('Chrome ou Edge não encontrado. Defina ORC_BROWSER com o caminho do executável.');
   const perfil = mkdtempSync(path.join(tmpdir(), 'conferencia-perfil-'));
@@ -30,7 +30,7 @@ export async function abrirNavegador({ porta }) {
     '--hide-scrollbars=false', '--force-color-profile=srgb', '--font-render-hinting=none',
     // Nada sai do computador: so o 127.0.0.1 resolve.
     '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',
-    'about:blank',
+    ...extra, 'about:blank',
   ], { stdio: 'ignore', windowsHide: true });
 
   let versao;
@@ -108,6 +108,8 @@ export async function abrirNavegador({ porta }) {
         else await cmd('Emulation.setTouchEmulationEnabled', { enabled: false });
       },
       async antesDoCarregamento(script) { await cmd('Page.addScriptToEvaluateOnNewDocument', { source: script }); },
+      // Ouve eventos do DevTools desta aba (ex.: Fetch.requestPaused, para trocar o SDK do Firebase por um de mentira).
+      aoEvento(funcao) { ouvintes.add((msg) => { if (msg.sessionId === sessionId) funcao(msg); }); },
       async clicar(x, y) {
         for (const type of ['mousePressed', 'mouseReleased']) await cmd('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
       },
