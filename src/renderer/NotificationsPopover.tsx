@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Check, RefreshCw } from './icons';
+import type { PriceDriftProposal } from '../shared/contracts';
+import { plural } from '../shared/formatoBr';
+import { priceDriftApi } from './api';
+import { Bell, Check, RefreshCw, TrendingUp } from './icons';
 import { noticeGroup, noticeHour, noticesApi, type SuiteNotice } from './notificationsFeed';
+import { signBrl } from './orcDeskUi';
 
 interface NotificationsPopoverProps {
   onClose: () => void;
@@ -13,11 +17,14 @@ interface NotificationsPopoverProps {
 type Load = { state: 'loading' } | { state: 'error' } | { state: 'ready'; items: SuiteNotice[] };
 
 // Notificacoes do computador: os mesmos avisos do celular (Proposta aprovada, Novo acesso a proposta, Conta a vencer...),
-// por dia, com o ponto ciano nos novos e "Marcar todas como lidas".
+// por dia, com o ponto ciano nos novos e "Marcar todas como lidas". Em cima, o aviso local de custo novo no catalogo:
+// propostas em edicao com item cujo preco mudou (mesma lista do cartao EXSAT do celular, /api/proposals/price-drift).
+// Ele nao entra no contador do sino, que e o mesmo numero do celular.
 export function NotificationsPopover({ onClose, onUnreadChange, onFollow }: NotificationsPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [load, setLoad] = useState<Load>({ state: 'loading' });
   const [attempt, setAttempt] = useState(0);
+  const [drift, setDrift] = useState<PriceDriftProposal[]>([]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
@@ -41,6 +48,15 @@ export function NotificationsPopover({ onClose, onUnreadChange, onFollow }: Noti
       .catch(() => { if (active) setLoad({ state: 'error' }); });
     return () => { active = false; };
   }, [attempt, onUnreadChange]);
+
+  // Falha da lista de precos nao atrapalha os avisos: o bloco so some.
+  useEffect(() => {
+    let active = true;
+    priceDriftApi.list()
+      .then((result) => { if (active) setDrift((result.proposals ?? []).filter((item) => !item.frozen && item.items.length)); })
+      .catch(() => { if (active) setDrift([]); });
+    return () => { active = false; };
+  }, [attempt]);
 
   const items = load.state === 'ready' ? load.items : [];
   const unread = items.filter((item) => !item.read).length;
@@ -75,6 +91,22 @@ export function NotificationsPopover({ onClose, onUnreadChange, onFollow }: Noti
         )}
       </div>
 
+      {drift.length > 0 && (
+        <section className="notifications-group" aria-label="Custo novo no catálogo">
+          <h3>Custo novo no catálogo</h3>
+          {drift.map((proposal) => (
+            <button key={proposal.id} type="button" className="notification-row drift" onClick={() => { onClose(); onFollow(`orcamentos?proposta=${proposal.id}`); }}>
+              <span className="notification-icon" aria-hidden="true"><TrendingUp size={16} /></span>
+              <span className="notification-text">
+                <b>{proposal.number} · {proposal.workName || proposal.clientName}</b>
+                <span>{plural(proposal.items.length, 'item mudou', 'itens mudaram')} de preço · valor final {signBrl(proposal.finalDelta)}</span>
+                <small>Abrir a proposta para ver e atualizar</small>
+              </span>
+            </button>
+          ))}
+        </section>
+      )}
+
       {load.state === 'loading' && (
         <div className="notifications-skeleton" role="status" aria-label="Carregando as notificações"><i /><i /><i /></div>
       )}
@@ -86,7 +118,7 @@ export function NotificationsPopover({ onClose, onUnreadChange, onFollow }: Noti
           <button type="button" className="btn btn-s" onClick={() => setAttempt((value) => value + 1)}><RefreshCw size={16} /> Tentar de novo</button>
         </div>
       )}
-      {load.state === 'ready' && !groups.length && (
+      {load.state === 'ready' && !groups.length && !drift.length && (
         <div className="notifications-empty">
           <Bell size={24} />
           <b>Nenhuma notificação por enquanto</b>
