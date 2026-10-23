@@ -49,6 +49,8 @@
 .auth-loading strong { font-weight: 600; letter-spacing: .01em; }
 .auth-loading strong::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: auth-abertura-pontos 1.4s steps(1, end) infinite; }
 
+.auth-loading-lenta { opacity: 0; animation: auth-abertura-aviso .4s ease-out 6s forwards; }
+@keyframes auth-abertura-aviso { to { opacity: 1; } }
 @keyframes auth-abertura-entrada { from { opacity: 0; transform: translateY(8px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes auth-abertura-respira { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.045); opacity: .82; } }
 @keyframes auth-abertura-brilho { 0%, 100% { transform: scale(.85); opacity: .6; } 50% { transform: scale(1.1); opacity: 1; } }
@@ -61,4 +63,5 @@
   .auth-loading-logo { animation: auth-abertura-entrada .7s ease-out both !important; }
   .auth-loading-bar i { animation: auth-abertura-barra 1.3s ease-in-out infinite !important; }
   .auth-loading strong::after { animation: auth-abertura-pontos 1.4s steps(1, end) infinite !important; }
+  .auth-loading-lenta { animation: auth-abertura-aviso .4s ease-out 6s forwards !important; }
 }

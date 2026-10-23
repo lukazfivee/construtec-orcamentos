@@ -158,7 +158,8 @@ export function AuthGate() {
       <main className="auth-shell auth-loading" aria-busy="true">
         <img src={brandLogo} alt="Construtec Orçamentos" className="auth-loading-logo" />
         <div className="auth-loading-bar" aria-hidden="true"><i /></div>
-        <strong>{isCloud ? 'Conectando…' : 'Preparando ambiente local…'}</strong>
+        <strong>{isCloud ? 'Abrindo Orçamentos' : 'Preparando o Orçamentos local'}</strong>
+        <small className="auth-loading-lenta" aria-hidden="true">A conexão está lenta. Continuamos tentando.</small>
       </main>
     );
   }
