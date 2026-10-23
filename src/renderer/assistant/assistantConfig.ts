@@ -16,6 +16,9 @@ export type AssistantModel = { nome: string; pensar: 'MINIMAL' | 'LOW' };
 // O primeiro e o mais rapido; o segundo entra no limite gratuito ou na sobrecarga do primeiro.
 export const MODELS: AssistantModel[] = [{ nome: 'gemini-3.5-flash-lite', pensar: 'MINIMAL' }, { nome: 'gemini-3.8-flash', pensar: 'LOW' }];
 
+// Transcricao ao vivo do ditado (Live API, entrada de audio); se falhar, o ditado segue por trechos com MODELS.
+export const LIVE_MODEL = 'gemini-3.1-flash-live-preview';
+
 export const SDK_BASE = 'https://www.gstatic.com/firebasejs/12.19.0/';
 
 // Chave do site do reCAPTCHA v3 (publica) do App Check.

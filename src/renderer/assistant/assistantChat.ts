@@ -3,7 +3,6 @@
 // aparece enquanto e escrita (streaming). A conversa fica na memoria: nada vai para o disco.
 import { appCheckAllowed, FIREBASE_CONFIG, MODELS, RECAPTCHA_KEY, SDK_BASE } from './assistantConfig';
 import type { AssistantTools, SchemaBuilder, ToolCall } from './assistantTools';
-import { TRANSCRIBE_PROMPT } from './assistantVoice';
 
 // Tipos minimos do SDK (so o que o app usa).
 type Content = string | Array<{ functionResponse: { name: string; response: unknown } }>;
@@ -26,8 +25,8 @@ export interface ChatHooks { onLive(text: string): void; onStep(label: string): 
 export interface AssistantChat {
   /** Texto final da resposta (vazio se o modelo so chamou ferramentas). */
   ask(text: string, hooks: ChatHooks): Promise<string>;
-  /** Ditado: transcreve um WAV (base64) com o mesmo Gemini, no modelo reserva se o primeiro estiver no limite. */
-  transcribe(wavBase64: string): Promise<string>;
+  /** SDK ja carregado (o ditado ao vivo usa o mesmo Firebase AI do assistente). */
+  sdk(): Promise<unknown>;
   /** Pre-carrega o SDK para a primeira pergunta nao esperar por ele. */
   warm(): void;
   reset(): void;
@@ -45,6 +44,9 @@ const describe = (e: unknown) => { const x = (e ?? {}) as ErrorLike; return `${S
 const quota = (e: unknown) => /\b429\b|quota|RESOURCE_EXHAUSTED|rate.?limit/i.test(describe(e));
 // Modelo sobrecarregado no Google (500/503 "high demand"): passageiro.
 const overloaded = (e: unknown) => /\b50[03]\b|high demand|overloaded|UNAVAILABLE/i.test(describe(e));
+
+/** Erro passageiro (limite gratuito ou modelo sobrecarregado): vale tentar o modelo reserva. */
+export const recoverable = (e: unknown) => quota(e) || overloaded(e);
 
 export function friendlyError(error: unknown): string {
   const text = describe(error);
@@ -125,21 +127,8 @@ export function createAssistantChat(options: { tools: AssistantTools; prompt: ()
     }
   }
 
-  async function transcribe(wavBase64: string): Promise<string> {
-    const { ai, backend } = await getSdk();
-    const request = [{ text: TRANSCRIBE_PROMPT }, { inlineData: { mimeType: 'audio/wav', data: wavBase64 } }];
-    let failure: unknown;
-    for (const m of MODELS) {
-      try {
-        const generative = ai.getGenerativeModel(backend, { model: m.nome, generationConfig: { temperature: 0, maxOutputTokens: 1000, thinkingConfig: { thinkingLevel: 'MINIMAL' } } });
-        return String((await generative.generateContent(request)).response.text() || '').trim();
-      } catch (error) { failure = error; if (!quota(error) && !overloaded(error)) break; }
-    }
-    throw failure;
-  }
-
   return {
-    transcribe,
+    sdk: getSdk,
     warm() { if (!isOffline()) getSdk().catch(() => undefined); },
     reset() { chat = null; model = 0; },
     async ask(text, hooks) {
