@@ -1,5 +1,12 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-22 BRT - Harden: aviso com data inválida (Codex)
+
+- Base: `origin/main` em `00e15f9`, branch `fix/harden-22-10`.
+- `notificationsFeed.ts` e `public/m/screen-avisos.js`: data inválida agora fica em "Anteriores" e sem horário, em vez de mostrar `Invalid Date`. Desktop e celular têm a mesma regra.
+- Teste novo `notificationsFeed.test.ts`, incluído em `scripts/test-critical.mjs`; `npm run test:critical` passou.
+- Não publicado. Kit local: Início, Propostas e PDF em 1440x900 e 1280x720, claro/escuro; sem corte, cobertura, rolagem horizontal ou aninhada. Comparador ainda aponta textos de estados não abertos e `--c-warn-soft` divergente da referência; confirmar visualmente antes de mudar.
+
 ## 2026-10-22 BRT - Auditoria Impeccable: correções da revisão do Codex no PR #232 (Claude Code)
 
 - Base: `origin/main`, branch `fix/impeccable-auditoria-21-10`. Quatro comentários do Codex, todos corrigidos.

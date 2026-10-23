@@ -25,7 +25,10 @@
   document.addEventListener('click', (event) => { if (event.target.closest('[data-avisos]')) OC.open('avisos'); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && OC.session.token()) OC.notif.refresh(); });
 
-  const dayKey = (iso) => new Date(iso).toLocaleDateString('en-CA');
+  const dayKey = (iso) => {
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-CA');
+  };
   function group(iso) {
     const today = new Date();
     const yesterday = new Date(today.getTime() - 86400000);
@@ -33,7 +36,10 @@
     if (dayKey(iso) === yesterday.toLocaleDateString('en-CA')) return 'Ontem';
     return 'Anteriores';
   }
-  const hour = (iso) => new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const hour = (iso) => {
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
 
   // Destino do aviso: proposta aqui; obra ou pedidos no Centro (troca de app dentro do Suite).
   function follow(link) {
