@@ -1,10 +1,5 @@
 /* Telas do desktop do Orçamentos com as proporcoes do Centro de Custos: Inicio, Central de Propostas, PDF e comparativo.
    Complementa paginas-centro.css (moldura, cabecalho, KPI, cartoes, botoes, campos, chips, tabelas). So no desktop. */
-/* Celular: o eyebrow mantem o aspecto da etiqueta anterior (so na Central de Propostas). */
-@media (max-width: 767px) {
-  .cab .eyebrow { font-size: calc(11px * var(--fs, 1)); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-ink); }
-  .management-header.cab .eyebrow { display: none; }
-}
 
 @media (min-width: 768px) {
   .app-shell.cc .proposals-list-workspace .home-body > * { flex: none; }

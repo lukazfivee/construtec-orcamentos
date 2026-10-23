@@ -20,9 +20,9 @@ export const statusChip = (status: string): { label: string; tone: 'ok' | 'warn'
   }
 };
 
-export function PageHead({ eyebrow, title, sub, children }: { eyebrow: string; title: string; sub?: string; children?: ReactNode }) {
+export function PageHead({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
   return <div className="od-head">
-    <div><span className="od-eyebrow">{eyebrow}</span><h1>{title}</h1>{sub && <span className="od-sub">{sub}</span>}</div>
+    <div><h1>{title}</h1>{sub && <span className="od-sub">{sub}</span>}</div>
     {children && <div className="od-actions">{children}</div>}
   </div>;
 }

@@ -82,11 +82,11 @@ test('abas internas: Mao de obra, Kits, Condicoes e Historico usam cartao, campo
   assert.ok(!/border: '1px solid var\(--line-strong\)'/.test(conditions), 'Condicoes sem borda em linha');
 });
 
-test('Catalogo, Clientes e Kits: cabecalho .cab com eyebrow e formularios com campos e botoes do Centro', () => {
+test('Catalogo, Clientes e Kits: cabecalho .cab sem sobretitulo e formularios com campos e botoes do Centro', () => {
   for (const file of ['CatalogEditor', 'ClientsRegistry', 'KitsEditor']) {
     const source = read(`src/renderer/${file}.tsx`);
     assert.match(source, /className="management-header cab"/, `${file} sem cabecalho .cab`);
-    assert.match(source, /<span className="eyebrow">Cadastros<\/span>/, `${file} sem eyebrow`);
+    assert.doesNotMatch(source, /eyebrow/, `${file} ainda com sobretitulo`);
   }
   has(internas, '.app-shell.cc .management-body', 'border-radius: 14px');
   has(internas, '.app-shell.cc .client-list > button', 'min-height: 56px');

@@ -96,10 +96,10 @@ test('casca: o escuro usa a paleta do Centro (superficie, fundo, texto, linha, a
   }
 });
 
-test('paginas: cabecalho 26/600 com eyebrow, KPI 16/21, tabela 40/56, chip 24, cartao raio 14', () => {
+test('paginas: cabecalho 26/600 sem sobretitulo, KPI 16/21, tabela 40/56, chip 24, cartao raio 14', () => {
   assert.match(paginas, /\.app-shell\.cc \.cab h1[^{]*\{[^}]*font: 600 26px\/1\.2/);
   assert.match(paginas, /padding: 28px 32px 40px/);
-  assert.match(paginas, /\.cab \.eyebrow[^{]*\{[^}]*font-size: 11px; font-weight: 600;[^}]*letter-spacing: \.08em; text-transform: uppercase/);
+  assert.doesNotMatch(paginas, /\.eyebrow|\.od-eyebrow|\.page-eyebrow/, 'sobretitulo acima do titulo saiu das paginas');
   assert.match(paginas, /\.kpi-card \{[^}]*padding: 16px;[^}]*border-radius: 14px/);
   assert.match(paginas, /\.kpi-content > strong \{[^}]*font: 600 21px\/1\.2/);
   assert.match(paginas, /\.kpi-icon \{[^}]*width: 30px; height: 30px; border-radius: 9px/);

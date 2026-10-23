@@ -254,7 +254,7 @@ export function CatalogImportDialog({ open, onClose, onImported, onError, onOpen
   return <div className="cid-overlay" role="presentation" onClick={(event) => { if (event.target === event.currentTarget && !loading) onClose(); }}>
     <section className="cid" role="dialog" aria-modal="true" aria-labelledby="cid-title">
       <header className="cid-head">
-        <span className="cid-grow"><span className="od-eyebrow">Catálogo</span><h2 id="cid-title">Importar itens em lote</h2>
+        <span className="cid-grow"><h2 id="cid-title">Importar itens em lote</h2>
           <p>Confira o valor total do item antes de atualizar o catálogo.</p></span>
         <button type="button" className="od-ibtn" aria-label="Fechar" onClick={onClose}><X size={18} /></button>
       </header>

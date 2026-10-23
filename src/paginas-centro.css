@@ -1,5 +1,5 @@
 /* Paginas e componentes comuns do desktop do Orçamentos com as medidas do Centro de Custos
-   (base.css, componentes.css, inicio.css, lancamentos.css): moldura da pagina, cabecalho com eyebrow, cartoes KPI,
+   (base.css, componentes.css, inicio.css, lancamentos.css): moldura da pagina, cabecalho sem sobretitulo, cartoes KPI,
    cartoes, botoes, campos, chips, tabelas, paineis laterais, dialogos e aviso rapido. So no desktop (>= 768 px). */
 @media (min-width: 768px) {
   /* ---------- Moldura: area de conteudo = .conteudo do Centro (padding 28/32/40, folga de 20 px entre blocos) ---------- */
@@ -13,13 +13,13 @@
   .app-shell.cc .home-body, .app-shell.cc .settings-body { display: flex; flex-direction: column; gap: 14px; padding: 0 !important; overflow: visible; flex: none; min-height: 0; }
   .app-shell.cc .proposals-list-workspace .home-body { display: contents; }
 
-  /* ---------- Cabecalho de pagina (.cab): eyebrow azul, titulo 26/600, subtitulo 13.5, acoes a direita ---------- */
+  /* ---------- Cabecalho de pagina (.cab): sem sobretitulo, titulo 26/600, subtitulo 13.5, acoes a direita ---------- */
   .app-shell.cc .cab, .app-shell.cc .od-head, .app-shell.cc .page-head {
     display: flex; flex-wrap: nowrap; align-items: flex-end; justify-content: space-between; gap: 24px;
     min-height: 0; padding: 0; background: transparent; border: 0; box-shadow: none; width: 100%;
   }
   .app-shell.cc .cab > .tit, .app-shell.cc .od-head > div:first-child, .app-shell.cc .page-head > div:first-child { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
-  .app-shell.cc .cab .eyebrow, .app-shell.cc .od-eyebrow, .app-shell.cc .page-eyebrow, .app-shell.cc .app-badge { font-size: calc(11px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-300); }
+  .app-shell.cc .app-badge { font-size: calc(11px * var(--fs, 1)); font-weight: 600; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-300); }
   .app-shell.cc .cab h1, .app-shell.cc .od-head h1, .app-shell.cc .page-head h1, .app-shell.cc .home-header h1, .app-shell.cc .management-header h1 {
     margin: 0; font: 600 calc(26px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; color: var(--color-text);
   }

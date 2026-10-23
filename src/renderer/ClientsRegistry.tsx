@@ -161,7 +161,7 @@ export function ClientsRegistry({ onBack, onNotice, onError }: ClientsRegistryPr
   return (
     <main className="management-workspace">
       <header className="management-header cab">
-        <div className="tit"><span className="eyebrow">Cadastros</span><h1>Clientes</h1><p className="sub">Cadastros locais usados na criação dos orçamentos.</p></div>
+        <div className="tit"><h1>Clientes</h1><p className="sub">Cadastros locais usados na criação dos orçamentos.</p></div>
         <div className="acoes management-header-actions">{onBack && <button type="button" onClick={onBack}><ArrowLeft size={17} /> Voltar aos clientes</button>}<button className="primary" type="button" onClick={beginClient}><Plus size={17} /> Novo cliente</button></div>
       </header>
 

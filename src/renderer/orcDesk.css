@@ -8,7 +8,6 @@
 .od-stack { display: flex; flex-direction: column; gap: 18px; max-width: 1240px; margin: 0 auto; width: 100%; }
 .od-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
 .od-head > div:first-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.od-eyebrow { font-size: calc(11px * var(--fs, 1)); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .od-head h1 { margin: 0; font: 600 calc(26px * var(--fs, 1))/1.2 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; letter-spacing: -.01em; }
 .od-sub { font-size: calc(13.5px * var(--fs, 1)); color: var(--muted); }
 .od-actions { display: flex; align-items: center; gap: 10px; flex: none; flex-wrap: wrap; justify-content: flex-end; }

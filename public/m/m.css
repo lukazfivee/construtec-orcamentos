@@ -48,10 +48,10 @@ body.no-tabs .screen { min-height: calc(100vh - var(--sab)); min-height: calc(10
 @supports not (overflow: clip) { .screen.inner { animation-name: fadeIn; } }
 
 .top { display: flex; align-items: center; gap: 10px; min-height: 44px; }
-.top .brand { margin-right: auto; min-width: 0; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-300); }
-.top .brand img { height: 14px; width: auto; }
+/* Marca no topo das telas principais: so o simbolo (sem o nome em caixa alta, que fazia as vezes de sobretitulo acima do titulo). */
+.top .brand { margin-right: auto; min-width: 0; display: flex; align-items: center; }
+.top .brand img { height: 22px; width: auto; }
 .top .grow { flex: 1; }
-.top .brand > span { overflow: hidden; text-overflow: ellipsis; }
 .top h1 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.2; }
 .back { flex: none; width: 44px; height: 44px; margin-left: -12px; border: 0; border-radius: 10px; background: transparent; display: grid; place-items: center; }
 .back:active { background: var(--accent-900); }
