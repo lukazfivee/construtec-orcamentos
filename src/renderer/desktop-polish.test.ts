@@ -51,3 +51,12 @@ test('coluna de acoes da lista fica sticky com fundo opaco e botoes de icone tem
   const table = read('src/renderer/ProposalsListTable.tsx');
   for (const label of ['Clonar proposta', 'Exportar proposta', 'Compartilhar proposta', 'Excluir proposta']) assert.ok(table.includes(`aria-label="${label}"`), label);
 });
+
+test('Exsat sem nome tecnico na tela: a mesma frase no site do computador e no celular', () => {
+  const frase = 'A conexão com a Exsat ainda não foi configurada no servidor';
+  assert.ok(read('src/renderer/useExsatWebAccount.ts').includes(frase), 'frase do site');
+  assert.ok(read('public/m/exsat-conta.js').includes(frase), 'frase do celular');
+  for (const file of ['src/renderer/ExsatAccountCard.tsx', 'src/renderer/ExsatPage.tsx', 'public/m/exsat-conta.js', 'public/m/screen-exsat.js']) {
+    assert.doesNotMatch(read(file), /EXSAT_CREDENTIAL_KEY/, `${file} mostra o nome da variavel do servidor`);
+  }
+});

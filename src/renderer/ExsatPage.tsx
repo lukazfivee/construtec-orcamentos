@@ -8,6 +8,7 @@ import { EmptyState, PageHead, Seg, brl, nfmt, pctSigned, plural, revText, signB
 import { PriceDriftDrawer } from './PriceDriftDrawer';
 import type { CatalogOverviewData } from './useCatalogOverview';
 import type { ExsatSync } from './useExsatSync';
+import { EXSAT_NOT_CONFIGURED, useExsatWebAccount } from './useExsatWebAccount';
 
 type Props = {
   data: CatalogOverviewData;
@@ -29,6 +30,8 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
   const [drawer, setDrawer] = useState<PriceDriftProposal | null>(null);
   const { overview, rows, drift } = data;
   const pill = exsatCardPill(sync);
+  // No site, o estado da conta vem do servidor (a mesma leitura do celular).
+  const web = useExsatWebAccount(!sync.desktop);
   const reason = syncDisabledReason(sync, canWrite);
   const up = rows.filter((row) => row.pct > 0).length, down = rows.filter((row) => row.pct < 0).length;
   const shown = rows.filter((row) => fil === 'todos' || (fil === 'sub' ? row.pct > 0 : row.pct < 0));
@@ -62,13 +65,14 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
     <div className="od-ex-head">
       <span className="od-ex-badge">EX</span>
       <span className="od-grow"><b>EXSAT</b><span>Distribuidor de sistemas especiais · catálogo e preços de custo</span></span>
+      {!sync.desktop && web && <span className={`od-chip ${web.connected ? 'ok' : 'warn'}`}>{web.connected ? <CheckCircle2 size={13} /> : <Info size={13} />}{web.connected ? 'Conectada' : 'Não conectada'}</span>}
       {sync.desktop && <span className={`od-chip ${pill.tone}`}>{pill.tone === 'bad' ? <WifiOff size={13} /> : pill.tone === 'ok' ? <CheckCircle2 size={13} /> : <Info size={13} />}{pill.text}</span>}
       {sync.desktop && (sync.connected
         ? <button type="button" className="od-btn sm s" disabled={sync.busy} onClick={() => void sync.logout()}><LogOut size={14} />Desconectar</button>
         : <button type="button" className="od-btn sm p" disabled={sync.busy || !sync.statusReady} onClick={() => void sync.login()}><LogIn size={14} />Entrar na Exsat</button>)}
     </div>
     <div className="od-kv">
-      <span><span>Conta</span><b>{sync.desktop ? (sync.connected ? 'Conectada' : 'Não conectada') : 'Guardada no servidor'}</b></span>
+      <span><span>Conta</span><b>{sync.desktop ? (sync.connected ? 'Conectada' : 'Não conectada') : web ? (web.connected ? 'Conectada' : 'Não conectada') : '—'}</b></span>
       <span><span>Última sincronização</span><b>{sync.desktop ? formatSyncDate(sync.info.lastSyncAt) : '—'}</b></span>
       <span><span>Última varredura completa</span><b>{sync.desktop ? formatSyncDate(sync.info.lastFullSyncAt) : '—'}</b></span>
       <span><span>Itens no catálogo</span><b>{overview ? nfmt(overview.productCount) : '—'}</b></span>
@@ -77,6 +81,7 @@ export function ExsatPage({ data, sync, seesCost, canWrite, canEdit, onBack, onO
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 'calc(13px * var(--fs, 1))' }}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Loader2 size={15} className="od-spin" />{sync.phase.text}</span><b>{sync.phase.pct}%</b></div>
       <span className="od-bar"><span style={{ width: `${sync.phase.pct}%` }} /></span>
     </div>}
+    {!sync.desktop && web && !web.keyConfigured && <div className="od-note warn" role="alert" style={{ margin: '0 20px 18px' }}><Info size={17} /><span>{EXSAT_NOT_CONFIGURED}</span></div>}
     {!sync.desktop && <div className="od-note" style={{ margin: '0 20px 18px' }}><Info size={17} /><span>No site, a conta da Exsat fica guardada no servidor e a varredura roda em Catálogo, Importar itens em lote, aba Exsat. Aqui você vê o que mudou no catálogo e atualiza as propostas em edição.</span></div>}
   </div>;
 
