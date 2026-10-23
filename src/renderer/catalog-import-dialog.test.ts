@@ -91,7 +91,7 @@ test('importar em lote: visual do Centro, um unico corpo rolavel e nada de altur
   assert.match(rule('.cid-tab[aria-selected="true"]'), /inset 0 -2px 0/);
   assert.match(rule('.cid-kv'), /gap: 12px 24px/);
   assert.match(rule('.cid-table td'), /height: 48px/);
-  assert.match(dialog, /className="od-eyebrow">Catálogo/);
+  assert.doesNotMatch(dialog, /eyebrow/, 'sem sobretitulo acima do titulo da janela');
   assert.match(dialog, /role="tablist"/);
   assert.match(dialog, /aria-modal="true"/);
   // Cores so por tokens do tema (claro e escuro); sem hex solto.

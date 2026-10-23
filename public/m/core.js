@@ -207,7 +207,7 @@
   // Cabecalho padrao: marca, sino opcional e seletor Suite.
   OC.header = function (title, opts = {}) {
     const back = opts.back ? `<button class="back" type="button" data-back aria-label="Voltar">${OC.icon('caret-left', 22)}</button>` : '';
-    const brand = opts.back ? `<h1>${OC.esc(title)}</h1><span class="grow"></span>` : `<span class="brand"><img src="simbolo.png" alt="">Orçamentos</span>`;
+    const brand = opts.back ? `<h1>${OC.esc(title)}</h1><span class="grow"></span>` : `<span class="brand"><img src="simbolo.png" alt="Orçamentos"></span>`;
     return `<div class="top">${back}${brand}${opts.extra || ''}<button class="suite-pill" type="button" data-suite aria-label="Suíte">${OC.icon('stack', 18)}<span class="sp-t">Suíte</span>${OC.icon('caret-down', 14)}</button></div>`;
   };
 })(window.OC = window.OC || {});

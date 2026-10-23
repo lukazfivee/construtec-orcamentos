@@ -178,7 +178,6 @@ export function ProposalsListWorkspace({
     <div className="home-workspace proposals-list-workspace">
       <header className="home-header cab">
         <div className="tit">
-          <span className="eyebrow">Comercial</span>
           <h1>Propostas</h1>
           <p className="sub">Da edição à aprovação, com o valor final de cada revisão.</p>
         </div>

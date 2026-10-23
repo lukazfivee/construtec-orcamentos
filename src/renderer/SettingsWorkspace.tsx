@@ -129,7 +129,6 @@ export function SettingsWorkspace({ onNotice, onError }: SettingsWorkspaceProps)
     <main className="management-workspace settings-workspace">
       <header className="management-header cab">
         <div className="tit">
-          <span className="eyebrow">Administração</span>
           <h1>Configurações</h1>
           <p className="sub">Parâmetros da empresa, padrões de propostas, usuários e estado do sistema.</p>
         </div>

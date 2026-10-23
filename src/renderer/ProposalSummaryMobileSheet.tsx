@@ -2,7 +2,6 @@ import type { ProposalDetail } from '../shared/contracts';
 import {
   Copy,
   Eye,
-  FilePlus2,
   Save,
   Share2,
   Trash2,
@@ -47,7 +46,6 @@ type Props = {
   onCreateRevision: () => void;
   onCloneProposal: () => void;
   onPreviewProposal: () => void;
-  onExportProposal: () => void;
   onShareProposal?: () => void;
   onProposalUpdate?: (proposal: ProposalDetail) => void;
   onNavigateToCentroCustos?: (costCenterId?: number) => void;
@@ -58,6 +56,7 @@ type Props = {
   bdiAdditions: number;
   taxAmount: number;
   taxPercentage: number;
+  manualSaleNote?: string | null;
   onClose: () => void;
   onRequestDelete: () => void;
 };
@@ -77,7 +76,6 @@ export function ProposalSummaryMobileSheet({
   onCreateRevision,
   onCloneProposal,
   onPreviewProposal,
-  onExportProposal,
   onShareProposal,
   onProposalUpdate,
   onNavigateToCentroCustos,
@@ -88,6 +86,7 @@ export function ProposalSummaryMobileSheet({
   bdiAdditions,
   taxAmount,
   taxPercentage,
+  manualSaleNote,
   onClose,
   onRequestDelete,
 }: Props) {
@@ -122,6 +121,7 @@ export function ProposalSummaryMobileSheet({
           <div className="proposal-summary-sheet-amount"><span>Impostos ({String(taxPercentage).replace('.', ',')}%)</span><b>R$ {money.format(taxAmount)}</b></div>
         )}
         <div className="proposal-summary-sheet-amount final"><span>Valor final da proposta</span><b>R$ {money.format(finalValue)}</b></div>
+        {manualSaleNote && <p className="summary-manual-note">{manualSaleNote}</p>}
 
         <div className="proposal-summary-sheet-params" style={canSeeCost ? undefined : { display: 'none' }}>
           <label>
@@ -185,15 +185,6 @@ export function ProposalSummaryMobileSheet({
           </button>
           <button type="button" disabled={documentPending} style={canSeeCost ? undefined : { display: 'none' }} onClick={() => { onPreviewProposal(); onClose(); }}>
             <Eye size={16} /> Pré-visualizar
-          </button>
-          <button
-            className="primary"
-            type="button"
-            disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
-            style={canSend ? undefined : { display: 'none' }}
-            onClick={() => { onExportProposal(); onClose(); }}
-          >
-            <FilePlus2 size={16} /> {documentPending ? 'Preparando…' : 'Gerar PDF ou Word'}
           </button>
           {canSend && onShareProposal && (
             <button type="button" disabled={documentPending} onClick={() => { onShareProposal(); onClose(); }}>

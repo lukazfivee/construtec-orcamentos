@@ -17,7 +17,7 @@ test('link publico do cliente: token, aprovacao, ajuste e confirmacao', async co
   const createRevisionFor = (proposalId: string) => createProposalRevision(database, proposalId, userId);
   const ready = async () => {
     const id = await makeProposal();
-    await addMaterial(id, '10', '100', '150');
+    await addMaterial(id, '10', '100', '125');
     await updateProposalStatus(database, id, 'review', userId);
     return id;
   };

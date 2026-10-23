@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { version as appVersion } from '../../package.json';
 import {
-  ArrowRight, Building2, Check, RotateCw, CircleAlert, Eye, EyeOff, FileText, History, KeyRound, LoaderCircle, LockKeyhole, LogOut, Mail, MailOpen, Moon, Send, ShieldCheck, Sun, WifiOff,
+  ArrowRight, Building2, Check, CircleAlert, CircleNotch, EnvelopeOpen, Eye, EyeOff, FileText, History, KeyRound, LockSimple, LogOut, Mail, Moon, RotateCw, Send, ShieldCheck, Sun, WifiOff,
   type LucideIcon,
 } from './icons';
 import { getCentroCustosUrl, isCloudRuntime } from './api';
@@ -87,7 +87,7 @@ export function LoginScreen({ email, onEmailChange, rememberMe, onRememberChange
     setPassword('');
     if (/failed to fetch|network|load failed|conex/i.test(problem)) { setOffline(true); setAviso(AVISOS.off); return; }
     if (/bloque|muitas tentativas/i.test(problem)) {
-      setAviso({ tone: 'bad', icon: LockKeyhole, title: 'Acesso bloqueado por alguns minutos', text: problem });
+      setAviso({ tone: 'bad', icon: LockSimple, title: 'Acesso bloqueado por alguns minutos', text: problem });
       setBad({ email: false, password: true });
       return;
     }
@@ -119,12 +119,12 @@ export function LoginScreen({ email, onEmailChange, rememberMe, onRememberChange
           <p>Do catálogo ao PDF aprovado pelo cliente, com o mesmo login do Centro de Custos.</p>
           <div className="lg-cards">
             {CARDS.map(([Icon, title, text]) => (
-              <div className="lg-card" key={title}><span className="lg-card-ic"><Icon size={21} strokeWidth={1.75} /></span><span><b>{title}</b>{text}</span></div>
+              <div className="lg-card" key={title}><span className="lg-card-ic"><Icon /></span><span><b>{title}</b>{text}</span></div>
             ))}
           </div>
         </div>
         <div className="lg-rodape">
-          <span>{seguro && <><ShieldCheck size={16} strokeWidth={1.75} />Conexão segura · </>}Construtec Engenharia</span>
+          <span>{seguro && <><ShieldCheck />Conexão segura · </>}Construtec Engenharia</span>
           <span>Suíte Construtec{version}</span>
         </div>
       </section>
@@ -140,18 +140,18 @@ export function LoginScreen({ email, onEmailChange, rememberMe, onRememberChange
             {inApp ? (
               <div className="lg-vista">
                 <div className="lg-titulo"><h2>Entrar</h2><p>Sua sessão terminou. Entre de novo no aplicativo para continuar.</p></div>
-                {aviso && AvisoIcon && <div className={`lg-aviso ${aviso.tone}`} role="alert"><AvisoIcon size={20} strokeWidth={1.75} /><span><b>{aviso.title}</b>{aviso.text}</span></div>}
-                <a className="lg-btn p lg-ir" href="suite://entrar"><KeyRound size={18} strokeWidth={1.75} /><span>Entrar pelo aplicativo</span></a>
+                {aviso && AvisoIcon && <div className={`lg-aviso ${aviso.tone}`} role="alert"><AvisoIcon /><span><b>{aviso.title}</b>{aviso.text}</span></div>}
+                <a className="lg-btn p lg-ir" href="suite://entrar"><KeyRound /><span>Entrar pelo aplicativo</span></a>
               </div>
             ) : (
               <form className="lg-vista" noValidate onSubmit={(event) => void submit(event)}>
                 <div className="lg-titulo"><h2>Entrar</h2><p>Use o e-mail da Construtec. A mesma conta vale para o Centro de Custos.</p></div>
-                {aviso && AvisoIcon && <div className={`lg-aviso ${aviso.tone}`} role="alert"><AvisoIcon size={20} strokeWidth={1.75} /><span><b>{aviso.title}</b>{aviso.text}</span></div>}
+                {aviso && AvisoIcon && <div className={`lg-aviso ${aviso.tone}`} role="alert"><AvisoIcon /><span><b>{aviso.title}</b>{aviso.text}</span></div>}
                 <div className={`lg-campos${shake ? ' tremer' : ''}`}>
                   <label className="lg-fld">
                     <span>E-mail</span>
                     <span className="lg-inp">
-                      <Mail size={18} strokeWidth={1.75} />
+                      <Mail />
                       <input ref={emailRef} className={bad.email ? 'ruim' : ''} type="email" name="email" maxLength={254} autoComplete="username" autoCapitalize="off" spellCheck={false}
                         placeholder="nome@rcconstrutec.com.br" value={email} disabled={pending} onChange={(event) => { onEmailChange(event.target.value); clear('email'); }} />
                     </span>
@@ -159,7 +159,7 @@ export function LoginScreen({ email, onEmailChange, rememberMe, onRememberChange
                   <label className="lg-fld">
                     <span>Senha</span>
                     <span className="lg-inp">
-                      <LockKeyhole size={18} strokeWidth={1.75} />
+                      <LockSimple />
                       <input ref={passwordRef} className={`com-olho${bad.password ? ' ruim' : ''}`} type={showPassword ? 'text' : 'password'} name="senha" maxLength={128} autoComplete="current-password"
                         placeholder="Sua senha" value={password} disabled={pending} onChange={(event) => { setPassword(event.target.value); clear('password'); }} />
                       <button type="button" className="lg-olho" aria-label={showPassword ? 'Esconder a senha' : 'Mostrar a senha'} aria-pressed={showPassword} onClick={() => setShowPassword((value) => !value)}>
@@ -171,15 +171,15 @@ export function LoginScreen({ email, onEmailChange, rememberMe, onRememberChange
                 <div className="lg-linha">
                   <label className="lg-manter">
                     <input type="checkbox" name="manter" checked={rememberMe} onChange={(event) => onRememberChange(event.target.checked)} />
-                    <span className="marca-caixa" aria-hidden="true"><Check size={13} strokeWidth={2.5} /></span>Manter conectado neste computador
+                    <span className="marca-caixa" aria-hidden="true"><Check /></span>Manter conectado neste computador
                   </label>
                   <button type="button" className="lg-btn g" onClick={esqueci} title="Abre a tela de entrar do Centro de Custos, que cria a senha nova para os dois apps">Esqueci a senha</button>
                 </div>
                 <button type="submit" className={`lg-btn p lg-ir${pending ? ' ocupado' : ''}`}>
-                  {pending ? <LoaderCircle size={18} strokeWidth={1.75} /> : offline ? <RotateCw size={18} strokeWidth={1.75} /> : <ArrowRight size={18} strokeWidth={1.75} />}
+                  {pending ? <CircleNotch /> : offline ? <RotateCw /> : <ArrowRight />}
                   <span>{pending ? 'Entrando…' : offline ? 'Tentar de novo' : 'Entrar'}</span>
                 </button>
-                <div className="lg-primeiro"><MailOpen size={18} strokeWidth={1.75} /><span><b>Primeiro acesso?</b> Abra o convite que chegou no seu e-mail. Sem convite, peça a um administrador do Centro de Custos.</span></div>
+                <div className="lg-primeiro"><EnvelopeOpen /><span><b>Primeiro acesso?</b> Abra o convite que chegou no seu e-mail. Sem convite, peça a um administrador do Centro de Custos.</span></div>
               </form>
             )}
           </div>

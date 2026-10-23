@@ -5,6 +5,7 @@ import type { ExsatSyncJob } from '../shared/exsatServer';
 import { AlertTriangle, CheckCircle2, ExternalLink, FileSpreadsheet, KeyRound, ListChecks, Loader2, Pause, RefreshCw, Square, Trash2, WifiOff } from './icons';
 import { formatSyncDate } from './catalogImportHelpers';
 import type { ExsatServer } from './useExsatServer';
+import { EXSAT_NOT_CONFIGURED } from './useExsatWebAccount';
 
 type Props = { server: ExsatServer; onUseSheet: () => void; onOpenExsat?: () => void };
 
@@ -86,7 +87,7 @@ export function ExsatAccountCard({ server, onUseSheet, onOpenExsat }: Props) {
         {status.canManage && status.configured && <button type="button" className="od-btn sm s" disabled={busy !== null || running} onClick={() => void server.remove()}><Trash2 size={14} />Remover conta</button>}
       </div>
       {!ready && <div className="od-note warn" role="alert"><AlertTriangle size={17} aria-hidden="true" />
-        <span>O servidor ainda não tem a chave de criptografia da conta (EXSAT_CREDENTIAL_KEY), então nada é guardado. Peça ao responsável pelo servidor para cadastrá-la.</span></div>}
+        <span>{EXSAT_NOT_CONFIGURED}</span></div>}
       {error && <div className="od-note bad" role="alert"><AlertTriangle size={17} aria-hidden="true" /><span>{error}</span></div>}
       {!error && status.lastFailure && !status.connected && <div className="od-note bad" role="alert"><AlertTriangle size={17} aria-hidden="true" />
         <span>{status.lastFailure.message}{wait > 0 ? ` Nova tentativa liberada em ${Math.ceil(wait / 60)} min.` : ''}</span></div>}

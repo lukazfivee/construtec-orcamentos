@@ -271,7 +271,6 @@ export function KitsEditor({
     <main className="management-workspace kits-workspace">
       <header className="management-header cab">
         <div className="tit">
-          <span className="eyebrow">Cadastros</span>
           <h1>Kits</h1>
           <p className="sub">Agrupamentos de materiais e serviços para inserção rápida em propostas.</p>
         </div>

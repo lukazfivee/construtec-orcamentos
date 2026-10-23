@@ -99,7 +99,7 @@ export function ProposalCompareView({ proposalId, initialFrom, onBack }: Props) 
   const head = (sub: string) => (
     <>
       <button type="button" className="page-back" onClick={onBack}><ChevronLeft size={16} /> Voltar às revisões</button>
-      <header className="page-head"><div><span className="page-eyebrow">Comercial</span><h1>Comparar revisões</h1><span className="page-sub">{sub}</span></div></header>
+      <header className="page-head"><div><h1>Comparar revisões</h1><span className="page-sub">{sub}</span></div></header>
     </>
   );
 

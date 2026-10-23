@@ -56,7 +56,7 @@
   .app-shell.cc .commercial-panel .panel-footnote { padding-top: 0; }
   .app-shell.cc .commercial-panel .panel-footnote p { font-size: calc(11.5px * var(--fs, 1)); line-height: 1.4; }
   /* Acoes: uma por linha em qualquer largura, no pe da coluna (margin-top: auto), sempre visiveis. "Mais acoes" abre o menu
-     de apoio (revisao, duplicar, compartilhar, excluir) para cima; Centro de Custo e PDF + Word ficam por ultimo. */
+     de apoio (revisao, duplicar, compartilhar, excluir) para cima; o Centro de Custo fica por ultimo (o PDF abre pelo botao Gerar PDF do topo). */
   .app-shell.cc .commercial-panel .panel-section.actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: auto; }
   .app-shell.cc .commercial-panel .panel-section.actions .actions-title { margin: 0 0 2px; }
   .app-shell.cc .commercial-panel .panel-section.actions button { width: 100%; height: 40px; margin: 0; padding: 0 12px; gap: 8px; justify-content: flex-start; font-size: calc(13px * var(--fs, 1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -21,7 +21,7 @@ let flowCss = '';
 // O CSS das paginas (arquivo ?raw) e entregue pela tela; sem ele nao ha medicao real.
 export const setPdfFlowCss = (css: string) => { flowCss = css; };
 
-const wrap = (atom: FlowAtom) => (atom.kind === 'tr' ? `${wrapOf(atom).open}${atom.html}${wrapOf(atom).close}` : atom.kind === 'li' ? `<ul class="pg-ul">${atom.html}</ul>` : atom.html);
+const wrap = (atom: FlowAtom) => (atom.kind === 'tr' ? `${wrapOf(atom).open}${atom.html}${wrapOf(atom).close}` : atom.kind === 'li' ? `<ul class="pd-ul">${atom.html}</ul>` : atom.html);
 
 // Estimativa (sem navegador): Arial 10px/1,5 em 352 px.
 const textOf = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, 'x').replace(/\s+/g, ' ').trim();
@@ -90,7 +90,7 @@ const renderAtoms = (atoms: FlowAtom[]) => {
   const close = () => { if (open === 'ul') html += '</ul>'; else if (open) html += open.close; open = null; };
   for (const atom of atoms) {
     const want = atom.kind === 'li' ? 'ul' : atom.kind === 'tr' ? wrapOf(atom) : null;
-    if (want !== open) { close(); if (want === 'ul') html += '<ul class="pg-ul">'; else if (want) html += want.open; open = want; }
+    if (want !== open) { close(); if (want === 'ul') html += '<ul class="pd-ul">'; else if (want) html += want.open; open = want; }
     html += atom.html;
   }
   close();
@@ -139,7 +139,7 @@ export const flowPages = (atoms: FlowAtom[], headHtml: string): Array<{ label: P
     index += 1;
   }
   if (current.length) pages.push(current);
-  // Rotulo da pagina: Itens se tem a tabela, senao Condicoes se tem as condicoes, senao o do primeiro pedaco.
-  const labelOf = (page: FlowAtom[]): PdfPage['label'] => (page.some((atom) => atom.kind === 'tr') ? 'Itens' : page.some((atom) => atom.label === 'Condições') ? 'Condições' : page[0].label);
+  // Rotulo da pagina, a mesma regra do celular (pdf-corpo.js): Itens se tem a planilha de itens, senao Condicoes, senao Texto.
+  const labelOf = (page: FlowAtom[]): PdfPage['label'] => (page.some((atom) => atom.label === 'Itens') ? 'Itens' : page.some((atom) => atom.label === 'Condições') ? 'Condições' : 'Texto');
   return pages.map((page) => ({ label: labelOf(page), html: `${headHtml}${renderAtoms(page)}` }));
 };

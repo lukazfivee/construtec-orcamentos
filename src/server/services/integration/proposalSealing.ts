@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { LocalDatabase } from '../database';
 import { getIntegrationIdentity } from '../settings';
 import { roundMoney } from '../proposalCommon';
+import { calculateProposalTotalsFromLines, lineSaleBase } from '../../../shared/proposalFinancials';
 
 export function canonicalJsonStringify(object: unknown): string {
   if (object === null || typeof object !== 'object') {
@@ -100,7 +101,8 @@ export const buildApprovedProposalEnvelope = async (
     const qtyNum = Number(item.quantity);
     const costNum = Number(item.snapshot_unit_cost);
     const totalCostNum = roundMoney(qtyNum * costNum);
-    const allocatedSaleNum = roundMoney(totalCostNum * bdiMultiplier);
+    // Venda do item pela mesma regra do Valor final: custo x BDI, ou qtd x venda digitada a mao.
+    const allocatedSaleNum = roundMoney(lineSaleBase({ quantity: item.quantity, unitCost: item.snapshot_unit_cost, saleUnitPrice: item.sale_unit_price }, p.bdi_multiplier));
     return {
       id: item.id,
       position: idx + 1,
@@ -172,9 +174,13 @@ export const buildApprovedProposalEnvelope = async (
   const materialsCost = roundMoney(materials.reduce((sum, m) => sum + Number(m.totalCost), 0));
   const laborCost = roundMoney(labor.reduce((sum, l) => sum + Number(l.totalCost), 0));
   const baseCost = roundMoney(materialsCost + laborCost);
-  const contractValueBeforeTax = roundMoney(baseCost * bdiMultiplier);
-  const taxAmount = roundMoney(contractValueBeforeTax * (taxPercentage / 100));
-  const contractValue = roundMoney(contractValueBeforeTax + taxAmount);
+  // contractValue = Valor final da proposta (soma da venda dos itens + mao de obra x BDI, com imposto): mesma regra do app.
+  const proposalTotals = calculateProposalTotalsFromLines(itemsResult.rows.map(item => ({
+    quantity: item.quantity, unitCost: item.snapshot_unit_cost, saleUnitPrice: item.sale_unit_price,
+  })), laborCost, bdiMultiplier, taxPercentage);
+  const contractValue = proposalTotals.finalValue;
+  const taxAmount = proposalTotals.taxAmount ?? 0;
+  const contractValueBeforeTax = roundMoney(contractValue - taxAmount);
   const additions = roundMoney(contractValueBeforeTax - baseCost);
   const totalAllocated = roundMoney(
     materials.reduce((sum, m) => sum + Number(m.allocatedSale), 0) +

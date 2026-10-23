@@ -153,7 +153,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
     return (
       <main className="workspace-page pdf-page">
         {back}
-        <header className="page-head"><div><span className="page-eyebrow">Comercial</span><h1>PDF da proposta</h1>
+        <header className="page-head"><div><h1>PDF da proposta</h1>
           <span className="page-sub">{load.state === 'loading' ? 'Gerando a pré-visualização do PDF…' : ''}</span></div></header>
         {load.state === 'loading' ? (
           <div className="pdf-skeleton" role="status" aria-label="Gerando a pré-visualização do PDF"><i /><i /><i /></div>
@@ -181,7 +181,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
     return (
       <main className="workspace-page pdf-page">
         {back}
-        <header className="page-head"><div><span className="page-eyebrow">Comercial</span><h1>PDF da proposta</h1><span className="page-sub">{sub}</span></div></header>
+        <header className="page-head"><div><h1>PDF da proposta</h1><span className="page-sub">{sub}</span></div></header>
         <div className="page-empty">
           <FileText size={28} />
           <b>Sem itens para o PDF</b>
@@ -248,7 +248,7 @@ export function ProposalPdfView({ proposalId, onBack, onAddItems, onProposalUpda
     <main className="workspace-page pdf-page">
       {back}
       <header className="page-head">
-        <div><span className="page-eyebrow">Comercial</span><h1>PDF da proposta</h1><span className="page-sub">{sub}</span></div>
+        <div><h1>PDF da proposta</h1><span className="page-sub">{sub}</span></div>
         <div className="page-head-actions">
           <div className="share-wrap" ref={shareRef}>
             <button type="button" className="flow-btn" aria-haspopup="menu" aria-expanded={shareOpen} onClick={() => setShareOpen((v) => !v)}>

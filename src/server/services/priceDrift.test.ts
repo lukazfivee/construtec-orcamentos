@@ -22,7 +22,7 @@ test('catalogo no celular: aviso de preco novo na proposta e previa de importaca
 
   await context.test('detecta, soma o efeito no valor final e some custo sem p10', async () => {
     const proposalId = await makeProposal();
-    const itemId = await addMaterial(proposalId, '10', '10', '12');
+    const itemId = await addMaterial(proposalId, '10', '10', '12.5');
     await setCatalog(itemId, '12.50');
     const before = await getProposalById(database, proposalId);
     assert.ok(before);
@@ -46,8 +46,8 @@ test('catalogo no celular: aviso de preco novo na proposta e previa de importaca
 
   await context.test('aplicar grava o custo do catalogo e o valor final bate com a previsao', async () => {
     const proposalId = await makeProposal();
-    const itemId = await addMaterial(proposalId, '4', '100', '120');
-    const otherId = await addMaterial(proposalId, '1', '50', '60');
+    const itemId = await addMaterial(proposalId, '4', '100', '125');
+    const otherId = await addMaterial(proposalId, '1', '50', '62.5');
     await setCatalog(itemId, '90');
     await setCatalog(otherId, '55');
     const drift = await getProposalPriceDrift(database, proposalId, true);

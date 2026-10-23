@@ -1,6 +1,6 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; overflow: hidden; }
-.pg { position: relative; width: 396px; height: 560px; padding: 22px 22px 40px; background: #fff; color: #17252d; font: 10px/1.5 Arial, Helvetica, sans-serif; overflow: hidden; }
+.pg { position: relative; width: 396px; height: 560px; padding: 22px 22px 40px; background: #fff; color: #17252d; font: 10px/1.4 Arial, Helvetica, sans-serif; overflow: hidden; }
 .pg-head { display: flex; justify-content: space-between; border-bottom: 2px solid #12a9d1; padding-bottom: 6px; color: #52616b; }
 .pg-head b { color: #163d69; letter-spacing: .08em; }
 .pg-title { margin: 10px 0 6px; font-weight: 700; color: #163d69; text-transform: uppercase; font-size: 11px; }
@@ -13,30 +13,12 @@ html, body { margin: 0; overflow: hidden; }
 .pg-note { margin: 4px 0 0; color: #334155; }
 .pg-cover { padding-top: 90px; display: flex; flex-direction: column; gap: 6px; }
 .pg-cover > small { color: #12a9d1; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-.pg-logo { margin-bottom: 14px; padding: 6px 10px; align-self: flex-start; color: #fff; background: #163d69; letter-spacing: .12em; font-size: 11px; }
 .pg-h1 { font-size: 20px; line-height: 1.2; color: #163d69; }
 .pg-cover dl, .pg-terms { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 16px 0; }
 .pg-cover dt, .pg-terms dt { color: #52616b; }
 .pg-cover dd, .pg-terms dd { margin: 0; }
-.pg-sign { margin-top: 40px; color: #163d69; }
 .pg-foot { position: absolute; left: 22px; right: 22px; bottom: 12px; display: flex; justify-content: space-between; border-top: 1px solid #12a9d1; padding-top: 4px; font-size: 8px; color: #52616b; }
-.pg-h { margin: 8px 0 4px; font-size: 10.5px; font-weight: 700; color: #163d69; text-transform: uppercase; }
-.pg-p { margin: 0 0 6px; white-space: pre-line; overflow-wrap: anywhere; }
-.pg-ul { margin: 0 0 6px; padding-left: 14px; }
-.pg-ul li { margin: 0 0 2px; overflow-wrap: anywhere; }
-.pg-h2 { margin: 6px 0 3px; font-size: 10px; font-weight: 700; color: #163d69; }
-.pg-caption { margin: 0 0 4px; padding: 3px 4px; background: #eaf3f6; color: #163d69; font-weight: 700; text-align: center; }
-.pg-letter p { margin: 0 0 4px; white-space: pre-line; }
-.pg-letter .pg-to { font-weight: 700; text-transform: uppercase; }
-.pg-letter .pg-ref { font-weight: 700; }
-.pg-letter-title { margin: 10px 0 8px; text-align: center; font-size: 13px; font-weight: 700; color: #163d69; text-decoration: underline; text-transform: uppercase; }
-.pg-grid { width: 100%; border-collapse: collapse; margin: 0 0 4px; line-height: 1.25; table-layout: auto; }
-.pg-grid th { padding: 2px 3px; background: #163d69; color: #fff; text-align: left; font-weight: 700; border: 1px solid #163d69; overflow-wrap: anywhere; }
-.pg-grid td { padding: 2px 3px; border: 1px solid #d4e7ee; vertical-align: top; overflow-wrap: anywhere; }
-.pg-grid .r { text-align: right; }
-.pg-p.pg-cont { margin-top: -6px; }
 .pg-head { align-items: flex-end; }
-.pg-head-logo { display: block; height: 17px; width: auto; }
 /* Pecas do documento do servidor, iguais a previa do celular (public/m/corpo.css). */
 .pd-piece { display: flow-root; }
 .pd-h { margin: 8px 0 4px; font-size: 10.5px; font-weight: 700; color: #163d69; text-transform: uppercase; border-bottom: 1px solid #e8f0f3; padding-bottom: 2px; }
@@ -62,6 +44,19 @@ html, body { margin: 0; overflow: hidden; }
 .pd-sign span { color: #485966; }
 .pd-id { display: grid; gap: 2px; margin: 6px 0; padding: 5px 7px; background: #f4f9fb; border: 1px solid #d4e7ee; border-radius: 2px; }
 .pd-center { text-align: center; }
+.pd-h.sub { text-transform: none; border: 0; font-size: 10px; }
+.pd-p.pd-cont { margin-top: -5px; }
+.pd-ul { margin: 0 0 5px; padding-left: 14px; }
+.pd-ul li { margin: 0 0 2px; overflow-wrap: anywhere; }
+.pd-tab { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 3px; font-size: 9px; }
+.pd-tab th { background: #163d69; color: #fff; text-align: left; padding: 3px; font-weight: 700; }
+.pd-tab td { padding: 3px; border: 1px solid #d4e7ee; vertical-align: top; overflow-wrap: anywhere; }
+.pd-tab .r { text-align: right; }
+.pd-letter p { margin: 0 0 5px; }
+.pd-letter .pd-rec { font-weight: 700; text-transform: uppercase; }
+.pd-letter .pd-att { display: flex; gap: 6px; }
+.pd-letter .pd-ref { font-weight: 700; text-align: justify; }
+.pd-letter h1 { margin: 14px 0 10px; font-size: 14px; color: #163d69; text-decoration: underline; }
 .pg-cover > small { color: #0a6f8a; }
 .pg-total { padding: 8px; }
 .pg-total b { font-size: 13px; }

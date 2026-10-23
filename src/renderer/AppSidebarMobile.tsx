@@ -2,6 +2,7 @@ import type { AuthUser } from '../shared/contracts';
 import { FileText, Grid2X2, Layers3, LogOut, Mail, Menu } from './icons';
 import type { NavItem, NavSection } from './navSections';
 import { NAV_ITEMS } from './navSections';
+import type { ProposalAttention } from './proposalNav';
 import { openWebmail } from './webmail';
 
 /* Barra inferior no celular: tres destinos de uso diario. Espelha o padrao do
@@ -24,8 +25,8 @@ export interface AppSidebarProps {
   onSelectNav: (label: NavSection) => void;
   user?: AuthUser | null;
   onLogout?: () => void;
-  /** Propostas em edicao ou revisao (selo do menu no desktop). */
-  pendingProposals?: number;
+  /** Propostas que precisam de acao (selo do menu no desktop). */
+  pendingProposals?: ProposalAttention;
 }
 
 export function AppSidebarMobile({

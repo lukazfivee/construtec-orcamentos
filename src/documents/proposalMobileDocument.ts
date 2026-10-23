@@ -15,7 +15,7 @@ export type MobileDocumentChoices = {
   validity: boolean;
   /** Sem valor, vale o padrao da empresa. */
   watermark?: boolean;
-  /** Opcoes do exportar do computador (ProposalExportDialog); sem valor, os padroes de sempre do celular. */
+  /** Opcoes do PDF da proposta do computador (ProposalPdfView); sem valor, os padroes de sempre do celular. */
   group?: boolean;
   codes?: boolean;
   labor?: boolean;

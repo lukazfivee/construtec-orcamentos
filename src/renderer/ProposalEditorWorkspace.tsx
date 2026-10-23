@@ -275,7 +275,6 @@ export function ProposalEditorWorkspace({
         onCreateRevision={onCreateRevision}
         onCloneProposal={() => setCloneDialogOpen(true)}
         onPreviewProposal={onOpenPdf}
-        onExportProposal={() => onOpenPdf()}
         onShareProposal={() => onOpenPdf(true)}
         onDeleteProposal={() => void deleteCurrentProposal()}
         onProposalUpdate={onProposalUpdate}

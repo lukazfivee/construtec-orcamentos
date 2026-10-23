@@ -4,7 +4,7 @@
 import { randomUUID } from 'node:crypto';
 import type { PriceDriftItem, PriceDriftProposal } from '../../shared/contracts';
 import { multiplyDecimal, sumDecimal } from '../../shared/decimal';
-import { calculateProposalTotals } from '../../shared/proposalFinancials';
+import { calculateProposalTotalsFromLines, isManualSale, proposalSaleLines } from '../../shared/proposalFinancials';
 import type { LocalDatabase } from './database';
 import { getEditableProposal, roundMoney } from './proposalCommon';
 import { getProposalById } from './proposals';
@@ -28,20 +28,24 @@ export const getProposalPriceDrift = async (database: LocalDatabase, proposalId:
   const taxFactor = 1 + (proposal.taxPercentage ?? 0) / 100;
   const items: PriceDriftItem[] = [];
   const costDeltas: number[] = [];
-  for (const line of proposal.items) {
+  // Linhas depois de aplicar o preco novo: venda automatica acompanha o custo; venda digitada a mao fica (applyProposalPriceDrift).
+  const saleLines = proposalSaleLines(proposal);
+  const afterLines = proposal.items.map((line, index) => {
     const now = line.catalogCurrentCost;
-    if (now === null || now === undefined || Math.abs(now - line.unitCost) < MIN_DIFF) continue;
+    if (now === null || now === undefined || Math.abs(now - line.unitCost) < MIN_DIFF) return saleLines[index];
+    const manual = isManualSale(saleLines[index], factor);
     const costDelta = multiplyDecimal([sumDecimal([now, -line.unitCost]), line.quantity]);
     costDeltas.push(costDelta);
     items.push({
       id: line.id, code: line.code, description: line.description, quantity: line.quantity, unit: line.unit,
       changePercent: line.unitCost > 0 ? roundMoney((now / line.unitCost - 1) * 100) : 0,
-      finalDelta: multiplyDecimal([costDelta, factor, taxFactor]),
+      finalDelta: manual ? 0 : multiplyDecimal([costDelta, factor, taxFactor]),
       ...(withCost ? { fromUnit: line.unitCost, toUnit: now, costDelta } : {}),
     });
-  }
+    return { ...saleLines[index], unitCost: now, saleUnitPrice: manual ? saleLines[index].saleUnitPrice : multiplyDecimal([now, factor]) };
+  });
   const materialsDelta = sumDecimal(costDeltas);
-  const after = calculateProposalTotals(sumDecimal([proposal.totals.materials ?? 0, materialsDelta]), proposal.totals.labor ?? 0, proposal.bdiMultiplier, proposal.taxPercentage ?? 0);
+  const after = calculateProposalTotalsFromLines(afterLines, proposal.totals.labor ?? 0, proposal.bdiMultiplier, proposal.taxPercentage ?? 0);
   return {
     ...base, items, finalBefore, finalAfter: after.finalValue, finalDelta: sumDecimal([after.finalValue, -finalBefore]),
     ...(withCost ? { costDelta: materialsDelta } : {}),
@@ -83,7 +87,17 @@ export const applyProposalPriceDrift = async (database: LocalDatabase, proposalI
       FOR UPDATE OF pi
     `, [proposalId, MIN_DIFF, itemIds && itemIds.length ? itemIds : null]);
     for (const row of rows.rows) {
-      await transaction.query('UPDATE proposal_items SET snapshot_unit_cost = $3 WHERE proposal_id = $1 AND id = $2', [proposalId, row.id, row.after]);
+      // Venda automatica (custo x BDI) acompanha o custo novo; venda digitada a mao fica (mesmo criterio de updateProposalItem).
+      await transaction.query(`
+        UPDATE proposal_items pi
+        SET sale_unit_price = CASE
+              WHEN ABS(pi.sale_unit_price - ROUND(pi.snapshot_unit_cost * p.bdi_multiplier, 2)) < 0.011 THEN ROUND($3::numeric * p.bdi_multiplier, 2)
+              ELSE pi.sale_unit_price
+            END,
+          snapshot_unit_cost = $3
+        FROM proposals p
+        WHERE p.id = pi.proposal_id AND pi.proposal_id = $1 AND pi.id = $2
+      `, [proposalId, row.id, row.after]);
     }
     if (rows.rows.length > 0) {
       await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);

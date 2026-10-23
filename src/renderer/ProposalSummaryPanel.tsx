@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { calculateProposalTotals } from '../shared/proposalFinancials';
+import { calculateProposalTotalsFromLines, countManualSales, proposalSaleLines } from '../shared/proposalFinancials';
 import type { ProposalDetail } from '../shared/contracts';
 import {
   ChevronDown,
   ChevronUp,
   Copy,
   MoreHorizontal,
-  FilePlus2,
   LockKeyhole,
   Save,
   Share2,
@@ -32,7 +31,6 @@ type Props = {
   onCreateRevision: () => void;
   onCloneProposal: () => void;
   onPreviewProposal: () => void;
-  onExportProposal: () => void;
   onShareProposal?: () => void;
   onDeleteProposal: () => void;
   onProposalUpdate?: (proposal: ProposalDetail) => void;
@@ -55,7 +53,6 @@ export function ProposalSummaryPanel({
   onCreateRevision,
   onCloneProposal,
   onPreviewProposal,
-  onExportProposal,
   onShareProposal,
   onDeleteProposal,
   onProposalUpdate,
@@ -90,11 +87,19 @@ export function ProposalSummaryPanel({
     : (proposal.taxPercentage ?? 0);
   const parsedDraftBdi = bdiDraft != null ? Number(bdiDraft.trim().replace(/[xX]/g, '').replace(',', '.')) : NaN;
   const bdiMultiplier = Number.isFinite(parsedDraftBdi) && parsedDraftBdi > 0 ? parsedDraftBdi : (proposal.bdiMultiplier ?? 1);
-  const { baseCost, finalValue: computedFinalValue } = calculateProposalTotals(materialsTotal, laborTotal, bdiMultiplier, taxPercentage);
-  const finalValue = canSeeCost ? computedFinalValue : (proposal.totals.finalValue ?? 0);
-  const subtotalWithBdi = Math.round((baseCost * bdiMultiplier + Number.EPSILON) * 100) / 100;
+  // Mesma regra do servidor: Valor final = soma da venda dos itens + mao de obra x BDI, com imposto (previa com BDI/imposto digitados).
+  const saleLines = proposalSaleLines(proposal, bdiMultiplier);
+  const previewTotals = calculateProposalTotalsFromLines(saleLines, laborTotal, bdiMultiplier, taxPercentage);
+  const { baseCost } = previewTotals;
+  const finalValue = canSeeCost ? previewTotals.finalValue : (proposal.totals.finalValue ?? 0);
+  const subtotalWithBdi = previewTotals.subtotalWithBdi ?? previewTotals.finalValue;
   const bdiAdditions = Math.round((subtotalWithBdi - baseCost + Number.EPSILON) * 100) / 100;
-  const taxAmount = taxPercentage > 0 ? Math.round((subtotalWithBdi * (taxPercentage / 100) + Number.EPSILON) * 100) / 100 : 0;
+  const taxAmount = previewTotals.taxAmount ?? 0;
+  // Sem p10 o custo chega zerado; vale o que o servidor marcou em cada item.
+  const manualSaleCount = canSeeCost ? countManualSales(saleLines, bdiMultiplier) : proposal.items.filter((item) => item.manualSale).length;
+  const manualSaleNote = manualSaleCount > 0
+    ? `Inclui ${manualSaleCount} ${manualSaleCount === 1 ? 'item' : 'itens'} com preço de venda manual`
+    : null;
 
   const formattedUpdatedAt = proposal.updatedAt
     ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(proposal.updatedAt))
@@ -131,6 +136,7 @@ export function ProposalSummaryPanel({
         )}
         {/* Item mais importante do painel: fica visível mesmo com "Resumo comercial" recolhido. */}
         <Amount label="Valor final" value={`R$ ${money.format(finalValue)}`} tone="blue" />
+        {manualSaleNote && <p className="summary-manual-note">{manualSaleNote}</p>}
         </section>
 
         <div className="panel-card panel-section" style={canSeeCost ? undefined : { display: 'none' }}>
@@ -217,7 +223,7 @@ export function ProposalSummaryPanel({
             por {proposal.responsibleName ?? '—'}
           </p>
         </div>
-        {/* Acoes: as finais (Centro de Custo e PDF + Word) ficam sempre visiveis no pe da coluna, uma por linha;
+        {/* Acoes: a final (Centro de Custo) fica sempre visivel no pe da coluna; o PDF (e o Word) abre pelo botao Gerar PDF do topo;
             as de apoio (revisao, clonar, compartilhar, excluir) ficam no menu "Mais acoes". */}
         <div className="panel-card panel-section actions">
           <h2 className="actions-title">Ações</h2>
@@ -258,16 +264,6 @@ export function ProposalSummaryPanel({
             showNotice={showNotice}
             disabled={mutationPending}
           />
-          <button
-            className="primary generate"
-            type="button"
-            disabled={(!proposal.items.length && laborTotal <= 0) || documentPending}
-            onClick={onExportProposal}
-            title="Abre o PDF da proposta: opções, prévia e arquivo em PDF ou Word (Ctrl+G)"
-            style={canSend ? undefined : { display: 'none' }}
-          >
-            <FilePlus2 size={18} /> {documentPending ? 'Preparando…' : 'Gerar PDF ou Word'}
-          </button>
         </div>
       </aside>
 
@@ -305,7 +301,6 @@ export function ProposalSummaryPanel({
           onCreateRevision={onCreateRevision}
           onCloneProposal={onCloneProposal}
           onPreviewProposal={onPreviewProposal}
-          onExportProposal={onExportProposal}
           onShareProposal={onShareProposal}
           onProposalUpdate={onProposalUpdate}
           onNavigateToCentroCustos={onNavigateToCentroCustos}
@@ -316,6 +311,7 @@ export function ProposalSummaryPanel({
           bdiAdditions={bdiAdditions}
           taxAmount={taxAmount}
           taxPercentage={taxPercentage}
+          manualSaleNote={manualSaleNote}
           onClose={() => setMobileSheetOpen(false)}
           onRequestDelete={() => setDeleteModalOpen(true)}
         />

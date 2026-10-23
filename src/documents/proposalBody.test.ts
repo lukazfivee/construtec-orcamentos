@@ -83,9 +83,9 @@ test('paginas do PDF do desktop seguem a ordem dos blocos e paginam o texto long
   // Conteudo em fluxo continuo: pagina nova so quando a anterior enche; a capa vem primeiro e o resto segue a ordem dos blocos.
   assert.equal(pages[0].label, 'Capa');
   inOrder(pages.map((page) => page.html).join('\n'), ORDER);
-  assert.ok(pages.some((page) => /<ul class="pg-ul"><li>BETA item um<\/li><li>GAMA item dois<\/li><\/ul>/.test(page.html)));
+  assert.ok(pages.some((page) => /<ul class="pd-ul"><li>BETA item um<\/li><li>GAMA item dois<\/li><\/ul>/.test(page.html)));
   assert.ok(pages.some((page) => page.label === 'Itens'));
-  assert.match(pages[pages.length - 1].html, /pg-sign/);
+  assert.match(pages[pages.length - 1].html, /pd-sign/);
   const joined = pages.map((page) => page.html).join('');
   assert.doesNotMatch(joined, /<script>|DESLIGADO/);
 

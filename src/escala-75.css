@@ -18,5 +18,7 @@
   .modal-card { width: min(520px, calc((100vw - 48px) / .75)); max-height: calc((100vh - 48px) / .75); }
   .proposal-diff-dialog { width: min(1280px, calc(96vw / .75)); height: min(860px, calc(92vh / .75)); }
   .catalog-popover { top: calc(12vh / .75); max-height: calc(76vh / .75); }
+  /* Notificacoes: usa a altura da janela inteira; so rola por dentro quando os avisos nao cabem nela. */
+  .notifications-popover { max-height: calc(100vh / .75 - 88px); }
   .app-shell .pdf-layout { --pdf-stage-h: clamp(440px, calc(100dvh / .75 - 330px), 940px); }
 }

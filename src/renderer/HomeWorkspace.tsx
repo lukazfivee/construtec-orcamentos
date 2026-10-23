@@ -75,7 +75,6 @@ export function HomeWorkspace({
     <main className="management-workspace home-workspace">
       <header className="management-header cab">
         <div className="tit">
-          <span className="eyebrow">Visão geral</span>
           <h1>Início</h1>
           <p className="sub">Propostas abertas, o que precisa de você e os preços do catálogo.</p>
         </div>

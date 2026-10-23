@@ -14,7 +14,7 @@ interface ChatSession {
 interface AiModule {
   getAI(app: unknown, options: { backend: unknown }): unknown;
   GoogleAIBackend: new () => unknown;
-  getGenerativeModel(backend: unknown, options: Record<string, unknown>): { startChat(options: { history?: unknown[] }): ChatSession };
+  getGenerativeModel(backend: unknown, options: Record<string, unknown>): { startChat(options: { history?: unknown[] }): ChatSession; generateContent(request: unknown): Promise<{ response: { text(): string } }> };
   Schema: SchemaBuilder;
 }
 interface AppModule { getApps(): unknown[]; initializeApp(config: object): unknown }
@@ -25,6 +25,8 @@ export interface ChatHooks { onLive(text: string): void; onStep(label: string): 
 export interface AssistantChat {
   /** Texto final da resposta (vazio se o modelo so chamou ferramentas). */
   ask(text: string, hooks: ChatHooks): Promise<string>;
+  /** SDK ja carregado (o ditado ao vivo usa o mesmo Firebase AI do assistente). */
+  sdk(): Promise<unknown>;
   /** Pre-carrega o SDK para a primeira pergunta nao esperar por ele. */
   warm(): void;
   reset(): void;
@@ -42,6 +44,9 @@ const describe = (e: unknown) => { const x = (e ?? {}) as ErrorLike; return `${S
 const quota = (e: unknown) => /\b429\b|quota|RESOURCE_EXHAUSTED|rate.?limit/i.test(describe(e));
 // Modelo sobrecarregado no Google (500/503 "high demand"): passageiro.
 const overloaded = (e: unknown) => /\b50[03]\b|high demand|overloaded|UNAVAILABLE/i.test(describe(e));
+
+/** Erro passageiro (limite gratuito ou modelo sobrecarregado): vale tentar o modelo reserva. */
+export const recoverable = (e: unknown) => quota(e) || overloaded(e);
 
 export function friendlyError(error: unknown): string {
   const text = describe(error);
@@ -123,6 +128,7 @@ export function createAssistantChat(options: { tools: AssistantTools; prompt: ()
   }
 
   return {
+    sdk: getSdk,
     warm() { if (!isOffline()) getSdk().catch(() => undefined); },
     reset() { chat = null; model = 0; },
     async ask(text, hooks) {

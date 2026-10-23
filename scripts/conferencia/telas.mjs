@@ -15,7 +15,7 @@ export const TELAS_DESKTOP = (d) => [
   { id: 'proposta-corpo', nome: 'Proposta: Corpo e condições', ref: 'sProp', quadros: [], passos: [IR('Propostas'), ABRIR(d.longa.numero), { clicar: 'Corpo e condições' }] },
   { id: 'proposta-historico', nome: 'Proposta: Histórico (revisões)', ref: 'sProp', quadros: ['23:p42rev'], passos: [IR('Propostas'), ABRIR(d.longa.numero), { clicar: 'Histórico' }] },
   { id: 'proposta-inserir', nome: 'Proposta: menu Inserir', ref: 'dAdd', quadros: ['23:add'], passos: [IR('Propostas'), ABRIR(d.longa.numero), { clicar: 'Inserir' }] },
-  { id: 'pdf', nome: 'PDF da proposta', ref: 'sPdf', quadros: ['23:pdf', '23:pdfShare', '23:pdfSend', '23:pdfRes'], passos: [IR('Propostas'), ABRIR(d.longa.numero), { clicar: 'PDF' }, { espera: 2500 }] },
+  { id: 'pdf', nome: 'PDF da proposta', ref: 'sPdf', quadros: ['23:pdf', '23:pdfShare', '23:pdfSend', '23:pdfRes'], passos: [IR('Propostas'), ABRIR(d.longa.numero), { clicar: 'Gerar PDF' }, { espera: 2500 }] },
   { id: 'comparativo', nome: 'Comparativo de revisões', ref: 'sCmp', quadros: ['23:cmp', '23:cmpOnly', '23:cmp041'], passos: [IR('Propostas'), ABRIR(`${d.revisoes.numero} REV.01`), { clicar: 'Comparar revisões' }, { espera: 2500 }] },
   { id: 'catalogo', nome: 'Catálogo', ref: 'sCat', quadros: ['24:cat'], passos: [IR('Catálogo')] },
   { id: 'catalogo-importar', nome: 'Catálogo: Importar lista', ref: 'sImp', quadros: ['24:imp1', '24:imp2', '24:imp3Err', '24:impRun', '24:impOk'], passos: [IR('Catálogo'), { clicar: 'Importar lista' }] },

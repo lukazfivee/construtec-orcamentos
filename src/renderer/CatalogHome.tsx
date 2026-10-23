@@ -75,7 +75,7 @@ export function CatalogHome({ data, sync, seesCost, canWrite, onImport, onExsat,
   const fil = (key: Filter, label: string) => [key, label] as const;
 
   return <main className="od-page" aria-busy={loading}><div className="od-stack">
-    <PageHead eyebrow="Cadastros" title="Catálogo" sub={`${overview ? `${nfmt(overview.productCount)} itens` : 'Carregando itens'}${seesCost ? ' · preços de custo, sem BDI' : ''}`}>
+    <PageHead title="Catálogo" sub={`${overview ? `${nfmt(overview.productCount)} itens` : 'Carregando itens'}${seesCost ? ' · preços de custo, sem BDI' : ''}`}>
       <button type="button" className="od-btn s" onClick={onEdit}><PackagePlus size={17} />Cadastrar itens</button>
       {canWrite && <button type="button" className="od-btn s" onClick={onImport}><Upload size={17} />Importar lista</button>}
       {/* No site a varredura roda em Importar lista, aba Exsat: o botao so existe no aplicativo. */}

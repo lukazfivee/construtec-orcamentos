@@ -6,9 +6,11 @@ import { proposalApi } from './api';
 import { liveAssistantApi, liveCommitApi, liveEditApi } from './assistant/assistantApi';
 import { commitDraft } from './assistant/assistantCommit';
 import { applyPlan } from './assistant/proposalEdit';
-import { createAssistantChat, friendlyError, isOffline } from './assistant/assistantChat';
-import { appCheckAllowed, buildPrompt } from './assistant/assistantConfig';
+import { createAssistantChat, friendlyError, isOffline, recoverable } from './assistant/assistantChat';
+import { appCheckAllowed, buildPrompt, LIVE_MODEL, MODELS } from './assistant/assistantConfig';
 import { createAssistantTools } from './assistant/assistantTools';
+import { composeDictation, createVoice, VOICE_FINISHING, VOICE_LISTENING, VOICE_MAX_MS, voiceSupported, type DictationEngine, type VoiceState } from './assistant/assistantVoice';
+import { createDictationEngine } from './assistant/dictationEngine';
 import type { AssistantNav, PendingNav } from './assistant/assistantTools';
 import { AssistantLog } from './AssistantLog';
 import type { AssistantMsg, DraftCard } from './AssistantLog';
@@ -53,6 +55,12 @@ export function AssistantFab(props: Props) {
   const fab = useRef<HTMLButtonElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const wasOpen = useRef(false);
+  const [voiceState, setVoiceState] = useState<VoiceState>('idle');
+  const [partial, setPartial] = useState(false);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
+  const voice = useRef<ReturnType<typeof createVoice> | null>(null);
+  const voiceBase = useRef(''); // o que ja estava digitado quando o ditado comecou
+  const dictation = useRef<DictationEngine | null>(null);
 
   useEffect(() => {
     const warm = window.setTimeout(() => chat.warm(), 2500);
@@ -75,6 +83,24 @@ export function AssistantFab(props: Props) {
   }, [draft, open]);
 
   const push = (msg: AssistantMsg) => setLog((list) => [...list, msg]);
+  // Ditado ao vivo: o texto aparece no campo enquanto se fala (mais fraco, campo travado); ao parar fica o final para conferir.
+  // Fechar o painel descarta o ditado e o que foi digitado antes continua no campo.
+  const dictationEngine = () => {
+    dictation.current ??= createDictationEngine({ sdk: () => chat.sdk(), liveModel: LIVE_MODEL, models: MODELS, recoverable, isOffline, friendly: friendlyError, limitMs: VOICE_MAX_MS });
+    return dictation.current;
+  };
+  if (!voice.current) {
+    voice.current = createVoice({ engine: dictationEngine, isOffline }, {
+      onState: (next) => { setVoiceState(next); if (next === 'idle') { setPartial(false); setVoiceNotice(null); } },
+      onPartial: (text) => { setPartial(true); setDraft(composeDictation(voiceBase.current, text)); },
+      onFinal: (text) => { setPartial(false); setDraft(composeDictation(voiceBase.current, text)); if (text) window.setTimeout(() => input.current?.focus(), 0); },
+      onError: (text) => setLog((list) => [...list, { who: 'erro', text }]),
+      onNotice: setVoiceNotice,
+    });
+  }
+  const toggleVoice = () => { if (voiceState === 'idle') voiceBase.current = draft.trim(); void voice.current?.toggle(); };
+  useEffect(() => { if (!open) voice.current?.cancel(); }, [open]);
+  useEffect(() => () => voice.current?.cancel(), []);
   const go = (target: PendingNav) => { setOpen(false); target.run(); };
 
   const ask = async (raw: string) => {
@@ -111,7 +137,7 @@ export function AssistantFab(props: Props) {
 
   const submit = (event: { preventDefault(): void }) => {
     event.preventDefault();
-    if (working.current || !draft.trim()) return;
+    if (working.current || !draft.trim() || voiceState !== 'idle') return;
     const text = draft;
     setDraft('');
     void ask(text);
@@ -177,10 +203,17 @@ export function AssistantFab(props: Props) {
         </header>
         <AssistantLog log={log} busy={busy} live={live} step={step} suggestions={suggestions} onAsk={(text) => void ask(text)} onGo={go} onCreate={(index) => void createFromCard(index)} onDismiss={dismissCard} />
         <form className="assistant-input" onSubmit={submit}>
-          <textarea ref={input} rows={1} maxLength={1500} value={draft} placeholder="Pergunte, peça uma tela ou uma proposta" aria-label="Mensagem para o assistente"
+          <textarea ref={input} rows={1} maxLength={1500} value={draft} className={partial ? 'ia-parcial' : undefined} readOnly={partial} placeholder="Pergunte, peça uma tela ou uma proposta" aria-label="Mensagem para o assistente"
             onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} />
+          {voiceSupported(dictationEngine()) && (
+            <button type="button" className={`assistant-mic${voiceState === 'rec' ? ' rec' : ''}`} aria-pressed={voiceState === 'rec'} disabled={voiceState === 'work' || (busy && voiceState !== 'rec')}
+              aria-label={voiceState === 'rec' ? 'Parar o ditado' : voiceState === 'work' ? 'Finalizando o ditado' : 'Ditar mensagem'} onClick={toggleVoice}>
+              {voiceState === 'work' ? <span className="assistant-dots" aria-hidden="true"><i /><i /><i /></span> : <Ph name={voiceState === 'rec' ? 'stop-fill' : 'microphone'} size={20} />}
+            </button>
+          )}
           <button type="submit" className="assistant-send" aria-label="Enviar" disabled={busy || !draft.trim()}><Ph name="paper-plane-right" size={20} /></button>
         </form>
+        <small className="assistant-voz" role="status" hidden={voiceState === 'idle'}>{voiceState === 'rec' ? (voiceNotice ? `Ouvindo… ${voiceNotice}` : VOICE_LISTENING) : voiceState === 'work' ? VOICE_FINISHING : ''}</small>
         <small className="assistant-note">
           A IA pode errar. Confira os valores nas telas.
           {appCheckAllowed(window.location) && <> Protegido pelo reCAPTCHA (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacidade</a>, <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Termos</a>).</>}

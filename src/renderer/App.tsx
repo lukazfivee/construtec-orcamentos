@@ -17,7 +17,7 @@ import { ProposalPdfView } from './ProposalPdfView';
 import { ProposalsListWorkspace } from './ProposalsListWorkspace';
 import { SettingsWorkspace } from './SettingsWorkspace';
 import type { ProposalViewMode } from './proposalNav';
-import { countPendingProposals, INITIAL_PROPOSAL_VIEW_MODE, viewModeOnSelectNav } from './proposalNav';
+import { INITIAL_PROPOSAL_VIEW_MODE, proposalsNeedingAction, viewModeOnSelectNav } from './proposalNav';
 import { useProposalDeepLink } from './useProposalDeepLink';
 import { SuiteUserProvider, setCurrentSuiteUser } from './SuitePermissions';
 
@@ -239,7 +239,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           setMobileMenuOpen((open) => !open);
         }}
         onCloseMobileMenu={() => setMobileMenuOpen(false)}
-        pendingProposals={countPendingProposals(proposalTabs)}
+        pendingProposals={proposalsNeedingAction(proposalTabs)}
         onSelectNav={selectNav}
         user={user}
         onLogout={onLogout}

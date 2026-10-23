@@ -58,6 +58,8 @@ const entryPoints = [
   'src/renderer/mobile-visual.test.ts',
   'src/renderer/mobile-assistant.test.ts',
   'src/renderer/assistant.test.ts',
+  'src/renderer/assistant-voice.test.ts',
+  'src/renderer/ditado-ao-vivo.test.ts',
   'src/renderer/assistantDraft.test.ts',
   'src/renderer/assistantEdit.test.ts',
   'src/renderer/mobile-assistant-draft.test.ts',
@@ -77,6 +79,7 @@ const entryPoints = [
   'src/renderer/editor-rolagem.test.ts',
   'src/renderer/proposal-nav-list.test.ts',
   'src/server/services/integration/center-tracking.test.ts',
+  'src/server/services/proposal-sale-total.test.ts',
 ];
 await build({ absWorkingDir: root, entryPoints, outdir, bundle: true, platform: 'node',
   format: 'cjs', packages: 'external', outbase: 'src', outExtension: { '.js': '.cjs' } });

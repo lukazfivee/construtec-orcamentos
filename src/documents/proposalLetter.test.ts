@@ -118,11 +118,11 @@ test('paginas do PDF do desktop com carta: carta e fechamento nas paginas, assin
   const pages = buildPdfPages(proposal, { ...defaultPdfChoices(proposal) });
   const joined = pages.map((page) => page.html).join('\n');
   assert.equal(pages[0].label, 'Texto');
-  inOrder(joined, ['Vitória / ES, 06 de Agosto de 2026.', 'At.:', 'REF.: Proposta nº PA-1042', 'Prezados Senhores:', '1. Apresentação', 'pd-cap', 'Planilha de mão de obra', '14.1. Responsabilidades', 'No aguardo de breve pronunciamento', 'pg-sign']);
-  assert.equal((joined.match(/class="pg-sign"/g) ?? []).length, 1);
-  assert.match(joined, /<h4 class="pg-h2">14\.1\./);
+  inOrder(joined, ['Vitória / ES, 06 de Agosto de 2026.', 'At.:', 'REF.: Proposta nº PA-1042', 'Prezados Senhores:', '1. Apresentação', 'pd-cap', 'Planilha de mão de obra', '14.1. Responsabilidades', 'No aguardo de breve pronunciamento', 'pd-sign']);
+  assert.equal((joined.match(/class="pd-sign"/g) ?? []).length, 1);
+  assert.match(joined, /<h3 class="pd-h sub">14\.1\./);
   const noSign = buildPdfPages(proposal, defaultPdfChoices(proposal), { pdfShowLogo: true, pdfShowSignature: false }).map((page) => page.html).join('');
-  assert.doesNotMatch(noSign, /pg-sign/);
+  assert.doesNotMatch(noSign, /pd-sign/);
 });
 
 test('PDF com fechamento: segue o texto, inteiro na mesma pagina, sem pagina forcada, e o aviso de validade do celular entra junto', async () => {
@@ -182,7 +182,8 @@ test('PDF: a ultima secao de texto (ex.: Validade) vai junto do fechamento, nunc
 
 test('pre-visualizacao: so o ultimo trecho de texto do documento agrupa a secao com o fechamento (igual ao PDF)', async () => {
   const { bodyTextAtoms } = await import('../renderer/proposalPdfBodyPages');
+  const ctx = { showSignature: true, brand: 'CONSTRUTEC', company: 'Construtec' };
   const parts = [{ kind: 'heading', text: '11. Validade', sub: false }, { kind: 'paragraph', lines: ['Valida ate hoje.'] }, { kind: 'fechamento', paragraphs: [['No aguardo.']], signer: 'Lucas', role: '' }] as never;
-  assert.equal(bodyTextAtoms(parts, true, true).filter((atom) => atom.group === 'fechamento').length, 3);
-  assert.equal(bodyTextAtoms(parts, true, false).filter((atom) => atom.group).length, 0);
+  assert.equal(bodyTextAtoms(parts, ctx, true).filter((atom) => atom.group === 'fechamento').length, 3);
+  assert.equal(bodyTextAtoms(parts, ctx, false).filter((atom) => atom.group).length, 0);
 });

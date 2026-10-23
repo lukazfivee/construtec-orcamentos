@@ -35,13 +35,12 @@
   .home-card-header h2, .settings-card h2, .modal-head h2 {
     font-weight:700; color:var(--ink);
   }
-  .btn.primary, .primary-btn, .actions .generate,
+  .btn.primary, .primary-btn,
   .new-proposal-dialog button.primary {
     background:#0d7f9f!important; color:#fff!important;
     border-color:#0d7f9f; font-weight:700;
   }
   .btn.primary:not(:disabled):hover, .primary-btn:not(:disabled):hover,
-  .actions .generate:not(:disabled):hover,
   .new-proposal-dialog button.primary:not(:disabled):hover {
     background:#09627a!important; border-color:#09627a;
   }

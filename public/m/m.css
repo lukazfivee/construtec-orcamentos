@@ -48,10 +48,10 @@ body.no-tabs .screen { min-height: calc(100vh - var(--sab)); min-height: calc(10
 @supports not (overflow: clip) { .screen.inner { animation-name: fadeIn; } }
 
 .top { display: flex; align-items: center; gap: 10px; min-height: 44px; }
-.top .brand { margin-right: auto; min-width: 0; white-space: nowrap; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-300); }
-.top .brand img { height: 14px; width: auto; }
+/* Marca no topo das telas principais: so o simbolo (sem o nome em caixa alta, que fazia as vezes de sobretitulo acima do titulo). */
+.top .brand { margin-right: auto; min-width: 0; display: flex; align-items: center; }
+.top .brand img { height: 22px; width: auto; }
 .top .grow { flex: 1; }
-.top .brand > span { overflow: hidden; text-overflow: ellipsis; }
 .top h1 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.2; }
 .back { flex: none; width: 44px; height: 44px; margin-left: -12px; border: 0; border-radius: 10px; background: transparent; display: grid; place-items: center; }
 .back:active { background: var(--accent-900); }
@@ -272,8 +272,15 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 .ia-input { display: flex; align-items: flex-end; gap: 8px; padding-top: 8px; border-top: 1px solid var(--divider); }
 .ia-input textarea { flex: 1; min-height: 46px; max-height: 120px; padding: 12px 14px; border: 0; border-radius: 14px; resize: none; background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--divider); font: 16px/1.35 var(--font); outline: none; }
 .ia-input textarea:focus { box-shadow: inset 0 0 0 2px var(--accent); }
+.ia-input textarea.ia-parcial { color: color-mix(in srgb, var(--text) 70%, var(--surface)); box-shadow: inset 0 0 0 2px var(--warn-text); }
 .ia-send { flex: none; width: 46px; height: 46px; border: 0; border-radius: 14px; background: var(--btn); color: var(--on-accent); display: grid; place-items: center; }
 .ia-send:active { transform: scale(.94); }
+.ia-mic { flex: none; width: 46px; height: 46px; border: 0; border-radius: 14px; background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--divider); display: grid; place-items: center; }
+.ia-mic.rec { background: var(--warn-soft); color: var(--warn-text); box-shadow: inset 0 0 0 2px var(--warn-text); animation: iaRec 1.2s infinite ease-in-out; }
+.ia-mic:disabled { opacity: .55; }
+.ia-voz { display: block; margin-top: 6px; text-align: center; font-size: 12.5px; color: var(--text); }
+@keyframes iaRec { 50% { opacity: .65; } }
+@media (prefers-reduced-motion: reduce) { .ia-mic.rec { animation: none; } }
 .ia-note a { color: inherit; }
 .grecaptcha-badge { visibility: hidden; } /* o aviso do reCAPTCHA fica na folha do assistente */
 .ia-go { display: flex; margin-top: 10px; min-height: 40px; }

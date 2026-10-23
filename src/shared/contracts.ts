@@ -71,6 +71,10 @@ export type ProposalLine = {
   totalCost: number;
   unitSale: number;
   totalSale: number;
+  /** Venda unitaria sem imposto (proposal_items.sale_unit_price); entra na regra do Valor final. */
+  saleUnitPrice?: number;
+  /** true = venda digitada a mao (difere de custo x BDI); o Valor final usa quantidade x essa venda. */
+  manualSale?: boolean;
   catalogCurrentCost?: number | null;
   /** false = linha avulsa (fora do catalogo); pode ir para o catalogo depois. */
   inCatalog?: boolean;

@@ -1,5 +1,5 @@
 import { multiplyDecimal, sumDecimal } from '../../shared/decimal';
-import { calculateProposalTotals } from '../../shared/proposalFinancials';
+import { calculateProposalTotalsFromLines, isManualSale } from '../../shared/proposalFinancials';
 import type { ProposalDetail, ProposalLine, ProposalSummary } from '../../shared/contracts';
 import type { BodyBlock } from '../../shared/proposalBody';
 import { mapContact } from './clients';
@@ -90,6 +90,8 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
       totalCost: multiplyDecimal([item.quantity, item.snapshot_unit_cost]),
       unitSale,
       totalSale: roundMoney(quantity * unitSale),
+      saleUnitPrice: Number(item.sale_unit_price),
+      manualSale: isManualSale({ unitCost: item.snapshot_unit_cost, saleUnitPrice: item.sale_unit_price }, proposal.bdi_multiplier),
       catalogCurrentCost,
       inCatalog: item.in_catalog !== false,
     };
@@ -99,7 +101,10 @@ export const getProposalById = async (database: LocalDatabase, proposalId: strin
   const taxPercentage = Number(proposal.tax_percentage ?? 0);
   const materials = sumDecimal(items.map(item => item.totalCost));
   const labor = sumDecimal(laborItems.map(item => item.totalCost));
-  const totals = calculateProposalTotals(materials, labor, bdiMultiplier, taxPercentage);
+  // Valor final = soma da venda dos itens (+ mao de obra x BDI) com imposto: a regra fica em proposalFinancials.
+  const totals = calculateProposalTotalsFromLines(itemResult.rows.map(item => ({
+    quantity: item.quantity, unitCost: item.snapshot_unit_cost, saleUnitPrice: item.sale_unit_price,
+  })), labor, bdiMultiplier, taxPercentage);
   const { baseCost, finalValue, additions } = totals;
   const taxAmount = totals.taxAmount ?? 0;
   const sale = sumDecimal(items.map(item => item.totalSale));
