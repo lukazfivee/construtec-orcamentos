@@ -1,1 +1,1 @@
-Botão do assistente de IA em todas as telas, letras maiores mantendo a escala de 75% e entrada direta pela sessão do Centro de Custos na Suíte.
+O assistente de IA responde mais rápido: consultas independentes rodam juntas e o acompanhamento da obra já vem junto com a proposta. Atualização de segurança de dependências.
