@@ -53,6 +53,13 @@ type Args = Record<string, unknown>;
 const STATUS: Record<string, string> = { draft: 'em edição', review: 'em revisão', sent: 'enviada', approved: 'aprovada', rejected: 'recusada' };
 const ID = /^[A-Za-z0-9-]{1,64}$/;
 const MAX_JSON = 14000;
+const OBRA_ESPERA_MS = 2000;
+// Resultado da promessa, ou undefined se falhar ou passar de `ms`.
+const comLimite = <T,>(work: Promise<T>, ms: number): Promise<T | undefined> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<undefined>((resolve) => { timer = setTimeout(() => resolve(undefined), ms); });
+  return Promise.race([work.catch(() => undefined), late]).finally(() => clearTimeout(timer));
+};
 const SECTIONS: Record<string, NavSection> = { inicio: 'Início', propostas: 'Propostas', catalogo: 'Catálogo', clientes: 'Clientes', kits: 'Kits', configuracoes: 'Configurações' };
 const TELAS = [...Object.keys(SECTIONS), 'proposta', 'nova_proposta', 'centro_custos', 'obra'];
 
@@ -150,7 +157,8 @@ export function createAssistantTools(deps: ToolDeps) {
       if (bad) return { erro: bad };
       const p = (await deps.api.proposal(str(a.proposta_id))).proposal;
       // Quem ve custo e a proposta ja virou obra: traz o acompanhamento junto (poupa uma volta ao modelo).
-      const obra = p.costCenterId && deps.seesCost() ? await RUN.acompanhamento_obra(a).catch(() => undefined) : undefined;
+      // Espera no maximo OBRA_ESPERA_MS: com o Centro lento a proposta vem sem o bloco, nunca atrasada.
+      const obra = p.costCenterId && deps.seesCost() ? await comLimite(RUN.acompanhamento_obra(a), OBRA_ESPERA_MS) : undefined;
       const t = p.totals ?? ({} as Partial<ProposalDetail['totals']>);
       const items = (p.items ?? []).slice().sort((x, y) => (Number(y.totalSale) || 0) - (Number(x.totalSale) || 0));
       return {

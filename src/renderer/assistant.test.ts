@@ -100,6 +100,12 @@ test('assistente: acompanhamento da obra (orcado e realizado) so com p10', async
   assert.equal(joined.acompanhamento_obra.realizado, 500);
   assert.equal((await setup({ api: tracking, sees: false }).run('ver_proposta', { proposta_id: 'p1' })).acompanhamento_obra, undefined);
   assert.equal((await setup().run('ver_proposta', { proposta_id: 'p1' })).acompanhamento_obra, undefined, 'falha do Centro nao derruba a proposta');
+  const slow = { tracking: () => new Promise<never>(() => undefined) }; // Centro que nunca responde
+  const started = Date.now();
+  const late = await setup({ api: slow }).run('ver_proposta', { proposta_id: 'p1' });
+  assert.equal(late.acompanhamento_obra, undefined, 'Centro lento: proposta vem sem o bloco');
+  assert.equal(late.totais.valor_final, 1490);
+  assert.ok(Date.now() - started < 4000, 'nao espera o timeout de 6 s do Centro');
 });
 
 test('assistente: listas filtram, ids sao validados e erros viram texto', async () => {

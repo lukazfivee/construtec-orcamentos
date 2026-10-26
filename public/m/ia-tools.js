@@ -106,7 +106,8 @@
       if (bad) return { erro: bad };
       const p = (await OC.api(`/proposals/${encodeURIComponent(a.proposta_id)}`)).proposal || {};
       // Quem ve custo e a proposta ja virou obra: traz o acompanhamento junto (poupa uma volta ao modelo).
-      const obra = p.costCenterId && OC.can('p10') ? await RUN.acompanhamento_obra(a).catch(() => undefined) : undefined;
+      // Espera no maximo 2 s: com o Centro lento a proposta vem sem o bloco, nunca atrasada.
+      const obra = p.costCenterId && OC.can('p10') ? await Promise.race([RUN.acompanhamento_obra(a).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 2000))]) : undefined;
       const t = p.totals || {};
       const items = (p.items || []).slice().sort((x, y) => (Number(y.totalSale) || 0) - (Number(x.totalSale) || 0));
       return {

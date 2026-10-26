@@ -26,7 +26,7 @@ function loadTools(api: (p: string) => Promise<unknown>, permissions?: string[])
     go: (...a: unknown[]) => { (OC as { went?: unknown[] }).went = a; },
     suite: { centroLink: (id?: number) => `suite://app/centro-custos${id ? `?obra=${id}` : ''}` },
   };
-  const sandbox = { window: { OC }, location, JSON, Number, String, Object, Math, Array, Set, Date, encodeURIComponent };
+  const sandbox = { window: { OC }, location, JSON, Number, String, Object, Math, Array, Set, Date, encodeURIComponent, setTimeout };
   runInNewContext(read('ia-draft.js'), sandbox); // o rascunho de proposta carrega antes das ferramentas (index.html)
   runInNewContext(read('ia-edit.js'), sandbox);
   runInNewContext(read('ia-tools.js'), sandbox);
