@@ -105,6 +105,9 @@
       const bad = need(a.proposta_id, 'proposta_id');
       if (bad) return { erro: bad };
       const p = (await OC.api(`/proposals/${encodeURIComponent(a.proposta_id)}`)).proposal || {};
+      // Quem ve custo e a proposta ja virou obra: traz o acompanhamento junto (poupa uma volta ao modelo).
+      // Espera no maximo 2 s: com o Centro lento a proposta vem sem o bloco, nunca atrasada.
+      const obra = p.costCenterId && OC.can('p10') ? await Promise.race([RUN.acompanhamento_obra(a).catch(() => undefined), new Promise((resolve) => setTimeout(resolve, 2000))]) : undefined;
       const t = p.totals || {};
       const items = (p.items || []).slice().sort((x, y) => (Number(y.totalSale) || 0) - (Number(x.totalSale) || 0));
       return {
@@ -115,6 +118,7 @@
           resultado_bruto: cost(t.grossResult), margem_pct: cost(t.marginPercent) },
         itens_principais: items.slice(0, 15).map((i) => ({ descricao: i.description, categoria: i.category, quantidade: n(i.quantity), unidade: i.unit, custo_total: cost(i.totalCost), venda_total: n(i.totalSale) })),
         mao_de_obra: (p.laborItems || []).slice(0, 10).map((l) => ({ descricao: l.description, profissionais: l.professionalCount, horas_equipe: n(l.plannedTeamHours), custo_total: cost(l.totalCost) })),
+        acompanhamento_obra: obra,
       };
     },
     async historico_revisoes(a) {
@@ -251,7 +255,7 @@
       parameters: S.object({ properties: {
         busca: S.string({ description: 'número, cliente ou obra' }), status: S.enumString({ enum: ['em edição', 'em revisão', 'enviada', 'aprovada', 'recusada'] }),
       }, optionalProperties: ['busca', 'status'] }) },
-    { name: 'ver_proposta', description: 'Detalhe de uma proposta: valor final, escopo, itens principais, mão de obra e, se a pessoa pode ver custo, custo, BDI e margem.', parameters: pid(S) },
+    { name: 'ver_proposta', description: 'Detalhe de uma proposta: valor final, escopo, itens principais, mão de obra e, se a pessoa pode ver custo, custo, BDI, margem e o acompanhamento da obra (orçado e realizado, quando já existe obra).', parameters: pid(S) },
     { name: 'historico_revisoes', description: 'Revisões de uma proposta (REV 00, 01...) com status, valor, responsável e data.', parameters: pid(S) },
     { name: 'acompanhamento_obra', description: 'Como está a obra gerada pela proposta no Centro de Custos: orçado, realizado, saldo e se passou do orçado.', parameters: pid(S) },
     { name: 'resumo_comercial', description: 'Resumo comercial: propostas abertas e aprovadas, total em negociação e aprovado, taxa de conversão, ticket médio, funil e principais clientes.', parameters: S.object({ properties: {} }) },

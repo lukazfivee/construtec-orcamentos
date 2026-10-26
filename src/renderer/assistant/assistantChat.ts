@@ -36,6 +36,8 @@ const PASSOS: Record<string, string> = { listar_propostas: 'Procurando as propos
   resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela',
   rascunho_atualizar: 'Anotando na proposta', rascunho_itens: 'Anotando os itens', rascunho_ver: 'Relendo o rascunho', rascunho_descartar: 'Limpando o rascunho', finalizar_rascunho: 'Preparando a conferência' };
 const MAX_ROUNDS = 6;
+// Ferramentas so de leitura (sem estado no app): podem rodar em paralelo.
+const CONSULTAS = new Set(['listar_propostas', 'ver_proposta', 'historico_revisoes', 'acompanhamento_obra', 'resumo_comercial', 'listar_clientes', 'listar_kits', 'buscar_catalogo']);
 
 export const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
 
@@ -138,8 +140,10 @@ export function createAssistantChat(options: { tools: AssistantTools; prompt: ()
         if (!calls.length) break;
         hooks.onLive(''); // texto antes da consulta ("vou verificar") sai
         hooks.onStep(PASSOS[calls[0].name] || 'Consultando');
-        const parts: Array<{ functionResponse: { name: string; response: unknown } }> = [];
-        for (const call of calls) parts.push({ functionResponse: { name: call.name, response: await options.tools.run(call) } });
+        const answer = async (call: ToolCall) => ({ functionResponse: { name: call.name, response: await options.tools.run(call) } });
+        let parts: Array<{ functionResponse: { name: string; response: unknown } }> = [];
+        if (calls.every((call) => CONSULTAS.has(call.name))) parts = await Promise.all(calls.map(answer)); // leituras independentes rodam juntas
+        else for (const call of calls) parts.push(await answer(call)); // edicao e abertura de tela mexem em estado: uma por vez, na ordem
         result = await send(parts, hooks);
       }
       try { return result.response.text(); } catch { return ''; }
