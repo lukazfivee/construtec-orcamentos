@@ -1,5 +1,21 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-10-26 BRT - Assistente de IA mais rápido: leituras em paralelo e obra dentro de ver_proposta (Claude Code)
+
+- Base: `08374bf` (main local), mudanças só na árvore de trabalho, sem commit nem PR. `WindowTitleBar.tsx` e `titlebar.test.ts` também estão modificados, mas são da entrada de 23/10 (Codex), não desta.
+- Causa da lentidão (leitura do código, sem medição): cada ferramenta custa uma volta ao Gemini (até 6) e as chamadas de uma rodada rodavam em fila; no plano gratuito o limite 429/503 ainda troca para o modelo mais lento.
+- Mudança: `assistantChat.ts` (desktop/web) e `public/m/ia-chat.js` (celular) executam em paralelo só rodadas 100% de leitura (`CONSULTAS`); com edição, rascunho ou `abrir_tela` na rodada, segue uma por vez na ordem. `ver_proposta` (`assistantTools.ts` e `public/m/ia-tools.js`) agora traz `acompanhamento_obra` quando a proposta tem obra e a pessoa tem p10; sem p10 ou se o Centro falhar, vem sem o bloco.
+- Validação: `tsc --noEmit` sem erros; testes de `assistant`, `mobile-assistant` e `mobile-assistant-draft` passam (21/21, esbuild + `node --test`); suíte completa `test:critical` passou (419, 1 ignorado) antes do teste novo em `assistant.test.ts`. `npm run verify` completo (lint) não rodado. Sem teste do celular para o bloco de obra (só checagem de sintaxe), sem medição de tempo real.
+- Próximo passo: ativar o plano Blaze no projeto Firebase `suite-construtec` (limite gratuito é a causa mais provável da lentidão; a assinatura Google AI Plus não vale para a API). Web/celular saem com `npm run deploy:cloud`; app Windows precisa de novo instalador. Bloqueios: nenhum.
+
+## 2026-10-23 12:34 BRT — Controles do Windows no login claro (Codex)
+
+- Base: `origin/main` em `08374bf`, branch `fix/controles-windows-login`.
+- Causa: o login (`.lg`, fixo e acima da barra) cobria a barra HTML, mas os controles nativos continuavam com as cores escuras dela. `WindowTitleBar.tsx` agora lê fundo e texto da superfície visível e repinta ao entrar/sair e ao mudar `data-theme`, inclusive no modo automático. Fora do login volta às cores da barra.
+- Regressão em `titlebar.test.ts`: falhou antes da correção e passou depois. `npm run verify`: typecheck aprovado, lint com 0 erros e 37 avisos em arquivos não alterados; 419 testes passaram, 0 falharam, 1 ignorado (PostgreSQL real).
+- Conferência funcional em Electron isolado, sem banco real: login claro `#f2f8fa / #0b2530`, login escuro `#031f29 / #f2f8fa`, após entrar `#031f29 / #b9d4dd`, saída retorna ao login claro. Regressão automatizada executa a pintura real do componente com DOM simulado; após trocar as verificações de fonte por esse teste comportamental, ambos os testes da barra passaram novamente.
+- Próximo passo: integrar a correção e gerar/publicar instalador quando solicitado. O aplicativo instalado não foi alterado; sem mudança em dados, autenticação ou contratos IPC.
+
 ## 2026-10-22 BRT - Auditoria Impeccable: correções da revisão do Codex no PR #232 (Claude Code)
 
 - Base: `origin/main`, branch `fix/impeccable-auditoria-21-10`. Quatro comentários do Codex, todos corrigidos.

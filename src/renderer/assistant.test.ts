@@ -94,6 +94,12 @@ test('assistente: acompanhamento da obra (orcado e realizado) so com p10', async
   assert.equal(JSON.stringify(blind).includes('1500'), false);
   const none = await setup({ api: { tracking: async () => ({ integrated: false, summary: null, fetchedAt: null, stale: false, centerUrl: null }) } }).run('acompanhamento_obra', { proposta_id: 'p1' });
   assert.equal(none.sem_obra, true);
+
+  // ver_proposta ja traz o acompanhamento (uma volta a menos ao modelo); sem p10 ou com falha, segue sem ele.
+  const joined = await setup({ api: tracking }).run('ver_proposta', { proposta_id: 'p1' });
+  assert.equal(joined.acompanhamento_obra.realizado, 500);
+  assert.equal((await setup({ api: tracking, sees: false }).run('ver_proposta', { proposta_id: 'p1' })).acompanhamento_obra, undefined);
+  assert.equal((await setup().run('ver_proposta', { proposta_id: 'p1' })).acompanhamento_obra, undefined, 'falha do Centro nao derruba a proposta');
 });
 
 test('assistente: listas filtram, ids sao validados e erros viram texto', async () => {

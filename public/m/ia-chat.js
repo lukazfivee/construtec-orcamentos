@@ -11,6 +11,8 @@
     resumo_comercial: 'Somando o comercial', listar_clientes: 'Procurando os clientes', listar_kits: 'Procurando os kits', buscar_catalogo: 'Procurando no catálogo', abrir_tela: 'Preparando a tela',
     rascunho_atualizar: 'Anotando na proposta', rascunho_itens: 'Anotando os itens', rascunho_ver: 'Relendo o rascunho', rascunho_descartar: 'Limpando o rascunho', finalizar_rascunho: 'Preparando a conferência', rascunho_mao_de_obra: 'Anotando a mão de obra',
     editar_abrir: 'Abrindo a proposta', editar_campos: 'Anotando as mudanças', editar_itens: 'Anotando os itens', editar_mao_de_obra: 'Anotando a mão de obra', editar_ver: 'Relendo as mudanças', editar_descartar: 'Descartando as mudanças', finalizar_edicao: 'Preparando a conferência' };
+  // Ferramentas so de leitura (sem estado no app): podem rodar em paralelo.
+  const CONSULTAS = new Set(['listar_propostas', 'ver_proposta', 'historico_revisoes', 'acompanhamento_obra', 'resumo_comercial', 'listar_clientes', 'listar_kits', 'buscar_catalogo']);
   const state = { chat: null, sdk: null, model: 0, busy: false, log: [], live: '', screen: '' };
   const offline = () => navigator.onLine === false;
 
@@ -237,8 +239,10 @@
         state.step = PASSOS[calls[0].name] || 'Consultando';
         if (state.live) { state.live = ''; paint(); } // texto antes da consulta ("vou verificar") sai
         const step = OC.$('#ia-step'); if (step) step.textContent = state.step;
-        const parts = [];
-        for (const call of calls) parts.push({ functionResponse: { name: call.name, response: await IA.run(call) } });
+        const respond = async (call) => ({ functionResponse: { name: call.name, response: await IA.run(call) } });
+        let parts = [];
+        if (calls.every((call) => CONSULTAS.has(call.name))) parts = await Promise.all(calls.map(respond)); // leituras independentes rodam juntas
+        else for (const call of calls) parts.push(await respond(call)); // edicao e abertura de tela mexem em estado: uma por vez, na ordem
         result = await send(parts);
       }
       let answer = '';

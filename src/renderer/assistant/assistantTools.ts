@@ -149,6 +149,8 @@ export function createAssistantTools(deps: ToolDeps) {
       const bad = needId(a.proposta_id);
       if (bad) return { erro: bad };
       const p = (await deps.api.proposal(str(a.proposta_id))).proposal;
+      // Quem ve custo e a proposta ja virou obra: traz o acompanhamento junto (poupa uma volta ao modelo).
+      const obra = p.costCenterId && deps.seesCost() ? await RUN.acompanhamento_obra(a).catch(() => undefined) : undefined;
       const t = p.totals ?? ({} as Partial<ProposalDetail['totals']>);
       const items = (p.items ?? []).slice().sort((x, y) => (Number(y.totalSale) || 0) - (Number(x.totalSale) || 0));
       return {
@@ -159,6 +161,7 @@ export function createAssistantTools(deps: ToolDeps) {
           resultado_bruto: cost(t.grossResult), margem_pct: cost(t.marginPercent) },
         itens_principais: items.slice(0, 15).map((i) => ({ descricao: i.description, categoria: i.category, quantidade: n(i.quantity), unidade: i.unit, custo_total: cost(i.totalCost), venda_total: n(i.totalSale) })),
         mao_de_obra: (p.laborItems || []).slice(0, 10).map((l) => ({ descricao: l.description, profissionais: l.professionalCount, horas_equipe: n(l.plannedTeamHours), custo_total: cost(l.totalCost) })),
+        acompanhamento_obra: obra,
       };
     },
     async historico_revisoes(a) {
@@ -300,7 +303,7 @@ export function createAssistantTools(deps: ToolDeps) {
         parameters: S.object({ properties: {
           busca: S.string({ description: 'número, cliente ou obra' }), status: S.enumString({ enum: Object.values(STATUS) }),
         }, optionalProperties: ['busca', 'status'] }) },
-      { name: 'ver_proposta', description: 'Detalhe de uma proposta: valor final, escopo, itens principais, mão de obra e, se a pessoa pode ver custo, custo, BDI e margem.', parameters: pid },
+      { name: 'ver_proposta', description: 'Detalhe de uma proposta: valor final, escopo, itens principais, mão de obra e, se a pessoa pode ver custo, custo, BDI, margem e o acompanhamento da obra (orçado e realizado, quando já existe obra).', parameters: pid },
       { name: 'historico_revisoes', description: 'Revisões de uma proposta (REV 00, 01...) com status, valor, responsável e data.', parameters: pid },
       { name: 'acompanhamento_obra', description: 'Como está a obra gerada pela proposta no Centro de Custos: orçado, realizado, saldo e se passou do orçado. Só para quem vê custo.', parameters: pid },
       { name: 'resumo_comercial', description: 'Resumo comercial: propostas abertas e aprovadas, total em negociação e aprovado, taxa de conversão, ticket médio, funil e principais clientes.', parameters: S.object({ properties: {} }) },
