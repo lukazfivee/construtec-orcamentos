@@ -8,11 +8,11 @@ O grupo de WhatsApp "controle de custos" recebe, em texto livre, os pagamentos a
 
 ## Formato real das mensagens
 
-Cabeçalho "CONTROLE DE CENTRO DE CUSTOS", seguido de blocos numerados, um por pagamento a um fornecedor ("1 - PAGAMENTO EXSAT", "2 - PAGAMENTO ELETRICA CAPITAL").
+Cabeçalho "CONTROLE DE CENTRO DE CUSTOS", seguido de blocos numerados, um por pagamento a um fornecedor ("1 - PAGAMENTO FORNECEDOR A", "2 - PAGAMENTO FORNECEDOR B").
 
-- Formato A (bloco 1): `R$ valor - descrição do material`, seguido de `CENTRO DE CUSTO: finalidade - obra` (ex.: "MANUTENÇÃO NAS 10 PORTAS - HCP").
-- Formato B (bloco 2): `R$ total` e depois linhas `Destino – descrição – R$ valor`. O destino faz o papel de centro de custo. A soma das linhas (1.091,36 + 837,55 + 609,13) é igual ao total (2.538,04).
-- Variações esperadas: acentos, caixa alta/baixa, espaço antes de vírgula, sufixos de obra (`_HCP`), linhas sem centro de custo.
+- Formato A (bloco 1): `R$ valor - descrição do material`, seguido de `CENTRO DE CUSTO: finalidade - obra` (ex.: "MANUTENÇÃO NAS PORTAS - OBRA X").
+- Formato B (bloco 2): `R$ total` e depois linhas `Destino – descrição – R$ valor`. O destino faz o papel de centro de custo. A soma das linhas é igual ao total.
+- Variações esperadas: acentos, caixa alta/baixa, espaço antes de vírgula, sufixos de obra (`_OBRAX`), linhas sem centro de custo.
 
 ## Objetivos
 
@@ -60,13 +60,13 @@ Escolhida a 1, porque o trabalho difícil é o leitor e o lançamento seguro, qu
 
 - Extração por IA com validação por regras. Regex pura quebraria nas variações de texto livre.
 - Cada bloco só é lançado se a soma dos itens bater com o total informado (quando há total). Se não bater, o bloco não é lançado e o motivo aparece na tela.
-- Centro novo só é criado se o nome não for parecido com um existente. Se for parecido, reaproveita o existente (resolve o caso "_HCP").
+- Centro novo só é criado se o nome não for parecido com um existente. Se for parecido, reaproveita o existente (resolve o caso "_OBRAX").
 - Cada lançamento guarda a mensagem original, quem importou e quando, e pode ser desfeito.
 - Linha sem centro de custo não é lançada e aparece como pendência na tela de resultado.
 - Importar a mesma mensagem duas vezes não duplica lançamentos (identificada por hash do texto e do item).
 - Permissões: importar exige `p2` (admin, gestor, financeiro, engenharia já lançam); não cria permissão nova. O usuário pediu que o financeiro importe. Criar centro novo continua exigindo `p5` (admin, gestor), como no Centro. Quando um financeiro importa e a linha pede centro novo, a linha vira pendência ("centro não existe, peça a admin ou gestor"), e as demais entram. Esta é minha leitura; se quiserem que o financeiro crie centros, é mudança na matriz do Centro e deve ser decidida à parte. Engenharia e técnico respeitam o escopo de obras (`assertObra`).
 - A tela de resultado aparece depois do lançamento, não antes: mostra o que entrou, o que ficou pendente e o botão "desfazer". Não há aprovação prévia.
-- Valores e datas: números no formato brasileiro ("1.091,36") são lidos por código, e o valor extraído pela IA precisa aparecer literalmente no texto, senão o item vira pendência. A IA só estrutura o texto, não calcula. A data da compra é a da importação, pois a mensagem não traz data.
+- Valores e datas: números no formato brasileiro ("1.234,56") são lidos por código, e o valor extraído pela IA precisa aparecer literalmente no texto, senão o item vira pendência. A IA só estrutura o texto, não calcula. A data da compra é a da importação, pois a mensagem não traz data.
 - Semelhança de centro: entre erro de duplicar um centro e erro de juntar compra no centro errado, o segundo é pior. Por isso só reaproveita centro existente quando o nome é igual depois de normalizar (caixa, acento, espaços, sufixo de obra). Na dúvida, cria um centro novo.
 - Chave anti-duplicidade: hash da mensagem, posição do bloco e posição da linha. Colar a mesma mensagem de novo não duplica, mas dois itens iguais em mensagens diferentes continuam valendo.
 - Desfazer: como as compras entram pendentes, desfazer é excluir o lançamento pendente, por importação inteira ou por compra, enquanto a competência estiver aberta e a compra não tiver sido liquidada. Depois disso só por estorno normal do Centro, fora desta feature. Um centro criado pela importação só some se ficar sem compras.
