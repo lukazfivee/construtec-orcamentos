@@ -52,6 +52,9 @@ Escolhida a 1, porque o trabalho difícil é o leitor e o lançamento seguro, qu
 
 - Lança direto, sem etapa de rascunho ou aprovação.
 - Entrada por colar texto no app (abordagem 1).
+- Compras entram como `pendente`, nunca liquidadas.
+- A categoria de cada compra é escolhida pela IA entre as categorias de despesa ativas do Centro.
+- O papel `financeiro` também pode importar.
 
 ## Minhas escolhas (marcadas para conferência)
 
@@ -61,12 +64,15 @@ Escolhida a 1, porque o trabalho difícil é o leitor e o lançamento seguro, qu
 - Cada lançamento guarda a mensagem original, quem importou e quando, e pode ser desfeito.
 - Linha sem centro de custo não é lançada e aparece como pendência na tela de resultado.
 - Importar a mesma mensagem duas vezes não duplica lançamentos (identificada por hash do texto e do item).
-- Reusa a permissão financeira que já existe na matriz do Centro (papéis em `src/shared/suitePermissions.ts`); não cria permissão nova.
+- Permissões: importar exige `p2` (admin, gestor, financeiro, engenharia já lançam); não cria permissão nova. O usuário pediu que o financeiro importe. Criar centro novo continua exigindo `p5` (admin, gestor), como no Centro. Quando um financeiro importa e a linha pede centro novo, a linha vira pendência ("centro não existe, peça a admin ou gestor"), e as demais entram. Esta é minha leitura; se quiserem que o financeiro crie centros, é mudança na matriz do Centro e deve ser decidida à parte. Engenharia e técnico respeitam o escopo de obras (`assertObra`).
 - A tela de resultado aparece depois do lançamento, não antes: mostra o que entrou, o que ficou pendente e o botão "desfazer". Não há aprovação prévia.
 - Valores e datas: números no formato brasileiro ("1.091,36") são lidos por código, e o valor extraído pela IA precisa aparecer literalmente no texto, senão o item vira pendência. A IA só estrutura o texto, não calcula. A data da compra é a da importação, pois a mensagem não traz data.
 - Semelhança de centro: entre erro de duplicar um centro e erro de juntar compra no centro errado, o segundo é pior. Por isso só reaproveita centro existente quando o nome é igual depois de normalizar (caixa, acento, espaços, sufixo de obra). Na dúvida, cria um centro novo.
 - Chave anti-duplicidade: hash da mensagem, posição do bloco e posição da linha. Colar a mesma mensagem de novo não duplica, mas dois itens iguais em mensagens diferentes continuam valendo.
-- Desfazer vale por importação inteira, com opção por compra. Um centro criado pela importação só some se ficar sem compras.
+- Desfazer: como as compras entram pendentes, desfazer é excluir o lançamento pendente, por importação inteira ou por compra, enquanto a competência estiver aberta e a compra não tiver sido liquidada. Depois disso só por estorno normal do Centro, fora desta feature. Um centro criado pela importação só some se ficar sem compras.
+- Categoria: a IA só pode escolher uma categoria de despesa ativa existente. Se nenhuma servir com segurança, usa "Outros" quando existir; senão a linha vira pendência na tela de resultado. A IA nunca cria categoria.
+- Código do centro novo: gerado pelo sistema, seguindo o padrão de códigos já usado no Centro (único sem diferenciar caixa). O nome é o texto do centro normalizado.
+- Competência fechada: a compra cuja data cai em mês fechado não é lançada e aparece como pendência.
 - Limite de tamanho por colagem: 20 mil caracteres. Provedor de IA fica ao construtor, sem retenção de dados quando o provedor permitir.
 
 ## Onde o código vive
@@ -81,7 +87,7 @@ A feature pertence ao Centro de Custos (`lukazfivee/centro-custos-construtec`, N
 - Competência fechada recusa novos lançamentos. Estorno só vale para lançamento aprovado e liquidado; pendente se edita ou exclui. Lançamento é imutável depois de liquidado, só por estorno.
 - Já existe IA no celular do Centro (Gemini via Firebase AI Logic, `public/m/ia-config.js`). A extração pode reaproveitar esse provedor.
 
-Consequências para este design: "desfazer" não é apagar. Em compra pendente é exclusão; em compra liquidada é estorno auditado. A categoria precisa de regra (a mensagem não traz). Criar centro novo por importação exige uma permissão que `financeiro` não tem.
+Consequências para este design (já tratadas nas decisões acima): compras pendentes se desfazem por exclusão, a categoria vem da IA, e criar centro novo exige permissão que `financeiro` não tem.
 
 ## O que fica para o construtor
 
