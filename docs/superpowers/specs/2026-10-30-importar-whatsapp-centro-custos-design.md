@@ -71,7 +71,17 @@ Escolhida a 1, porque o trabalho difícil é o leitor e o lançamento seguro, qu
 
 ## Onde o código vive
 
-A parte principal pertence ao Centro de Custos, que é outro repositório e não está neste. Este repositório (Orçamentos) só tem a ponte com o Centro: `costCenterId` da proposta, `centerTracking.ts` e o outbox. O Centro expõe um Worker com rotas `/v1/*` e chave de serviço (ver `src/server/services/centroIdentity.ts`). Nada da feature precisa mudar no Orçamentos, a menos que se decida o contrário.
+A feature pertence ao Centro de Custos (`lukazfivee/centro-custos-construtec`, Node/Express, PGlite, JS puro, limite de 350 linhas por arquivo). Este repositório (Orçamentos) só tem a ponte com o Centro e não muda.
+
+## Fatos do Centro que moldam o design (lidos no código em 2026-10-30)
+
+- "Centro de custo" é a tabela `cost_centers`: `code` (obrigatório, único sem diferenciar caixa), `name`, `kind` (`obra` ou `servico`), cliente, orçamento, datas. Não existe hierarquia finalidade/obra: é uma linha só.
+- "Compra" é uma linha de `transactions` do tipo `despesa`: exige `cost_center_id`, `category_id` (obrigatória), `description`, `counterparty` (texto, não há vínculo obrigatório com `suppliers`), `amount > 0`, `transaction_date`, `financial_status` (`pendente` ou `liquidado`) e `client_id` (idempotência já existente para a fila offline do celular).
+- Criar lançamento exige a permissão `p2` (admin, gestor, financeiro, engenharia). Criar centro exige `p5` (admin, gestor). Estornar exige `p4` (admin, gestor, financeiro).
+- Competência fechada recusa novos lançamentos. Estorno só vale para lançamento aprovado e liquidado; pendente se edita ou exclui. Lançamento é imutável depois de liquidado, só por estorno.
+- Já existe IA no celular do Centro (Gemini via Firebase AI Logic, `public/m/ia-config.js`). A extração pode reaproveitar esse provedor.
+
+Consequências para este design: "desfazer" não é apagar. Em compra pendente é exclusão; em compra liquidada é estorno auditado. A categoria precisa de regra (a mensagem não traz). Criar centro novo por importação exige uma permissão que `financeiro` não tem.
 
 ## O que fica para o construtor
 
