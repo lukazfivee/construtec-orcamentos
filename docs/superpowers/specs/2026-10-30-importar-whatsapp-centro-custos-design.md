@@ -1,6 +1,6 @@
 # Importar compras do WhatsApp no Centro de Custos - design
 
-Data: 2026-10-30 (BRT). Status: rascunho para aprovação.
+Data: 2026-10-30 (BRT). Status: aprovado; já implementado no Centro (ver `docs/superpowers/plans/2026-11-01-importar-whatsapp-status-centro.md`).
 
 ## Intenção e porquê
 
