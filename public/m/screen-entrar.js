@@ -1,7 +1,7 @@
 // Entrar direto no Orcamentos pelo celular (iPhone e navegador). A conta e a do Centro de Custos.
 (function (OC) {
   const { esc, icon } = OC;
-  const CENTRO_M = 'https://centro-custos-api.construtec-reports.workers.dev/m/';
+  const CENTRO_M = 'https://rcconstrutec.online/m/';
   const LAST_EMAIL = 'construtec.auth.remembered_email';
 
   // onDone: chamado depois de salvar a sessao (o app.js segue a abertura normal).

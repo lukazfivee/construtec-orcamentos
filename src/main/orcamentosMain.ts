@@ -67,7 +67,7 @@ export const startOrcamentosMain = async (options: OrcamentosMainOptions): Promi
     apiToken: apiRuntime?.token,
     platform: process.platform,
     storage: 'local',
-    centroCustosUrl: process.env.CENTRO_CUSTOS_URL || 'https://centro-custos-api.construtec-reports.workers.dev',
+    centroCustosUrl: process.env.CENTRO_CUSTOS_URL || 'https://rcconstrutec.online',
     ...options.runtimeExtras,
   }));
 

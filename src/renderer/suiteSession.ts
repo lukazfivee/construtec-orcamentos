@@ -15,7 +15,7 @@ export const suiteSessionFromHash = (hash: string) => {
 // Navegador: o Orcamentos sem sessao pergunta uma vez por aba ao Centro de Custos (mesma conta). Com a conta
 // logada la, o Centro devolve um codigo de uso unico (#handoff=); sem ela, devolve #centro=0 e vale o login daqui.
 // Mesma regra em public/m/app.js. A pagina do Centro e public/entrar-orcamentos.js, no repositorio do Centro.
-export const ORCAMENTOS_WEB = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev';
+export const ORCAMENTOS_WEB = 'https://orcamentos.rcconstrutec.online';
 export const CENTRO_ENTRADA = `${CENTRO_CUSTOS_CLOUD_URL}/entrar-orcamentos.html`;
 const ASKED_KEY = 'construtec.auth.centro';
 

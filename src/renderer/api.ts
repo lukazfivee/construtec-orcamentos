@@ -55,7 +55,7 @@ const getRuntime = async () => {
   return runtimePromise;
 };
 
-export const CENTRO_CUSTOS_CLOUD_URL = 'https://centro-custos-api.construtec-reports.workers.dev';
+export const CENTRO_CUSTOS_CLOUD_URL = 'https://rcconstrutec.online';
 
 export const getCentroCustosUrl = async () => (await getRuntime()).centroCustosUrl;
 
