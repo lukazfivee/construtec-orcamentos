@@ -16,7 +16,7 @@ export interface DirectSyncResult {
   centerUrl?: string;
 }
 
-const DEFAULT_CENTER_URL = 'https://centro-custos-api.construtec-reports.workers.dev/api/integracao/orcamentos/sync-direto';
+const DEFAULT_CENTER_URL = 'https://rcconstrutec.online/api/integracao/orcamentos/sync-direto';
 // Chave padrao so vale no desktop (PGlite local). Na nuvem (DATABASE_URL
 // definido) o valor e publico no repositorio; a chave precisa vir do segredo
 // CONSTRUTEC_INTEGRATION_KEY, senao a integracao fica desligada.

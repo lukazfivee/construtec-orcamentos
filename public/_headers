@@ -5,7 +5,7 @@
 /*
   X-Content-Type-Options: nosniff
   Permissions-Policy: microphone=(self)
-  Content-Security-Policy: frame-ancestors 'self' https://centro-custos-api.construtec-reports.workers.dev
+  Content-Security-Policy: frame-ancestors 'self' https://centro-custos-api.construtec-reports.workers.dev https://rcconstrutec.online
 /c
   Content-Security-Policy: frame-ancestors 'self'
 /c/*

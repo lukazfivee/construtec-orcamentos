@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { createDatabase } from '../src/server/services/database';
 import { setupFirstAdmin } from '../src/server/services/auth';
 
-const destination = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev/';
+const destination = 'https://orcamentos.rcconstrutec.online/';
 const successPage = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Cadastro concluído</title><h1>Administrador criado</h1><p>Entre com o e-mail e a senha que você acabou de definir.</p><a href="${destination}">Abrir Orçamentos e entrar</a></html>`;
 const schema = z.object({ name: z.string().trim().min(2).max(120), email: z.string().trim().email().max(200),
   password: z.string().min(10).max(128), confirm: z.string() }).refine(v => v.password === v.confirm);

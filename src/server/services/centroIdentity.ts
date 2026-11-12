@@ -3,7 +3,7 @@
 // dentro do Orcamentos. Ver centro-custos-construtec-v3/docs/superpowers/specs/
 // 2026-09-19-identidade-compartilhada-design.md.
 
-const DEFAULT_IDENTITY_URL = 'https://centro-custos-api.construtec-reports.workers.dev';
+const DEFAULT_IDENTITY_URL = 'https://rcconstrutec.online';
 const MIN_SERVICE_KEY_LENGTH = 32;
 const TIMEOUT_MS = 8000;
 

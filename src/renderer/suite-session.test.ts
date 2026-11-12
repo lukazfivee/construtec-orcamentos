@@ -20,7 +20,7 @@ const memoria = () => {
 };
 
 test('sem sessao no navegador, o Orcamentos pergunta ao Centro de Custos levando so a proposta', () => {
-  assert.equal(CENTRO_ENTRADA, 'https://centro-custos-api.construtec-reports.workers.dev/entrar-orcamentos.html');
+  assert.equal(CENTRO_ENTRADA, 'https://rcconstrutec.online/entrar-orcamentos.html');
   assert.equal(centroEntryUrl(ORCAMENTOS_WEB, ''), CENTRO_ENTRADA);
   assert.equal(centroEntryUrl(ORCAMENTOS_WEB, '#proposta=3f2a-11'), `${CENTRO_ENTRADA}#proposta=3f2a-11`);
   assert.equal(centroEntryUrl(ORCAMENTOS_WEB, '#proposta=%3Cscript%3E'), CENTRO_ENTRADA);
@@ -29,7 +29,7 @@ test('sem sessao no navegador, o Orcamentos pergunta ao Centro de Custos levando
     assert.equal(centroEntryUrl(ORCAMENTOS_WEB, hash), null, hash);
   }
   // So no site publicado: app do Windows (file://), servidor de desenvolvimento e o Orcamentos embutido no Centro ficam fora.
-  for (const origin of ['null', 'file://', 'http://localhost:5173', 'https://centro-custos-api.construtec-reports.workers.dev']) {
+  for (const origin of ['null', 'file://', 'http://localhost:5173', 'https://rcconstrutec.online']) {
     assert.equal(centroEntryUrl(origin, ''), null, origin);
   }
 });

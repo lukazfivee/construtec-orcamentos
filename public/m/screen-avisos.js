@@ -43,7 +43,7 @@
     if (app !== 'centro-custos') return;
     const pedidos = params.get('pedidos') === '1';
     const url = pedidos
-      ? (inApp() ? 'suite://app/centro-custos?pedidos=1' : 'https://centro-custos-api.construtec-reports.workers.dev/m/#pedidos=1')
+      ? (inApp() ? 'suite://app/centro-custos?pedidos=1' : 'https://rcconstrutec.online/m/#pedidos=1')
       : OC.suite.centroLink(params.get('obra'));
     if (inApp()) location.href = url; else window.open(url, '_blank', 'noopener');
   }

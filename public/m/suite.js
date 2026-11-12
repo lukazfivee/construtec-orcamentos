@@ -3,9 +3,9 @@
 // (com ?obra= para ir direto a obra da proposta); fora do app, abre o site em outra aba.
 (function (OC) {
   const { esc, icon } = OC;
-  const CENTRO_URL = 'https://centro-custos-api.construtec-reports.workers.dev/m/';
+  const CENTRO_URL = 'https://rcconstrutec.online/m/';
   // Entrada central: o Centro inicia o login unico ja direcionado ao Chamados e O.S.
-  const CHAMADOS_URL = 'https://centro-custos-api.construtec-reports.workers.dev/chamados/entrar';
+  const CHAMADOS_URL = 'https://rcconstrutec.online/chamados/entrar';
   const inApp = () => /SuiteConstrutec\//.test(navigator.userAgent);
   const centroLink = (obra) => {
     const id = Number(obra) > 0 ? String(Number(obra)) : '';

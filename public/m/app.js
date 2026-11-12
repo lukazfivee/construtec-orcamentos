@@ -89,8 +89,8 @@
   }
   // Navegador sem sessao: pergunta uma vez por aba ao Centro de Custos (mesma conta), que devolve #handoff= ou
   // #centro=0. Mesma regra de src/renderer/suiteSession.ts; a pagina do Centro e public/entrar-orcamentos.js de la.
-  const ORC_WEB = 'https://construtec-orcamentos-cloud.construtec-reports.workers.dev';
-  const CENTRO_ENTRADA = 'https://centro-custos-api.construtec-reports.workers.dev/entrar-orcamentos.html';
+  const ORC_WEB = 'https://orcamentos.rcconstrutec.online';
+  const CENTRO_ENTRADA = 'https://rcconstrutec.online/entrar-orcamentos.html';
   const ASKED_KEY = 'construtec.auth.centro';
   const proposalId = () => {
     const id = new URLSearchParams(location.hash.slice(1)).get('proposta');

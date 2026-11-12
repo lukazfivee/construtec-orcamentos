@@ -32,9 +32,9 @@ test('o preload expõe a troca de tela e o menu Suíte a usa só dentro da Suít
 });
 
 test('o Chamados e O.S. substitui o ChamadoPro em todos os pontos de troca, com login único pelo Centro', () => {
-  const entrada = 'https://centro-custos-api.construtec-reports.workers.dev/chamados/entrar';
-  assert.equal(chamadosEntradaUrl('https://centro-custos-api.construtec-reports.workers.dev'), entrada);
-  assert.equal(chamadosEntradaUrl('https://centro-custos-api.construtec-reports.workers.dev//'), entrada);
+  const entrada = 'https://rcconstrutec.online/chamados/entrar';
+  assert.equal(chamadosEntradaUrl('https://rcconstrutec.online'), entrada);
+  assert.equal(chamadosEntradaUrl('https://rcconstrutec.online//'), entrada);
   assert.match(read('src/renderer/MobileSuiteSheet.tsx'), /go\(chamadosEntradaUrl\(centroUrl\), true\)/);
   assert.ok(read('public/m/suite.js').includes(entrada));
   for (const file of ['src/renderer/suiteMenu.ts', 'src/renderer/SuiteSwitcherPopover.tsx', 'src/renderer/MobileSuiteSheet.tsx', 'public/m/suite.js', 'public/m/ia-config.js']) {

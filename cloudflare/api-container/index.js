@@ -12,12 +12,12 @@ function definedEnv(vars) {
 // Cloudflare). As chamadas HTTPS para esse host (login, sessao e
 // sincronizacao) sao interceptadas e repassadas pelo service binding CENTRO.
 // O Node do Container confia na CA da interceptacao via NODE_EXTRA_CA_CERTS.
-const CENTRO_HOST = 'centro-custos-api.construtec-reports.workers.dev';
+const CENTRO_HOSTS = ['centro-custos-api.construtec-reports.workers.dev', 'rcconstrutec.online'];
 const INTERCEPT_CA = '/etc/cloudflare/certs/cloudflare-containers-ca.crt';
 
 export class OrcamentosApi extends Container {
   static outboundByHost = {
-    [CENTRO_HOST]: (request, bindings) => bindings.CENTRO.fetch(request),
+    ...Object.fromEntries(CENTRO_HOSTS.map(host => [host, (request, bindings) => bindings.CENTRO.fetch(request)])),
   };
 
   interceptHttps = true;

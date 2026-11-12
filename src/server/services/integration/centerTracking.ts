@@ -6,7 +6,7 @@ import { resolveIntegrationKey } from './proposalSync';
 // (docs/superpowers/specs/2026-09-22-sincronizacao-orcamentos-design.md).
 // Somente leitura: guarda a ultima copia do resumo para mostrar sem conexao.
 
-const DEFAULT_CENTER_API = 'https://centro-custos-api.construtec-reports.workers.dev';
+const DEFAULT_CENTER_API = 'https://rcconstrutec.online';
 const TIMEOUT_MS = 6000;
 const REFRESH_LIMIT = 20;
 
