@@ -61,7 +61,7 @@
     const stepper = `<div class="steps" style="--p:${Math.min(Math.max(cur, 0), 4) / 4}">${STEPS.map((l, i) => `<span class="step${i < cur ? ' done' : ''}${i === cur ? ' cur' : ''}"><i></i>${l}</span>`).join('')}</div>`;
     const actions = next.prim || next.link || next.sec ? `<div class="actions">${next.sec ? `<button class="btn2" type="button" data-sec>${esc(next.sec[0])}</button>` : ''}
       ${next.prim ? `<button class="btn" type="button" data-prim>${icon(next.prim[1], 18)}${esc(next.prim[0])}</button>` : ''}
-      ${next.link ? `<a class="btn" href="${esc(next.link[2])}"${/SuiteConstrutec\//.test(navigator.userAgent) ? '' : ' target="_blank" rel="noopener"'} style="text-decoration:none">${icon(next.link[1], 18)}${esc(next.link[0])}</a>` : ''}</div>` : '';
+      ${next.link ? `<a class="btn" href="${esc(next.link[2])}" style="text-decoration:none">${icon(next.link[1], 18)}${esc(next.link[0])}</a>` : ''}</div>` : '';
     return {
       html: `${stepper}
         <div class="card"><div class="kv top-kv"><span><small>Valor final</small><b class="big">${esc(OC.money0(t.final))}</b></span>

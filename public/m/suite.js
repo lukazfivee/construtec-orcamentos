@@ -26,7 +26,7 @@
   OC.suite.open = function () {
     close();
     const obra = OC.suite.context && OC.suite.context.obra;
-    const other = inApp() ? '' : ' target="_blank" rel="noopener"';
+    const other = ''; // mesma aba, no navegador e no app
     const el = document.createElement('div');
     el.id = 'suite-sheet';
     el.className = 'sheet-backdrop';

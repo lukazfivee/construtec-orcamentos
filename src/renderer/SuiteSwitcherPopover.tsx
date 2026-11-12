@@ -63,12 +63,16 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
     };
   }, [onClose]);
 
-  const handleOpenUrl = (url: string) => {
+  // `mesmaAba`: troca entre os sistemas da Suite (Orcamentos, Centro, Chamados) no navegador navega na mesma aba;
+  // so o webmail abre em outra. No app Windows avulso o destino so pode abrir no navegador do sistema.
+  const handleOpenUrl = (url: string, mesmaAba = false) => {
     try {
       if (window.construtec?.openExternal) void window.construtec.openExternal(url);
+      else if (mesmaAba) window.location.assign(url);
       else window.open(url, '_blank', 'noopener,noreferrer');
     } catch {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (mesmaAba) window.location.assign(url);
+      else window.open(url, '_blank', 'noopener,noreferrer');
     }
     onClose();
   };
@@ -83,18 +87,18 @@ export function SuiteSwitcherPopover({ activeApp = 'orcamentos', onSelectApp, on
         void window.construtec.suiteSwitch('centro');
         onClose();
       } else {
-        handleOpenUrl(`${centroUrl.replace(/\/+$/, '')}/d/`);
+        handleOpenUrl(`${centroUrl.replace(/\/+$/, '')}/d/`, true);
       }
     } else if (entry.id === 'chamados') {
       // Login unico: o Centro emite o handoff; a negacao de acesso aparece na pagina de entrada central.
       if (window.construtec?.suiteSwitch && suiteApp) {
         // Host sem suporte ao Chamados (ou falha na entrada): cai no login central pelo navegador.
         window.construtec.suiteSwitch('chamados')
-          .then((result) => { if (!result?.switched) handleOpenUrl(chamadosEntradaUrl(centroUrl)); })
-          .catch(() => handleOpenUrl(chamadosEntradaUrl(centroUrl)));
+          .then((result) => { if (!result?.switched) handleOpenUrl(chamadosEntradaUrl(centroUrl), true); })
+          .catch(() => handleOpenUrl(chamadosEntradaUrl(centroUrl), true));
         onClose();
       } else {
-        handleOpenUrl(chamadosEntradaUrl(centroUrl));
+        handleOpenUrl(chamadosEntradaUrl(centroUrl), true);
       }
     } else if (entry.id === 'orcamentos') {
       onSelectApp?.('orcamentos');

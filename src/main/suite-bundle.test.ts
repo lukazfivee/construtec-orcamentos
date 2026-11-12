@@ -26,16 +26,16 @@ test('o preload expõe a troca de tela e o menu Suíte a usa só dentro da Suít
   const menu = read('src/renderer/SuiteSwitcherPopover.tsx');
   assert.match(menu, /runtime\.suite === true/);
   assert.match(menu, /suiteSwitch\('centro'\)/);
-  assert.match(menu, /handleOpenUrl\(`\$\{centroUrl\.replace\([^)]*\)\}\/d\/`\)/, 'fora da Suíte o Centro abre direto o app (/d/), não a raiz que é o seletor de apps');
+  assert.match(menu, /handleOpenUrl\(`\$\{centroUrl\.replace\([^)]*\)\}\/d\/`, true\)/, 'fora da Suíte o Centro abre direto o app (/d/), não a raiz que é o seletor de apps');
   assert.match(menu, /suiteSwitch\('chamados'\)/);
-  assert.match(menu, /handleOpenUrl\(chamadosEntradaUrl\(centroUrl\)\)/, 'fora da Suíte o Chamados abre pela entrada central');
+  assert.match(menu, /handleOpenUrl\(chamadosEntradaUrl\(centroUrl\), true\)/, 'fora da Suíte o Chamados abre pela entrada central');
 });
 
 test('o Chamados e O.S. substitui o ChamadoPro em todos os pontos de troca, com login único pelo Centro', () => {
   const entrada = 'https://rcconstrutec.online/chamados/entrar';
   assert.equal(chamadosEntradaUrl('https://rcconstrutec.online'), entrada);
   assert.equal(chamadosEntradaUrl('https://rcconstrutec.online//'), entrada);
-  assert.match(read('src/renderer/MobileSuiteSheet.tsx'), /go\(chamadosEntradaUrl\(centroUrl\), true\)/);
+  assert.match(read('src/renderer/MobileSuiteSheet.tsx'), /go\(chamadosEntradaUrl\(centroUrl\)\)/);
   assert.ok(read('public/m/suite.js').includes(entrada));
   for (const file of ['src/renderer/suiteMenu.ts', 'src/renderer/SuiteSwitcherPopover.tsx', 'src/renderer/MobileSuiteSheet.tsx', 'public/m/suite.js', 'public/m/ia-config.js']) {
     assert.doesNotMatch(read(file), /chamadopro/i, `${file} sem referência ao ChamadoPro antigo`);
@@ -49,4 +49,20 @@ test('o script de empacotamento gera renderer, processo principal e preload', ()
   assert.ok(script.includes('process.env.CONSTRUTEC_SUITE'), 'o preload da Suíte esconde a barra de título própria');
   assert.ok(read('src/preload.ts').includes("process.env.CONSTRUTEC_SUITE !== '1'"));
   assert.match(script, /--external:@electric-sql\/pglite/);
+});
+
+test('a troca entre Orçamentos, Centro e Chamados abre sempre na mesma aba (só o webmail abre em outra)', () => {
+  const arquivos = [
+    'src/renderer/SuiteSwitcherPopover.tsx', 'src/renderer/MobileSuiteSheet.tsx', 'public/m/suite.js',
+    'public/m/screen-avisos.js', 'public/m/screen-descarte.js', 'public/m/screen-prop.js',
+  ];
+  for (const file of arquivos) {
+    const semWebmail = read(file).split('\n').filter((line) => !/webmail/i.test(line)).join('\n');
+    // handleOpenUrl guarda o window.open do webmail; fora dele nenhum destino da Suite abre aba nova.
+    const semFallback = semWebmail.replace(/else window\.open\(url, '_blank', 'noopener,noreferrer'\);/g, '');
+    assert.doesNotMatch(semFallback, /target="_blank"|window\.open\(/, file);
+  }
+  const popover = read('src/renderer/SuiteSwitcherPopover.tsx');
+  assert.match(popover, /handleOpenUrl\(chamadosEntradaUrl\(centroUrl\), true\)/);
+  assert.match(popover, /\/d\/`, true\)/);
 });
