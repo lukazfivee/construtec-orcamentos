@@ -10,9 +10,9 @@ import { SUITE_MENU_TITLE, chamadosEntradaUrl } from './suiteMenu';
 // de WebView por suite://app/<id>; o Chamados e O.S. abre pela entrada central (login unico).
 const inSuiteApp = typeof navigator !== 'undefined' && /SuiteConstrutec\//.test(navigator.userAgent);
 
-const go = (url: string, external = false) => {
-  if (external && !inSuiteApp) window.open(url, '_blank', 'noopener,noreferrer');
-  else window.location.href = url;
+// Entre os sistemas da Suite a troca acontece sempre na mesma aba.
+const go = (url: string) => {
+  window.location.href = url;
 };
 
 interface Props {
@@ -35,7 +35,7 @@ export function MobileSuiteSheet({ proposal, onClose }: Props) {
   const openCentro = (obra?: number) => {
     onClose();
     if (inSuiteApp) go(obra ? `suite://app/centro-custos?obra=${obra}` : 'suite://app/centro-custos');
-    else go(`${centroUrl}/m/${obra ? `#obra=${obra}` : ''}`, true);
+    else go(`${centroUrl}/m/${obra ? `#obra=${obra}` : ''}`);
   };
 
   // Portal no body: dentro da barra do topo a folha ficaria atras do conteudo (camada da topbar).
@@ -70,7 +70,7 @@ export function MobileSuiteSheet({ proposal, onClose }: Props) {
           <span><small>Etapa 02</small><b>Centro de Custos</b></span>
           <ChevronRight size={16} />
         </button>
-        <button type="button" className="suite-sheet-item" onClick={() => { onClose(); go(chamadosEntradaUrl(centroUrl), true); }}>
+        <button type="button" className="suite-sheet-item" onClick={() => { onClose(); go(chamadosEntradaUrl(centroUrl)); }}>
           <Wrench size={20} />
           <span><small>Etapa 03</small><b>Chamados e O.S.</b></span>
           <ArrowUpRight size={16} />

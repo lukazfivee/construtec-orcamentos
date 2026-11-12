@@ -113,7 +113,7 @@
           <div class="sheet-actions"><button class="btn2" type="button" data-close>Fechar</button><button class="btn" type="button" data-see>${icon('archive', 18)}Ver descartadas</button></div>`;
       }
       const e = st === 'erro' ? errKind(error, true) : null;
-      const link = e === ERR.mov && p.costCenterId ? `<a class="err-link" href="${esc(OC.suite.centroLink(p.costCenterId))}"${/SuiteConstrutec\//.test(navigator.userAgent) ? '' : ' target="_blank" rel="noopener"'}>Ver obra no Centro de Custos${icon('arrow-square-out', 14)}</a>` : '';
+      const link = e === ERR.mov && p.costCenterId ? `<a class="err-link" href="${esc(OC.suite.centroLink(p.costCenterId))}">Ver obra no Centro de Custos${icon('arrow-square-out', 14)}</a>` : '';
       const lock = st === 'send' ? ' disabled' : '';
       return `${e ? errBox(e, link) : ''}
         <p class="sheet-text">A proposta sai da lista de Propostas e fica guardada com quem descartou e quando. Um administrador pode recuperar em Menu › Propostas descartadas.</p>

@@ -45,7 +45,7 @@
     const url = pedidos
       ? (inApp() ? 'suite://app/centro-custos?pedidos=1' : 'https://rcconstrutec.online/m/#pedidos=1')
       : OC.suite.centroLink(params.get('obra'));
-    if (inApp()) location.href = url; else window.open(url, '_blank', 'noopener');
+    location.href = url;
   }
 
   const row = (n) => `<button class="aviso${n.read ? '' : ' novo'}" type="button" data-id="${esc(n.id)}" data-link="${esc(n.link || '')}">
