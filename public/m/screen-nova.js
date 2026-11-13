@@ -25,8 +25,9 @@
     let made = {}; // o que ja foi criado, para tentar de novo sem duplicar
     // Quem teve proposta mais recente vem primeiro; ao copiar, as propostas do cliente escolhido vem na frente.
     const same = (p, c) => p.clientId === c.id || p.clientName === (c.tradeName || c.legalName);
-    const last = (c) => proposals.reduce((max, p) => (same(p, c) ? Math.max(max, new Date(p.updatedAt).getTime() || 0) : max), 0);
-    clients.sort((a, b) => last(b) - last(a));
+    // Compara o texto da data (mesmo formato em todas): o Safari nao le a data do PostgreSQL com espaco.
+    const last = (c) => proposals.reduce((max, p) => (same(p, c) && String(p.updatedAt || '') > max ? String(p.updatedAt) : max), '');
+    clients.sort((a, b) => (last(a) < last(b) ? 1 : last(a) > last(b) ? -1 : 0));
     const withItems = proposals.filter((p) => p.itemCount > 0);
     const copyable = () => {
       const c = clients.find((x) => x.id === state.client);

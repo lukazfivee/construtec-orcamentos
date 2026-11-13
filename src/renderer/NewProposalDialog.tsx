@@ -90,7 +90,8 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
   const isWorkValid = (activeWorks.length === 0 || isCreatingWork)
     ? newWorkName.trim().length >= 2
     : Boolean(workId);
-  const canSubmit = Boolean(clientId && isWorkValid && !loading);
+  // Escopo em branco vale (nasce com o texto padrao); digitado, segue o minimo de 3 do servidor.
+  const canSubmit = Boolean(clientId && isWorkValid && scope.trim().length !== 1 && scope.trim().length !== 2 && !loading);
 
   useEffect(() => {
     if (!open) return;
@@ -129,7 +130,7 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
         clientId,
         workId: finalWorkId,
         // Sem escopo digitado, nasce com o mesmo texto do celular; da para trocar depois nas condicoes.
-        scope: scope.trim().length >= 3 ? scope.trim() : `Proposta para ${workName}`,
+        scope: scope.trim() || `Proposta para ${workName}`,
         validUntil: validUntil || null,
         ...(bodyModel ? { bodyModel } : {}),
       });
@@ -259,7 +260,7 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
               autoFocus
               type="text"
               maxLength={300}
-              placeholder="Em branco, fica: Proposta para a obra escolhida"
+              placeholder="Em branco, fica: Proposta para a obra escolhida (ou digite 3 letras ou mais)"
               value={scope}
               disabled={loading}
               onChange={(event) => setScope(event.target.value)}
