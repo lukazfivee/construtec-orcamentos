@@ -1,5 +1,14 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-11-13 BRT - Celular: voltar do aparelho, zoom do iOS e alvos de toque (Claude Code)
+
+- Base: `origin/main` depois do PR #247 (auditoria de 12/11, mesclado). Branch `feat/mobile-ux-20261113`, worktree em `C:\orc-mobile`.
+- `public/m/app.js`: uma entrada de guarda no historico; o voltar do aparelho fecha a folha, volta de tela (`OC.back`) ou, no Inicio, sai. `core.js`: leituras (GET) desistem em 30 s.
+- CSS: campos em 16 px, alvos de 44 px, folha trava a rolagem de tras, `interactive-widget=resizes-content`. Login (`src/login.css`) com area segura e campo em 16 px.
+- PR #247 recebeu duas correcoes do revisor: exclusao do catalogo e auditoria na mesma transacao; hash do aceite conferido dentro da transacao.
+- Validacao: `npm run verify` (tsc, eslint 0 erros, test:critical sem falhas). Voltar do aparelho exercitado no navegador em 375 px com telas de teste e sessao ficticia; nao testado em aparelho real nem com login real.
+- Proximo passo: acompanhar o uso em aparelho. Bloqueios: nenhum.
+
 ## 2026-11-12 23:08 BRT - Auditoria de código de 12/11, segundo lote (Claude Code)
 
 - Base: `5f28589` (primeiro lote, já commitado) na branch `fix/auditoria-2026-11-12`, worktree em `C:\orc-auditoria`. Segundo lote commitado em `c904bff`. Sem push nem PR.
