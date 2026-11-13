@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import type { AuthUser } from '../../shared/contracts';
 import type { LocalDatabase } from '../services/database';
 import { applyKitToProposal, createKit, deleteKit, getKitById, listKits, updateKit } from '../services/kits';
 
@@ -69,7 +70,7 @@ export const createKitsRouter = (database: LocalDatabase) => {
     try {
       const kitId = idSchema.parse(request.params.kitId);
       const { proposalId } = z.object({ proposalId: z.string().uuid() }).parse(request.body);
-      const proposal = await applyKitToProposal(database, kitId, proposalId);
+      const proposal = await applyKitToProposal(database, kitId, proposalId, (response.locals.authUser as AuthUser | undefined)?.id);
       response.json({ proposal });
     } catch (error) { next(error); }
   });

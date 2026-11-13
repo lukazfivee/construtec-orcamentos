@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
 import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
@@ -86,14 +87,24 @@ export const createCatalogRouter = (database: LocalDatabase) => {
   router.delete('/:productId', async (request, response, next) => {
     try {
       const productId = idSchema.parse(request.params.productId);
-      const check = await database.query<{ id: string }>('SELECT id FROM catalog_products WHERE id = $1', [productId]);
+      const check = await database.query<{ id: string; code: string; description: string }>('SELECT id, code, description FROM products WHERE id = $1', [productId]);
       if (!check.rows[0]) { response.status(404).json({ error: 'Produto não encontrado no catálogo.' }); return; }
+      // As duas tabelas referenciam products(id) sem cascata: excluir com vinculo estouraria a chave estrangeira.
       const usedInProposal = await database.query<{ id: string }>(
-        'SELECT id FROM proposal_items WHERE snapshot_code = (SELECT code FROM catalog_products WHERE id = $1) LIMIT 1', [productId]
+        'SELECT id FROM proposal_items WHERE catalog_product_id = $1 OR snapshot_code = (SELECT code FROM products WHERE id = $1) LIMIT 1', [productId]
       );
       if (usedInProposal.rows[0]) { response.status(409).json({ error: 'Produto vinculado a proposta(s). Não é possível excluir.' }); return; }
-      await database.query('DELETE FROM catalog_products WHERE id = $1', [productId]);
-      await attributeAuditEvent(database, actor(response).id, 'product', productId, 'deleted');
+      const usedInKit = await database.query<{ id: string }>('SELECT id FROM kit_items WHERE catalog_product_id = $1 LIMIT 1', [productId]);
+      if (usedInKit.rows[0]) { response.status(409).json({ error: 'Produto usado em kit(s). Remova-o dos kits antes de excluir.' }); return; }
+      const before = JSON.stringify({ code: check.rows[0].code, description: check.rows[0].description }), userId = actor(response).id;
+      // Exclusao e auditoria juntas: se o evento nao grava, o produto nao some. (attributeAuditEvent so assina evento que ja existe.)
+      await database.transaction(async (tx) => {
+        await tx.query('DELETE FROM products WHERE id = $1', [productId]);
+        await tx.query(
+          "INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, user_id) VALUES ($1, 'product', $2, 'deleted', $3::jsonb, $4)",
+          [randomUUID(), productId, before, userId],
+        );
+      });
       response.json({ products: await listCatalogProducts(database) });
     } catch (error) { next(error); }
   });

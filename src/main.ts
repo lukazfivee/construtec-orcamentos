@@ -8,6 +8,10 @@ import { registerUpdaterIpc } from './main/updaterIpc';
 
 if (started) app.quit();
 
+// Uma instancia so: duas abririam a mesma base local (PGlite) ao mesmo tempo.
+const singleInstance = started ? false : app.requestSingleInstanceLock();
+if (!started && !singleInstance) app.quit();
+
 let orcamentos: OrcamentosMain | undefined;
 
 const createWindow = async () => {
@@ -59,7 +63,16 @@ const createWindow = async () => {
   mainWindow.focus();
 };
 
+app.on('second-instance', () => {
+  const [window] = BrowserWindow.getAllWindows();
+  if (!window) return;
+  if (window.isMinimized()) window.restore();
+  window.show();
+  window.focus();
+});
+
 app.whenReady().then(async () => {
+  if (!singleInstance) return;
   installMicrophonePermission(session.defaultSession); // ditado por voz do assistente
   const userDataPath = app.getPath('userData');
   const packagedPGlitePath = app.isPackaged ? path.join(process.resourcesPath, 'pglite') : undefined;

@@ -1,5 +1,29 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-11-12 23:08 BRT - Auditoria de código de 12/11, segundo lote (Claude Code)
+
+- Base: `5f28589` (primeiro lote, já commitado) na branch `fix/auditoria-2026-11-12`, worktree em `C:\orc-auditoria`. Segundo lote commitado em `c904bff`. Sem push nem PR.
+- AC-82: itens de proposta gravados em blocos de 100 (`insertProposalItems` em `proposalCommon.ts`) e produtos lidos em uma consulta só, em `importProposalItemsBatch`, `copyItemsFromProposal`, `applyKitToProposal` e `importCatalogProducts`. Antes eram duas consultas por item dentro da transação.
+- AC-84: copiar itens de outra proposta preserva a venda digitada à mão (`isManualSale` com o BDI da origem, mesmo critério de `updateProposalItem`); venda automática continua seguindo o BDI do destino. Muda o resultado da cópia: antes toda venda era recalculada.
+- AC-79: data por extenso do documento com `timeZone: 'America/Sao_Paulo'`. AC-87: tokens do servidor (configuração inicial, chave de integração, token local) comparados em tempo constante (`sameSecret` em `createApp.ts`). AC-85: canais `documents:preview` e `documents:export` removidos (sem chamador no renderer nem no Centro), com `previewProposal`/`exportProposal` do preload. AC-90: nome do instalador segue a versão do `package.json` (`forge.config.ts`, `build-installer.mjs`). AC-91: tratamento de erro saiu de `createApp.ts` para `errorHandler.ts` (mesmas mensagens e status, conferidos um a um); `createApp.ts` com 231 linhas e `routes/proposals.ts` com 348.
+- Teste novo `services/proposal-import.test.ts` (importação em lote, cópia, kit, importação do catálogo), incluído em `test-critical.mjs`. Escrito antes da mudança: no código antigo só a expectativa do AC-84 falhava.
+- Validação: `tsc --noEmit` sem erros; eslint 0 erros e 34 avisos; `test:critical` 426 testes, 425 passam, 0 falham, 1 ignorado (PostgreSQL real). `forge.config.ts` carregado fora do Forge resolve `Construtec-Orcamentos-1.0.13-Setup.exe`; instalador não foi gerado. Nada exercitado no app em execução nem contra Postgres real (os testes usam PGlite).
+- Não feito: AC-83 (`priceDrift`, exigiria reescrever o cálculo de totais), AC-87 no `ocr-worker` (a edição dispara deploy de produção e não há teste), AC-88 (CSP, precisa do app rodando para validar), AC-89 (`DB_SSL_VERIFY`, uso em produção não confirmado), divisão de `shared/contracts.ts` (378 linhas; `suiteGuard.test.ts` lê esse arquivo). Dependem de decisão: AC-71 a AC-73, AC-78, AC-80, AC-81.
+- Próximo passo: push e PR quando solicitado. Bloqueios: nenhum.
+
+## 2026-11-12 15:23 BRT - Correções da auditoria de código de 12/11 (Claude Code)
+
+- Base: `origin/main` em `6b79bab`, branch `fix/auditoria-2026-11-12`, worktree em `C:\orc-auditoria` (a pasta do Drive não aceita o link de `node_modules`). Mudanças só na árvore de trabalho, sem commit nem PR. O checkout principal (`fix/controles-windows-login`) não foi tocado. Relatório: `AUDITORIA-CODIGO-2026-11-12.md` na raiz do workspace.
+- AC-67: `DELETE /api/catalog/:id` usava a tabela inexistente `catalog_products` e dava 500 sempre. Agora usa `products`, recusa (409) item em proposta ou em kit e grava o evento `deleted` na auditoria (antes `attributeAuditEvent` não achava evento para assinar). Teste novo `routes/catalog.test.ts`, incluído em `test-critical.mjs`.
+- AC-68: `main.ts` pede `requestSingleInstanceLock`; a segunda instância sai e foca a janela existente. Não vale para o app Suíte, que não usa `main.ts`.
+- AC-69: a numeração `PA-####` considera também `discarded_proposals` (`PROPOSAL_NUMBERS_SQL` em `proposalCommon.ts`), em `createProposal` e `cloneProposal`. Número de proposta excluída em definitivo ainda pode voltar.
+- AC-70: `deleteProposal` grava `audit_events` (`deleted`, com número, modo, revisões e autor). A rota passa o usuário.
+- AC-74: `openPublicLink` devolve `contentHash` e `/approve` recusa com 409 `LINK_CONTENT_CHANGED` quando o hash enviado difere do atual; `public/c/c.js` envia o hash e recarrega a proposta nesse erro. O hash é conferido quando enviado (página antiga em cache ainda passa sem ele).
+- AC-75: `applyKitToProposal` usa `getEditableProposal` (revisão vigente, em edição ou revisão) e grava `kit_applied` na auditoria. AC-76: `suiteGuard` nega `to-catalog` sem p10. AC-77: handler `catalog:export-preview` registrado. AC-86: `cloneProposal` usa `COALESCE(trade_name, legal_name)`.
+- Validação: `tsc --noEmit` sem erros; eslint 0 erros e 37 avisos (os mesmos de antes); `test:critical` 421 testes, 420 passam, 0 falham, 1 ignorado (PostgreSQL real). Rodado com o `node_modules` do checkout principal, anterior ao `package-lock.json` da main. Trava de instância única, canal de exportação e página `/c` não foram exercitados no app em execução.
+- Não feito, depende de decisão: AC-71 a AC-73 (linhas do documento que não somam o Valor final), AC-78 (validade "30 dias" no PDF contra "A definir" no Word), AC-80 (aceite de proposta vencida), AC-81 (assinatura do feed de atualização). Não feito: AC-79, AC-82 a AC-85, AC-87 a AC-91.
+- Próximo passo: revisar o diff, commitar e abrir PR quando solicitado. Bloqueios: nenhum.
+
 ## 2026-10-26 BRT - Assistente de IA mais rápido: leituras em paralelo e obra dentro de ver_proposta (Claude Code)
 
 - Base: `08374bf` (main local), mudanças só na árvore de trabalho, sem commit nem PR. `WindowTitleBar.tsx` e `titlebar.test.ts` também estão modificados, mas são da entrada de 23/10 (Codex), não desta.

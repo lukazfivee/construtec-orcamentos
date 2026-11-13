@@ -11,8 +11,6 @@ contextBridge.exposeInMainWorld('construtec', {
   openWebmail: (composeData?: unknown) => ipcRenderer.invoke('webmail:open', composeData),
   webmailStatus: () => ipcRenderer.invoke('webmail:status'),
   webmailLogout: () => ipcRenderer.invoke('webmail:logout'),
-  previewProposal: (proposal: unknown, options?: unknown) => ipcRenderer.invoke('documents:preview', proposal, options),
-  exportProposal: (proposal: unknown, options?: unknown) => ipcRenderer.invoke('documents:export', proposal, options),
   savePdf: (proposal: unknown, html: string, suggestedName: string) => ipcRenderer.invoke('documents:save-pdf', proposal, html, suggestedName),
   saveBackup: (bytes: Uint8Array, suggestedName: string) => ipcRenderer.invoke('backup:save', bytes, suggestedName),
   restoreBackup: (sessionToken: string) => ipcRenderer.invoke('backup:restore', sessionToken),

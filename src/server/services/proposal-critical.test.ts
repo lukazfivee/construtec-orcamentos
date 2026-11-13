@@ -109,6 +109,18 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
     assert.equal(events.rows[0].count, 1);
   });
 
+  await context.test('numero de proposta descartada não é emitido de novo', async () => {
+    const discardId = '33333333-3333-4333-8333-333333333333';
+    await database.query("INSERT INTO discarded_proposals (id, proposal_number, payload) VALUES ($1, 'PA-9000', '{}'::jsonb)", [discardId]);
+    const id = await makeProposal();
+    assert.equal((await detail(id)).number, 'PA-9001');
+    const cloneId = await cloneProposal(database, id, undefined, userId);
+    assert.equal((await detail(cloneId)).number, 'PA-9002');
+    await deleteProposal(database, cloneId, 'all', userId);
+    await deleteProposal(database, id, 'all', userId);
+    await database.query('DELETE FROM discarded_proposals WHERE id = $1', [discardId]);
+  });
+
   await context.test('nova revisão contém mão de obra e não permite apagar família aprovada', async () => {
     const id = await makeProposal();
     await addLabor(id);
@@ -124,8 +136,15 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
     const cloneId = await cloneProposal(database, id, undefined, userId);
     assert.equal((await detail(cloneId)).laborItems?.length, 1);
     assert.notEqual((await detail(cloneId)).number, revision.number);
-    await deleteProposal(database, cloneId);
+    const cloneNumber = (await detail(cloneId)).number;
+    await deleteProposal(database, cloneId, 'all', userId);
     assert.equal(await getProposalById(database, cloneId), null);
+    // A exclusao definitiva deixa rastro: quem apagou, qual numero e quais revisoes.
+    const deleted = await database.query<{ user_id: string; before_data: { number: string; mode: string } }>(
+      "SELECT user_id, before_data FROM audit_events WHERE entity_id = $1 AND action = 'deleted'", [cloneId]);
+    assert.equal(deleted.rows.length, 1);
+    assert.equal(deleted.rows[0].user_id, userId);
+    assert.equal(deleted.rows[0].before_data.number, cloneNumber);
   });
 
   await context.test('falha na cópia de mão de obra desfaz revisão/clonagem e sua auditoria', async () => {

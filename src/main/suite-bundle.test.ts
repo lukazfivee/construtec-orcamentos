@@ -14,7 +14,7 @@ test('o app avulso e a Suíte compartilham startOrcamentosMain', () => {
   assert.match(avulso, /startOrcamentosMain\(/);
   assert.doesNotMatch(avulso, /ipcMain\.handle/, 'os canais IPC vivem em src/main/orcamentosMain.ts');
   const modulo = read('src/main/orcamentosMain.ts');
-  for (const canal of ['app:runtime', 'documents:export', 'documents:save-pdf', 'backup:restore', 'catalog:select-import', 'exsat:login', 'webmail:open']) {
+  for (const canal of ['app:runtime', 'documents:save-pdf', 'backup:restore', 'catalog:select-import', 'exsat:login', 'webmail:open']) {
     assert.ok(modulo.includes(`ipcMain.handle('${canal}'`), `canal ${canal}`);
   }
   assert.ok(modulo.includes('...options.runtimeExtras'), 'a Suíte marca suite:true em app:runtime');

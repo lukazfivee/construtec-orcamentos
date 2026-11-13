@@ -1,5 +1,5 @@
 import type { UpdaterState } from '../main/updater';
-import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ExsatSyncInfo, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
+import type { CatalogImportFile, CatalogImportItem, ExsatBatchPreview, ExsatSyncInfo, ProposalDetail } from '../shared/contracts';
 
 export {};
 
@@ -23,8 +23,6 @@ declare global {
       openWebmail?: (composeData?: { to?: string; subject?: string; body?: string }) => Promise<{ opened: boolean }>;
       webmailStatus?: () => Promise<{ connected: boolean }>;
       webmailLogout?: () => Promise<{ success: boolean }>;
-      previewProposal: (proposal: ProposalDetail, options?: ProposalExportOptions) => Promise<{ opened: boolean }>;
-      exportProposal: (proposal: ProposalDetail, options?: ProposalExportOptions) => Promise<{ canceled: boolean; files: string[] }>;
       savePdf?: (proposal: ProposalDetail, html: string, suggestedName: string) => Promise<{ canceled: boolean; filePath?: string }>;
       saveBackup: (bytes: Uint8Array, suggestedName: string) => Promise<{ canceled: boolean; filePath?: string }>;
       restoreBackup: (sessionToken: string) => Promise<{ canceled: boolean; restarting: boolean; emergencyBackupPath?: string }>;

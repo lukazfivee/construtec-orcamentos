@@ -147,12 +147,20 @@
     async function send() {
       submit.disabled = true; submit.textContent = 'Enviando a aprovação…'; errBox.replaceChildren();
       try {
-        const result = await call('/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: draft.name, role: draft.role, accept: draft.accept }) });
+        const result = await call('/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ name: draft.name, role: draft.role, accept: draft.accept }, data.contentHash ? { contentHash: data.contentHash } : {})) });
         data.state = 'approved'; data.reply = { kind: 'approved', name: draft.name, code: result.code };
         notice('OK', 'Proposta aprovada', 'Recebemos a sua aprovação da proposta ' + data.proposal.number + '. Guarde o código do aceite.', h('span', { class: 'code', text: result.code }));
         document.getElementById('app').classList.add('ok');
       } catch (error) {
         if (error.code === 'LINK_NOT_ACTIVE') { await load(); return; }
+        // A proposta mudou depois de aberta: recarrega os dados e pede nova conferencia antes do aceite.
+        if (error.code === 'LINK_CONTENT_CHANGED') {
+          const message = error.message;
+          draft.accept = false;
+          await load();
+          if (data && data.state === 'active') app.prepend(h('div', { class: 'err', role: 'alert', text: message }));
+          return;
+        }
         submit.textContent = 'Aprovar proposta';
         errBox.replaceChildren(h('div', { class: 'err', role: 'alert', text: error.status ? error.message : 'Sem conexão. O que você preencheu continua aqui; tente de novo.' }));
         refresh();

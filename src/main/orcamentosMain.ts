@@ -3,9 +3,9 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { startApiServer, type ApiRuntime } from '../server/startApiServer';
 import { getDatabasePath, restoreDatabaseFromBackup, validateDatabaseBackup } from '../server/services/database';
-import type { AppSettings, ProposalDetail, ProposalExportOptions } from '../shared/contracts';
-import { buildProposalDocx, buildProposalHtml, proposalFileBaseName, proposalPdfOptions } from '../documents/proposalDocument';
-import { selectCatalogImport } from './catalogImport';
+import type { CatalogImportItem, ProposalDetail } from '../shared/contracts';
+import { proposalPdfOptions } from '../documents/proposalDocument';
+import { exportCatalogImport, selectCatalogImport } from './catalogImport';
 import { normalizeCatalogImportFile } from './catalogImportNormalize';
 import { disconnectExsat, exsatConnectionStatus, getExsatSyncInfo, openExsatLogin, previewAuthenticatedExsat, previewAuthenticatedExsatAuto, previewAuthenticatedExsatBatch, recordExsatSyncResult } from './exsatSession';
 import { disconnectWebmail, openWebmailWindow, webmailConnectionStatus } from './webmailSession';
@@ -27,36 +27,6 @@ export type OrcamentosMain = {
 };
 
 let apiRuntime: ApiRuntime | undefined;
-const previewWindows = new Set<BrowserWindow>();
-
-const fetchAppSettings = async (): Promise<AppSettings | undefined> => {
-  if (!apiRuntime) return undefined;
-  try {
-    const res = await fetch(`${apiRuntime.url}/api/settings`, {
-      headers: { 'X-Construtec-Token': apiRuntime.token },
-    });
-    if (res.ok) return (await res.json()) as AppSettings;
-  } catch { return undefined; }
-  return undefined;
-};
-
-const loadDocumentWindow = async (proposal: ProposalDetail, show: boolean, settings?: AppSettings, options?: ProposalExportOptions) => {
-  const resolvedSettings = settings ?? (await fetchAppSettings());
-  const documentWindow = new BrowserWindow({
-    width: 1100,
-    height: 850,
-    show: false,
-    title: `Pré-visualização - ${proposal.number}`,
-    autoHideMenuBar: true,
-    backgroundColor: '#e9edf3',
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
-  });
-  previewWindows.add(documentWindow);
-  documentWindow.on('closed', () => previewWindows.delete(documentWindow));
-  await documentWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(buildProposalHtml(proposal, resolvedSettings, options))}`);
-  if (show) documentWindow.show();
-  return documentWindow;
-};
 
 export const startOrcamentosMain = async (options: OrcamentosMainOptions): Promise<OrcamentosMain> => {
   const { userDataPath, packagedPGlitePath } = options;
@@ -89,44 +59,6 @@ export const startOrcamentosMain = async (options: OrcamentosMainOptions): Promi
   ipcMain.handle('webmail:status', () => webmailConnectionStatus());
   ipcMain.handle('webmail:logout', () => disconnectWebmail());
 
-  ipcMain.handle('documents:preview', async (_event, proposal: ProposalDetail, options?: ProposalExportOptions) => {
-    await loadDocumentWindow(proposal, true, undefined, options);
-    return { opened: true };
-  });
-
-  ipcMain.handle('documents:export', async (_event, proposal: ProposalDetail, options?: ProposalExportOptions) => {
-    const selection = await dialog.showOpenDialog({
-      title: 'Escolha onde salvar a proposta',
-      defaultPath: app.getPath('documents'),
-      properties: ['openDirectory', 'createDirectory'],
-      buttonLabel: 'Salvar documentos',
-    });
-    if (selection.canceled || !selection.filePaths[0]) return { canceled: true, files: [] };
-    const outputDirectory = selection.filePaths[0];
-    await mkdir(outputDirectory, { recursive: true });
-    const settings = await fetchAppSettings();
-    const baseName = proposalFileBaseName(proposal);
-    const docxPath = path.join(outputDirectory, `${baseName}.docx`);
-    const pdfPath = path.join(outputDirectory, `${baseName}.pdf`);
-    const exportedFiles: string[] = [];
-
-    if (options?.format !== 'pdf') {
-      await writeFile(docxPath, await buildProposalDocx(proposal, settings, options));
-      exportedFiles.push(docxPath);
-    }
-    if (options?.format !== 'docx') {
-      const pdfWindow = await loadDocumentWindow(proposal, false, settings, options);
-      try {
-        const pdf = await pdfWindow.webContents.printToPDF(proposalPdfOptions());
-        await writeFile(pdfPath, pdf);
-        exportedFiles.push(pdfPath);
-      } finally {
-        pdfWindow.destroy();
-      }
-    }
-    return { canceled: false, files: exportedFiles };
-  });
-
   // PDF da tela "PDF da proposta": o app mesmo gera o arquivo (mesmo caminho da exportacao), com o timbrado e o nome combinado.
   ipcMain.handle('documents:save-pdf', async (event, proposal: ProposalDetail, html: string, suggestedName: string) => {
     const safeName = path.basename(String(suggestedName || "Proposta_Construtec.pdf")).replace(/[<>:"/|?*]/g, "_");
@@ -137,7 +69,6 @@ export const startOrcamentosMain = async (options: OrcamentosMainOptions): Promi
       filters: [{ name: 'PDF', extensions: ['pdf'] }],
     });
     if (selection.canceled || !selection.filePath) return { canceled: true };
-    const settings = await fetchAppSettings();
     const pdfWindow = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true } });
     try {
       await pdfWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
@@ -227,6 +158,7 @@ export const startOrcamentosMain = async (options: OrcamentosMainOptions): Promi
     const result = await selectCatalogImport(kind);
     return normalizeCatalogImportFile(result);
   });
+  ipcMain.handle('catalog:export-preview', (_event, items: CatalogImportItem[]) => exportCatalogImport(Array.isArray(items) ? items : []));
   ipcMain.handle('exsat:status', () => exsatConnectionStatus());
   ipcMain.handle('exsat:login', () => openExsatLogin());
   ipcMain.handle('exsat:logout', () => disconnectExsat());

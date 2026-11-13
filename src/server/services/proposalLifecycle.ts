@@ -6,7 +6,7 @@ import { copyProposalLabor } from './proposalLabor';
 import { finalValueSql } from './proposalTotalsSql';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
-import { getEditableProposal, getLatestProposal, roundMoney } from './proposalCommon';
+import { getEditableProposal, getLatestProposal, PROPOSAL_NUMBERS_SQL, roundMoney } from './proposalCommon';
 import { sealProposalInTransaction, type SealEvidence } from './integration/proposalSealing';
 
 type GetProposalByIdFn = (database: LocalDatabase, proposalId: string) => Promise<ProposalDetail | null>;
@@ -169,6 +169,7 @@ export const deleteProposal = async (
   database: LocalDatabase,
   proposalId: string,
   mode: 'all' | 'revision' = 'all',
+  userId?: string,
 ): Promise<{ nextProposalId?: string }> => {
   let nextProposalId: string | undefined;
 
@@ -180,11 +181,14 @@ export const deleteProposal = async (
     const row = current.rows[0];
     if (!row) throw new Error('PROPOSAL_NOT_FOUND');
 
-    const candidates = await transaction.query<{ status: ProposalDetail['status'] }>(
-      "SELECT status FROM proposals WHERE proposal_number = $1 AND ($2::text = 'all' OR id = $3) ORDER BY revision FOR UPDATE",
+    const candidates = await transaction.query<{ revision: number; status: ProposalDetail['status'] }>(
+      "SELECT revision, status FROM proposals WHERE proposal_number = $1 AND ($2::text = 'all' OR id = $3) ORDER BY revision FOR UPDATE",
       [row.proposal_number, mode, proposalId],
     );
     if (candidates.rows.some(candidate => candidate.status === 'approved')) throw new Error('PROPOSAL_LOCKED');
+    // A exclusao e definitiva: o registro de auditoria e o unico rastro do que saiu.
+    await transaction.query("INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, user_id) VALUES ($1, 'proposal', $2, 'deleted', $3::jsonb, $4)",
+      [randomUUID(), proposalId, JSON.stringify({ number: row.proposal_number, mode, revisions: candidates.rows }), userId ?? null]);
 
     if (mode === 'all') {
       await transaction.query('DELETE FROM proposals WHERE proposal_number = $1', [row.proposal_number]);
@@ -269,7 +273,7 @@ export const cloneProposal = async (
     const targetWorkId = input?.workId || source.work_id;
 
     const workResult = await transaction.query<{ client_name: string; work_name: string }>(`
-      SELECT c.trade_name AS client_name, w.name AS work_name
+      SELECT COALESCE(c.trade_name, c.legal_name) AS client_name, w.name AS work_name
       FROM works w
       JOIN clients c ON c.id = w.client_id
       WHERE w.id = $1 AND w.client_id = $2 AND w.active = true
@@ -278,11 +282,8 @@ export const cloneProposal = async (
     if (!targetContext) throw new Error('WORK_NOT_FOUND');
 
     const numberResult = await transaction.query<{ proposal_number: string }>(`
-      SELECT proposal_number
-      FROM proposals
-      WHERE proposal_number ~ '^PA-[0-9]+$'
-      ORDER BY substring(proposal_number from 4)::integer DESC
-      LIMIT 1
+      SELECT proposal_number FROM (${PROPOSAL_NUMBERS_SQL}) numbers
+      WHERE proposal_number ~ '^PA-[0-9]+$' ORDER BY substring(proposal_number from 4)::integer DESC LIMIT 1
     `);
     const currentNumber = Number(numberResult.rows[0]?.proposal_number.slice(3) ?? 1000);
     const newProposalNumber = `PA-${String(currentNumber + 1).padStart(4, '0')}`;

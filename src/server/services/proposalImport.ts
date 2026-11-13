@@ -1,9 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import type { ProposalDetail } from '../../shared/contracts';
+import { isManualSale } from '../../shared/proposalFinancials';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
-import { getEditableProposal, roundMoney } from './proposalCommon';
+import { getEditableProposal, insertProposalItems, roundMoney, type ProposalItemInsert } from './proposalCommon';
 import { getProposalById } from './proposals';
+
+type CatalogRow = {
+  id: string; code: string; manufacturer: string | null; model: string | null;
+  description: string; category: string; unit: string; current_cost: string;
+};
 
 export interface ProposalBatchImportItem {
   code?: string;
@@ -33,76 +39,42 @@ export const importProposalItemsBatch = async (
     );
     let nextPosition = Number(maxPosRes.rows[0]?.max_pos ?? 0);
 
+    // Uma consulta para todos os codigos do lote, em vez de uma por item.
+    const codes = [...new Set(items.map((item) => item.code?.trim() ?? '').filter(Boolean))];
+    const products = new Map<string, CatalogRow>();
+    if (codes.length > 0) {
+      const found = await transaction.query<CatalogRow>(
+        'SELECT id, code, manufacturer, model, description, category, unit, current_cost::text FROM products WHERE code = ANY($1::text[]) AND active = true',
+        [codes],
+      );
+      for (const row of found.rows) if (!products.has(row.code)) products.set(row.code, row);
+    }
+
+    const rows: ProposalItemInsert[] = [];
     for (const item of items) {
       if (item.quantity <= 0) continue;
       nextPosition += 1;
-      const itemId = randomUUID();
-
-      let catalogProductId: string | null = null;
-      let code = item.code?.trim() || `ITEM-${String(nextPosition).padStart(3, '0')}`;
-      let description = item.description.trim();
-      let category = item.category?.trim() || 'Importado';
-      let unit = item.unit?.trim() || 'un';
-      let manufacturer: string | null = null;
-      let model: string | null = null;
+      const prod = item.code?.trim() ? products.get(item.code.trim()) : undefined;
       let unitCost = item.unitCost !== undefined && item.unitCost >= 0 ? item.unitCost : 0;
+      if (prod && (item.unitCost === undefined || item.unitCost === null)) unitCost = Number(prod.current_cost);
 
-      if (item.code?.trim()) {
-        const prodRes = await transaction.query<{
-          id: string;
-          code: string;
-          manufacturer: string | null;
-          model: string | null;
-          description: string;
-          category: string;
-          unit: string;
-          current_cost: string;
-        }>(
-          'SELECT id, code, manufacturer, model, description, category, unit, current_cost::text FROM products WHERE code = $1 AND active = true LIMIT 1',
-          [item.code.trim()],
-        );
-        const prod = prodRes.rows[0];
-        if (prod) {
-          catalogProductId = prod.id;
-          code = prod.code;
-          manufacturer = prod.manufacturer;
-          model = prod.model;
-          if (!description) description = prod.description;
-          if (!item.category) category = prod.category;
-          if (!item.unit) unit = prod.unit;
-          if (item.unitCost === undefined || item.unitCost === null) {
-            unitCost = Number(prod.current_cost);
-          }
-        }
-      }
-
-      const saleUnitPrice = item.unitSale !== undefined && item.unitSale >= 0
-        ? roundMoney(item.unitSale / (1 + Number(proposal.tax_percentage ?? 0) / 100))
-        : roundMoney(unitCost * bdiMultiplier);
-
-      await transaction.query(`
-        INSERT INTO proposal_items (
-          id, proposal_id, catalog_product_id, position, snapshot_code,
-          snapshot_manufacturer, snapshot_model, snapshot_description,
-          snapshot_category, snapshot_unit, snapshot_unit_cost, quantity,
-          sale_unit_price
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      `, [
-        itemId,
-        proposalId,
-        catalogProductId,
-        nextPosition,
-        code,
-        manufacturer,
-        model,
-        description,
-        category,
-        unit,
+      rows.push({
+        catalogProductId: prod?.id ?? null,
+        position: nextPosition,
+        code: prod?.code ?? (item.code?.trim() || `ITEM-${String(nextPosition).padStart(3, '0')}`),
+        manufacturer: prod?.manufacturer ?? null,
+        model: prod?.model ?? null,
+        description: item.description.trim() || prod?.description || '',
+        category: prod && !item.category ? prod.category : (item.category?.trim() || 'Importado'),
+        unit: prod && !item.unit ? prod.unit : (item.unit?.trim() || 'un'),
         unitCost,
-        item.quantity,
-        saleUnitPrice,
-      ]);
+        quantity: item.quantity,
+        saleUnitPrice: item.unitSale !== undefined && item.unitSale >= 0
+          ? roundMoney(item.unitSale / (1 + Number(proposal.tax_percentage ?? 0) / 100))
+          : roundMoney(unitCost * bdiMultiplier),
+      });
     }
+    await insertProposalItems(transaction, proposalId, rows);
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
     await transaction.query(`
@@ -128,19 +100,22 @@ export const copyItemsFromProposal = async (
     const targetProposal = await getEditableProposal(transaction, targetProposalId);
     const bdiMultiplier = Number(targetProposal.bdi_multiplier);
 
+    // source_bdi: BDI da proposta de origem, para saber se a venda do item foi digitada a mao.
     let query = `
-      SELECT catalog_product_id, snapshot_code, snapshot_manufacturer,
-        snapshot_model, snapshot_description, snapshot_category,
-        snapshot_unit, snapshot_unit_cost::text, quantity::text, sale_unit_price::text
-      FROM proposal_items
-      WHERE proposal_id = $1
+      SELECT pi.catalog_product_id, pi.snapshot_code, pi.snapshot_manufacturer,
+        pi.snapshot_model, pi.snapshot_description, pi.snapshot_category,
+        pi.snapshot_unit, pi.snapshot_unit_cost::text, pi.quantity::text, pi.sale_unit_price::text,
+        p.bdi_multiplier::text AS source_bdi
+      FROM proposal_items pi
+      JOIN proposals p ON p.id = pi.proposal_id
+      WHERE pi.proposal_id = $1
     `;
     const params: (string | string[])[] = [sourceProposalId];
     if (itemIds && itemIds.length > 0) {
-      query += ' AND id = ANY($2::uuid[])';
+      query += ' AND pi.id = ANY($2::uuid[])';
       params.push(itemIds);
     }
-    query += ' ORDER BY position ASC';
+    query += ' ORDER BY pi.position ASC';
 
     const sourceItems = await transaction.query<{
       catalog_product_id: string | null;
@@ -153,6 +128,7 @@ export const copyItemsFromProposal = async (
       snapshot_unit_cost: string;
       quantity: string;
       sale_unit_price: string;
+      source_bdi: string;
     }>(query, params);
 
     if (sourceItems.rows.length === 0) throw new Error('NO_ITEMS_FOUND');
@@ -163,35 +139,26 @@ export const copyItemsFromProposal = async (
     );
     let nextPosition = Number(maxPosRes.rows[0]?.max_pos ?? 0);
 
-    for (const item of sourceItems.rows) {
+    await insertProposalItems(transaction, targetProposalId, sourceItems.rows.map((item) => {
       nextPosition += 1;
-      const itemId = randomUUID();
       const unitCost = Number(item.snapshot_unit_cost);
-      const saleUnitPrice = roundMoney(unitCost * bdiMultiplier);
-
-      await transaction.query(`
-        INSERT INTO proposal_items (
-          id, proposal_id, catalog_product_id, position, snapshot_code,
-          snapshot_manufacturer, snapshot_model, snapshot_description,
-          snapshot_category, snapshot_unit, snapshot_unit_cost, quantity,
-          sale_unit_price
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      `, [
-        itemId,
-        targetProposalId,
-        item.catalog_product_id,
-        nextPosition,
-        item.snapshot_code,
-        item.snapshot_manufacturer,
-        item.snapshot_model,
-        item.snapshot_description,
-        item.snapshot_category || 'Geral',
-        item.snapshot_unit,
+      const sourceSale = Number(item.sale_unit_price);
+      // Venda automatica (custo x BDI) segue o BDI do destino; venda digitada a mao fica (mesmo criterio de updateProposalItem).
+      const manual = isManualSale({ unitCost, saleUnitPrice: sourceSale }, Number(item.source_bdi));
+      return {
+        catalogProductId: item.catalog_product_id,
+        position: nextPosition,
+        code: item.snapshot_code,
+        manufacturer: item.snapshot_manufacturer,
+        model: item.snapshot_model,
+        description: item.snapshot_description,
+        category: item.snapshot_category || 'Geral',
+        unit: item.snapshot_unit,
         unitCost,
-        Number(item.quantity),
-        saleUnitPrice,
-      ]);
-    }
+        quantity: Number(item.quantity),
+        saleUnitPrice: manual ? sourceSale : roundMoney(unitCost * bdiMultiplier),
+      };
+    }));
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [targetProposalId]);
     await transaction.query(`

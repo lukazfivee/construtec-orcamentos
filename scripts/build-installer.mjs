@@ -14,6 +14,8 @@ import os from 'node:os';
 
 const require = createRequire(import.meta.url);
 const winstaller = require(path.resolve('../node_modules/electron-winstaller'));
+// Nome do instalador acompanha a versao do package.json.
+const setupExeName = `Construtec-Orcamentos-${require('../package.json').version}-Setup.exe`;
 
 const projectRoot = path.resolve('.');
 const originalAppDir = path.resolve('../out/ConstrutecOrcamentos-win32-x64');
@@ -84,7 +86,7 @@ try {
     appDirectory: stagedAppDir,
     outputDirectory: stagedOutputDir,
     exe: 'ConstrutecOrcamentos.exe',
-    setupExe: 'Construtec-Orcamentos-1.0.6-Setup.exe',
+    setupExe: setupExeName,
     title: 'Construtec Orçamentos',
     authors: 'Construtec Engenharia',
     description: 'Orçamentos profissionais, rápidos, seguros e offline para a Construtec Engenharia.',
@@ -115,7 +117,7 @@ try {
   }
 
   // Garantir atalho Setup.exe para compatibilidade
-  const namedSetup = path.join(finalOutputDir, 'Construtec-Orcamentos-1.0.6-Setup.exe');
+  const namedSetup = path.join(finalOutputDir, setupExeName);
   const genericSetup = path.join(finalOutputDir, 'Setup.exe');
   if (existsSync(namedSetup) && !existsSync(genericSetup)) {
     copyFileSync(namedSetup, genericSetup);

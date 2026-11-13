@@ -4,7 +4,7 @@ import { seedBodyBlocks } from '../../shared/proposalBody';
 import { findBodyModel, modelBodyBlocks } from '../../shared/proposalBodyModels';
 import type { LocalDatabase } from './database';
 import { logEvent } from './logger';
-import { getEditableProposal } from './proposalCommon';
+import { getEditableProposal, PROPOSAL_NUMBERS_SQL } from './proposalCommon';
 import { getDefaultBody } from './proposalBody';
 import { getCompanyBodyModels } from './proposalBodyModelStore';
 import { getAppSettings, getNewProposalDefaults } from './settings';
@@ -39,7 +39,7 @@ export const createProposal = async (
 
     const numberResult = await transaction.query<{ proposal_number: string }>(`
       SELECT proposal_number
-      FROM proposals
+      FROM (${PROPOSAL_NUMBERS_SQL}) numbers
       WHERE proposal_number ~ '^PA-[0-9]+$'
       ORDER BY substring(proposal_number from 4)::integer DESC
       LIMIT 1

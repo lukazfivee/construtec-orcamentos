@@ -150,7 +150,8 @@ Contato: ${content.phone} • ${content.email}`;
     <div class="run-ref">${escapeHtml(runReference)}</div>
   </header>`;
 
-  const todayFormatted = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date());
+  // Fuso fixo: na nuvem o servidor roda em UTC e, depois das 21h de Brasilia, a data sairia com o dia seguinte.
+  const todayFormatted = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'America/Sao_Paulo' }).format(new Date());
 
   return `<!doctype html>
 <html lang="pt-BR">

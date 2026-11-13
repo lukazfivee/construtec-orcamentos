@@ -3,9 +3,7 @@ import { z } from 'zod';
 import type { AuthUser } from '../../shared/contracts';
 import { hasPermission } from '../services/suiteAccess';
 import type { LocalDatabase } from '../services/database';
-import {
-  attributeAuditEvent, attributeDuplicatedProposalItemAudit,
-} from '../services/auditAttribution';
+import { attributeAuditEvent, attributeDuplicatedProposalItemAudit } from '../services/auditAttribution';
 import { attributeProposalCreation } from '../services/proposalAttribution';
 import {
   addProductToProposal, cloneProposal, createProposal, createRevision, deleteProposal,
@@ -35,10 +33,7 @@ const batchImportSchema = z.object({
     unitSale: z.number().nonnegative().max(100_000_000).optional(),
   })).min(1).max(2000),
 });
-const copyProposalItemsSchema = z.object({
-  sourceProposalId: z.string().uuid(),
-  itemIds: z.array(z.string().uuid()).optional(),
-});
+const copyProposalItemsSchema = z.object({ sourceProposalId: z.string().uuid(), itemIds: z.array(z.string().uuid()).optional() });
 const updateItemSchema = z.object({
   description: z.string().trim().min(2).max(240).optional(),
   category: z.string().trim().min(2).max(80).optional(),
@@ -128,7 +123,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const mode = request.query.mode === 'revision' ? 'revision' : 'all';
-      const result = await deleteProposal(database, proposalId, mode);
+      const result = await deleteProposal(database, proposalId, mode, actor(response).id);
       response.json({ success: true, ...result });
     } catch (error) { next(error); }
   });
