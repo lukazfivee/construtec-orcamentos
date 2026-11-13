@@ -147,7 +147,9 @@
           <button class="lst-main" type="button" data-id="${esc(p.id)}"><span class="grow"><b>${esc(place(p))}</b><small>${esc(p.number)} · ${esc(OC.rev(p.revision))}${p.isLatest === false ? ' · revisão antiga' : ''}${p.clientName && p.workName ? ` · ${esc(p.clientName)}` : ''}</small></span>
             <b class="lst-money">${p.totalSale ? esc(OC.money0(p.totalSale)) : 'Sem itens'}</b>${icon('caret-right', 18)}</button>
           <div class="lst-foot">${statusChip(p)}${validityChip(p)}<small class="lst-date">${esc(OC.dateBr(p.updatedAt))}</small></div></div>`).join('')
-        : `<div class="empty">${icon('file-text', 28)}${list.length ? 'Nenhuma proposta com esses filtros.' : 'Nenhuma proposta ainda.'}${list.length ? '<button class="btn2" type="button" id="p-clear" style="padding:0 18px">Limpar filtros</button>' : ''}</div>`;
+        : `<div class="empty">${icon('file-text', 28)}${list.length ? 'Nenhuma proposta com esses filtros.' : 'Nenhuma proposta ainda.'}${list.length ? '<button class="btn2" type="button" id="p-clear" style="padding:0 18px">Limpar filtros</button>' : (OC.canEdit() ? '<button class="btn2" type="button" id="p-first" style="padding:0 18px">Criar a primeira proposta</button>' : '')}</div>`;
+      const first = OC.$('#p-first', el);
+      if (first) first.addEventListener('click', () => OC.open('nova'));
       OC.$('#p-sum', el).innerHTML = `<div class="grid2"><div class="stat"><small>Total filtrado</small><b>${esc(OC.money(t.total))}</b></div><div class="stat"><small>Ticket médio</small><b>${esc(OC.money(t.average))}</b></div></div>
         <div class="kv"><span>Aprovadas · ${t.approved}</span><b>${esc(OC.money(t.approvedTotal))}</b></div><div class="kv"><span>Em negociação · ${t.negotiation}</span><b>${esc(OC.money(t.negotiationTotal))}</b></div>`;
       OC.$$('[data-f]', el).forEach((b) => b.addEventListener('click', () => { f.status = b.dataset.f; paint(); }));

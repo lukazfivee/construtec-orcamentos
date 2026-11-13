@@ -66,7 +66,7 @@
   };
 
   function form(p, canSend) {
-    if (p.status === 'draft') return `<p class="hint lock">${icon('lock-simple', 15)}<span>Envie a proposta para revisão antes de gerar o link.</span></p>`;
+    if (p.status === 'draft') return `<p class="hint lock">${icon('lock-simple', 15)}<span>Proposta em edição: envie para revisão interna para liberar o link.</span></p>${p.isLatest && OC.canEdit() && p.items.length ? `<div class="actions"><button class="btn" type="button" id="l-rev">${icon('paper-plane-tilt', 18)}Enviar para revisão</button></div>` : ''}`;
     // Motivo certo para cada caso (antes toda proposta sem envio caia em "Só a revisão atual").
     if (!canSend) {
       const why = !OC.can('p11') ? 'Seu papel não permite enviar propostas ao cliente.'
@@ -111,6 +111,7 @@
       });
       const share = OC.$('[data-share]', body);
       if (share) share.addEventListener('click', () => shareSheet(p, link));
+      if (share && params.acao === 'share') shareSheet(p, link); // acabou de gerar: ja oferece o envio
       const off = OC.$('[data-off]', body);
       if (off) off.addEventListener('click', () => OC.confirm('Desativar o link', 'O cliente que abrir o link vai ver o aviso de link desativado. Você pode gerar um novo depois.', 'Desativar', async () => {
         await OC.api(`/proposals/${p.id}/client-link/disable`, { method: 'POST', body: {} });
@@ -134,6 +135,15 @@
 
     const note = link && STATE_TEXT[link.state];
     body.innerHTML = `${head}${note ? `<div class="card"><div class="sec-row"><b>${icon(note[0] === 'prohibit' ? 'lock-simple' : note[0], 18)}${esc(note[1])}</b></div><p class="sheet-text">${esc(note[2])}</p></div>${reply(link)}` : ''}${form(p, canSend)}`;
+    const rev = OC.$('#l-rev', body);
+    if (rev) rev.addEventListener('click', async () => {
+      rev.disabled = true;
+      try {
+        await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: 'review' } });
+        OC.toast('Em revisão: já pode gerar o link');
+        OC.go('link', { id: p.id }, { back: true });
+      } catch (error) { OC.toast(error.message, 'warning-circle'); rev.disabled = false; }
+    });
     const gen = OC.$('#l-gen', body);
     if (!gen) return;
     let days = 30, identity = true;
@@ -149,7 +159,7 @@
       try {
         await OC.api(`/proposals/${p.id}/client-link`, { method: 'POST', body: { days, requireIdentity: identity } });
         OC.toast('Link gerado');
-        OC.go('link', { id: p.id }, { back: true });
+        OC.go('link', { id: p.id, acao: 'share' }, { back: true });
       } catch (error) {
         gen.disabled = false; gen.innerHTML = `${icon('paper-plane-tilt', 18)}${error.status === 0 ? 'Tentar de novo' : 'Gerar link'}`;
         OC.toast(error.message, 'warning-circle');

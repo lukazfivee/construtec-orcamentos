@@ -1,5 +1,14 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-11-13 BRT - Fluxo de uso mais direto, computador e celular (Claude Code)
+
+- Base: `origin/main` depois do PR #248. Branch `feat/fluxo-mais-simples`, worktree em `C:\orc-mobile`.
+- Catalogo continua aberto depois de adicionar um item (computador: `useProposalItemActions.ts`; celular: `OC.pickProduct`, com botao Concluir).
+- Computador: Ctrl S deixou de criar revisao (so avisa que salva sozinho; revisao fica em Mais acoes); erro aparece tambem na lista e no PDF; Aprovada pelo seletor de status pede confirmacao; Enviar ao cliente ja traz WhatsApp e e-mail do cadastro; Nova proposta lembra o ultimo cliente e o escopo virou opcional ("Proposta para <obra>"); proposta nova abre com o catalogo; "Clonar" e "orcamento" viraram "Duplicar" e "proposta".
+- Celular: em edicao, o PDF e o Link tem o botao Enviar para revisao; Compartilhar oferece marcar como enviada; Gerar link ja abre o compartilhar; Nova proposta ordena clientes pelo uso recente, diz o que falta e, ao copiar de outra proposta, leva as condicoes comerciais; Resumo avisa quando falta a forma de pagamento; Inicio mostra enviadas aguardando o cliente; vazios com botao de criar; "Baixar" virou "Salvar PDF".
+- Validacao: `npm run verify` sem falhas (426 testes). Celular exercitado no navegador em 375 px com dados de teste; computador nao foi aberto no navegador; nada testado com login real.
+- Proximo passo: publicar (`npm run deploy:cloud`) quando o Lucas autorizar. Bloqueios: nenhum.
+
 ## 2026-11-13 BRT - Celular: voltar do aparelho, zoom do iOS e alvos de toque (Claude Code)
 
 - Base: `origin/main` depois do PR #247 (auditoria de 12/11, mesclado). Branch `feat/mobile-ux-20261113`, worktree em `C:\orc-mobile`.

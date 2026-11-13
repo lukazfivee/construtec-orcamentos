@@ -21,7 +21,11 @@
         const t = days < 0 ? 'Validade vencida' : (days === 0 ? 'Validade termina hoje' : `Validade termina em ${days} ${days === 1 ? 'dia' : 'dias'}`);
         out.push({ rank: 1, warn: true, ic: 'hourglass-medium', t, s: `${place(p)} · ${p.number} · enviada`, v: value, cta: OC.canEdit() ? 'Prorrogar validade' : 'Abrir proposta', id: p.id, acao: OC.canEdit() ? 'validade' : undefined });
       }
-      if (p.status === 'review') out.push({ rank: 2, ic: 'magnifying-glass', t: 'Aguardando revisão', s: `${place(p)} · ${meta(p)}`, v: value, cta: 'Revisar', id: p.id });
+      if (p.status === 'sent' && (days === null || days > 7)) {
+        const d = OC.daysSince(p.updatedAt);
+        out.push({ rank: 2.5, ic: 'paper-plane-tilt', t: d === 0 ? 'Enviada hoje' : `Aguardando o cliente há ${d} ${d === 1 ? 'dia' : 'dias'}`, s: `${place(p)} · ${meta(p)}`, v: value, cta: 'Registrar resposta', id: p.id });
+      }
+      if (p.status === 'review') out.push({ rank: 2, ic: 'magnifying-glass', t: 'Aguardando revisão', s: `${place(p)} · ${meta(p)}`, v: value, cta: 'Enviar ao cliente', id: p.id });
       if (p.status === 'draft') {
         const d = OC.daysSince(p.updatedAt);
         const t = !p.itemCount ? 'Proposta sem itens' : (d === 0 ? 'Em edição hoje' : `Em edição há ${d} ${d === 1 ? 'dia' : 'dias'}`);
@@ -50,7 +54,9 @@
           <div class="txt"><div class="task-top"><b>${esc(k.t)}</b><span class="val">${esc(k.v)}</span></div>
           <small>${esc(k.s)}</small>
           <button class="chip-act" type="button" data-task="${i}">${esc(k.cta)}${icon('arrow-right', 16)}</button></div></div>`).join('')
-        : `<div class="empty">${icon('check-circle', 28)}Tudo em dia. As propostas que precisarem de você aparecem aqui.</div>`}`, false, params);
+        : `<div class="empty">${icon('check-circle', 28)}Tudo em dia. As propostas que precisarem de você aparecem aqui.${OC.canEdit() ? `<button class="btn2" type="button" id="h-new" style="padding:0 18px">${icon('plus', 18)}Nova proposta</button>` : ''}</div>`}`, false, params);
+    const novo = OC.$('#h-new', el);
+    if (novo) novo.addEventListener('click', () => OC.open('nova'));
     OC.$('#h-sum', el).addEventListener('click', () => OC.open('painel'));
     OC.$$('[data-task]', el).forEach((b) => b.addEventListener('click', () => {
       const k = todo[Number(b.dataset.task)];

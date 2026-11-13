@@ -15,8 +15,8 @@ type SendProps = {
 
 // Enviar ao cliente (tela 23o): contatos, mensagem e anexo. Marca a proposta como Enviada.
 export function ProposalSendDrawer({ proposal, fetchDocument, onClose, onSent, showNotice }: SendProps) {
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(proposal.clientContact?.phone ?? '');
+  const [email, setEmail] = useState(proposal.clientContact?.email ?? '');
   const [message, setMessage] = useState(() => pdfDefaultMessage(proposal));
   const [mark, setMark] = useState(true);
   const [sending, setSending] = useState(false);

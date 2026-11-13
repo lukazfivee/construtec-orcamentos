@@ -78,8 +78,8 @@ export function ProposalsListTable({
           <h4>Nenhuma proposta encontrada</h4>
           <p>
             {searchTerm || statusFilter !== 'all'
-              ? 'Nenhum orçamento corresponde aos filtros selecionados.'
-              : 'Você ainda não possui orçamentos cadastrados.'}
+              ? 'Nenhuma proposta corresponde aos filtros selecionados.'
+              : 'Você ainda não tem propostas.'}
           </p>
           {searchTerm || statusFilter !== 'all' ? (
             <button
@@ -92,7 +92,7 @@ export function ProposalsListTable({
           ) : (
             <button type="button" className="primary-btn" onClick={onNewProposal}>
               <FilePlus2 size={16} />
-              Criar primeiro orçamento
+              Criar a primeira proposta
             </button>
           )}
         </div>
@@ -218,13 +218,13 @@ export function ProposalsListTable({
                     <button
                       type="button"
                       className="table-action-btn secondary"
-                      title="Clonar como novo orçamento"
-                      aria-label="Clonar proposta"
+                      title="Duplicar como nova proposta"
+                      aria-label="Duplicar proposta"
                       disabled={actionPending}
                       onClick={() => void onClone(item)}
                     >
                       <Copy size={14} />
-                      <span className="btn-label">Clonar</span>
+                      <span className="btn-label">Duplicar</span>
                     </button>
                     {onExport && (
                       <button

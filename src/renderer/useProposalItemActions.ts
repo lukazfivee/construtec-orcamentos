@@ -29,7 +29,6 @@ export function useProposalItemActions({
   setMutationPending,
   setQuantityDrafts,
   setSelectedItemIds,
-  setCatalogOpen,
 }: Options) {
   const addCatalogItem = async (product: CatalogProduct) => {
     if (!isEditable || mutationPending) return;
@@ -38,8 +37,7 @@ export function useProposalItemActions({
     try {
       const result = await proposalApi.addItem(proposal.id, product.id);
       onUpdateProposal(result.proposal);
-      setCatalogOpen(false);
-      showNotice(`${product.description} adicionado com preço congelado.`);
+      showNotice(`${product.description} adicionado. Busque o próximo ou feche com Esc.`);
     } catch (mutationError) {
       setError(mutationError instanceof Error ? mutationError.message : 'Não foi possível adicionar o item.');
     } finally {

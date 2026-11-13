@@ -134,8 +134,10 @@
   OC.pickProduct = function (title, onPick) {
     const s = OC.sheet(`${OC.sheetHead(title, 'plus')}
       <label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" enterkeyhint="search" placeholder="Código ou descrição" autocomplete="off"></label>
-      <div class="rows" data-rows><div class="empty">Digite para buscar no catálogo.</div></div>`);
+      <div class="rows" data-rows><div class="empty">Digite para buscar no catálogo.</div></div>
+      <div class="sheet-actions"><button class="btn" type="button" data-done>Concluir</button></div>`);
     const rows = OC.$('[data-rows]', s.el);
+    OC.$('[data-done]', s.el).addEventListener('click', s.close);
     let timer = 0, seq = 0;
     OC.$('[data-q]', s.el).addEventListener('input', (event) => {
       clearTimeout(timer);
@@ -150,7 +152,7 @@
             : '<div class="empty">Nada encontrado.</div>';
           OC.$$('[data-pid]', rows).forEach((b) => b.addEventListener('click', async () => {
             b.disabled = true;
-            try { await onPick(list.find((x) => x.id === b.dataset.pid)); s.close(); } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
+            try { await onPick(list.find((x) => x.id === b.dataset.pid)); b.lastElementChild.outerHTML = icon('check', 18); b.classList.add('picked'); } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
           }));
         } catch (error) { if (mine === seq) rows.innerHTML = `<div class="empty">${esc(error.message)}</div>`; }
       }, 300);
