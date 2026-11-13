@@ -142,7 +142,7 @@
   OC.contextSheet = function (p, ctx) {
     ctx = ctxOf(p, ctx);
     const s = OC.sheet(`${OC.sheetHead('Cliente e obra', 'buildings')}<p class="sheet-text" style="margin-top:2px">A alteração vale só para esta revisão.</p>
-      <label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" placeholder="Buscar cliente, documento ou obra" autocomplete="off"></label>
+      <label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" enterkeyhint="search" placeholder="Buscar cliente, documento ou obra" autocomplete="off"></label>
       <div data-rows><div class="empty">Carregando clientes…</div></div>
       <button class="btn2" type="button" data-cli style="width:100%;margin-top:12px">${icon('users', 18)}Gerenciar clientes</button>`);
     s.el.firstElementChild.classList.add('sheet-tall');

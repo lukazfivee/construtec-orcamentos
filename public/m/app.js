@@ -34,6 +34,7 @@
 
   // Pilha simples para o botao voltar das telas internas (proposta, kit).
   const stack = [];
+  let hashAtual = location.hash;
   OC.go = function (name, params, opts = {}) {
     const screen = OC.screens[name];
     if (!screen) return;
@@ -49,7 +50,8 @@
     OC.nav += 1;
     document.body.classList.remove('no-tabs');
     paintTabs();
-    history.replaceState(null, '', `#${name}${currentParams.id ? `=${encodeURIComponent(currentParams.id)}` : ''}`);
+    hashAtual = `#${name}${currentParams.id ? `=${encodeURIComponent(currentParams.id)}` : ''}`;
+    history.replaceState(null, '', hashAtual);
     const nav = OC.nav;
     Promise.resolve(screen({ ...currentParams, acao, __nav: nav })).catch((error) => {
       if (error instanceof OC.Stale || nav !== OC.nav) return;
@@ -147,10 +149,25 @@
     return start();
   }
 
+  // Botao voltar do aparelho: uma entrada de guarda no historico; voltar fecha a folha, volta de tela ou, no Inicio, sai.
+  // Fecha a folha de cima pelo proprio botao Fechar (encerra ditado e ouvintes); sem botao, so remove.
+  function fechaFolha(folha) { const x = folha.querySelector('.sheet-x'); if (x) x.click(); if (folha.isConnected) folha.remove(); }
+  function guardaVoltar() {
+    history.pushState(null, '', location.hash);
+    window.addEventListener('popstate', () => {
+      const folha = [...document.querySelectorAll('.sheet-backdrop')].pop();
+      const raiz = !stack.length && TABS.some(([key]) => key === current);
+      if (!folha && raiz && current === 'home') return history.back();
+      const aqui = hashAtual;
+      if (folha) fechaFolha(folha); else if (raiz) OC.go('home'); else OC.back();
+      history.pushState(null, '', folha ? aqui : hashAtual);
+    });
+  }
   let started = false;
   function start() {
     if (started) return OC.go('home');
     started = true;
+    guardaVoltar();
     if (OC.notif) OC.notif.refresh();
     // #proposta=<id> (seletor Suite e avisos) ou #prop=<id> ao recarregar.
     const route = () => {

@@ -95,7 +95,7 @@
     if (token) headers['X-Construtec-Session'] = token;
     let response;
     try {
-      response = await fetch(`/api${path}`, { method: options.method || 'GET', headers, body: options.body === undefined ? undefined : JSON.stringify(options.body), cache: 'no-store' });
+      response = await fetch(`/api${path}`, { method: options.method || 'GET', headers, body: options.body === undefined ? undefined : JSON.stringify(options.body), cache: 'no-store', signal: options.method ? undefined : AbortSignal.timeout(30000) });
     } catch {
       throw new ApiError(0, 'Sem internet. Confira a conexão e tente de novo.');
     }

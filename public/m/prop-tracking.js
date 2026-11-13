@@ -17,7 +17,7 @@
       <div class="opts" style="margin-top:12px">
         <button class="opt" type="button" data-mode="same"><span><b>Mesmo cliente e obra</b><small>${esc(p.clientName || '')} · ${esc(p.workName || '')}</small></span><i class="radio"></i></button>
         <button class="opt" type="button" data-mode="other"><span><b>Outro cliente ou obra</b><small>Os mesmos itens para outro destinatário</small></span><i class="radio"></i></button></div>
-      <div data-other hidden><label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" placeholder="Buscar cliente ou obra" autocomplete="off"></label><div data-rows></div></div>
+      <div data-other hidden><label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" enterkeyhint="search" placeholder="Buscar cliente ou obra" autocomplete="off"></label><div data-rows></div></div>
       <label class="field" style="margin-top:12px"><span>Escopo da nova proposta</span><textarea data-scope rows="3" maxlength="1200" placeholder="Ex.: Instalação de CFTV e controle de acesso">${esc(p.scope || '')}</textarea></label>
       <p class="sheet-text">Entram os itens com o custo congelado, a mão de obra, o BDI, os impostos e as condições da origem. A origem não muda.</p>
       <div class="sheet-actions"><button class="btn2" type="button" data-no>Cancelar</button><button class="btn" type="button" data-yes>${icon('copy', 18)}Criar proposta</button></div>`);

@@ -49,7 +49,7 @@
     const count = (c) => proposals.filter((p) => p.clientName === (c.tradeName || c.legalName) || p.clientName === c.legalName);
     const el = OC.render(`${OC.header('Clientes e obras', { back: true })}
       <p class="sub" style="margin:-6px 0 0" id="c-sub"></p>
-      <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" placeholder="Buscar cliente" autocomplete="off"></label>
+      <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" enterkeyhint="search" placeholder="Buscar cliente" autocomplete="off"></label>
       <div class="kit-list" id="c-list"></div>
       ${OC.canEdit() ? `<button class="btn2" type="button" id="c-new">${icon('plus', 18)}Novo cliente</button>` : ''}`, true, params);
     const saved = (result) => { clients = result.clients.length ? result.clients : clients; open = result.id; paint(); };

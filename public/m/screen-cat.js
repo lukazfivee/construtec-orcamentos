@@ -26,7 +26,7 @@
       <p class="sub" style="margin:-6px 0 0" id="c-sub">Carregando itens</p>
       <button class="card ex-link" type="button" id="c-ex">${icon('arrow-square-out', 20)}<span class="grow"><b>Integração EXSAT</b><small id="c-ex-s">Conferindo preços das propostas…</small></span>${icon('caret-right', 18)}</button>
       ${cost ? '' : `<p class="hint lock">${icon('lock-simple', 16)}Seu perfil não vê preços de custo. O resto do catálogo funciona igual.</p>`}
-      <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" placeholder="Buscar por nome ou código" autocomplete="off"></label>
+      <label class="search">${icon('magnifying-glass', 18)}<input id="c-q" type="search" enterkeyhint="search" placeholder="Buscar por nome ou código" autocomplete="off"></label>
       <div class="chips" id="c-fil"></div>
       <div class="rows" id="c-rows"></div>
       <small class="hint" id="c-foot"></small>

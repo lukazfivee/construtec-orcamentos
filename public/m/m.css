@@ -256,7 +256,7 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 
 /* Assistente (ia-chat.js): folha de conversa com altura fixa, lista rolando e campo embaixo. */
 .ia-sheet { height: calc(var(--vvh, 100dvh) * .88); max-height: calc(var(--vvh, 100dvh) * .88); display: flex; flex-direction: column; overflow: hidden; padding-bottom: calc(10px + var(--sab)); }
-.ia-sheet .sheet-head { gap: 6px; } .ia-sheet .sheet-head .grow { flex: 1; } .ia-sheet .chip-act { min-height: 36px; }
+.ia-sheet .sheet-head { gap: 6px; } .ia-sheet .sheet-head .grow { flex: 1; } .ia-sheet .chip-act { min-height: 44px; }
 .ia-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px 2px; overscroll-behavior: contain; }
 .ia-msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 14.5px; line-height: 1.45; overflow-wrap: anywhere; }
 .ia-msg p { margin: 0 0 6px; } .ia-msg p:last-child { margin: 0; } .ia-msg ul { margin: 2px 0 6px; padding-left: 18px; } .ia-msg li { margin: 2px 0; }
@@ -268,7 +268,7 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 .ia-dots i:nth-child(2) { animation-delay: .15s; } .ia-dots i:nth-child(3) { animation-delay: .3s; }
 .ia-hello { margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: var(--n300); font-size: 13.5px; padding: 0 8px; }
 .ia-hello .ico { color: var(--accent-300); } .ia-hello b { color: var(--text); font-size: 17px; }
-.ia-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; } .ia-sug .chip-act { min-height: 40px; }
+.ia-sug { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; } .ia-sug .chip-act { min-height: 44px; }
 .ia-input { display: flex; align-items: flex-end; gap: 8px; padding-top: 8px; border-top: 1px solid var(--divider); }
 .ia-input textarea { flex: 1; min-height: 46px; max-height: 120px; padding: 12px 14px; border: 0; border-radius: 14px; resize: none; background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--divider); font: 16px/1.35 var(--font); outline: none; }
 .ia-input textarea:focus { box-shadow: inset 0 0 0 2px var(--accent); }
@@ -286,14 +286,14 @@ body:has(input:focus, textarea:focus, select:focus) .ia-fab { opacity: 0; pointe
 .ia-go { display: flex; margin-top: 10px; min-height: 40px; }
 .ia-note { display: block; margin-top: 6px; text-align: center; font-size: 11px; color: var(--n500); }
 .ia-report { display: flex; flex-direction: column; gap: 10px; width: 100%; } .ia-report .label { display: inline-flex; align-items: center; gap: 6px; }
-.ia-report .field textarea { min-height: 110px; padding: 10px 14px; font: 15px/1.4 var(--font); resize: vertical; }
+.ia-report .field textarea { min-height: 110px; padding: 10px 14px; font: 16px/1.4 var(--font); resize: vertical; }
 @keyframes iaDot { 0%, 80%, 100% { transform: scale(.5); opacity: .4 } 40% { transform: none; opacity: 1 } }
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 @keyframes sheetIn { from { transform: translateY(105%) } to { transform: none } }
 @keyframes scrIn { from { opacity: 0; transform: translateX(18px) } to { opacity: 1; transform: none } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .tabs.is-moving::before { transform: translateX(var(--active-x, 0%)); } }
 /* Entrar pelo site do celular (iPhone e navegador): screen-entrar.js */
-.login { min-height: calc(100vh - var(--sat) - var(--sab) - 40px); max-width: 420px; width: 100%; margin: 0 auto; padding-top: 7vh; display: flex; flex-direction: column; gap: 12px; }
+.login { min-height: calc(100dvh - var(--sat) - var(--sab) - 40px); max-width: 420px; width: 100%; margin: 0 auto; padding-top: 7vh; display: flex; flex-direction: column; gap: 12px; }
 .login-logo { width: 56px; height: auto; }
 .login .title { margin: 6px 0 0; }
 .login .sub { margin: 0 0 8px; }
@@ -328,3 +328,6 @@ body:has(.actions) .ia-fab { display: none; }
 .ia-card .ia-card-note { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; }
 .ia-card-actions { display: flex; flex-direction: column; gap: 8px; } .ia-card-actions .ia-go { margin-top: 0; justify-content: center; }
 .ia-card button:disabled { opacity: .55; }
+/* Celular: campo em 16 px (iOS nao da zoom), toque sem zoom duplo, folha trava a pagina de tras. */
+input, select, textarea { font-size: 16px; } button, a, label, summary, select, [role="switch"] { touch-action: manipulation; }
+html { -webkit-text-size-adjust: 100%; } html:has(.sheet-backdrop) { overflow: hidden; } .sheet, .zoom-box, .sheet-backdrop { overscroll-behavior: contain; }

@@ -117,7 +117,7 @@
     if (params.filter) f = { ...DEFAULT };
     const el = OC.render(`${OC.header('')}
       <div class="title-row"><h1 class="title">Propostas</h1><span class="lst-acts"><button class="chip-act ghost" type="button" id="p-csv" aria-label="Exportar CSV">${icon('download-simple', 16)}CSV</button>${OC.canEdit() ? `<button class="chip-act" type="button" id="p-new">${icon('plus', 16)}Nova</button>` : ''}</span></div>
-      <label class="search">${icon('magnifying-glass', 18)}<input id="p-q" type="search" placeholder="Buscar obra, cliente ou número" autocomplete="off" value="${esc(f.q)}"></label>
+      <label class="search">${icon('magnifying-glass', 18)}<input id="p-q" type="search" enterkeyhint="search" placeholder="Buscar obra, cliente ou número" autocomplete="off" value="${esc(f.q)}"></label>
       <div class="chips" id="p-chips"></div>
       <div class="lst-tools"><button class="chip-act ghost" type="button" id="p-fil">${icon('funnel', 16)}<span id="p-fil-t"></span></button><small id="p-sort"></small></div>
       <span class="group" id="p-count"></span>

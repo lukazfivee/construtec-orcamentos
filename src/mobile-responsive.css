@@ -22,7 +22,7 @@
 .proposal-item-edit-sheet {
   background: var(--surface); width: 100%; border-radius: 16px 16px 0 0;
   padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  max-height: 86dvh; overflow-y: auto;
+  max-height: 86dvh; overflow-y: auto; overscroll-behavior: contain;
 }
 .proposal-item-edit-sheet-handle { width: 34px; height: 4px; background: var(--bg-line-strong); border-radius: 2px; margin: 0 auto 12px; }
 .proposal-item-edit-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }

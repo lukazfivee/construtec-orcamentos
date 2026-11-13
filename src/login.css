@@ -80,7 +80,7 @@
 .lg-inp input:disabled { opacity: .7; cursor: not-allowed; }
 .lg-inp input.ruim { box-shadow: inset 0 0 0 2px var(--c-err); }
 .lg-olho { position: absolute; right: 4px; top: 4px; width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--color-neutral-300); cursor: pointer; display: grid; place-items: center; transition: background-color .15s ease, color .15s ease; }
-.lg-olho:hover { background: var(--color-accent-900); color: var(--color-accent-300); }
+.lg-olho:hover, .lg-olho:active { background: var(--color-accent-900); color: var(--color-accent-300); }
 .lg-olho:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 0; }
 
 .lg-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -113,7 +113,9 @@
 @media (max-width: 860px) {
   .lg { grid-template-columns: minmax(0, 1fr); }
   .lg-marca { display: none; }
-  .lg-rolar { padding: 12px 20px 24px; }
+  .lg-rolar { padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .lg-tema { padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
+  .lg-inp input { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .lg, .lg-vista, .lg-aviso, .lg-campos.tremer, .lg-fundo span { animation: none !important; }

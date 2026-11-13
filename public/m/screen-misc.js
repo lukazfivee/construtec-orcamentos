@@ -13,7 +13,7 @@
     const el = OC.render(`${OC.header('')}
       <div class="title-row"><h1 class="title">Kits</h1>${OC.canEdit() && OC.can('p10') ? `<button class="chip-act" type="button" id="k-new">${icon('plus', 16)}Novo kit</button>` : ''}</div>
       <p class="sub" style="margin:-6px 0 0">Conjuntos de itens que entram de uma vez na proposta.</p>
-      ${list.length > 6 ? `<label class="search">${icon('magnifying-glass', 18)}<input id="k-q" type="search" placeholder="Buscar kit" autocomplete="off"></label>` : ''}
+      ${list.length > 6 ? `<label class="search">${icon('magnifying-glass', 18)}<input id="k-q" type="search" enterkeyhint="search" placeholder="Buscar kit" autocomplete="off"></label>` : ''}
       <div class="kit-list" id="k-rows"></div>`, false, params);
     const paint = () => {
       const q = query.trim().toLowerCase();
@@ -133,7 +133,7 @@
   // Busca no catalogo em folha inferior; onPick recebe o produto (usado pela proposta e pelo kit).
   OC.pickProduct = function (title, onPick) {
     const s = OC.sheet(`${OC.sheetHead(title, 'plus')}
-      <label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" placeholder="Código ou descrição" autocomplete="off"></label>
+      <label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" enterkeyhint="search" placeholder="Código ou descrição" autocomplete="off"></label>
       <div class="rows" data-rows><div class="empty">Digite para buscar no catálogo.</div></div>`);
     const rows = OC.$('[data-rows]', s.el);
     let timer = 0, seq = 0;
