@@ -125,15 +125,16 @@ export const approvePublicLink = async (database: LocalDatabase, token: string, 
   await requireActive(database, row);
   if (input.accept !== true) throw new ClientLinkError('LINK_ACCEPT_REQUIRED', 400, 'Marque o aceite dos termos para aprovar.');
   const who = identity(row, input);
-  const proposal = await getProposalById(database, row.proposal_id);
-  if (!proposal) throw new ClientLinkError('LINK_INVALID', 404, 'Este link não existe.');
-  const seen = contentFingerprint(proposal);
-  // A proposta em revisao continua editavel com o link ativo: o aceite so vale para o conteudo que o cliente abriu.
-  if (input.contentHash && input.contentHash !== seen.hash) {
-    throw new ClientLinkError('LINK_CONTENT_CHANGED', 409, 'A proposta foi alterada depois que você abriu esta página. Confira a versão atual antes de aprovar.');
-  }
   const code = `ACEITE-${row.proposal_number}-REV${String(row.revision).padStart(2, '0')}-${randomBytes(3).toString('hex').toUpperCase()}`;
   const done = await database.transaction(async (tx) => {
+    // Le e confere a proposta na mesma transacao que fecha o link: edicao simultanea nao passa entre a conferencia e o aceite.
+    const proposal = await getProposalById(tx, row.proposal_id);
+    if (!proposal) throw new ClientLinkError('LINK_INVALID', 404, 'Este link não existe.');
+    const seen = contentFingerprint(proposal);
+    // A proposta em revisao continua editavel com o link ativo: o aceite so vale para o conteudo que o cliente abriu.
+    if (input.contentHash && input.contentHash !== seen.hash) {
+      throw new ClientLinkError('LINK_CONTENT_CHANGED', 409, 'A proposta foi alterada depois que você abriu esta página. Confira a versão atual antes de aprovar.');
+    }
     // Fecha o link so se ainda estava ativo: dois cliques nao geram duas aprovacoes.
     const closed = await tx.query("UPDATE proposal_client_links SET status = 'approved', closed_at = now() WHERE id = $1 AND status = 'active' RETURNING id", [row.id]);
     if (!closed.rows[0]) return false;

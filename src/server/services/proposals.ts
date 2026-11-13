@@ -4,7 +4,7 @@ import type { ProposalDetail, ProposalLine, ProposalSummary } from '../../shared
 import type { BodyBlock } from '../../shared/proposalBody';
 import { mapContact } from './clients';
 import { baseCostSql, finalValueSql } from './proposalTotalsSql';
-import type { LocalDatabase } from './database';
+import type { DatabaseQueries, LocalDatabase } from './database';
 import { getProposalStandardMonthlyHours, listProposalLaborItems } from './proposalLabor';
 import { roundMoney } from './proposalCommon';
 import type { ItemRow } from './proposalItems';
@@ -25,7 +25,7 @@ type ProposalRow = {
   contact_name: string | null; contact_role: string | null; contact_department: string | null; contact_email: string | null; contact_phone: string | null;
 };
 
-export const getProposalById = async (database: LocalDatabase, proposalId: string): Promise<ProposalDetail | null> => {
+export const getProposalById = async (database: DatabaseQueries, proposalId: string): Promise<ProposalDetail | null> => {
   // Itens, mao de obra e horas so dependem do id: lidos junto com a proposta (uma ida ao banco em vez de quatro em fila).
   const [itemResult, laborItems, standardMonthlyHours, proposalResult] = await Promise.all([
     database.query<ItemRow & { catalog_cost?: string | null }>(`

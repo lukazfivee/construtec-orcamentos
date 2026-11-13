@@ -96,12 +96,15 @@ export const createCatalogRouter = (database: LocalDatabase) => {
       if (usedInProposal.rows[0]) { response.status(409).json({ error: 'Produto vinculado a proposta(s). Não é possível excluir.' }); return; }
       const usedInKit = await database.query<{ id: string }>('SELECT id FROM kit_items WHERE catalog_product_id = $1 LIMIT 1', [productId]);
       if (usedInKit.rows[0]) { response.status(409).json({ error: 'Produto usado em kit(s). Remova-o dos kits antes de excluir.' }); return; }
-      await database.query('DELETE FROM products WHERE id = $1', [productId]);
-      // Nenhum servico grava o evento de exclusao (attributeAuditEvent so assina evento que ja existe): grava aqui.
-      await database.query(
-        "INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, user_id) VALUES ($1, 'product', $2, 'deleted', $3::jsonb, $4)",
-        [randomUUID(), productId, JSON.stringify({ code: check.rows[0].code, description: check.rows[0].description }), actor(response).id],
-      );
+      const before = JSON.stringify({ code: check.rows[0].code, description: check.rows[0].description }), userId = actor(response).id;
+      // Exclusao e auditoria juntas: se o evento nao grava, o produto nao some. (attributeAuditEvent so assina evento que ja existe.)
+      await database.transaction(async (tx) => {
+        await tx.query('DELETE FROM products WHERE id = $1', [productId]);
+        await tx.query(
+          "INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, user_id) VALUES ($1, 'product', $2, 'deleted', $3::jsonb, $4)",
+          [randomUUID(), productId, before, userId],
+        );
+      });
       response.json({ products: await listCatalogProducts(database) });
     } catch (error) { next(error); }
   });
