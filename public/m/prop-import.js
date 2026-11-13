@@ -102,7 +102,7 @@
         || '<div class="empty">Nenhuma proposta encontrada.</div>';
     };
     const step1 = () => {
-      body.innerHTML = `<label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" placeholder="Número, cliente ou obra" autocomplete="off"></label><div class="rows" data-rows></div>`;
+      body.innerHTML = `<label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" enterkeyhint="search" placeholder="Número, cliente ou obra" autocomplete="off"></label><div class="rows" data-rows></div>`;
       OC.$('[data-q]', body).addEventListener('input', (event) => pickList(event.target.value));
       body.onclick = (event) => { const b = event.target.closest('[data-src]'); if (b) step2(b.dataset.src, b); };
       pickList('');
@@ -140,7 +140,7 @@
   }
 
   function kitSheet(p, ctx) {
-    const s = OC.sheet(`${OC.sheetHead('Aplicar kit', 'stack')}<label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" placeholder="Buscar kit" autocomplete="off"></label><div class="rows" data-rows><div class="empty">Carregando kits…</div></div>`);
+    const s = OC.sheet(`${OC.sheetHead('Aplicar kit', 'stack')}<label class="search">${icon('magnifying-glass', 18)}<input data-q type="search" enterkeyhint="search" placeholder="Buscar kit" autocomplete="off"></label><div class="rows" data-rows><div class="empty">Carregando kits…</div></div>`);
     const rows = OC.$('[data-rows]', s.el);
     let kits = [];
     const paint = (q) => {

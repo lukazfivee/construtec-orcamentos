@@ -81,7 +81,7 @@
     if (!cats.includes(st.cat)) st.cat = '';
     const count = (c) => p.items.filter((it) => catOf(it) === c).length;
     list.insertAdjacentHTML('beforebegin', `<div class="it-tools">
-      <label class="search">${icon('magnifying-glass', 18)}<input type="search" data-iq placeholder="Buscar item ou código" value="${esc(st.q)}" autocomplete="off" aria-label="Buscar item da proposta"></label>
+      <label class="search">${icon('magnifying-glass', 18)}<input type="search" enterkeyhint="search" data-iq placeholder="Buscar item ou código" value="${esc(st.q)}" autocomplete="off" aria-label="Buscar item da proposta"></label>
       ${cats.length > 1 ? `<div class="chips wrap it-cats" role="group" aria-label="Filtrar por categoria">${['', ...cats].map((c) => `<button class="chip-act" type="button" data-icat="${esc(c)}" aria-pressed="${st.cat === c}">${esc(c || 'Todas')}${c ? ` · ${count(c)}` : ''}</button>`).join('')}</div>` : ''}
       <p class="it-count" data-icount hidden></p></div>`);
     const tools = list.previousElementSibling;
