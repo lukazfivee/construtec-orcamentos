@@ -63,7 +63,11 @@ test('link publico do cliente: token, aprovacao, ajuste e confirmacao', async co
     const link = await createClientLink(database, id, { days: 30, requireIdentity: true }, userId, SECRET);
     await assert.rejects(approvePublicLink(database, link.token, { name: 'Ana', role: 'Diretora', accept: false }, ctx), failsWith('LINK_ACCEPT_REQUIRED'));
     await assert.rejects(approvePublicLink(database, link.token, { name: 'Ana', accept: true }, ctx), failsWith('LINK_IDENTITY_REQUIRED'));
-    const done = await approvePublicLink(database, link.token, { name: 'Ana Souza', role: 'Diretora', accept: true }, ctx);
+    // O aceite carrega a impressao digital do que o cliente abriu; se o conteudo mudou no meio, nao vale.
+    const contentHash = (await openPublicLink(database, link.token, ctx)).contentHash;
+    assert.match(contentHash ?? '', /^[0-9a-f]{64}$/);
+    await assert.rejects(approvePublicLink(database, link.token, { name: 'Ana Souza', role: 'Diretora', accept: true, contentHash: '0'.repeat(64) }, ctx), failsWith('LINK_CONTENT_CHANGED'));
+    const done = await approvePublicLink(database, link.token, { name: 'Ana Souza', role: 'Diretora', accept: true, contentHash }, ctx);
     assert.match(done.code, /^ACEITE-PA-\d+-REV00-[0-9A-F]{6}$/);
     await assert.rejects(approvePublicLink(database, link.token, { name: 'Ana Souza', role: 'Diretora', accept: true }, ctx), failsWith('LINK_NOT_ACTIVE'));
     assert.equal((await getProposalById(database, id))?.status, 'sent', 'a aprovacao do cliente nao aprova a proposta sozinha');

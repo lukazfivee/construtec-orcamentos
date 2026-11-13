@@ -20,6 +20,8 @@ export type PublicLinkView = {
   company: { name: string; phone: string; email: string };
   requireIdentity?: boolean;
   expiresAt?: string;
+  // Impressao digital do que o cliente esta vendo; volta no aceite para provar que nada mudou no meio.
+  contentHash?: string;
   reply?: { kind: 'approved' | 'adjust'; name: string | null; message: string | null; code: string | null; at: string } | null;
 };
 
@@ -61,6 +63,7 @@ const view = async (database: LocalDatabase, row: LinkRow): Promise<PublicLinkVi
     },
     company,
     requireIdentity: row.require_identity, expiresAt: row.expires_at,
+    ...(state === 'active' ? { contentHash: contentFingerprint(proposal).hash } : {}),
     reply: reply ? { kind: reply.kind, name: reply.actor_name, message: reply.message, code: reply.code, at: reply.occurred_at } : null,
   };
 };
@@ -89,7 +92,7 @@ export const publicDocumentHtml = async (database: LocalDatabase, token: string,
 };
 
 // Entrada publica estrita: campo desconhecido ou de tipo errado vira 400.
-const approveSchema = z.object({ name: z.string().max(1000).optional(), role: z.string().max(1000).optional(), accept: z.boolean().optional() }).strict();
+const approveSchema = z.object({ name: z.string().max(1000).optional(), role: z.string().max(1000).optional(), accept: z.boolean().optional(), contentHash: z.string().regex(/^[0-9a-f]{64}$/).optional() }).strict();
 const adjustSchema = z.object({ name: z.string().max(1000).optional(), role: z.string().max(1000).optional(), message: z.string().max(10000).optional() }).strict();
 const parseInput = <T extends z.ZodTypeAny>(schema: T, input: unknown): z.infer<T> => {
   const parsed = schema.safeParse(input ?? {});
@@ -125,6 +128,10 @@ export const approvePublicLink = async (database: LocalDatabase, token: string, 
   const proposal = await getProposalById(database, row.proposal_id);
   if (!proposal) throw new ClientLinkError('LINK_INVALID', 404, 'Este link não existe.');
   const seen = contentFingerprint(proposal);
+  // A proposta em revisao continua editavel com o link ativo: o aceite so vale para o conteudo que o cliente abriu.
+  if (input.contentHash && input.contentHash !== seen.hash) {
+    throw new ClientLinkError('LINK_CONTENT_CHANGED', 409, 'A proposta foi alterada depois que você abriu esta página. Confira a versão atual antes de aprovar.');
+  }
   const code = `ACEITE-${row.proposal_number}-REV${String(row.revision).padStart(2, '0')}-${randomBytes(3).toString('hex').toUpperCase()}`;
   const done = await database.transaction(async (tx) => {
     // Fecha o link so se ainda estava ativo: dois cliques nao geram duas aprovacoes.

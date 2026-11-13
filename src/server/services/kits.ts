@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { KitDetail, KitInput, KitItemSummary, KitSummary, ProposalDetail } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
+import { getEditableProposal } from './proposalCommon';
 import { getProposalById } from './proposals';
 
 const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
@@ -231,20 +232,14 @@ export const applyKitToProposal = async (
   database: LocalDatabase,
   kitId: string,
   proposalId: string,
+  userId?: string,
 ): Promise<ProposalDetail> => {
   const kit = await getKitById(database, kitId);
   if (kit.items.length === 0) throw new Error('KIT_EMPTY');
 
   await database.transaction(async (transaction) => {
-    const proposalRes = await transaction.query<{
-      id: string;
-      bdi_multiplier: string;
-      status: string;
-    }>('SELECT id, bdi_multiplier, status FROM proposals WHERE id = $1', [proposalId]);
-
-    const proposal = proposalRes.rows[0];
-    if (!proposal) throw new Error('PROPOSAL_NOT_FOUND');
-    if (proposal.status !== 'draft') throw new Error('PROPOSAL_LOCKED');
+    // Mesma regra dos demais itens: so a revisao vigente, e so em edicao.
+    const proposal = await getEditableProposal(transaction, proposalId);
 
     const bdiMultiplier = Number(proposal.bdi_multiplier);
 
@@ -296,6 +291,10 @@ export const applyKitToProposal = async (
     }
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
+    await transaction.query(`
+      INSERT INTO audit_events (id, entity_type, entity_id, action, before_data, after_data, user_id)
+      VALUES ($1, 'proposal', $2, 'kit_applied', NULL, $3::jsonb, $4)
+    `, [randomUUID(), proposalId, JSON.stringify({ kitId, kitName: kit.name, items: kit.items.length }), userId ?? null]);
   });
 
   const updated = await getProposalById(database, proposalId);

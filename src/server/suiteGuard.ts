@@ -91,6 +91,8 @@ export const suiteGuard = (request: Request, response: Response, next: NextFunct
     const costWrite = write && ['bdi', 'tax', 'labor', 'labor-settings'].includes(action);
     // Itens: gravar unitCost (PATCH items/:id, import-batch) revela e altera custo sem p10.
     if (write && action === 'items') {
+      // Mandar o item ao catalogo cria produto com o custo da linha: e alterar o catalogo, que exige p10.
+      if (/\/to-catalog\/?$/.test(path)) return deny(response, 'Seu papel não permite alterar catálogo e kits, que carregam o custo.');
       const batch = request.method === 'POST' && /\/items\/import-batch\/?$/.test(path);
       const written = costFieldsWritten(request.body, batch);
       if (written.length) {

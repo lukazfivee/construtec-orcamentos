@@ -128,7 +128,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const mode = request.query.mode === 'revision' ? 'revision' : 'all';
-      const result = await deleteProposal(database, proposalId, mode);
+      const result = await deleteProposal(database, proposalId, mode, actor(response).id);
       response.json({ success: true, ...result });
     } catch (error) { next(error); }
   });

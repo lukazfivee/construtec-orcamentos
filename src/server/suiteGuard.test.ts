@@ -79,6 +79,9 @@ test('guarda das propostas: p10 esconde custo, p11 barra envio e aprovacao, apps
   assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/items/i1', { unitCost: 5 }).status, 403);
   assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/items/i1', { unitCost: 0 }).status, 403);
   assert.equal(run(user('tecnico'), 'PATCH', '/api/proposals/abc/items/i1', { unitSale: 5, quantity: 2 }).status, 200);
+  // Mandar item ao catalogo cria produto com custo: sem p10 nao passa, mesmo sem campo de custo no corpo.
+  assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/i1/to-catalog', { code: 'X-1' }).status, 403);
+  assert.equal(run(user('gestor'), 'POST', '/api/proposals/abc/items/i1/to-catalog', { code: 'X-1' }).status, 200);
   assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitCost: 7.5, unitSale: 9 }] }).status, 403);
   assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitCost: 0, unitSale: 9 }] }).status, 200);
   assert.equal(run(user('tecnico'), 'POST', '/api/proposals/abc/items/import-batch', { items: [{ description: 'Cabo', quantity: 1, unitSale: 9 }] }).status, 200);

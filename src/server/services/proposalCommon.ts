@@ -6,6 +6,9 @@ export type Queryable = Pick<LocalDatabase, 'query'>;
 
 export const roundMoney = (value: number) => roundDecimal(value);
 
+// Numeros ja usados, inclusive os de propostas descartadas: um numero descartado nao volta a ser emitido.
+export const PROPOSAL_NUMBERS_SQL = 'SELECT proposal_number FROM proposals UNION ALL SELECT proposal_number FROM discarded_proposals';
+
 export const getLatestProposal = async (database: Queryable, proposalId: string) => {
   const result = await database.query<{
     status: ProposalDetail['status'];
