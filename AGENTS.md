@@ -27,3 +27,7 @@ App Electron local-first de orçamentos da Construtec, com React, TypeScript e P
 - Antes de encerrar avanço real, atualize `CODEX_HANDOFF.md` com data/hora BRT, base/commit, mudanças, validação, próximo passo e bloqueios.
 - Atualize `OPENCODE.md` somente quando o fluxo de retomada mudar.
 - Nunca registre segredos, credenciais, cookies, tokens ou URLs temporárias.
+
+## Agentes, ferramentas e continuidade
+- Em tarefa tecnica, consulte [protocolo de contexto sob demanda](docs/ai/START-HERE.md) e apenas a documentacao do escopo.
+- Codex e qualquer conta do Claude registram o estado da tarefa em Issue/PR, usando [handoff compacto](docs/ai/HANDOFF-TEMPLATE.md); nao publicam sem autorizacao.
