@@ -41,6 +41,7 @@ html[data-theme="escuro"] .tag.ok { background: #0f3320; color: #8fdca9; box-sha
 .prow .end { flex: none; display: grid; justify-items: end; gap: 4px; }
 .prow .end b { font-size: 13.5px; font-weight: 600; }
 .prow > .ico:last-child { flex: none; color: var(--n300); }
+.prow.picked > .ico:last-child { color: var(--accent-300); }
 
 /* Proposta. */
 .prop-tags { display: flex; align-items: center; gap: 6px; margin-top: -6px; min-width: 0; }

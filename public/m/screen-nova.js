@@ -5,7 +5,7 @@
   const VALID = [15, 30, 45, 60];
   const START = [
     ['branco', 'file-text', 'Em branco', 'Comece do zero'],
-    ['copy', 'copy', 'Copiar itens de outra proposta', 'Quantidades e mão de obra vêm juntos'],
+    ['copy', 'copy', 'Copiar de outra proposta', 'Itens, mão de obra e condições comerciais vêm juntos'],
     ['kit', 'stack', 'Começar com um kit', 'Os itens do kit entram de uma vez'],
   ];
   const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
@@ -23,7 +23,16 @@
       start: params.kit ? 'kit' : 'branco', copy: '', kit: params.kit || '',
     };
     let made = {}; // o que ja foi criado, para tentar de novo sem duplicar
-    const copyable = proposals.filter((p) => p.itemCount > 0).slice(0, 12);
+    // Quem teve proposta mais recente vem primeiro; ao copiar, as propostas do cliente escolhido vem na frente.
+    const same = (p, c) => p.clientId === c.id || p.clientName === (c.tradeName || c.legalName);
+    // Compara o texto da data (mesmo formato em todas): o Safari nao le a data do PostgreSQL com espaco.
+    const last = (c) => proposals.reduce((max, p) => (same(p, c) && String(p.updatedAt || '') > max ? String(p.updatedAt) : max), '');
+    clients.sort((a, b) => (last(a) < last(b) ? 1 : last(a) > last(b) ? -1 : 0));
+    const withItems = proposals.filter((p) => p.itemCount > 0);
+    const copyable = () => {
+      const c = clients.find((x) => x.id === state.client);
+      return [...withItems.filter((p) => c && same(p, c)), ...withItems.filter((p) => !(c && same(p, c)))].slice(0, 12);
+    };
     const el = OC.render(`${OC.header('Nova proposta', { back: true })}
       <div class="field"><span>Cliente</span><div class="chips wrap" id="n-cli"></div>
         <input id="n-newcli" type="text" placeholder="Nome do novo cliente" autocomplete="off" hidden></div>
@@ -42,7 +51,13 @@
     if (params.client) pickClient(params.client);
     const ready = () => (state.client === 'novo' ? state.newClient.trim().length >= 2 : !!state.client) && (newWork() ? state.work.trim().length >= 2 : !!state.workId)
       && (state.start !== 'copy' || state.copy) && (state.start !== 'kit' || state.kit);
-    const hint = () => (ready() ? '' : 'Escolha o cliente e a obra (ou dê um nome à obra nova)');
+    const hint = () => {
+      if (ready()) return '';
+      if (!state.client) return 'Escolha o cliente';
+      if (state.client === 'novo' && state.newClient.trim().length < 2) return 'Digite o nome do novo cliente';
+      if (newWork() ? state.work.trim().length < 2 : !state.workId) return 'Dê um nome à obra';
+      return state.start === 'copy' ? 'Escolha a proposta para copiar' : 'Escolha o kit';
+    };
     function paint() {
       OC.$('#n-cli', el).innerHTML = clients.map((c) => `<button class="chip-act" type="button" data-c="${esc(c.id)}" aria-pressed="${state.client === c.id}">${esc(c.tradeName || c.legalName)}</button>`).join('')
         + `<button class="chip-act" type="button" data-c="novo" aria-pressed="${state.client === 'novo'}">${icon('plus', 16)}Novo cliente</button>`;
@@ -55,7 +70,7 @@
       OC.$('#n-days', el).innerHTML = VALID.map((d) => `<button class="chip-act" type="button" data-d="${d}" aria-pressed="${state.days === d}">${d} dias</button>`).join('');
       OC.$('#n-until', el).textContent = `Vale até ${OC.dateFull(addDays(state.days))}`;
       OC.$('#n-start', el).innerHTML = START.map(([k, ic, t, s]) => `<button class="opt" type="button" data-s="${k}" aria-pressed="${state.start === k}">${icon(ic, 20)}<span><b>${t}</b><small>${s}</small></span><i class="radio"></i></button>`).join('');
-      const pick = state.start === 'copy' ? copyable.map((p) => `<button class="chip-act" type="button" data-p="${esc(p.id)}" aria-pressed="${state.copy === p.id}">${esc(p.number)} · ${esc(p.workName || p.clientName)}</button>`).join('') || '<small class="hint">Nenhuma proposta com itens para copiar.</small>'
+      const pick = state.start === 'copy' ? copyable().map((p) => `<button class="chip-act" type="button" data-p="${esc(p.id)}" aria-pressed="${state.copy === p.id}">${esc(p.number)} · ${esc(p.workName || p.clientName)}</button>`).join('') || '<small class="hint">Nenhuma proposta com itens para copiar.</small>'
         : state.start === 'kit' ? kits.map((k) => `<button class="chip-act" type="button" data-k="${esc(k.id)}" aria-pressed="${state.kit === k.id}">${esc(k.name)}</button>`).join('') || '<small class="hint">Nenhum kit com itens.</small>' : '';
       OC.$('#n-pick', el).innerHTML = pick;
       OC.$('#n-hint', el).textContent = hint();
@@ -94,7 +109,14 @@
         if (!made.workId) made.workId = (await OC.api(`/clients/${clientId}/works`, { method: 'POST', body: { name: work, address: state.city.trim() || null } })).workId;
         if (!made.proposal) made.proposal = (await OC.api('/proposals', { method: 'POST', body: { clientId, workId: made.workId, scope: `Proposta para ${work}`, validUntil: addDays(state.days) } })).proposal;
         const created = made.proposal;
-        if (state.start === 'copy') await OC.api(`/proposals/${created.id}/items/copy-from-proposal`, { method: 'POST', body: { sourceProposalId: state.copy } });
+        if (state.start === 'copy') {
+          await OC.api(`/proposals/${created.id}/items/copy-from-proposal`, { method: 'POST', body: { sourceProposalId: state.copy } });
+          // Condicoes comerciais da origem (pagamento, prazo, garantia); se falhar, a proposta segue sem elas.
+          try {
+            const c = OC.parseConditions((await OC.api(`/proposals/${state.copy}`)).proposal.scope);
+            if (c.executionTerm || c.paymentTerms || c.warranty || c.notes) await OC.api(`/proposals/${created.id}/details`, { method: 'PATCH', body: { scope: JSON.stringify({ ...c, scope: `Proposta para ${work}` }) } });
+          } catch { /* fica so com os itens */ }
+        }
         if (state.start === 'kit') await OC.api(`/kits/${state.kit}/apply-to-proposal`, { method: 'POST', body: { proposalId: created.id } });
         OC.toast(`${created.number} criada`);
         OC.go('prop', { id: created.id, tab: 'itens' }, { back: true });

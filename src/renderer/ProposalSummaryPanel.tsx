@@ -233,7 +233,7 @@ export function ProposalSummaryPanel({
             </button>
             {moreOpen && (
               <div className="pop more-actions-pop" role="menu" aria-label="Mais ações">
-                <button type="button" role="menuitem" disabled={!proposal.isLatest || mutationPending} onClick={() => runMore(onCreateRevision)} title="Criar a próxima revisão (Ctrl+S)">
+                <button type="button" role="menuitem" disabled={!proposal.isLatest || mutationPending} onClick={() => runMore(onCreateRevision)} title="Criar a próxima revisão; a atual fica preservada">
                   <Save size={18} /> Criar revisão
                 </button>
                 <button type="button" role="menuitem" disabled={mutationPending} onClick={() => runMore(onCloneProposal)} title="Duplicar esta proposta com um número novo">

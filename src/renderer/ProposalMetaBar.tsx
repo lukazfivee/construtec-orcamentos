@@ -107,6 +107,7 @@ export function ProposalMetaBar({
 
   const updateProposalStatusDirect = async (newStatus: ProposalDetail['status']) => {
     if (mutationPending) return;
+    if (newStatus === 'approved' && !window.confirm('A proposta aprovada fica travada e vira a base de orçado da obra. Não dá para desfazer. Aprovar?')) return;
     setMutationPending(true);
     setError('');
     try {

@@ -107,7 +107,7 @@
     paint();
   }
 
-  function shareSheet(p, c) {
+  function shareSheet(p, c, after) {
     const s = OC.sheet(`${OC.sheetHead('Compartilhar', 'arrow-square-out')}
       <div class="share-list">
         <button class="opt" type="button" data-sh="whats">${icon('paper-plane-tilt', 20)}<span class="grow"><b>WhatsApp</b><small>Mensagem pronta com o arquivo</small></span></button>
@@ -117,7 +117,7 @@
         <button class="opt" type="button" data-sh="print">${icon('file-text', 20)}<span class="grow"><b>Salvar como PDF</b><small>Pela impressão do aparelho</small></span></button>
         <button class="opt" type="button" data-sh="word">${icon('download-simple', 20)}<span class="grow"><b>Word (.docx)</b><small>O mesmo documento, para editar no Word</small></span></button>
       </div>
-      <p class="sheet-text">Compartilhar não muda a situação da proposta.</p>`);
+      <p class="sheet-text">${after ? 'Depois de compartilhar, você pode marcar a proposta como enviada.' : 'Compartilhar não muda a situação da proposta.'}</p>`);
     OC.$$('[data-sh]', s.el).forEach((b) => b.addEventListener('click', async () => {
       b.disabled = true;
       try {
@@ -140,6 +140,7 @@
           printDocument(await fetchDocument(p, c));
         }
         s.close();
+        if (after && ['whats', 'mail', 'file'].includes(kind)) after();
       } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
     }));
   }
@@ -207,11 +208,12 @@
     const cost = OC.can('p10');
     const canSend = OC.can('p11') && OC.canEdit() && p.isLatest;
     const sendable = p.status === 'review';
+    const toReview = p.status === 'draft' && p.isLatest && OC.canEdit();
     const t = p.totals || {};
     const sw = (key, title, sub, off) => `<button class="opt" type="button" data-sw="${key}"${off ? ' disabled' : ''}><span class="grow"><b>${title}</b><small>${sub}</small></span><span class="switch"></span></button>`;
     let sendBlock;
     if (!canSend) sendBlock = `<p class="hint lock">${icon('lock-simple', 15)}<span>${OC.can('p11') ? (p.isLatest ? 'Seu acesso é só de consulta: baixe ou compartilhe o PDF.' : 'Só a revisão atual pode ser enviada.') : 'Seu papel não permite enviar a proposta ao cliente. Baixe ou compartilhe o PDF; quem envia marca como Enviada.'}</span></p>`;
-    else if (!sendable) sendBlock = `<p class="hint">${p.status === 'draft' ? 'Envie para revisão interna antes de mandar ao cliente.' : 'Compartilhar não muda a situação da proposta.'}</p>`;
+    else if (!sendable) sendBlock = `<p class="hint">${p.status === 'draft' ? 'Proposta em edição: envie para revisão interna para liberar o envio ao cliente.' : 'Compartilhar não muda a situação da proposta.'}</p>`;
     else sendBlock = '';
 
     // Mesmas opcoes, textos e ordem do PDF da proposta no computador (ProposalPdfView): Incluir no documento e Apresentacao.
@@ -231,7 +233,8 @@
       <p class="hint">O cliente vê só preços de venda. Custo, BDI e margem nunca entram no PDF.</p>
       ${sendBlock}
       <div class="actions col"><div class="pair"><button class="btn2" type="button" data-share>${icon('arrow-square-out', 18)}Compartilhar</button>
-        <button class="btn2" type="button" data-print>${icon('download-simple', 18)}Baixar</button></div>
+        <button class="btn2" type="button" data-print>${icon('download-simple', 18)}Salvar PDF</button></div>
+        ${toReview ? `<button class="btn" type="button" data-review>${icon('paper-plane-tilt', 18)}Enviar para revisão</button>` : ''}
         ${canSend && (sendable || p.status === 'sent') ? `<button class="btn2" type="button" data-link>${icon('arrow-square-out', 18)}Link para o cliente aprovar</button>` : ''}
         ${canSend && sendable ? `<button class="btn" type="button" data-send>${icon('paper-plane-tilt', 18)}Enviar ao cliente</button>` : ''}</div>`;
 
@@ -260,11 +263,25 @@
     }
     OC.$$('[data-sw]', body).forEach((b) => b.addEventListener('click', () => { c[b.dataset.sw] = !effective()[b.dataset.sw]; preview(); }));
     OC.$('textarea', notes).addEventListener('input', (event) => { c.notas = event.target.value; preview(); });
-    OC.$('[data-share]', body).addEventListener('click', () => shareSheet(p, c));
+    const markSent = () => OC.confirm('Marcar como enviada', 'Confirme se a proposta já foi para o cliente. Ela sai da revisão e passa a aguardar a resposta.', 'Marcar enviada', async () => {
+      await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: 'sent' } });
+      OC.toast('Proposta marcada como enviada');
+      OC.leave('prop', { id: p.id, tab: 'resumo' });
+    });
+    OC.$('[data-share]', body).addEventListener('click', () => shareSheet(p, c, canSend && sendable ? markSent : null));
+    const reviewButton = OC.$('[data-review]', body);
+    if (reviewButton) reviewButton.addEventListener('click', async () => {
+      reviewButton.disabled = true;
+      try {
+        await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: 'review' } });
+        OC.toast('Em revisão: já pode enviar ao cliente');
+        OC.go('pdf', { id: p.id }, { back: true });
+      } catch (error) { OC.toast(error.message, 'warning-circle'); reviewButton.disabled = false; }
+    });
     const printButton = OC.$('[data-print]', body);
     if (printButton) printButton.addEventListener('click', async () => {
       printButton.disabled = true;
-      try { printDocument(await fetchDocument(p, c)); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { printButton.disabled = false; }
+      try { printDocument(await fetchDocument(p, c)); OC.toast('Na impressão, escolha Salvar como PDF'); } catch (error) { OC.toast(error.message, 'warning-circle'); } finally { printButton.disabled = false; }
     });
     const linkButton = OC.$('[data-link]', body);
     if (linkButton) linkButton.addEventListener('click', () => OC.open('link', { id: p.id }));

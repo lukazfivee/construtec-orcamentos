@@ -28,10 +28,11 @@
     const status = (s, msg) => async () => { await OC.api(`/proposals/${p.id}/status`, { method: 'PATCH', body: { status: s } }); OC.toast(msg); ctx.reload(); };
     if (p.status === 'draft' && p.items.length) return { hint: 'Próximo passo: revisão interna do orçamento', prim: ['Enviar para revisão', 'paper-plane-tilt', status('review', 'Enviada para revisão interna')] };
     if (p.status === 'draft') return { hint: 'A proposta ainda não tem itens', prim: ['Adicionar itens', 'plus', () => ctx.tab('itens')] };
+    if (p.status === 'review' && !OC.parseConditions(p.scope).paymentTerms) return { hint: 'Falta a forma de pagamento: sem ela o PDF sai com "A combinar com o cliente".', prim: ['Preencher condições', 'pencil-simple', () => OC.conditionsSheet(p, ctx)], sec: ['Gerar PDF assim', () => OC.open('pdf', { id: p.id })] };
     if (p.status === 'review') return { hint: 'Gere o PDF do cliente e envie. Custo, BDI e margem não aparecem nele.', prim: ['Gerar PDF', 'file-text', () => OC.open('pdf', { id: p.id })], sec: ['Só marcar enviada', () => confirmSheet('Marcar como enviada', 'Use quando o PDF já foi mandado ao cliente por outro caminho.', 'Marcar enviada', status('sent', 'Proposta marcada como enviada'))] };
     if (p.status === 'sent') {
       return {
-        hint: 'Resposta do cliente',
+        hint: 'Aguardando a resposta do cliente. Para alterar a proposta, crie uma revisão na aba Revisões.',
         prim: ['Registrar aprovação', 'check', () => confirmSheet('Registrar aprovação', 'A proposta aprovada fica travada e vira a base de orçado da obra. Não dá para desfazer.', 'Aprovar', status('approved', 'Proposta aprovada pelo cliente'))],
         sec: ['Recusada', () => confirmSheet('Marcar como recusada', 'Depois você pode criar uma nova revisão para renegociar.', 'Marcar recusada', status('rejected', 'Proposta marcada como recusada'))],
       };

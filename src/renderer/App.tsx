@@ -113,7 +113,10 @@ export function App({ user, onLogout }: AppProps = {}) {
     }
     const tabs = await proposalApi.list();
     setProposalTabs(tabs.proposals);
-    if (!kitId) showNotice(`${created.number} criada na revisão 00.`);
+    if (!kitId) {
+      showNotice(`${created.number} criada. Busque no catálogo para adicionar os itens.`);
+      setCatalogOpen(true);
+    }
   }, [pendingKitId]);
 
   // Abre uma proposta pela tela de Catalogo, Clientes ou Kits (Rodada 24).
@@ -165,7 +168,7 @@ export function App({ user, onLogout }: AppProps = {}) {
           if (proposal?.isLatest) setCatalogOpen(true);
           else announce('Esta revisão é somente para consulta. Abra a revisão atual para editar.');
         } else if (action === 's') {
-          void createRevision();
+          announce('As alterações são salvas automaticamente.');
         } else if (action === 'p') {
           openPdf();
         } else if (action === 'g') {
@@ -176,7 +179,7 @@ export function App({ user, onLogout }: AppProps = {}) {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [openSearch, createRevision, openPdf, proposal?.isLatest]);
+  }, [openSearch, openPdf, proposal?.isLatest]);
 
   const selectNav = (label: NavSection) => {
     setActiveNav(label);
@@ -245,7 +248,7 @@ export function App({ user, onLogout }: AppProps = {}) {
         onLogout={onLogout}
       />
 
-      {activeNav !== 'Propostas' && error && (
+      {error && !(activeNav === 'Propostas' && proposal && proposalViewMode === 'editor') && (
         <div className="global-error" role="alert">
           <span>{error}</span>
           <button type="button" onClick={() => setError('')}>Fechar</button>

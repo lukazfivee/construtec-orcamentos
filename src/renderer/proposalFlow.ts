@@ -33,7 +33,7 @@ export const nextStep = (proposal: FlowInput, perms: FlowPermissions): NextStep 
         secondary: { action: 'mark-sent', label: 'Só marcar enviada' },
       };
     case 'sent':
-      return { hint: 'Resposta do cliente', primary: { action: 'approve', label: 'Registrar aprovação' }, secondary: { action: 'reject', label: 'Recusada' } };
+      return { hint: 'Aguardando a resposta do cliente. Para alterar a proposta, crie uma revisão em Mais ações.', primary: { action: 'approve', label: 'Registrar aprovação' }, secondary: { action: 'reject', label: 'Recusada' } };
     case 'approved':
       return proposal.costCenterId
         ? { hint: 'Obra em andamento no Centro de Custos', primary: { action: 'open-cost-center', label: 'Abrir obra no Centro de Custos' } }

@@ -5,6 +5,9 @@ import { Building2, CalendarDays, FilePlus2, FileText, MapPin, X } from './icons
 import { useCompanyBodyModels } from './useCompanyBodyModels';
 import { clientsApi, proposalApi, settingsApi } from './api';
 
+const LAST_CLIENT_KEY = 'orc_ultimo_cliente';
+const lastClientId = () => { try { return localStorage.getItem(LAST_CLIENT_KEY); } catch { return null; } };
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -37,7 +40,7 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
     clientsApi.list().then((result) => {
       setClients(result.clients);
       if (result.clients.length > 0) {
-        const firstClient = result.clients[0];
+        const firstClient = result.clients.find((client) => client.id === lastClientId()) ?? result.clients[0];
         setClientId(firstClient.id);
         const active = firstClient.works.filter((w) => w.active);
         if (active.length > 0) {
@@ -87,7 +90,8 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
   const isWorkValid = (activeWorks.length === 0 || isCreatingWork)
     ? newWorkName.trim().length >= 2
     : Boolean(workId);
-  const canSubmit = Boolean(clientId && isWorkValid && scope.trim().length >= 3 && !loading);
+  // Escopo em branco vale (nasce com o texto padrao); digitado, segue o minimo de 3 do servidor.
+  const canSubmit = Boolean(clientId && isWorkValid && scope.trim().length !== 1 && scope.trim().length !== 2 && !loading);
 
   useEffect(() => {
     if (!open) return;
@@ -106,6 +110,7 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
     setLoading(true);
     try {
       let finalWorkId = workId;
+      let workName = activeWorks.find((work) => work.id === workId)?.name ?? '';
       if (activeWorks.length === 0 || isCreatingWork) {
         const obraName = newWorkName.trim();
         if (obraName.length < 2) {
@@ -118,15 +123,18 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
           address: null,
         });
         finalWorkId = createdWork.workId;
+        workName = obraName;
       }
 
       const result = await proposalApi.create({
         clientId,
         workId: finalWorkId,
-        scope: scope.trim(),
+        // Sem escopo digitado, nasce com o mesmo texto do celular; da para trocar depois nas condicoes.
+        scope: scope.trim() || `Proposta para ${workName}`,
         validUntil: validUntil || null,
         ...(bodyModel ? { bodyModel } : {}),
       });
+      try { localStorage.setItem(LAST_CLIENT_KEY, clientId); } catch { /* sem armazenamento: so nao lembra */ }
       onCreated(result.proposal);
       setScope('');
       setBodyModel('');
@@ -246,12 +254,13 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
           )}
 
           <label htmlFor="new-proposal-scope" className="wide">
-            <span>Escopo da proposta <b>*</b></span>
+            <span>Escopo da proposta · opcional</span>
             <input
               id="new-proposal-scope"
               autoFocus
               type="text"
               maxLength={300}
+              placeholder="Em branco, fica: Proposta para a obra escolhida (ou digite 3 letras ou mais)"
               value={scope}
               disabled={loading}
               onChange={(event) => setScope(event.target.value)}

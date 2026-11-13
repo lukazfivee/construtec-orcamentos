@@ -90,7 +90,7 @@ export function useProposalMutations({
     setError('');
     try {
       const result = await proposalApi.delete(proposal.id, 'all');
-      showNotice(`Orçamento ${proposal.number} excluído com sucesso.`);
+      showNotice(`Proposta ${proposal.number} excluída.`);
       await reloadProposalTabs();
       if (result.nextProposalId) await onOpenProposal(result.nextProposalId);
       else onViewList();

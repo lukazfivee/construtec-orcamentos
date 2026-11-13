@@ -49,7 +49,7 @@ test('coluna de acoes da lista fica sticky com fundo opaco e botoes de icone tem
   const css = read('src/desktop-polish.css');
   assert.match(css, /td\.proposal-actions-cell\s*\{\s*background:\s*var\(--surface\)/);
   const table = read('src/renderer/ProposalsListTable.tsx');
-  for (const label of ['Clonar proposta', 'Exportar proposta', 'Compartilhar proposta', 'Excluir proposta']) assert.ok(table.includes(`aria-label="${label}"`), label);
+  for (const label of ['Duplicar proposta', 'Exportar proposta', 'Compartilhar proposta', 'Excluir proposta']) assert.ok(table.includes(`aria-label="${label}"`), label);
 });
 
 test('Exsat sem nome tecnico na tela: a mesma frase no site do computador e no celular', () => {

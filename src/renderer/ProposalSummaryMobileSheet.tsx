@@ -181,7 +181,7 @@ export function ProposalSummaryMobileSheet({
             <Save size={16} /> Criar revisão
           </button>
           <button type="button" disabled={mutationPending} onClick={() => { onCloneProposal(); onClose(); }}>
-            <Copy size={16} /> Clonar proposta
+            <Copy size={16} /> Duplicar proposta
           </button>
           <button type="button" disabled={documentPending} style={canSeeCost ? undefined : { display: 'none' }} onClick={() => { onPreviewProposal(); onClose(); }}>
             <Eye size={16} /> Pré-visualizar

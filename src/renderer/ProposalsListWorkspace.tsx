@@ -80,6 +80,7 @@ export function ProposalsListWorkspace({
   }, []);
 
   const handleStatusChange = async (proposalId: string, newStatus: ProposalDetail['status']) => {
+    if (newStatus === 'approved' && !window.confirm('A proposta aprovada fica travada e vira a base de orçado da obra. Não dá para desfazer. Aprovar?')) return;
     setActionPending(true);
     try {
       await proposalApi.updateStatus(proposalId, newStatus);
@@ -97,7 +98,7 @@ export function ProposalsListWorkspace({
     setActionPending(true);
     try {
       await proposalApi.delete(deletingProposal.id, 'all');
-      onNotice(`Orçamento ${deletingProposal.number} excluído com sucesso.`);
+      onNotice(`Proposta ${deletingProposal.number} excluída.`);
       setDeletingProposal(null);
       await loadProposals();
     } catch (error) {
@@ -266,7 +267,7 @@ export function ProposalsListWorkspace({
         onClose={() => setCloningProposal(null)}
         onCloned={(cloned) => {
           setCloningProposal(null);
-          onNotice(`Orçamento ${cloned.number} criado com sucesso.`);
+          onNotice(`Proposta ${cloned.number} criada.`);
           onOpenProposal(cloned.id);
         }}
         onError={onError}
