@@ -43,6 +43,36 @@
     setTimeout(() => { if (!client) OC.$('#cl-legal', s.el).focus(); }, 50);
   };
 
+  // Folha da obra: sem obra, cadastra; com obra, edita nome, endereco e situacao, como a secao Obras do computador.
+  // POST e PATCH /clients/:id/works devolvem a lista de clientes atualizada.
+  OC.workSheet = function (client, work, onSaved) {
+    const w = work || {};
+    const s = OC.sheet(`${OC.sheetHead(work ? 'Editar obra' : 'Nova obra', work ? 'pencil-simple' : 'plus')}
+      <p class="sheet-text" style="margin-top:0">${esc(client.tradeName || client.legalName)}</p>
+      ${input('wk-name', 'Nome da obra', w.name, 180, 'text', ' placeholder="Ex.: Reforma da recepção" enterkeyhint="next"')}
+      ${input('wk-addr', 'Endereço ou referência · opcional', w.address, 300, 'text', ' enterkeyhint="done"')}
+      ${work ? `<label class="opt" style="margin-top:12px"><span class="grow"><b>Obra ativa</b><small>Inativa não aparece ao criar proposta</small></span><input type="checkbox" id="wk-active"${w.active !== false ? ' checked' : ''}></label>` : ''}
+      <div class="sheet-actions"><button class="btn2" type="button" data-no>Cancelar</button><button class="btn" type="button" data-yes>Salvar obra</button></div>`);
+    OC.$('[data-no]', s.el).addEventListener('click', s.close);
+    OC.$('[data-yes]', s.el).addEventListener('click', async (event) => {
+      const b = event.currentTarget;
+      const name = OC.$('#wk-name', s.el).value.trim();
+      if (name.length < 2) { OC.toast('Informe o nome da obra.', 'warning-circle'); OC.$('#wk-name', s.el).focus(); return; }
+      const body = { name, address: OC.$('#wk-addr', s.el).value.trim() || null };
+      if (work) body.active = OC.$('#wk-active', s.el).checked;
+      b.disabled = true;
+      try {
+        const data = work
+          ? await OC.api(`/clients/${client.id}/works/${work.id}`, { method: 'PATCH', body })
+          : await OC.api(`/clients/${client.id}/works`, { method: 'POST', body });
+        s.close();
+        OC.toast(work ? 'Obra atualizada' : 'Obra cadastrada');
+        onSaved({ id: client.id, clients: data.clients || [] });
+      } catch (error) { OC.toast(error.message, 'warning-circle'); b.disabled = false; }
+    });
+    setTimeout(() => { if (!work) OC.$('#wk-name', s.el).focus(); }, 50);
+  };
+
   OC.screens.cli = async function (params) {
     let [clients, proposals] = await Promise.all([OC.api('/clients').then((d) => d.clients || []), OC.loadProposals().catch(() => [])]);
     let open = '', query = '';
@@ -71,13 +101,20 @@
             ${c.tradeName ? `<div class="kv"><span>Razão social</span><b>${esc(c.legalName)}</b></div>` : ''}
             ${c.document ? `<div class="kv"><span>CPF ou CNPJ</span><b>${esc(c.document)}</b></div>` : ''}
             ${who || ct.email || ct.phone ? `<div class="kv"><span>Contato</span><b>${esc([who, ct.email, ct.phone].filter(Boolean).join(' · '))}</b></div>` : ''}
-            ${(c.works || []).map((w) => `<div class="kv"><span>${esc(w.name)}${w.active === false ? ' · inativa' : ''}</span><b>${esc(w.address || '')}</b></div>`).join('') || '<small class="hint">Sem obras cadastradas.</small>'}
+            ${(c.works || []).map((w) => (OC.canEdit()
+              ? `<button class="prow" type="button" data-w="${esc(w.id)}" data-wc="${esc(c.id)}" aria-label="Editar obra ${esc(w.name)}">${icon('buildings', 18)}<span class="grow"><b>${esc(w.name)}${w.active === false ? ' · inativa' : ''}</b><small>${esc(w.address || 'Endereço não informado')}</small></span>${icon('pencil-simple', 18)}</button>`
+              : `<div class="kv"><span>${esc(w.name)}${w.active === false ? ' · inativa' : ''}</span><b>${esc(w.address || '')}</b></div>`)).join('') || '<small class="hint">Sem obras cadastradas.</small>'}
             ${ps.map((p) => `<button class="prow" type="button" data-p="${esc(p.id)}"><span class="grow"><b>${esc(p.workName || p.number)}</b><small>${esc(p.number)} · ${esc(OC.rev(p.revision))}</small></span><span class="end">${OC.pill(p.status)}</span>${icon('caret-right', 18)}</button>`).join('')}
-            ${OC.canEdit() ? `<div class="chips wrap"><button class="chip-act" type="button" data-nova="${esc(c.id)}">${icon('plus', 16)}Nova proposta</button><button class="chip-act" type="button" data-edit="${esc(c.id)}">${icon('pencil-simple', 16)}Editar cliente</button></div>` : ''}</div>` : ''}</div>`;
+            ${OC.canEdit() ? `<div class="chips wrap"><button class="chip-act" type="button" data-nova="${esc(c.id)}">${icon('plus', 16)}Nova proposta</button><button class="chip-act" type="button" data-obra="${esc(c.id)}">${icon('buildings', 16)}Nova obra</button><button class="chip-act" type="button" data-edit="${esc(c.id)}">${icon('pencil-simple', 16)}Editar cliente</button></div>` : ''}</div>` : ''}</div>`;
       }).join('') || `<div class="empty">${icon('users', 28)}Nenhum cliente.</div>`;
       OC.$$('[data-c]', el).forEach((b) => b.addEventListener('click', () => { open = open === b.dataset.c ? '' : b.dataset.c; paint(); }));
       OC.$$('[data-p]', el).forEach((b) => b.addEventListener('click', () => OC.open('prop', { id: b.dataset.p })));
       OC.$$('[data-nova]', el).forEach((b) => b.addEventListener('click', () => OC.open('nova', { client: b.dataset.nova })));
+      OC.$$('[data-obra]', el).forEach((b) => b.addEventListener('click', () => OC.workSheet(clients.find((c) => c.id === b.dataset.obra), null, saved)));
+      OC.$$('[data-w]', el).forEach((b) => b.addEventListener('click', () => {
+        const c = clients.find((x) => x.id === b.dataset.wc);
+        OC.workSheet(c, (c.works || []).find((w) => w.id === b.dataset.w), saved);
+      }));
       OC.$$('[data-edit]', el).forEach((b) => b.addEventListener('click', () => OC.clientSheet(clients.find((c) => c.id === b.dataset.edit), saved)));
     };
     OC.$('#c-q', el).addEventListener('input', (event) => { query = event.target.value; paint(); });
