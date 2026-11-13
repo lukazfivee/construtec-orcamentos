@@ -150,14 +150,16 @@
   }
 
   // Botao voltar do aparelho: uma entrada de guarda no historico; voltar fecha a folha, volta de tela ou, no Inicio, sai.
+  // Fecha a folha de cima pelo proprio botao Fechar (encerra ditado e ouvintes); sem botao, so remove.
+  function fechaFolha(folha) { const x = folha.querySelector('.sheet-x'); if (x) x.click(); if (folha.isConnected) folha.remove(); }
   function guardaVoltar() {
     history.pushState(null, '', location.hash);
     window.addEventListener('popstate', () => {
-      const folha = document.querySelector('.sheet-backdrop');
+      const folha = [...document.querySelectorAll('.sheet-backdrop')].pop();
       const raiz = !stack.length && TABS.some(([key]) => key === current);
       if (!folha && raiz && current === 'home') return history.back();
       const aqui = hashAtual;
-      if (folha) folha.remove(); else if (raiz) OC.go('home'); else OC.back();
+      if (folha) fechaFolha(folha); else if (raiz) OC.go('home'); else OC.back();
       history.pushState(null, '', folha ? aqui : hashAtual);
     });
   }
