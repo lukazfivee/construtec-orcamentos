@@ -23,6 +23,7 @@ const entryPoints = [
   'src/server/routes/exsat.test.ts',
   'src/server/routes/reports.test.ts',
   'src/server/routes/catalog.test.ts',
+  'src/server/services/proposal-import.test.ts',
   'src/main/updater.test.ts',
   'src/main/suite-bundle.test.ts',
   'src/server/services/integration/integration-key.test.ts',

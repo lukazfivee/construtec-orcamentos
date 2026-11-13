@@ -6,6 +6,7 @@ import { MakerRpm } from '@electron-forge/maker-rpm';
 import { VitePlugin } from '@electron-forge/plugin-vite';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { FuseV1Options, FuseVersion } from '@electron/fuses';
+import packageJson from './package.json';
 
 const config: ForgeConfig = {
   packagerConfig: {
@@ -26,7 +27,7 @@ const config: ForgeConfig = {
       name: 'ConstrutecOrcamentos',
       authors: 'Construtec Engenharia',
       description: 'Orçamentos profissionais, rápidos, seguros e offline para a Construtec Engenharia.',
-      setupExe: 'Construtec-Orcamentos-1.0.6-Setup.exe',
+      setupExe: `Construtec-Orcamentos-${packageJson.version}-Setup.exe`,
       loadingGif: 'src/assets/install-splash.gif',
       setupIcon: 'src/assets/app-icon.ico',
       noMsi: true,

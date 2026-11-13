@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { KitDetail, KitInput, KitItemSummary, KitSummary, ProposalDetail } from '../../shared/contracts';
 import type { LocalDatabase } from './database';
-import { getEditableProposal } from './proposalCommon';
+import { getEditableProposal, insertProposalItems, type ProposalItemInsert } from './proposalCommon';
 import { getProposalById } from './proposals';
 
 const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
@@ -249,46 +249,38 @@ export const applyKitToProposal = async (
     );
     let nextPosition = Number(maxPosRes.rows[0]?.max_pos ?? 0);
 
+    // Uma consulta para todos os produtos do kit, em vez de uma por item.
+    const productRes = await transaction.query<{
+      id: string;
+      code: string;
+      manufacturer: string | null;
+      model: string | null;
+      description: string;
+      category: string;
+      unit: string;
+    }>('SELECT id, code, manufacturer, model, description, category, unit FROM products WHERE id = ANY($1::uuid[])', [kit.items.map((item) => item.productId)]);
+    const products = new Map(productRes.rows.map((row) => [row.id, row]));
+
+    const rows: ProposalItemInsert[] = [];
     for (const item of kit.items) {
       nextPosition += 1;
-      const unitCost = item.currentCost;
-      const saleUnitPrice = roundMoney(unitCost * bdiMultiplier);
-
-      const productRes = await transaction.query<{
-        code: string;
-        manufacturer: string | null;
-        model: string | null;
-        description: string;
-        category: string;
-        unit: string;
-      }>('SELECT code, manufacturer, model, description, category, unit FROM products WHERE id = $1', [item.productId]);
-
-      const prod = productRes.rows[0];
+      const prod = products.get(item.productId);
       if (!prod) continue;
-
-      await transaction.query(`
-        INSERT INTO proposal_items (
-          id, proposal_id, catalog_product_id, position, snapshot_code,
-          snapshot_manufacturer, snapshot_model, snapshot_description,
-          snapshot_category, snapshot_unit, snapshot_unit_cost, quantity,
-          sale_unit_price
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      `, [
-        randomUUID(),
-        proposalId,
-        item.productId,
-        nextPosition,
-        prod.code,
-        prod.manufacturer,
-        prod.model,
-        prod.description,
-        prod.category || 'Outros',
-        prod.unit,
-        unitCost,
-        item.quantity,
-        saleUnitPrice,
-      ]);
+      rows.push({
+        catalogProductId: item.productId,
+        position: nextPosition,
+        code: prod.code,
+        manufacturer: prod.manufacturer,
+        model: prod.model,
+        description: prod.description,
+        category: prod.category || 'Outros',
+        unit: prod.unit,
+        unitCost: item.currentCost,
+        quantity: item.quantity,
+        saleUnitPrice: roundMoney(item.currentCost * bdiMultiplier),
+      });
     }
+    await insertProposalItems(transaction, proposalId, rows);
 
     await transaction.query('UPDATE proposals SET updated_at = now() WHERE id = $1', [proposalId]);
     await transaction.query(`

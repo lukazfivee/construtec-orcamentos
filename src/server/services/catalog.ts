@@ -151,30 +151,37 @@ export const importCatalogProducts = async (database: LocalDatabase, items: Cata
   return database.transaction(async (transaction) => {
     let created = 0;
     let updated = 0;
+    // Uma consulta trava e localiza todos os codigos do lote, em vez de uma por item. A comparacao sem
+    // maiusculas fica no banco (lower dos dois lados), como era item a item.
+    const existing = await transaction.query<{ id: string; code: string }>(
+      'SELECT p.id, c.code FROM unnest($1::text[]) AS c(code) JOIN products p ON lower(p.code) = lower(c.code) FOR UPDATE OF p',
+      [[...new Set(safeItems.map((item) => item.code.trim().toUpperCase()))]],
+    );
+    const idByCode = new Map(existing.rows.map((row) => [row.code, row.id]));
     for (const input of safeItems) {
       const code = input.code.trim().toUpperCase();
-      const existing = await transaction.query<{ id: string }>(
-        'SELECT id FROM products WHERE lower(code) = lower($1) FOR UPDATE',
-        [code],
-      );
-      if (existing.rows[0]) {
+      const existingId = idByCode.get(code);
+      if (existingId) {
         await transaction.query(`
           UPDATE products
           SET manufacturer = $2, model = $3, description = $4, category = $5, unit = $6,
               current_cost = $7, source = $8, active = $9, revision = revision + 1, updated_at = now()
           WHERE id = $1
-        `, [existing.rows[0].id, input.manufacturer?.trim() || null, input.model?.trim() || null,
+        `, [existingId, input.manufacturer?.trim() || null, input.model?.trim() || null,
           input.description.trim(), input.category.trim(), input.unit.trim().toLowerCase(), input.currentCost,
           input.source.trim() || 'IMPORTAÇÃO', input.active]);
         updated += 1;
       } else {
+        const id = randomUUID();
         await transaction.query(`
           INSERT INTO products
             (id, code, manufacturer, model, description, category, unit, current_cost, source, active)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        `, [randomUUID(), code, input.manufacturer?.trim() || null, input.model?.trim() || null,
+        `, [id, code, input.manufacturer?.trim() || null, input.model?.trim() || null,
           input.description.trim(), input.category.trim(), input.unit.trim().toLowerCase(), input.currentCost,
           input.source.trim() || 'IMPORTAÇÃO', input.active]);
+        // Codigo repetido no mesmo lote atualiza o item recem-criado.
+        idByCode.set(code, id);
         created += 1;
       }
     }
