@@ -1,5 +1,15 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-11-13 BRT — gota da barra de abas do celular, publicada (Claude Code)
+
+- Base: `origin/main em d59158f`, branch `feat/vidro-barra-afinado` (PR 253, squash, mesclado), worktree `C:orc-vidro`.
+- Barra de abas do celular (Liquid Glass): toque rápido dá gota leve; segurar ou arrastar (`.is-held`, após 170 ms) dá zoom com lupa (ícone e rótulo ampliados dentro da gota), a barra cresce 3,5% e distorce a partir da gota; mola ao seguir o dedo e balanço ao soltar. Sem zoom da barra com "Reduzir movimento". Desfoque do vidro 2 para 6 px, aro de luz e saturação mais fortes. Script do gesto: `public/m/abas-arrastar.js` e CSS em `public/m/m.css`.
+- Publicado (registro de 13/11): Worker `d0cff922`; `/m/m.css` e `/m/abas-arrastar.js` novos servidos.
+- Backup: este repositório possui `.github/workflows/backup-postgres.yml`, com agendamento diário e acionamento manual. O dump PostgreSQL é criptografado e exclui os dados da tabela `exsat_credentials`. Confirmar a execução efetiva no GitHub Actions antes de registrar backup pré-publicação; não presumir que o workflow seja acionado automaticamente pelo deploy.
+- Validação histórica: `npm run test:critical` 426 de 427 (1 pulado). O `package.json` define `npm run verify` com typecheck, lint e testes críticos; não registrar essa verificação completa como executada nesta entrega sem resultado próprio. Visto só no navegador em 375 px (página de teste, já removida); nada em aparelho real nem com login. A refração na borda só existe no Chromium/Android; no iPhone valem desfoque, aro e lupa.
+- Deploy do Orçamentos: usar `npm run deploy:cloud` (`scripts/deploy-cloud.mjs`). O script prepara o frontend com Vite, confere os assets de `dist/` e publica a partir de `cloudflare/api-container/wrangler.jsonc`. Pré-validação disponível: `npm run deploy:cloud:dry`. O Wrangler local de `cloudflare/api-container/node_modules` é utilizado quando disponível, havendo alternativa via `npx`; não declarar esse diretório como requisito absoluto sem verificar o ambiente. Confirmar Docker ativo e dependências necessárias. Na sessão registrada, havia duas contas Cloudflare; selecionar a produção com `CLOUDFLARE_ACCOUNT_ID=36153bf46ff4ca3b52f6a009397ca6ff`.
+- Próximo passo: olhar a barra num iPhone e num Android reais. Bloqueios: nenhum.
+
 ## 2026-11-13 BRT - Fluxo de uso mais direto, computador e celular (Claude Code)
 
 - Base: `origin/main` depois do PR #248. Branch `feat/fluxo-mais-simples`, worktree em `C:\orc-mobile`.
