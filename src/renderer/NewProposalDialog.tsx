@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ClientRecord, ProposalDetail } from '../shared/contracts';
 import { BODY_MODELS, findBodyModel } from '../shared/proposalBodyModels';
-import { Building2, CalendarDays, FilePlus2, FileText, MapPin, X } from './icons';
+import { Building2, CalendarDays, FilePlus2, FileText, MapPin, Search, X } from './icons';
 import { useCompanyBodyModels } from './useCompanyBodyModels';
 import { clientsApi, proposalApi, settingsApi } from './api';
 
+const normalizeClientSearch = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const LAST_CLIENT_KEY = 'orc_ultimo_cliente';
 const lastClientId = () => { try { return localStorage.getItem(LAST_CLIENT_KEY); } catch { return null; } };
 
@@ -18,6 +19,11 @@ type Props = {
 export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) {
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [clientId, setClientId] = useState('');
+  const [clientQuery, setClientQuery] = useState('');
+  const [showClientSearch, setShowClientSearch] = useState(false);
+  const clientSearchButton = useRef<HTMLButtonElement>(null);
+  const clientSearchInput = useRef<HTMLInputElement>(null);
+  const clientSelect = useRef<HTMLSelectElement>(null);
   const [workId, setWorkId] = useState('');
   const [newWorkName, setNewWorkName] = useState('');
   const [isCreatingWork, setIsCreatingWork] = useState(false);
@@ -29,6 +35,8 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
 
   useEffect(() => {
     if (!open) return;
+    setShowClientSearch(false);
+    setClientQuery('');
     setLoading(true);
     // Validade padrao da empresa (Configuracoes > Padroes): sugere hoje + N dias.
     void settingsApi.get().then(({ settings }) => {
@@ -63,10 +71,30 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
     }).finally(() => setLoading(false));
   }, [onError, open]);
 
+  useEffect(() => {
+    if (showClientSearch) clientSearchInput.current?.focus();
+  }, [showClientSearch]);
+
   const selectedClient = useMemo(() => clients.find((client) => client.id === clientId), [clientId, clients]);
+  const filteredClients = useMemo(() => {
+    const terms = normalizeClientSearch(clientQuery.trim()).split(/\s+/).filter(Boolean);
+    if (!terms.length) return clients;
+    return clients.filter((client) => {
+      const text = normalizeClientSearch([client.tradeName, client.legalName].filter(Boolean).join(' '));
+      return terms.every((term) => text.includes(term));
+    });
+  }, [clients, clientQuery]);
+  // Manter a opção selecionada permite buscar sem trocar a obra ou o cliente do rascunho.
+  const pinnedClient = selectedClient && !filteredClients.some((client) => client.id === clientId) ? selectedClient : null;
   const activeWorks = useMemo(() => selectedClient?.works.filter((work) => work.active) ?? [], [selectedClient]);
 
+  const closeClientSearch = () => {
+    setShowClientSearch(false);
+    setClientQuery('');
+  };
+
   const handleClientChange = (nextId: string) => {
+    closeClientSearch();
     setClientId(nextId);
     const nextClient = clients.find((client) => client.id === nextId);
     if (!nextClient) {
@@ -170,22 +198,64 @@ export function NewProposalDialog({ open, onClose, onCreated, onError }: Props) 
           </button>
         </header>
         <form onSubmit={(event) => void submit(event)}>
-          <label htmlFor="new-proposal-client">
-            <span><Building2 size={15} /> Cliente <b>*</b></span>
+          <div className="new-proposal-client-field">
+            <div className="new-proposal-client-heading">
+              <label htmlFor="new-proposal-client"><span><Building2 size={15} /> Cliente <b>*</b></span></label>
+              <button
+                ref={clientSearchButton}
+                className="new-proposal-client-search-toggle"
+                type="button"
+                aria-controls="new-proposal-client-filter"
+                aria-expanded={showClientSearch}
+                aria-label="Buscar cliente"
+                disabled={loading || clients.length === 0}
+                onClick={() => showClientSearch ? closeClientSearch() : setShowClientSearch(true)}
+              >
+                <Search size={14} /> Buscar
+              </button>
+            </div>
+            <div id="new-proposal-client-filter" className="new-proposal-client-filter" hidden={!showClientSearch}>
+              <input
+                ref={clientSearchInput}
+                type="search"
+                aria-label="Buscar cliente por nome ou razão social"
+                placeholder="Nome ou razão social"
+                value={clientQuery}
+                disabled={loading}
+                onChange={(event) => setClientQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') {
+                    event.stopPropagation();
+                    closeClientSearch();
+                    clientSearchButton.current?.focus();
+                  } else if (event.key === 'ArrowDown' || event.key === 'Enter') {
+                    event.preventDefault();
+                    clientSelect.current?.focus();
+                  }
+                }}
+              />
+              <p className="new-proposal-client-feedback" role="status">
+                {clientQuery.trim() && (filteredClients.length
+                  ? `${filteredClients.length} ${filteredClients.length === 1 ? 'cliente encontrado' : 'clientes encontrados'}`
+                  : 'Nenhum cliente encontrado.')}
+              </p>
+            </div>
             <select
+              ref={clientSelect}
               id="new-proposal-client"
               value={clientId}
               disabled={loading}
               onChange={(event) => handleClientChange(event.target.value)}
             >
               <option value="">Selecione</option>
-              {clients.map((client) => (
+              {pinnedClient && <optgroup label="Seleção atual"><option value={pinnedClient.id}>{pinnedClient.tradeName || pinnedClient.legalName}</option></optgroup>}
+              {filteredClients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.tradeName || client.legalName}
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
           {activeWorks.length > 0 && !isCreatingWork ? (
             <label htmlFor="new-proposal-work">

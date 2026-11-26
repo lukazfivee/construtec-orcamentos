@@ -25,7 +25,7 @@ export const nextStep = (proposal: FlowInput, perms: FlowPermissions): NextStep 
     case 'draft':
       return proposal.itemCount > 0
         ? { hint: 'Próximo passo: revisão interna do orçamento', primary: { action: 'to-review', label: 'Enviar para revisão' } }
-        : { hint: 'A proposta ainda não tem itens', primary: { action: 'add-items', label: 'Adicionar itens' } };
+        : { hint: 'A proposta ainda não tem itens', primary: { action: 'add-items', label: 'Adicionar item' } };
     case 'review':
       return {
         hint: 'Gere o PDF do cliente e envie. Custo, BDI e margem não aparecem nele.',

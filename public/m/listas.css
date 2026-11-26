@@ -1,5 +1,8 @@
 /* Lista de propostas, painel, kits, catalogo, EXSAT, configuracoes, usuarios e ajuda no celular. So tokens de m.css. */
-.lst-acts { display: inline-flex; gap: 8px; }
+.lst-title-row { flex-wrap: wrap; }
+.lst-acts { display: inline-flex; align-items: center; gap: 8px; }
+.lst-acts > .chip-act, .lst-acts > .lst-new { min-height: 44px; }
+.lst-acts > .lst-new { padding-inline: 12px; white-space: nowrap; }
 .lst-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .lst-tools small { font-size: 12px; color: var(--n300); }
 .lst-rows { display: flex; flex-direction: column; }

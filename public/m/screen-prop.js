@@ -115,7 +115,7 @@
           : `<div class="empty">${icon('package', 28)}Nenhum item ainda.</div>`}</div>
         <div class="actions total-bar"><div class="tb-top"><small>Valor final${cost ? ` · BDI ${esc(OC.dec2(p.bdiMultiplier))}` : ''} · imp. ${esc(OC.dec2(p.taxPercentage || 0))}%</small></div>
           <div class="tb-mid"><b class="big">${esc(OC.money0(t.final))}</b>${cost ? `<small>Margem ${esc(OC.pct(t.margin))}</small>` : ''}</div>
-          ${can ? `<div class="tb-btns">${cost ? `<button class="btn2" type="button" data-bdi>${icon('percent', 18)}BDI e impostos</button>` : ''}<button class="btn" type="button" data-add>${icon('plus', 18)}Adicionar</button></div>` : ''}</div>`,
+          ${can ? `<div class="tb-btns"><button class="btn" type="button" data-add>${icon('plus', 18)}Adicionar item</button>${cost ? `<button class="tb-config" type="button" data-bdi>${icon('percent', 16)}BDI e impostos</button>` : ''}</div>` : ''}</div>`,
       bind(el) {
         const laborButton = OC.$('[data-labor]', el);
         if (laborButton) laborButton.addEventListener('click', () => OC.open('labor', { id: p.id }));

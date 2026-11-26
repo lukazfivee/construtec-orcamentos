@@ -217,7 +217,7 @@ export function ProposalItemsPanel({
             )}
             {!loading && proposal.items.length === 0 && (
               <tr className="empty-row">
-                <td colSpan={visibleColCount}>Nenhum item nesta proposta. Use “Inserir” para pesquisar no catálogo local.</td>
+                <td colSpan={visibleColCount}>Nenhum item nesta proposta. Use “Adicionar item” para pesquisar no catálogo local.</td>
               </tr>
             )}
             {loading && (

@@ -170,6 +170,14 @@ kbd {
 .new-proposal-dialog .wide, .new-proposal-dialog form > footer, .dialog-warning { grid-column: 1 / -1; }
 .new-proposal-dialog label > span { display: flex; align-items: center; gap: 6px; }
 .new-proposal-dialog label b { color: var(--tx-red-46); }
+.new-proposal-client-field { display: grid; align-self: start; min-width: 0; gap: 6px; }
+.new-proposal-client-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.new-proposal-client-search-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 24px; padding: 0 2px; border: 0; border-radius: 4px; background: none; color: var(--blue); cursor: pointer; font-size: calc(11px * var(--fs, 1)); font-weight: 600; }
+.new-proposal-client-search-toggle:disabled { color: var(--muted); cursor: not-allowed; }
+.new-proposal-client-search-toggle:focus-visible { outline: 2px solid var(--bd-cool-30); outline-offset: 2px; }
+.new-proposal-client-filter:not([hidden]) { display: grid; gap: 4px; }
+.new-proposal-client-feedback { color: var(--muted); font-size: calc(11px * var(--fs, 1)); }
+.new-proposal-client-feedback:empty { display: none; }
 .new-proposal-dialog input:where(:not([type="checkbox"], [type="radio"])), .new-proposal-dialog select { width: 100%; height: 38px; padding: 0 10px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 5px; outline: none; }
 .new-proposal-dialog input:where(:not([type="checkbox"], [type="radio"])):focus, .new-proposal-dialog select:focus { border-color: var(--bd-cool-30); box-shadow: 0 0 0 2px rgba(13, 127, 159, .12); }
 .new-proposal-dialog input:where(:not([type="checkbox"], [type="radio"])):disabled, .new-proposal-dialog select:disabled { background: var(--bg-cool-97); color: var(--muted); cursor: not-allowed; }
