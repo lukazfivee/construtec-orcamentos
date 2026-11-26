@@ -1,6 +1,16 @@
 # Construtec Orçamentos
 
-Aplicação desktop local-first para transformar catálogo, custos e mão de obra em propostas comerciais padronizadas da Construtec Engenharia.
+Módulo comercial da Suíte Construtec para transformar catálogo, custos e mão de obra em propostas padronizadas. Tem edição web e aplicativo Windows local-first.
+
+## Acesso oficial
+
+| Destino | Endereço |
+| --- | --- |
+| Orçamentos web no computador | [Abrir Orçamentos](https://orcamentos.rcconstrutec.online/) |
+| Orçamentos web no celular | [Abrir no celular](https://orcamentos.rcconstrutec.online/m/) |
+| Seletor de aplicativos | [Suíte Construtec](https://rcconstrutec.online/suite/) |
+
+Na edição web, entre com a conta da Suíte. Use estes domínios para compartilhar links com a equipe, não endereços técnicos dos Workers. Para instalar ou testar a edição Windows local, siga as instruções abaixo.
 
 ## Estado do projeto
 
@@ -22,7 +32,7 @@ A autenticação local individual está implementada com configuração do prime
 
 Backup e restauração controlados do banco local também estão implementados para administradores. O backup usa `PGlite.dumpDataDir('gzip')`. Na restauração, o arquivo é validado em um PGlite temporário antes de qualquer troca, o banco atual recebe um backup de emergência, a API é fechada, o data directory é substituído de forma controlada e o aplicativo reinicia. Se a carga do backup falhar, o diretório anterior é recolocado automaticamente antes do reinício.
 
-A próxima frente de evolução passa a ser integrações externas e sincronização opcional, preservando o princípio local-first e sem tornar a operação normal dependente de internet.
+Quando configurada, a integração envia propostas ao Centro de Custos e permite acompanhar os contratos. Essa troca depende de conexão; os recursos locais do aplicativo Windows não dependem dela.
 
 ## Executar localmente
 
@@ -67,13 +77,13 @@ npm run make:windows
 
 ## Princípios
 
-- funcionamento offline como padrão;
+- funcionamento offline nos recursos locais do aplicativo Windows;
 - zero dependência de IA nas rotinas do produto;
 - snapshot de preço e dados comerciais por item da proposta;
 - snapshot de cliente e obra por revisão da proposta;
 - separação rigorosa entre visão interna e documento do cliente;
 - revisões imutáveis, histórico e auditoria;
-- arquitetura preparada para futura integração ao Centro de Custos Construtec V3.
+- integração com o Centro de Custos sem tornar os recursos locais dependentes da nuvem.
 
 Consulte [PRODUCT.md](PRODUCT.md) para o contexto durável do produto.
 
