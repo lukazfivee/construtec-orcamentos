@@ -98,7 +98,10 @@ html[data-theme="escuro"] .tag.ok { background: #0f3320; color: #8fdca9; box-sha
 .tb-mid { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .tb-mid .big { font-size: 22px; }
 .tb-mid > span { display: grid; gap: 2px; }
-.tb-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.tb-btns { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.tb-btns .btn { flex: 1; min-width: 0; padding-inline: 10px; }
+.tb-config { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 0 6px; border: 0; border-radius: 8px; background: transparent; color: var(--n300); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.tb-config:active { background: var(--surface); }
 
 .timeline { display: flex; flex-direction: column; }
 .rev { width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border: 0; border-top: 1px solid var(--divider); background: transparent; text-align: left; }
@@ -124,6 +127,19 @@ html[data-theme="escuro"] .tag.ok { background: #0f3320; color: #8fdca9; box-sha
 .login-note { margin: 4px 0 0; font-size: 12.5px; color: var(--n300); text-align: center; }
 a.btn, a.btn2 { color: inherit; }
 a.btn { color: var(--on-accent); }
+
+/* Seletor de cliente da proposta: a busca fica disponível sem empurrar os demais campos. */
+.n-client-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.n-client-toggle.btn2 { justify-content: flex-start; min-width: 0; gap: 6px; padding-inline: 10px; text-align: left; }
+.n-client-toggle > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.n-client-toggle > .ico, .n-client-actions > .chip-act .ico { flex: none; }
+.n-client-actions > .chip-act, .n-client-picker > .chip-act { min-height: 44px; }
+.n-client-picker:not([hidden]) { display: grid; gap: 6px; }
+.n-client-results { max-height: 220px; overflow-y: auto; }
+.n-client-result.prow { min-height: 44px; padding: 7px 8px; }
+.n-client-result[aria-pressed="true"] { background: var(--accent-900); }
+.n-client-picker > .chip-act { justify-self: start; }
+.n-client-picker > .chip-act[hidden] { display: none; }
 
 /* Etapa 2: nova proposta, mao de obra, kits, painel, menu, configuracoes e clientes. */
 .opts { display: grid; gap: 8px; }

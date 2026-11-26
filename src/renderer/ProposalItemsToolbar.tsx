@@ -81,7 +81,7 @@ export function ProposalItemsToolbar({
   return (
     <div className="toolbar" aria-label="Ações dos itens">
       <button className="primary compact insert-toolbar-btn" type="button" disabled={!isEditable || mutationPending} onClick={onToggleCatalog}>
-        <Plus size={17} /> Inserir <ChevronDown size={14} />
+        <Plus size={17} /> Adicionar item <ChevronDown size={14} />
       </button>
       <button className="bulk-only" type="button" disabled={!isEditable || selectedItemIds.length === 0 || mutationPending} onClick={() => void actions.removeSelectedItems(selectedItemIds)}>
         <Trash2 size={16} /> Excluir

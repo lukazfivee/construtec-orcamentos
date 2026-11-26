@@ -1,5 +1,13 @@
 ﻿# Construtec Orçamentos — handoff operacional
 
+## 2026-11-25 21:54 BRT - Primeiras melhorias de proposta (Codex)
+
+- Base: `d59158ff0548620d268b9409b4aff7d65f0346ba` de `main`; patch em cópia isolada, não sincronizado.
+- Celular: seletor compacto com busca por nome fantasia/razão social, sem exigir acentos; mantém seleção e obra enquanto busca. Cadastro de cliente preservado. “Nova proposta” e “Adicionar item” identificados; BDI/impostos ficam como ação secundária com a mesma permissão.
+- Computador: filtro opcional mantém a seleção nativa e a obra atual; a ação de catálogo diz “Adicionar item”. Tabela, controles de preço e permissões preservados.
+- Validação: fluxo real de interface em Chromium local com API fictícia, em 320/390/768 px e renderer desktop em 1280/1440 px; Vite compilou. Sem gravação real; Electron instalado e iPhone físico não verificados. Próximo: revisar patch, completar verificação de integração antes de publicar.
+
+
 ## 2026-11-13 BRT - Fluxo de uso mais direto, computador e celular (Claude Code)
 
 - Base: `origin/main` depois do PR #248. Branch `feat/fluxo-mais-simples`, worktree em `C:\orc-mobile`.
