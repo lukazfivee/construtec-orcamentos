@@ -47,8 +47,11 @@ token no frontend. Depois usar login e sessão normais.
 ## Validação e publicação
 
 `npm run check` constrói a imagem e valida o Worker sem publicar.
-`npm run deploy` publica. Validar `/health`, login e operações com sessão,
-inclusive após reinício. O banco remoto recebe migrações na inicialização,
+`npm run deploy` publica. Use `/health` para monitorar apenas o Worker, sem
+acordar o Container ou o Neon. Para validar o banco depois de publicar, faça
+uma leitura autenticada (`/api/health` e uma proposta existente). Não configure
+verificações frequentes nessa rota profunda. O Cron da integração e o backup
+diário permanecem ativos; a fila rápida na nuvem só roda após sinal de trabalho. O banco remoto recebe migrações na inicialização,
 sem dados de demonstração. Dados locais existentes não são importados.
 
 Backup PGlite não se aplica ao PostgreSQL remoto. Configurar backup/retenção

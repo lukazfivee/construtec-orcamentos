@@ -81,7 +81,7 @@ const sameSecret = (provided: unknown, expected: string | null | undefined) => {
   return given.length === wanted.length && timingSafeEqual(given, wanted);
 };
 
-export const createApp = (rawDatabase: LocalDatabase, apiToken: string) => {
+export const createApp = (rawDatabase: LocalDatabase, apiToken: string, notifyOutbox?: () => void) => {
   const database = withQueryTiming(rawDatabase);
   const api = express();
   const cloud = getCloudSecurity();
@@ -212,10 +212,10 @@ export const createApp = (rawDatabase: LocalDatabase, apiToken: string) => {
   api.use('/api/proposals', createProposalTrackingRouter(database));
   api.use('/api/proposals', createProposalPriceDriftRouter(database));
   api.use('/api/proposals', createProposalDocumentRouter(database));
-  api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || '', Boolean(cloud)));
+  api.use('/api/proposals', createProposalClientLinkRouter(database, linkSecret, process.env.CONSTRUTEC_PUBLIC_URL || cloud?.allowedOrigins[0] || '', Boolean(cloud), notifyOutbox));
   api.use('/api/proposals', createProposalBodyRouter(database));
   api.use('/api/proposals', createProposalCustomItemsRouter(database));
-  api.use('/api/proposals', createProposalsRouter(database));
+  api.use('/api/proposals', createProposalsRouter(database, notifyOutbox));
   api.use('/api/kits', createKitsRouter(database));
   api.use('/api/settings', createBodySettingsRouter(database));
   api.use('/api/settings', createSettingsRouter(database));

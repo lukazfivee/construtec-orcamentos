@@ -42,8 +42,8 @@ export const failExhaustedOutbox = async (database: Pick<LocalDatabase, 'query'>
     [maxAttempts],
   )).rows.length;
 
-// Uma passada de reenvio da outbox. Roda a cada 30s enquanto o processo esta
-// vivo e, na nuvem, tambem pelo Cron do Worker (o Container dorme sem uso).
+// Uma passada de reenvio. No desktop roda a cada 30s; na nuvem, após sinal
+// de trabalho ou pelo Cron durável (o Container pode dormir sem uso).
 export const runOutboxRetryPass = async (
   database: Pick<LocalDatabase, 'query' | 'exec'>,
   maxAttempts = MAX_ATTEMPTS,
