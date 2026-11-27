@@ -57,6 +57,7 @@ const entryPoints = [
   'src/server/services/cloudOutboxRetry.test.ts',
   'src/renderer/proposal-deep-link.test.ts',
   'src/renderer/suite-session.test.ts',
+  'src/renderer/cloudNoticeRefresh.test.ts',
   'src/renderer/mobile-site.test.ts',
   'src/renderer/mobile-visual.test.ts',
   'src/renderer/mobile-assistant.test.ts',
