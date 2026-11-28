@@ -17,7 +17,7 @@ export const sendClientLinkError = (error: unknown, response: Response, next: (e
   next(error);
 };
 
-export const createProposalClientLinkRouter = (database: LocalDatabase, secret: string, publicBase: string, linksAvailable = true) => {
+export const createProposalClientLinkRouter = (database: LocalDatabase, secret: string, publicBase: string, linksAvailable = true, notifyOutbox?: () => void) => {
   const router = Router();
   const user = (response: Response) => response.locals.authUser as AuthUser;
   // O endereco (e o token que ele carrega) e credencial de aprovar: so quem tem p11 o recebe; os demais veem estado e visualizacoes.
@@ -51,6 +51,7 @@ export const createProposalClientLinkRouter = (database: LocalDatabase, secret: 
   router.post('/:proposalId/client-link/confirm', async (request, response, next) => {
     try {
       const result = await confirmClientApproval(database, idSchema.parse(request.params.proposalId), user(response).id, secret);
+      notifyOutbox?.();
       response.json({ proposal: result.proposal, ...body(result.link) });
     } catch (error) { sendClientLinkError(error, response, next); }
   });

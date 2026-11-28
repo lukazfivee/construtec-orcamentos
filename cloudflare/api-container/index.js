@@ -1,6 +1,7 @@
 import { Container } from '@cloudflare/containers';
 export { ContainerProxy } from '@cloudflare/containers';
 import { env } from 'cloudflare:workers';
+import { routeRequest } from './request-router.js';
 
 // Valores undefined viram a string "undefined" dentro do Container; omitir
 // as chaves opcionais nao configuradas mantem os fallbacks do servidor.
@@ -42,17 +43,7 @@ export class OrcamentosApi extends Container {
 }
 
 export default {
-  async fetch(request, bindings) {
-    const path = new URL(request.url).pathname;
-    if (path === '/health' || path.startsWith('/api/')) {
-      if (!bindings.DATABASE_URL || !bindings.SESSION_SECRET
-        || !bindings.CONSTRUTEC_SETUP_TOKEN || !bindings.CONSTRUTEC_ALLOWED_ORIGINS) {
-        return Response.json({ error: 'Serviço aguardando configuração.' }, { status: 503 });
-      }
-      return bindings.API.getByName('production').fetch(request);
-    }
-    return bindings.ASSETS.fetch(request);
-  },
+  fetch: routeRequest,
 
   // Reenvio da outbox para o Centro de Custos mesmo com o Container dormindo
   // (sleepAfter): o Cron acorda o Container e dispara uma passada.

@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { createApp, getCloudSecurity } from './createApp';
 import { verifyUserSession } from './services/auth';
 import { createDatabase } from './services/database';
-import { startOutboxRetryWorker } from './services/outboxRetryWorker';
+import { createOnDemandOutboxRetry } from './services/cloudOutboxRetry';
+import { runOutboxRetryPass, startOutboxRetryWorker } from './services/outboxRetryWorker';
 
 export type ApiRuntime = {
   url: string;
@@ -21,7 +22,8 @@ export const startApiServer = async (
   const cloud = getCloudSecurity();
   const database = await createDatabase(userDataPath, packagedModulePath);
   const token = process.env.CONSTRUTEC_API_TOKEN || randomUUID();
-  const api = createApp(database, token);
+  const cloudOutbox = cloud ? createOnDemandOutboxRetry(() => runOutboxRetryPass(database)) : undefined;
+  const api = createApp(database, token, cloudOutbox?.notify);
 
   const server = await new Promise<Server>((resolve, reject) => {
     const host = process.env.CONSTRUTEC_API_HOST || '127.0.0.1';
@@ -46,7 +48,7 @@ export const startApiServer = async (
     throw new Error('Não foi possível iniciar a API local.');
   }
 
-  const outboxWorker = startOutboxRetryWorker(database);
+  const outboxWorker = cloud ? undefined : startOutboxRetryWorker(database);
 
   return {
     url: `http://127.0.0.1:${address.port}`,
@@ -60,6 +62,7 @@ export const startApiServer = async (
       return user?.role === 'admin';
     },
     close: async () => {
+      cloudOutbox?.stop();
       clearInterval(outboxWorker);
       await new Promise<void>((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));

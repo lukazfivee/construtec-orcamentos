@@ -201,7 +201,8 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
     const previousIdentityUrl = process.env.CENTRO_CUSTOS_IDENTITY_URL;
     process.env.CENTRO_CUSTOS_IDENTITY_URL = `http://127.0.0.1:${centroAddress.port}`;
     forgetCachedSessions();
-    const server = createApp(database, 'test-only-local-token').listen(0, '127.0.0.1');
+    let outboxSignals = 0;
+    const server = createApp(database, 'test-only-local-token', () => { outboxSignals += 1; }).listen(0, '127.0.0.1');
     await new Promise<void>(resolve => server.once('listening', resolve));
     const address = server.address();
     assert.ok(address && typeof address !== 'string');
@@ -239,7 +240,9 @@ test('regras críticas com PGlite real e HTTP autenticado', async context => {
       const zip = Buffer.from(await word.arrayBuffer());
       assert.equal(zip.subarray(0, 2).toString('latin1'), 'PK');
       assert.equal((await request(`/proposals/${randomUUID()}/document.docx`, session(viewerId), 'GET')).status, 404);
+      assert.equal(outboxSignals, 0, 'leituras e aprovação negada não disparam o reenvio');
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'approved' })).status, 200);
+      assert.equal(outboxSignals, 1, 'aprovação confirmada agenda reenvio rápido');
       assert.equal((await request(`/proposals/${id}/status`, session(userId), 'PATCH', { status: 'draft' })).status, 409);
       assert.equal((await request(`/proposals/${id}`, session(userId), 'DELETE')).status, 409);
       const response = await request(`/proposals/${id}/revisions`, session(userId));

@@ -83,7 +83,7 @@ const actor = (response: { locals: { authUser?: AuthUser } }) => {
   return user;
 };
 
-export const createProposalsRouter = (database: LocalDatabase) => {
+export const createProposalsRouter = (database: LocalDatabase, notifyOutbox?: () => void) => {
   const router = Router();
 
   router.get('/current', async (_request, response, next) => {
@@ -141,6 +141,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
         }
       }
       const proposal = await updateProposalStatus(database, proposalId, status, actor(response).id);
+      if (status === 'approved') notifyOutbox?.();
       response.json({ proposal });
     } catch (error) { next(error); }
   });
@@ -332,6 +333,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const result = await exportProposalIntegration(database, proposalId, actor(response).id);
+      notifyOutbox?.();
       response.json(result);
     } catch (error) { next(error); }
   });
@@ -340,6 +342,7 @@ export const createProposalsRouter = (database: LocalDatabase) => {
     try {
       const proposalId = idSchema.parse(request.params.proposalId);
       const result = await syncProposalDirectly(database, proposalId, actor(response).id);
+      if (result.status === 'offline') notifyOutbox?.();
       response.json(result);
     } catch (error) { next(error); }
   });

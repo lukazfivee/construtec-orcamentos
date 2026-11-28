@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import { Pool } from 'pg';
 import { createDatabase, type LocalDatabase } from './database';
@@ -24,7 +25,17 @@ test('PostgreSQL real: migrations, transações, serviços e persistência', {
     process.env.DATABASE_URL = url.toString();
     const database = await createDatabase('unused-remote-test');
     databases.push(database);
-    assert.equal((await database.query<{ count: number }>('SELECT count(*)::int AS count FROM schema_migrations')).rows[0].count, 10);
+    const migrationVersions = readdirSync('src/server/migrations')
+      .flatMap(file => {
+        const match = /^(\d+)-.+\.ts$/.exec(file);
+        return match ? [Number(match[1])] : [];
+      })
+      .sort((a, b) => a - b);
+    assert.ok(migrationVersions.length > 0, 'arquivos de migração encontrados no repositório');
+    const appliedVersions = async (db: LocalDatabase) => (await db.query<{ version: number }>(
+      'SELECT version FROM schema_migrations ORDER BY version',
+    )).rows.map(row => row.version);
+    assert.deepEqual(await appliedVersions(database), migrationVersions);
     assert.equal((await database.query<{ count: number }>('SELECT count(*)::int AS count FROM users')).rows[0].count, 0);
     assert.equal((await database.query<{ count: number }>('SELECT count(*)::int AS count FROM proposals')).rows[0].count, 0);
     await assert.rejects(database.dumpDataDir('gzip'), /REMOTE_BACKUP_UNSUPPORTED/);
@@ -59,6 +70,7 @@ test('PostgreSQL real: migrations, transações, serviços e persistência', {
     // Simula reinício: novo pool, migrations idempotentes, dados preservados.
     const reopened = await createDatabase('unused-remote-test');
     databases.push(reopened);
+    assert.deepEqual(await appliedVersions(reopened), migrationVersions);
     assert.equal((await listClients(reopened))[0].id, clientId);
     assert.equal((await getProposalById(reopened, proposalId))?.id, proposalId);
     const concurrent = createPostgresDatabase(url.toString());

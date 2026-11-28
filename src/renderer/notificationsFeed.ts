@@ -1,7 +1,8 @@
 // Avisos da Suite no computador: a mesma central do celular (public/m/screen-avisos.js). Os avisos ficam no Worker do Centro e o
 // servidor do Orcamentos repassa com a sessao do usuario (GET /api/notifications, POST /api/notifications/read).
 import { useCallback, useEffect, useState } from 'react';
-import { apiRequest } from './api';
+import { apiRequest, isCloudRuntime } from './api';
+import { startCloudNoticeRefresh } from './cloudNoticeRefresh';
 
 export type SuiteNotice = { id: string; type: string; app: string; title: string; body: string; link: string | null; createdAt: string; read: boolean };
 type Feed = { items?: SuiteNotice[]; unread?: number };
@@ -24,13 +25,14 @@ export const noticeGroup = (iso: string, now = new Date()) => {
 };
 export const noticeHour = (iso: string) => new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-// Contador do sino: le ao abrir o app, ao voltar para a janela e a cada 2 minutos; sem central, o sino fica sem numero.
+// Na nuvem, sem consultas periódicas quando ninguém está usando a interface.
 export function useNoticeCount() {
   const [unread, setUnread] = useState(0);
   const refresh = useCallback(() => {
     void noticesApi.list(1).then((feed) => setUnread(Number(feed.unread) || 0)).catch(() => undefined);
   }, []);
   useEffect(() => {
+    if (isCloudRuntime()) return startCloudNoticeRefresh(document, window, refresh);
     refresh();
     const onVisible = () => { if (!document.hidden) refresh(); };
     document.addEventListener('visibilitychange', onVisible);
